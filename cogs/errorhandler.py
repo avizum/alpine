@@ -30,6 +30,7 @@ class ErrorHandler(commands.Cog):
 
         if isinstance(error, commands.MissingRequiredArgument):
             ctx.command.reset_cooldown(ctx)
+            await ctx.send(ctx.command.name)
 
         if isinstance(error, commands.CommandNotFound):
             print("Unknown command called, returning\n------")

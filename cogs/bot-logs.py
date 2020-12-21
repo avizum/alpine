@@ -26,15 +26,13 @@ class BotLogs(commands.Cog):
         elif message.attachments:
             channel = discord.utils.get(self.avibot.get_all_channels(),  name='chat-logs')
             mcontent=message.attachments[0].url
-            embed=discord.Embed()
-            embed.add_field(name=f'{message.guild}: <#{message.channel.id}>', value=f'{message.author}:', inline=False)
+            embed=discord.Embed(title=f"Image from {message.author}, Server {message.guild}", timestamp=datetime.datetime.utcnow())
             embed.set_image(url=f'{mcontent}')
             await channel.send(embed=embed)
         elif message.content:
             channel = discord.utils.get(self.avibot.get_all_channels(),  name='chat-logs')
             mcontent=message.content
-            embed=discord.Embed(title=f'{message.guild}:', description=f'Message sent in <#{message.channel.id}>')
-            embed.add_field(name=f'Message content:', value=f'**{message.author.display_name}**: `{mcontent}`', inline=False)
+            embed=discord.Embed(title=f"Message from {message.author}, Server {message.guild}", description=f"`{mcontent}`",timestamp=datetime.datetime.utcnow())
             await channel.send(embed=embed) 
 
 #Message Edit

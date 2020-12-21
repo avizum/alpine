@@ -119,9 +119,9 @@ async def reloadErr(ctx, error):
         noreloadperm.add_field(name="<:aviError:777096756865269760> No Permission", value="You do not have have the required permissions to use the `a.reload` command.", inline=False)
         await ctx.send(embed=noreloadperm)
 
-class EmbedHelpCommand(commands.HelpCommand):
+class HCEmbed(commands.HelpCommand):
     def get_ending_note(self):
-        return 'Use {0}{1} [command] for more info on a command.'.format(self.clean_prefix, self.invoked_with)
+        return 'Use {0}{1} [command] for more info on a command.\nUse {0}{1} [module] for more info on a module.'.format(self.clean_prefix, self.invoked_with)
 
     def get_command_signature(self, command):
         return '{0.qualified_name} {0.signature}'.format(command)
@@ -170,11 +170,17 @@ class EmbedHelpCommand(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
 
     async def send_command_help(self, command):
-        embed=discord.Embed(title="Command: {0.qualified_name}".format(command))
+        embed=discord.Embed(title="Command: {0.qualified_name}".format(command), timestamp=datetime.datetime.utcnow())
         embed.add_field(name=self.get_command_signature(command), value=command.short_doc or '---', inline=False)
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
-avibot.help_command = EmbedHelpCommand()
+    
+    async def command_not_found(self, command):
+        embed=discord.Embed(title="Help command", timestamp=datetime.datetime.utcnow())
+        embed.add_field(name=f"Command does not exist",value="Command '{0}' is not a command. Make sure you spelled it correctly.".format(command))
+        embed.set_footer(text=self.get_ending_note())
+        await self.get_destination().send(embed=embed)
+avibot.help_command = HCEmbed()
 
 #Log-In
 avibot.run(avitoken, bot=True)
