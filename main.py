@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 avitoken = os.getenv('Bot_Token')
 avitoken2 = os.getenv('Bot_Token2')
+avitoken3 = os.getenv('Bot_Token3')
 
 #Command Prefix and Intents
 
@@ -81,17 +82,6 @@ async def unload(ctx, extension):
         nounload=discord.Embed()
         nounload.add_field(name="<:aviError:777096756865269760> Not Loaded",value=f"The **{extension}** module is not loaded. You can not unload an unloaded module.")
         await ctx.send(embed=nounload)
-@unload.error
-async def unloadErr(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        mra=discord.Embed(title="Command: Unload")
-        mra.add_field(name="Description:", value="Unloads a module if it is being abused or if something goes wrong.", inline=False)
-        mra.add_field(name="Example:", value="`a.unload [module]`")
-        await ctx.send(embed=mra)
-    if  isinstance(error, commands.MissingPermissions):
-        nounloadperm=discord.Embed()
-        nounloadperm.add_field(name="<:aviError:777096756865269760> No Permission", value="You do not have have the required permissions to use the `a.unload` command.", inline=False)
-        await ctx.send(embed=nounloadperm)
 
 #Reload Command
 @avibot.command(brief="Reload module", description="If a module is not working properly, use reload to get it to work again.")
@@ -106,22 +96,10 @@ async def reload(ctx, extension):
         noreload=discord.Embed()
         noreload.add_field(name="<:aviError:777096756865269760> Not Loaded", value=f"The **{extension}** module is not loaded. You can not reload a module that is not loaded.")
         await ctx.send(embed=noreload)
-    
-@reload.error
-async def reloadErr(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        mra=discord.Embed(title="Command: Reload")
-        mra.add_field(name="Description:", value="Reloads a module if it is not working correctly.", inline=False)
-        mra.add_field(name="Example:", value="`a.reload [module]`")
-        await ctx.send(embed=mra)
-    if  isinstance(error, commands.MissingPermissions):
-        noreloadperm=discord.Embed()
-        noreloadperm.add_field(name="<:aviError:777096756865269760> No Permission", value="You do not have have the required permissions to use the `a.reload` command.", inline=False)
-        await ctx.send(embed=noreloadperm)
 
 class HCEmbed(commands.HelpCommand):
     def get_ending_note(self):
-        return 'Use {0}{1} [command] for more info on a command.\nUse {0}{1} [module] for more info on a module.'.format(self.clean_prefix, self.invoked_with)
+        return '• Use {0}{1} [command] for more info on a command.\n• Use {0}{1} [module] for more info on a module.\n '.format(self.clean_prefix, self.invoked_with)
 
     def get_command_signature(self, command):
         return '{0.qualified_name} {0.signature}'.format(command)
@@ -183,4 +161,4 @@ class HCEmbed(commands.HelpCommand):
 avibot.help_command = HCEmbed()
 
 #Log-In
-avibot.run(avitoken, bot=True)
+avibot.run(avitoken, bot=True) #187

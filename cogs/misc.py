@@ -4,6 +4,8 @@ from discord.ext import commands
 import asyncio
 import random
 import json
+import datetime
+import subprocess
 
 class Miscellaneous(commands.Cog):
     
@@ -93,14 +95,6 @@ class Miscellaneous(commands.Cog):
         for reaction in reactions[:len(options)]:
             await react_message.add_reaction(reaction)
 
-    @poll.error
-    async def pollErr(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            pollusage=discord.Embed(title="Command: Poll")
-            pollusage.add_field(name="Description:", value="Creates a poll for users to vote to. (You can have up to 10 options)", inline=False)
-            pollusage.add_field(name="Example:", value='a.poll "**question**" "**option1**" "**option2**"')
-            await ctx.send(embed=pollusage)
-
     #Request Nick command
     @commands.command(brief="Requests a new nick name.")
     async def requestnick(self, ctx, rqnick):
@@ -109,8 +103,23 @@ class Miscellaneous(commands.Cog):
         rq.add_field(name="Request Nickname", value=f"Your request has been sent. \nRequested Nickname: `{rqnick}`")
         ap=discord.Embed()
         ap.add_field(name="Incoming Request", value=f"{ctx.author.mention} requested to change their nickname to `{rqnick}` \nIf you want to change their nickname, use the command below to change their nickname \n`a.cnick {ctx.author.id} {rqnick}`")
-        await ctx.send(embed=rq)
+        await ctx.send(embed=rq, delete_after=5)
         await channels.send(embed=ap)
+
+    @commands.command(brief="Gets a member's information", enabled=False)
+    async def info(self, ctx, *, member : discord.Member):
+        ie = discord.Embed(title="User Info", description=f"User Information for {member.mention}:\n\n **Username:** {member.name}#{member.discriminator}\n**Nickname:** {member.nick}\n **Join Date:** {member.joined_at}\n**Roles** {member.roles}",timestamp=datetime.datetime.utcnow())
+        ie.set_thumbnail(url=member.avatar_url)
+        ie.add_field(name="Server Permissions", value="permissions")
+        await ctx.send(embed=ie)
+
+    @commands.command()
+    @commands.is_owner()
+    async def pull(self, ctx):
+        command = 'git clone git@github.com:jbkn/avimetry'
+        process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+        output, error = process.communicate()
+
 def setup(avibot):
     avibot.add_cog(Miscellaneous(avibot))
 

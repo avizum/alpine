@@ -9,7 +9,7 @@
 
 **1.3** This server is an English speaking server and English will be the only language spoken here. Please do not use any other languages as it will be hard to moderate.
 
-**1.4** Spamming is not allowed and you will be auto-muted. If you keep spamming, Your mute time will increase exponentially by 5. After five times, You will be temporarily banned. Spamming includes: Sending the same message more than one time, a message containing more than 5 lines, and bypassing the filter will lead to further moderation actions.
+**1.4** Spamming is not allowed and you will be auto-muted for 5 minutes. If you keep spamming, you may be kicked. Spamming includes: Sending the same message more than one time, a message containing more than 5 lines, and __bypassing the filter__ will lead to further moderation actions. 
 
 **1.5**  Self-bots are not allowed and you will be immediately banned if caught.
 

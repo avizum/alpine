@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import random
 import datetime
+import json
 
 class BotLogs(commands.Cog):
 
@@ -11,9 +12,13 @@ class BotLogs(commands.Cog):
 #Message Logger
     @commands.Cog.listener()
     async def on_message(self, message):
+        with open("files/prefixes.json", "r") as f:
+                prefixes = json.load(f)
+        global pre
+        pre = prefixes[str(message.guild.id)]
         if message.author == self.avibot.user:
             return
-        elif message.author == message.author.bot:
+        elif message.author.bot:
             return
         elif message.channel == discord.utils.get(self.avibot.get_all_channels(), name='secret-chat'):
             return
@@ -21,7 +26,7 @@ class BotLogs(commands.Cog):
             return
         elif message.guild is None:
             return
-        elif message.author == message.author.bot:
+        elif message.content.startswith(pre):
             return
         elif message.attachments:
             channel = discord.utils.get(self.avibot.get_all_channels(),  name='chat-logs')
@@ -41,17 +46,28 @@ class BotLogs(commands.Cog):
         channel = discord.utils.get(self.avibot.get_all_channels(), name='bot-logs')
         if message_before.author == self.avibot.user:
             return
+        elif message_before.content.startswith(pre):
+            return
+        elif message_after.content.startswith(pre):
+            return
         elif message_before.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
             return 
-        elif message_before.author == message_before.author.bot:
+        elif message_before.author.bot:
             return
         elif message_before.attachments:
              return
         else:
-            editembed=discord.Embed(title='Message Edit', description=f'A message from {message_before.author.mention} was edited. Information is below.')
-            editembed.add_field(name='Original Message:', value=f'`{message_before.content}`', inline=False)
-            editembed.add_field(name='Edited Message:', value=f'`{message_after.content}`', inline=False)
-            await channel.send(embed=editembed)
+            try:
+                editembed=discord.Embed(title='Message Edit', description=f'A message from {message_before.author.mention} was edited. Information is below.')
+                editembed.add_field(name='Original Message:', value=f'`{message_before.content}`', inline=False)
+                editembed.add_field(name='Edited Message:', value=f'`{message_after.content}`', inline=False)
+                await channel.send(embed=editembed)
+            except discord.HTTPException:
+                editembed2=discord.Embed(title='Message Edit', description=f'A message from {message_before.author.mention} was edited. Information is below.')
+                editembed2.add_field(name='Original Message Error:', value="Message is too long", inline=False)
+                editembed2.add_field(name='Edited Message Error:', value="Message is too long", inline=False)
+                await channel.send(embed=editembed2)
+
 
 #Message Delete
     @commands.Cog.listener()
@@ -59,26 +75,32 @@ class BotLogs(commands.Cog):
         channel = discord.utils.get(self.avibot.get_all_channels(), name='bot-logs')
         if message.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
             return
-        elif message.author==message.author.bot:
+        elif message.author.bot:
             return
         elif message.author == self.avibot.user:
             return
-        elif message.content.startswith == "a.":
+        elif message.content.startswith(pre):
             return
         elif message.attachments:
             pdelembed=discord.Embed(title='Message Delete', description=f'An image from {message.author.mention} was deleted. Information is below.')
             pdelembed.add_field(name='Message Delete', value=f'An attachment from {message.author.mention} was deleted. However, deleted messages can not be logged.', inline=False)
             await channel.send(embed=pdelembed)
         else:
-            delembed=discord.Embed(title='Message Delete', description=f'A message from {message.author.mention} was deleted. The deleted message is below.')
-            delembed.add_field(name='Deleted Message:', value=f'`{message.content}`', inline=False)
-            await channel.send(embed=delembed)
+            try:
+                delembed=discord.Embed(title='Message Delete', description=f'A message from {message.author.mention} was deleted. The deleted message is below.')
+                delembed.add_field(name='Deleted Message:', value=f'`{message.content}`', inline=False)
+                await channel.send(embed=delembed)
+            except discord.HTTPException:
+                delembed2=discord.Embed(title='Message Delete', description=f'A message from {message.author.mention} was deleted.')
+                delembed2.add_field(name='Deleted Message Error:', value=f'Message is too long!', inline=False)
+                await channel.send(embed=delembed2)
+                
 #Bulk delete
     @commands.Cog.listener()
     async def on_bulk_message_delete(self, messages):
         channel = discord.utils.get(self.avibot.get_all_channels(), name='bot-logs')
         purgeembed=discord.Embed(title='Message Purge', description=f'Bulk delete detected. Information is below.')
-        purgeembed.add_field(name='Detected in:', value="here {}".format(len(messages)))
+        purgeembed.add_field(name='Affected messages:', value="{} messages".format(len(messages)))
         await channel.send(embed=purgeembed)
 
 

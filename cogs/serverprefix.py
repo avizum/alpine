@@ -52,11 +52,6 @@ class ServerPrefix(commands.Cog):
             nopperm=discord.Embed()
             nopperm.add_field(name="<:aviError:777096756865269760> No Permission", value="You do not have have the required permissions to use the `a.setprefix` command.", inline=False)
             await ctx.send(embed=nopperm)
-        if isinstance(error, commands.MissingRequiredArgument):
-            spna=discord.Embed(title="Command: setprefix")
-            spna.add_field(name="Description:", value="Sets the prefix of the server.", inline=False)
-            spna.add_field(name="Example:", value='a.setprefix ["new prefix"]', inline=False)
-            await ctx.send(embed=spna)
         
 
 

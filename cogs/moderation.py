@@ -36,14 +36,6 @@ class Moderation(commands.Cog):
             pe.set_footer(text="This message will be deleted in 15 seconds.")
             await ctx.send(embed=pe, delete_after=15)
 
-    @purge.error
-    async def purgeErr(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            purgeusage=discord.Embed(title="Command: Purge")
-            purgeusage.add_field(name="Description: ", value="Delete a number of messages in the current channel", inline=False)
-            purgeusage.add_field(name="Example:", value="`a.purge [amount]`", inline=False)
-            await ctx.send(embed=purgeusage)
-
 #Lock Channel Command
 
     @commands.command(brief="Locks the mentioned channel.", timestamp=datetime.datetime.utcnow())
@@ -53,13 +45,6 @@ class Moderation(commands.Cog):
         lc=discord.Embed()
         lc.add_field(name=":lock: Channel has been locked.", value=f"{ctx.author.mention} has locked down <#{channel.id}> with the reason of {reason}. Only Staff members can speak now.")
         await channel.send(embed=lc)
-    @lock.error
-    async def lockErr(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            lmra=discord.Embed(title="Command: Lock")
-            lmra.add_field(name="Description", value="Locks the mentioned channel.", inline=False)
-            lmra.add_field(name="Example:", value="a.lock [#channel]", inline=False)
-            await ctx.send(embed=lmra)
 
 #Unlock Channel command
     @commands.command(brief="Unlocks the mentioned channel.", timestamp=datetime.datetime.utcnow())
@@ -70,14 +55,6 @@ class Moderation(commands.Cog):
         uc.add_field(name=":unlock: Channel has been unlocked.", value=f"{ctx.author.mention} has unlocked <#{channel.id}> with the reason of {reason}. Everyone can speak now.")
         await channel.send(embed=uc)
     
-    @unlock.error
-    async def unlockErr(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            ulmra=discord.Embed(title="Command: Unlock")
-            ulmra.add_field(name="Description", value="Unlocks the mentioned channel.", inline=False)
-            ulmra.add_field(name="Example:", value="a.unlock [#channel]", inline=False)
-            await ctx.send(embed=ulmra)
-
 #Kick Command
     @commands.command(brief="Kicks a member from the server.")
     @commands.has_permissions(kick_members=True)
@@ -99,17 +76,15 @@ class Moderation(commands.Cog):
             mtretatr.add_field(name="<:aviError:777096756865269760> No Permission", value="You can not kick someone that has the same role as you. They must have a role under you.", inline=False)
             await ctx.send(embed=mtretatr)
         else:
+            bae=discord.Embed(title=f"You have been kicked from {ctx.guild.name}", timestamp=datetime.datetime.utcnow())
+            bae.add_field(name= "Moderator:", value=f"{ctx.author.mention} \n`{ctx.author.id}`")
+            bae.add_field(name="Reason:", value=f"{reason}")
+            await member.send(embed=bae)
             await member.kick(reason=reason)
             kickembed=discord.Embed()
             kickembed.add_field(name="<:aviSuccess:777096731438874634> Kick Member", value=f"**{member}** has been kicked from the server.", inline=False)
             await ctx.send(embed=kickembed)
-    @kick.error
-    async def kickErr(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            kickusage=discord.Embed(title="Command: Kick")
-            kickusage.add_field(name="Description: ", value="Kicks a member from the server.", inline=False)
-            kickusage.add_field(name="Example:", value="`a.kick [@Member] [Reason]`", inline=False)
-            await ctx.send(embed=kickusage)
+
 #Ban Command
     @commands.command(brief="Bans a member from the server")
     @commands.has_permissions(ban_members=True)
@@ -140,14 +115,6 @@ class Moderation(commands.Cog):
             banembed=discord.Embed()
             banembed.add_field(name="<:aviSuccess:777096731438874634> Ban Member", value=f"{member.mention} (`{member.id}`) has been banned from **{ctx.guild.name}**.", inline=False)
             await ctx.send(embed=banembed)
-    @ban.error
-    async def banErr(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            banusage=discord.Embed(title="Command: Ban")
-            banusage.add_field(name="Description:", value="Bans a member from the server", inline=False)
-            banusage.add_field(
-                name="Example:", value="`a.ban [@Member] [reason]`", inline=False)
-            await ctx.send(embed=banusage)
 
 #Unban Command
     @commands.command(brief="Unbans a member from the server.")
@@ -158,33 +125,23 @@ class Moderation(commands.Cog):
         unbanenmbed=discord.Embed()
         unbanenmbed.add_field(name="<:aviSuccess:777096731438874634> Unban Member", value=f"Unbanned <@{userid}> ({userid}) from **{ctx.guild.name}**.", inline=False)
         await ctx.send(embed=unbanenmbed)
-    @unban.error
-    async def unbanErr(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            unbanusage=discord.Embed(title="Command: Unban")
-            unbanusage.add_field(name="Description:", value="Unbans a member from the server", inline=False)
-            unbanusage.add_field(name="Example:", value="`a.unban [user#discriminator]`", inline=False)
-            await ctx.send(embed=unbanusage)
+
 
 #CNick Command
     @commands.command(brief="Changes a member's nickname.")
     @commands.has_permissions(kick_members=True)
     async def cnick(self, ctx, member: discord.Member, *,nick):
-        oldnick=member.display_name
-        await member.edit(nick=nick)
-        newnick=member.display_name
-        nickembed=discord.Embed(title="<:aviSuccess:777096731438874634> Nickname Changed")
-        nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
-        nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
-        await ctx.send(embed=nickembed)
-    @cnick.error
-    async def cnickErr(self, ctx, error):
+        if ctx.channel.id != 787942179310010368:
+            await ctx.send("This command can only be used in <#787942179310010368>.")
+        else:
+            oldnick=member.display_name
+            await member.edit(nick=nick)
+            newnick=member.display_name
+            nickembed=discord.Embed(title="<:aviSuccess:777096731438874634> Nickname Changed")
+            nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
+            nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
+            await ctx.send(embed=nickembed)
 
-        if isinstance(error, commands.MissingRequiredArgument):
-            cnickusage=discord.Embed(title="Command: CNick")
-            cnickusage.add_field(name="Description:", value="Changes a member's nickname", inline=False)
-            cnickusage.add_field(name="Example:", value="`a.cnick [@Member] [NewNickname]`", inline=False)
-            await ctx.send(embed=cnickusage)
 
 #RNick Command
     @commands.command(brief="Restores a member's nick name to their username.")
@@ -198,13 +155,7 @@ class Moderation(commands.Cog):
         nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
-    @rnick.error
-    async def rnickErr(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            rnu=discord.Embed(title="Command: RNick")
-            rnu.add_field(name="Description:", value="Restores a member's nick name to their username.", inline=False)
-            rnu.add_field(name="Example:", value="`a.rnick [@Member]`")
-            await ctx.send(embed=rnu)
+
     
 #Slowmode Command
     @commands.command(brief="Sets the slowmode in the current channel.")
@@ -214,10 +165,7 @@ class Moderation(commands.Cog):
         smembed=discord.Embed()
         smembed.add_field(name="<:aviSuccess:777096731438874634> Set Slowmode", value=f"Slowmode delay is now set to {seconds} seconds.")
         await ctx.send(embed=smembed)
-    @slowmode.error
-    async def slowmodeErr(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            print("sad")
+
 #Role Command
     @commands.command(brief="Gives or removes a role from a member.")
     @commands.has_permissions(kick_members=True)
@@ -226,10 +174,7 @@ class Moderation(commands.Cog):
             await ctx.send("added")
         elif addremove == '-':
             await ctx.send("removed")  
-    @role.error
-    async def roleErr(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            print("sad")
+
     
 #mute command
     @commands.command(brief="Mutes a member.")

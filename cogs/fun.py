@@ -23,12 +23,6 @@ class Fun(commands.Cog):
         ballembed.add_field(name="Question:", value=f"{question}", inline=False)
         ballembed.add_field(name="Answer:", value=f"{random.choice(responses)}", inline=False)
         await ctx.send(embed=ballembed)
-    @eightball.error
-    async def purgeErr(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            _8busage=discord.Embed()
-            _8busage.add_field(name="Usage: a.8b", value="a.8b [question]")
-            await ctx.send(embed=_8busage)
 
 #Roll Dice
     @commands.group(brief="Roll a dice!")
@@ -95,7 +89,10 @@ class Fun(commands.Cog):
                 await discord.Member.add_roles(member, role)
         else:    
             if member == ctx.author:
-                await ctx.send(f"{ctx.author.mention} tried to kill themself, but it didn't seem to work.")
+                if role in member.roles:
+                    await ctx.send(f"{ctx.author.mention} tried to kill himself, but he is already dead.")
+                else:
+                    await ctx.send(f"{ctx.author.mention} tried to kill themself, but it didn't seem to work.")
             else:
                 if role in member.roles:
                     await ctx.send(f"{ctx.author.mention} tried killing someone that is already is dead. How sad.")
@@ -113,11 +110,11 @@ class Fun(commands.Cog):
         role = discord.utils.get(member.guild.roles, name='Dead')
         await ctx.message.delete()
         if role in member.roles:
-            ye = await ctx.send(f'{ctx.author.mention} tried killing themselves even though they are dead. How is that even possible? \n(If you are having the thoughts of commiting suicide, please call +1 (800) 273-8255 or go to https://suicidepreventionlifeline.org. Otherwise, please ask a friend or a loved one for help.)')
+            ye = await ctx.send(f'{ctx.author.mention} tried killing themselves even though they are dead. How is that even possible? \n||(If you are having the thoughts of commiting suicide, please call +1 (800) 273-8255 or go to https://suicidepreventionlifeline.org. Otherwise, please ask a friend or a loved one for help.)||')
             await asyncio.sleep(30)
             await ye.edit(content=f"{ctx.author.mention} tried killing themselves even though they are dead. How is that even possible?")
         else: 
-            ye2 = await ctx.send(content=f"{ctx.author.mention} commited death \n(If you are having the thoughts of commiting suicide, please call +1 (800) 273-8255 or go to https://suicidepreventionlifeline.org. Otherwise, please speak to a friend or a loved one for help.)")
+            ye2 = await ctx.send(content=f"{ctx.author.mention} commited death. \n||(If you are having the thoughts of commiting suicide, please call +1 (800) 273-8255 or go to https://suicidepreventionlifeline.org. Otherwise, please speak to a friend or a loved one for help.)||")
             await asyncio.sleep(30)
             await ye2.edit(f"{ctx.author.mention} commited death.")
             time.sleep(0.5)
@@ -163,15 +160,6 @@ class Fun(commands.Cog):
     async def say(self, ctx, *, botsay):
         await ctx.send(f'{botsay}')
 
-    @say.error
-    async def sayErr(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            rc=discord.Embed(title="Command: revive")
-            rc.add_field(name="Description:", value="Revives a person", inline=False)
-            rc.add_field(name="Example:", value=f"`{pre}revive [user]`", inline=False)
-            rc.add_field(name="Cooldown:", value="Thirty second cooldown", inline=False)
-            await ctx.send(embed=rc)
-
 #Delete Say Command
     @commands.command(brief="You can make me say whatever you please, but I delete your message so it looks like I sent it!")
     @commands.cooldown(1, 120, commands.BucketType.member)
@@ -197,13 +185,6 @@ class Fun(commands.Cog):
                     await ctx.send(f"Stop that **{memberrr.display_name},** you can't skin him.")
                 else:
                     await ctx.send(f'{member.mention} was skinned.')
-    @skin.error
-    async def skinErr(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            sc=discord.Embed(title="Command: skin")
-            sc.add_field(name="Description:", value="Skins a person", inline=False)
-            sc.add_field(name="Example:", value=f"{pre}skin [user]", inline=False)
-            await ctx.send(embed=sc)
 
     @commands.command(aliases=['sd'], brief="Self destruct? Who put that button there?")
     async def selfdestruct(self, ctx):

@@ -29,12 +29,18 @@ class ErrorHandler(commands.Cog):
             await ctx.send(embed=np, delete_after=10)
 
         if isinstance(error, commands.MissingRequiredArgument):
+            prefix= await self.avibot.get_prefix(ctx.message)
             ctx.command.reset_cooldown(ctx)
-            await ctx.send(ctx.command.name)
+            cu = discord.Embed(title=f"Command: {ctx.command.name}")
+            cu.add_field(name=f"Usage:", value=f"**{prefix}{ctx.command.name} {ctx.command.signature}**\n{ctx.command.brief}" or "No description.", inline=False)
+            cu.set_footer(text=f"If you need help, use '{prefix}help'. \nThe help command has all the information.")
+            await ctx.send(embed=cu, delete_after=15)
 
         if isinstance(error, commands.CommandNotFound):
-            print("Unknown command called, returning\n------")
+            return
 
+        if isinstance(error, commands.DisabledCommand):
+            await ctx.send("This command is disabled. The command will be enabled when the command is done.")
 
 
 def setup(avibot):
