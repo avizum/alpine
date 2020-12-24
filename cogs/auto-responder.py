@@ -16,13 +16,13 @@ class AutoResponder(commands.Cog):
         if message.author == self.avibot.user:
             return
         if message.content == '<@!756257170521063444>':
-            with open("files/prefixes.json", "r") as f:
+            with open("avimetry/files/prefixes.json", "r") as f:
                 prefixes = json.load(f)
 
             pre = prefixes[str(message.guild.id)]
             await message.channel.send(f"Hey, {message.author.mention}, my prefix is `{pre}`")
         if message.channel.id == 787942299854045184:
-            with open("files/prefixes.json", "r") as f:
+            with open("avimetry/files/prefixes.json", "r") as f:
                 prefixes = json.load(f)
 
             pre = prefixes[str(message.guild.id)]

@@ -12,7 +12,7 @@ class BotLogs(commands.Cog):
 #Message Logger
     @commands.Cog.listener()
     async def on_message(self, message):
-        with open("files/prefixes.json", "r") as f:
+        with open("avimetry/files/prefixes.json", "r") as f:
                 prefixes = json.load(f)
         global pre
         pre = prefixes[str(message.guild.id)]

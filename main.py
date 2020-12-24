@@ -22,12 +22,13 @@ def prefix(client, message):
     if message.guild is None:
         return [str("a.")]
     else:
-        with open("files/prefixes.json", "r") as f:
+        with open("avimetry/files/prefixes.json", "r") as f:
             prefixes = json.load(f)
         return prefixes[str(message.guild.id)]
 
 intents=discord.Intents.all()
 avibot = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=intents)
+avibot.launch_time = datetime.datetime.utcnow()
 
 #No Commands in DMs
 @avibot.check
@@ -35,67 +36,18 @@ async def globally_block_dms(ctx):
     return ctx.guild is not None
 
 #Load Cogs
-for filename in os.listdir('./cogs'):
+for filename in os.listdir('./avimetry/cogs'):
     if filename.endswith('.py'):
         avibot.load_extension(f'cogs.{filename[:-3]}')
 
-
-#Load Command
+#Uptime
 @avibot.command()
-@commands.has_permissions(manage_roles=True)
-async def load(ctx, extension):
-    try:
-        avibot.load_extension(f"cogs.{extension}")
-        loadsuc=discord.Embed()
-        loadsuc.add_field(name="<:aviSuccess:777096731438874634> Module Enabled", value=f"The **{extension}** module has been enabled.", inline=False)
-        await ctx.send(embed=loadsuc)
-    except commands.ExtensionAlreadyLoaded:
-        noload=discord.Embed()
-        noload.add_field(name="<:aviError:777096756865269760> Module Already Loaded", value=f"The **{extension}** module is already enabled.", inline=False)
-        await ctx.send(embed=noload)
-    except commands.ExtensionNotFound:
-        notfound=discord.Embed()
-        notfound.add_field(name="<:aviError:777096756865269760> Module Not Found", value=f"The **{extension}** module does not exist.", inline=False)
-        await ctx.send(embed=notfound)
-@load.error
-async def loadErr(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        mra=discord.Embed(title="Command: Load")
-        mra.add_field(name="Description:", value="Loads a module if it is not loaded.", inline=False)
-        mra.add_field(name="Example:", value="`a.load [module]`")
-        await ctx.send(embed=mra)
-    if  isinstance(error, commands.MissingPermissions):
-        noloadperm=discord.Embed()
-        noloadperm.add_field(name="<:aviError:777096756865269760> No Permission", value="You do not have have the required permissions to use the `a.load` command.", inline=False)
-        await ctx.send(embed=noloadperm)
-
-#Unload Command
-@avibot.command()
-@commands.has_permissions(manage_roles=True)
-async def unload(ctx, extension):
-    try:    
-        avibot.unload_extension(f'cogs.{extension}')
-        unloadsuc=discord.Embed()
-        unloadsuc.add_field(name="<:aviSuccess:777096731438874634> Module Disabled", value=f"The **{extension}** module has been disabled.", inline=False)
-        await ctx.send (embed=unloadsuc)
-    except commands.ExtensionNotLoaded:
-        nounload=discord.Embed()
-        nounload.add_field(name="<:aviError:777096756865269760> Not Loaded",value=f"The **{extension}** module is not loaded. You can not unload an unloaded module.")
-        await ctx.send(embed=nounload)
-
-#Reload Command
-@avibot.command(brief="Reload module", description="If a module is not working properly, use reload to get it to work again.")
-@commands.has_permissions(manage_roles=True)
-async def reload(ctx, extension):
-    try:
-        avibot.reload_extension(f'cogs.{extension}')
-        reloadsuc=discord.Embed()
-        reloadsuc.add_field(name="<:aviSuccess:777096731438874634> Module Reloaded", value=f"The **{extension}** module has been reloaded.", inline=False)
-        await ctx.send (embed=reloadsuc)
-    except commands.ExtensionNotLoaded:
-        noreload=discord.Embed()
-        noreload.add_field(name="<:aviError:777096756865269760> Not Loaded", value=f"The **{extension}** module is not loaded. You can not reload a module that is not loaded.")
-        await ctx.send(embed=noreload)
+async def uptime(ctx):
+    delta_uptime = datetime.datetime.utcnow() - avibot.launch_time
+    hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    days, hours = divmod(hours, 24)
+    await ctx.send(f"{days}d, {hours}h, {minutes}m, {seconds}s")
 
 class HCEmbed(commands.HelpCommand):
     def get_ending_note(self):

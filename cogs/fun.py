@@ -14,7 +14,7 @@ class Fun(commands.Cog):
     @commands.command(aliases=['8ball', '8b'], brief="Ask a question to the magic eight ball, and you will recieve an answer")
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def eightball(self, ctx, *, question):
-        with open("files/prefixes.json", "r") as f:
+        with open("avimetry/files/prefixes.json", "r") as f:
             prefixes = json.load(f)
         global pre
         pre = prefixes[str(ctx.guild.id)]

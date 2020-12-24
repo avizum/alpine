@@ -18,7 +18,7 @@ class AutoMod(commands.Cog):
         if message.author.id == 750135653638865017:
             return
         
-        with open("files/badword.json", "r") as f:
+        with open("avimetry/files/badword.json", "r") as f:
             blacklist = json.load(f)
 
         for words in blacklist:
@@ -37,7 +37,7 @@ class AutoMod(commands.Cog):
         if message_before.author == self.avibot.user:
             return
         
-        with open("files/badword.json", "r") as f:
+        with open("avimetry/files/badword.json", "r") as f:
             blacklist = json.load(f)
 
         for words in blacklist:
