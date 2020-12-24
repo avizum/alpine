@@ -105,7 +105,7 @@ class Miscellaneous(commands.Cog):
         ap.add_field(name="Incoming Request", value=f"{ctx.author.mention} requested to change their nickname to `{rqnick}` \nIf you want to change their nickname, use the command below to change their nickname \n`a.cnick {ctx.author.id} {rqnick}`")
         await ctx.send(embed=rq, delete_after=5)
         await channels.send(embed=ap)
-        await message.add_reaction("<a:animyes:777100238573404171>")
+        await ctx.message.add_reaction("<a:animyes:777100238573404171>")
 
     @commands.command(brief="Gets a member's information", enabled=False)
     async def info(self, ctx, *, member : discord.Member):
