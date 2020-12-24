@@ -99,7 +99,7 @@ class HCEmbed(commands.HelpCommand):
     
     async def command_not_found(self, command):
         embed=discord.Embed(title="Help command", timestamp=datetime.datetime.utcnow())
-        embed.add_field(name=f"Command does not exist",value="Command '{0}' is not a command. Make sure you spelled it correctly.".format(command))
+        embed.add_field(name=f"Command does not exist",value="Command '{0}' is not a command. Make sure you capitalized and spelled it correctly.".format(command))
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
 avibot.help_command = HCEmbed()

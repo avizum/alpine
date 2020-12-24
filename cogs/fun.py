@@ -153,7 +153,6 @@ class Fun(commands.Cog):
             time.sleep(0.5)
             await discord.Member.remove_roles(member, role)
 
-
 #Say Command
     @commands.command(brief="You can make me say whatever you please!")
     @commands.cooldown(1, 120, commands.BucketType.member)
@@ -196,5 +195,11 @@ class Fun(commands.Cog):
             await ctx.send(f"{ctx.author.mention} tried dropkicking themselves")
         else:
             await ctx.send(f'{ctx.author.mention} dropkicked {mention.mention}')
+
+    #Face Palm Command
+    @commands.command(aliases=['fp', 'facep', 'fpalm'], brief="Hit yourself on the face!")
+    async def facepalm(self, ctx):
+        await ctx.send (f'{ctx.author.mention} hit their face.')
+
 def setup(avibot):
     avibot.add_cog(Fun(avibot))

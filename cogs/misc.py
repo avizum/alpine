@@ -50,11 +50,6 @@ class Miscellaneous(commands.Cog):
         await discord.Member.remove_roles(member, role)
         await discord.Member.add_roles(member, role2)
 
-#Face Palm Command
-    @commands.command(aliases=['fp', 'facep', 'fpalm'], brief="Hit yourself on the face!")
-    async def facepalm(self, ctx):
-        await ctx.send (f'{ctx.author.mention} hit their face.')
-
 #Clean Command    
     @commands.command(brief="Grabs messages sent by me and messages that contain the command prefix and deletes them.")
     async def clean(self, ctx):
@@ -107,6 +102,7 @@ class Miscellaneous(commands.Cog):
         await channels.send(embed=ap)
         await ctx.message.add_reaction("<a:animyes:777100238573404171>")
 
+    #Info Command
     @commands.command(brief="Gets a member's information", enabled=False)
     async def info(self, ctx, *, member : discord.Member):
         ie = discord.Embed(title="User Info", description=f"User Information for {member.mention}:\n\n **Username:** {member.name}#{member.discriminator}\n**Nickname:** {member.nick}\n **Join Date:** {member.joined_at}\n**Roles** {member.roles}",timestamp=datetime.datetime.utcnow())
@@ -114,6 +110,7 @@ class Miscellaneous(commands.Cog):
         ie.add_field(name="Server Permissions", value="permissions")
         await ctx.send(embed=ie)
 
+    #Pull from GitHub command
     @commands.command(enabled=False)
     @commands.is_owner()
     async def pull(self, ctx):
@@ -129,7 +126,6 @@ class Miscellaneous(commands.Cog):
         print(output, error)
         await ctx.send("Pulling")
         await ctx.send(f"`{output}`")
-        
 
 def setup(avibot):
     avibot.add_cog(Miscellaneous(avibot))

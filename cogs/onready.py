@@ -2,13 +2,11 @@ import discord
 import os
 import json
 import asyncio
-
 from discord.ext import commands
 
 class OnReady(commands.Cog):
     def __init__(self, avibot):
         self.avibot = avibot
-
     
     async def status_task(self):
         while True:
@@ -25,13 +23,14 @@ class OnReady(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        game = discord.Game("avibot() is online!")
+        game = discord.Game(f"{self.avibot.user.name} is online!")
         await self.avibot.change_presence(status=discord.Status.idle, activity=game)
-        await asyncio.sleep(5)
-        print('Logged in as')
-        print(self.avibot.user.name)
-        print(self.avibot.user.id)
         print('------')
+        print('Succesfully logged in as')
+        print(f"Username: {self.avibot.user.name}")
+        print(f"UserID: {self.avibot.user.id}")
+        print('------')
+        await asyncio.sleep(5)
         self.avibot.loop.create_task(self.status_task())
 
     @commands.command(hidden=True)
@@ -39,7 +38,7 @@ class OnReady(commands.Cog):
     async def shutdown(self, ctx):
         await ctx.message.delete()
         sd=discord.Embed()
-        sd.add_field(name="Shutting Down", value="You called the shutdown command, avimetry() is now shutting down.")
+        sd.add_field(name="Shutting Down", value=f"You called the shutdown command, {self.avibot.user.name} is now shutting down.")
         await ctx.send(embed=sd)
         await self.avibot.change_presence(activity=discord.Game('Shutting down'))
         await asyncio.sleep(5)
