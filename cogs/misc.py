@@ -116,7 +116,7 @@ class Miscellaneous(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def pull(self, ctx):
-        command = 'git clone git@github.com:jbkn/avimetry'
+        command = 'git pull origin main'
         process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
         print(output, error)
