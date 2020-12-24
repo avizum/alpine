@@ -1,15 +1,12 @@
 import discord
 import os
-import time
 import asyncio
 import json
 import datetime
 from discord.ext import commands, tasks
 from itertools import cycle
 from dotenv import load_dotenv
-
 #ps aux | grep python
-
 #Get Bot Token
 load_dotenv()
 avitoken = os.getenv('Bot_Token')
@@ -17,7 +14,6 @@ avitoken2 = os.getenv('Bot_Token2')
 avitoken3 = os.getenv('Bot_Token3')
 
 #Command Prefix and Intents
-
 def prefix(client, message):
     if message.guild is None:
         return [str("a.")]
@@ -25,7 +21,6 @@ def prefix(client, message):
         with open("avimetry/files/prefixes.json", "r") as f:
             prefixes = json.load(f)
         return prefixes[str(message.guild.id)]
-
 intents=discord.Intents.all()
 avibot = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=intents)
 avibot.launch_time = datetime.datetime.utcnow()
@@ -47,8 +42,9 @@ async def uptime(ctx):
     hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
     minutes, seconds = divmod(remainder, 60)
     days, hours = divmod(hours, 24)
-    await ctx.send(f"{days}d, {hours}h, {minutes}m, {seconds}s")
-
+    ue = discord.Embed(title="Current Uptime", description=f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds")
+    await ctx.send(embed=ue)
+#HCEmbed
 class HCEmbed(commands.HelpCommand):
     def get_ending_note(self):
         return '• Use {0}{1} [command] for more info on a command.\n• Use {0}{1} [module] for more info on a module.\n '.format(self.clean_prefix, self.invoked_with)
@@ -69,9 +65,7 @@ class HCEmbed(commands.HelpCommand):
                 value = '\u002c '.join(c.name for c in commands)
                 if cog and cog.description:
                     value = '{0}\n{1}'.format(cog.description, value)
-
                 embed.add_field(name=name, value=value)
-
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
 
@@ -79,11 +73,9 @@ class HCEmbed(commands.HelpCommand):
         embed = discord.Embed(title='{0.qualified_name} Commands'.format(cog))
         if cog.description:
             embed.description = cog.description
-
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
         for command in filtered:
             embed.add_field(name=self.get_command_signature(command), value=command.short_doc or '---', inline=False)
-
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
 
@@ -113,4 +105,4 @@ class HCEmbed(commands.HelpCommand):
 avibot.help_command = HCEmbed()
 
 #Log-In
-avibot.run(avitoken, bot=True) #187
+avibot.run(avitoken, bot=True)

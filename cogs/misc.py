@@ -18,7 +18,7 @@ class Miscellaneous(commands.Cog):
         pingembed=discord.Embed()
         pingembed.add_field(name="🏓 Pong!", value=f"Bot's Ping: `{round(self.avibot.latency * 1000)}ms`")
         await ctx.send(embed=pingembed)
-
+    
 #Study Hall Command
     @commands.group()
     async def studyhall(self, ctx):
