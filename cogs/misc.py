@@ -120,6 +120,8 @@ class Miscellaneous(commands.Cog):
         process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
         print(output, error)
+        await ctx.send(f"`output`")
+        
 
 def setup(avibot):
     avibot.add_cog(Miscellaneous(avibot))
