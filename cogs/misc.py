@@ -97,7 +97,7 @@ class Miscellaneous(commands.Cog):
 
     #Request Nick command
     @commands.command(brief="Requests a new nick name.")
-    async def requestnick(self, ctx, rqnick):
+    async def requestnick(self, ctx, *, rqnick):
         channels = self.avibot.get_channel(787942179310010368)
         rq=discord.Embed()
         rq.add_field(name="Request Nickname", value=f"Your request has been sent. \nRequested Nickname: `{rqnick}`")
@@ -105,6 +105,7 @@ class Miscellaneous(commands.Cog):
         ap.add_field(name="Incoming Request", value=f"{ctx.author.mention} requested to change their nickname to `{rqnick}` \nIf you want to change their nickname, use the command below to change their nickname \n`a.cnick {ctx.author.id} {rqnick}`")
         await ctx.send(embed=rq, delete_after=5)
         await channels.send(embed=ap)
+        await message.add_reaction("<a:animyes:777100238573404171>")
 
     @commands.command(brief="Gets a member's information", enabled=False)
     async def info(self, ctx, *, member : discord.Member):
@@ -113,7 +114,7 @@ class Miscellaneous(commands.Cog):
         ie.add_field(name="Server Permissions", value="permissions")
         await ctx.send(embed=ie)
 
-    @commands.command()
+    @commands.command(enabled=False)
     @commands.is_owner()
     async def pull(self, ctx):
         command = 'cd /home/ec2-user/avimetry'
