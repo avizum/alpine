@@ -1,3 +1,4 @@
 *.env
 files/prefixes.json
 *.txt
+*.pyc

@@ -103,15 +103,18 @@ class Miscellaneous(commands.Cog):
         await ctx.message.add_reaction("<a:animyes:777100238573404171>")
 
     #Info Command
-    @commands.command(brief="Gets a member's information", enabled=False)
+    @commands.command(brief="Gets a member's information")
     async def info(self, ctx, *, member : discord.Member):
-        ie = discord.Embed(title="User Info", description=f"User Information for {member.mention}:\n\n **Username:** {member.name}#{member.discriminator}\n**Nickname:** {member.nick}\n **Join Date:** {member.joined_at}\n**Roles** {member.roles}",timestamp=datetime.datetime.utcnow())
+        rls = []
+        for roles in member.roles:
+            rls.append(roles.name)
+        ie = discord.Embed(title="User Info", description=f"User Information for {member.mention}:\n\n **Username:** {member.name}#{member.discriminator}\n**Nickname:** {member.nick}\n **Join Date:** {member.joined_at}\n**Roles** ({len(rls)}) {rls}",timestamp=datetime.datetime.utcnow())
         ie.set_thumbnail(url=member.avatar_url)
         ie.add_field(name="Server Permissions", value="permissions")
         await ctx.send(embed=ie)
 
     #Pull from GitHub command
-    @commands.command(enabled=False)
+    @commands.command()
     @commands.is_owner()
     async def pull(self, ctx):
         command = 'cd /home/ec2-user/avimetry'
