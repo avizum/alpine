@@ -105,12 +105,12 @@ class Miscellaneous(commands.Cog):
     #Info Command
     @commands.command(brief="Gets a member's information")
     async def info(self, ctx, *, member : discord.Member):
-        rls = []
+        userroles = []
         for roles in member.roles:
-            rls.append(roles.name)
-        ie = discord.Embed(title="User Info", description=f"User Information for {member.mention}:\n\n **Username:** {member.name}#{member.discriminator}\n**Nickname:** {member.nick}\n **Join Date:** {member.joined_at}\n**Roles** ({len(rls)}) {rls}",timestamp=datetime.datetime.utcnow())
+            userroles.append(roles.name)
+        ie = discord.Embed(title="User Info", description=f"User Information for {member.mention}:\n\n **Username:** {member.name}#{member.discriminator}\n**Nickname:** {member.nick}\n **Join Date:** {member.joined_at}\n**Roles** ({len(userroles)}) {userroles}",timestamp=datetime.datetime.utcnow())
         ie.set_thumbnail(url=member.avatar_url)
-        ie.add_field(name="Server Permissions", value="permissions")
+        ie.add_field(name="Server Permissions", value="wip")
         await ctx.send(embed=ie)
 
     #Pull from GitHub command

@@ -1,45 +1,48 @@
-**__Read the Discord Terms of Service at https://discord.com/terms__**
+[@here]
+Read the Discord Terms of Service at https://discord.com/terms
 
-**Moderation actions include (but not limited to): Mute, Kick, Temporary Ban, and Permanent Ban**
+Moderation actions include (but not limited to): Mute, Kick, Temporary Ban, and Permanent Ban
+[@here]
+Section 1: Server Rules
+1.1 Be respectful to everyone. This means being respectful to people that you don't like. Being disrespectful can lead to a moderation action.
 
-**__Section 1: Server Rules__**
-**1.1** Be respectful to everyone. This means being respectful to people that you don't like. Being disrespectful can lead to a moderation action.
+1.2 Targeting someone to make them mad is not allowed and doing so will lead to a moderation action
 
-**1.2** Targeting someone to make them mad is not allowed and doing so will lead to a moderation action
+1.3 This server is an English speaking server and English will be the only language spoken here. Please do not use any other languages as it will be hard to moderate.
 
-**1.3** This server is an English speaking server and English will be the only language spoken here. Please do not use any other languages as it will be hard to moderate.
+1.4 Bypassing the chat filter is not allowed and if caught, moderation actions will be taken.
 
-**1.4** Spamming is not allowed and you will be auto-muted for 5 minutes. If you keep spamming, you may be kicked. Spamming includes: Sending the same message more than one time, a message containing more than 5 lines, and __bypassing the filter__ will lead to further moderation actions. 
+1.5 Spamming is not allowed and you will be auto-muted for 5 minutes. If you keep spamming, you may be kicked. Spamming includes: Sending the same message more than one time, a message containing more than 5 lines, and bypassing the filter will lead to further moderation actions. 
 
-**1.5**  Self-bots are not allowed and you will be immediately banned if caught.
+1.6  Self-bots are not allowed and you will be immediately banned if caught.
 
-**1.6** Ghost pinging, Mass pinging and pinging people with out a good reason is not allowed and doing so will lead to moderation action.
+1.7 Ghost pinging, Mass pinging and pinging people with out a good reason is not allowed and doing so will lead to moderation action.
 
-**1.7** Raiding or attempting to raid the server will result in a permanent ban.
+1.8 Raiding or attempting to raid the server will result in a permanent ban.
 
-**1.8** NSFW (Not suitable for work) is not allowed in any channel of this server. If caught, there will moderation action.
+1.9 NSFW (Not suitable for work) is not allowed in any channel of this server. If caught, there will moderation action.
 
-**1.9** Arguing with a helper, moderator, or admin with your punishment will result in a worse moderation action.
+1.10 Arguing with a helper, moderator, or admin with your punishment will result in a worse moderation action.
 
-**1.10** Impersonation of a user is not allowed and moderation actions will be taken.
+1.11 Impersonation of a user is not allowed and moderation actions will be taken.
 
-**__Section 2: Channel and Voice Channel Rules__**
-**2.1** Use each channel for its intended purpose. If you use <#751968986513539073> for talking about Genshin Impact or Roblox, moderation actions will be taken.
+1.12 Advertising is not allowed here. Doing so will lead to moderation actions.
+[@here]
+Section 2: Channel and Voice Channel Rules
+2.1 Use each channel for its intended purpose. If you use #general for talking about Genshin Impact or Roblox, moderation actions will be taken.
 
-**2.2** Do not spam in the voice channel. This means joining and leaving very fast or switching channels very fast. If caught, moderation actions will be taken.
+2.2 Do not spam in the voice channel. This means joining and leaving very fast or switching channels very fast. If caught, moderation actions will be taken.
 
-**2.3** Do not ear rape people in voice channels. Doing so will lead to moderation actions.
+2.3 Do not ear rape people in voice channels. Doing so will lead to moderation actions.
 
-**2.4** You can only speak English in the voice channels. This goes with rule **1.3**. This is to keep moderation easier.
+2.4 You can only speak English in the voice channels. This goes with rule 1.3. This is to keep moderation easier.
 
-**2.5** Using voice changers is allowed but using voice changers to impersonsate someone is not allowed. This goes with rule **1.10**.
+2.5 Using voice changers is allowed but using voice changers to impersonsate someone is not allowed. This goes with rule 1.10.
+[@here]
+Section 3: Other Information
 
-**__Section 3: Other Information__**
+3.1 If someone is threatening you in DM's or in another server, Please report them at https://support.discord.com/hc/en-us/requests/new.
 
-**3.1** If someone is threatening you in DM's or in another server, Please report them at https://support.discord.com/hc/en-us/requests/new.
+3.2 Do not ask to be a Helper, Moderator or Administrator. There will be chances where you can apply to become a staff member, but this is done rarley. 
 
-**3.2** Do not ask to be a Helper, Moderator or Administrator. There will be chances where you can apply to become a staff member, but this is done rarley. 
-
-**3.3** Have fun and use your common sense. If you are caught not using common sense, moderation actions will be taken.
-
-
+3.3 Have fun and use your common sense. If you are caught not using common sense, moderation actions will be taken.
