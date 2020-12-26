@@ -80,25 +80,32 @@ class Fun(commands.Cog):
         await ctx.message.delete()
         role = discord.utils.get(member.guild.roles, name='Dead')
         if member == self.avibot.user:
-            await ctx.send('You fool. I can not die. Now **YOU MUST DIE.**')
-            time.sleep(.5)
+            a = discord.Embed(description="'You fool. I can not die. Now **YOU MUST DIE.**",)
+            await ctx.send(embed=a)
+            await asyncio.sleep(.5)
             if role in member.roles:
-                await ctx.send("I can not kill you, it's as if... You are already dead.")
+                b = discord.Embed(description="I can not kill you, it's as if... You are already dead.")
+                await ctx.send(embed=b)
             else:    
-                await ctx.send(f"{ctx.author.mention} was killed by me. Don't you ever try to kill me again.")
+                c = discord.Embed(description=f"{ctx.author.mention} died due to unforseen circumstances. Don't worry, I didn't kill him.")
+                await ctx.send(embed=c)
                 await discord.Member.add_roles(member, role)
         else:    
             if member == ctx.author:
                 if role in member.roles:
-                    await ctx.send(f"{ctx.author.mention} tried to kill himself, but he is already dead.")
+                    d = discord.Embed(description=f"{ctx.author.mention} tried to kill himself, but he is already dead.")
+                    await ctx.send(embed=d)
                 else:
-                    await ctx.send(f"{ctx.author.mention} tried to kill themself, but it didn't seem to work.")
+                    e = discord.Embed(description=f"{ctx.author.mention} tried to kill themself, but it didn't seem to work.")
+                    await ctx.send(embed=e)
             else:
                 if role in member.roles:
-                    await ctx.send(f"{ctx.author.mention} tried killing someone that is already is dead. How sad.")
+                    f = discord.Embed(description=f"{ctx.author.mention} tried killing someone that is already is dead. How sad.")
+                    await ctx.send(embed=f)
                 else: 
+                    g = discord.Embed(description=f'{member.mention} was killed by {ctx.author.mention}')
                     role = discord.utils.get(member.guild.roles, name='Dead')
-                    await ctx.send(f'{member.mention} was killed by {ctx.author.mention}')
+                    await ctx.send(embed=g)
                     time.sleep(1)
                     await discord.Member.add_roles(member, role) 
 
@@ -110,13 +117,17 @@ class Fun(commands.Cog):
         role = discord.utils.get(member.guild.roles, name='Dead')
         await ctx.message.delete()
         if role in member.roles:
-            ye = await ctx.send(f'{ctx.author.mention} tried killing themselves even though they are dead. How is that even possible? \n||(If you are having the thoughts of commiting suicide, please call +1 (800) 273-8255 or go to https://suicidepreventionlifeline.org. Otherwise, please ask a friend or a loved one for help.)||')
+            a = discord.Embed(description=f'{ctx.author.mention} tried killing themselves even though they are dead. How is that even possible? \n||(If you are having the thoughts of commiting suicide, please call +1 (800) 273-8255 or go to https://suicidepreventionlifeline.org. Otherwise, please ask a friend or a loved one for help.)||')
+            ye = await ctx.send(embed=a)
             await asyncio.sleep(30)
-            await ye.edit(content=f"{ctx.author.mention} tried killing themselves even though they are dead. How is that even possible?")
+            b = discord.Embed(description=f"{ctx.author.mention} tried killing themselves even though they are dead. How is that even possible?")
+            await ye.edit(embed=b)
         else: 
-            ye2 = await ctx.send(content=f"{ctx.author.mention} commited death. \n||(If you are having the thoughts of commiting suicide, please call +1 (800) 273-8255 or go to https://suicidepreventionlifeline.org. Otherwise, please speak to a friend or a loved one for help.)||")
+            c = discord.Embed(description=f"{ctx.author.mention} commited death. \n||(If you are having the thoughts of commiting suicide, please call +1 (800) 273-8255 or go to https://suicidepreventionlifeline.org. Otherwise, please speak to a friend or a loved one for help.)||")
+            ye2 = await ctx.send(embed=c)
             await asyncio.sleep(30)
-            await ye2.edit(f"{ctx.author.mention} commited death.")
+            d = discord.Embed(description=f"{ctx.author.mention} commited death.")
+            await ye2.edit(embed=d)
             time.sleep(0.5)
             await discord.Member.add_roles(member, role) 
 
@@ -129,9 +140,11 @@ class Fun(commands.Cog):
         role = discord.utils.get(member.guild.roles, name='Dead')
         await ctx.message.delete()
         if role in member.roles:
-            await ctx.send(f"{ctx.author.mention} came back from the dead.")
+            a = discord.Embed(description=f"{ctx.author.mention} came back from the dead.")
+            await ctx.send(embed=a)
         else: 
-            await ctx.send(f"{ctx.author.mention} tried to come back from the dead, but they are already alive.")
+            b = discord.Embed(description=f"{ctx.author.mention} tried to come back from the dead, but they are already alive.")
+            await ctx.send(embed=b)
         await asyncio.sleep(0.5)
         await discord.Member.remove_roles(member, role)
     
@@ -144,12 +157,15 @@ class Fun(commands.Cog):
         role = discord.utils.get(member.guild.roles, name='Dead')
         if member == ctx.author:
             if role in member.roles:
-                await ctx.send('Hmm, It seems that someone from the dead has spoken, I wonder who that is')
+                a = discord.Embed(description='Hmm, It seems that someone from the dead has spoken, I wonder who that is')
+                await ctx.send(embed=a)
             else:
-                await ctx.sed('You are alive, why do you need to revive yourself?')
+                b = discord.Embed(description='You are alive, why do you need to revive yourself?')
+                await ctx.send(embed=b)
         else:
             role = discord.utils.get(member.guild.roles, name='Dead')
-            await ctx.send(f"{ctx.author.mention} revived {member.mention}")
+            c = discord.Embed(description=f"{ctx.author.mention} revived {member.mention}")
+            await ctx.send(embed=c)
             time.sleep(0.5)
             await discord.Member.remove_roles(member, role)
 
@@ -173,33 +189,42 @@ class Fun(commands.Cog):
         role = discord.utils.get(member.guild.roles, name='Server Owner')
         memberrr = ctx.author
         if member == self.avibot.user:
-            await ctx.send("I don't have any skin, so you can not skin me.")
-        if member == 672122220566413312:
-            await ctx.send("You can not skin her!")
+            a = discord.Embed(description="I don't have any skin, so you can not skin me.")
+            await ctx.send(embed=a)
+        if member.id == 672122220566413312:
+            b = discord.Embed(description="You can not skin her!")
+            await ctx.send(embed=b)
         else:
             if member == ctx.author:
-                await ctx.send("You can't skin yourself")
+                c = discord.Embed(description="You can't skin yourself")
+                await ctx.send(embed=c)
             else:
                 if role in member.roles:
-                    await ctx.send(f"Stop that **{memberrr.display_name},** you can't skin him.")
+                    d = discord.Embed(description=f"Stop that **{memberrr.display_name},** you can't skin him.")
+                    await ctx.send(embed=d)
                 else:
-                    await ctx.send(f'{member.mention} was skinned.')
+                    e = discord.Embed(description=f'{member.mention} was skinned.')
+                    await ctx.send(embed=e)
 
     @commands.command(aliases=['sd'], brief="Self destruct? Who put that button there?")
     async def selfdestruct(self, ctx):
-        await ctx.send(f"{ctx.author.mention} self destructed due to overloaded fuel canisters")
+        a = discord.Embed(description=f"{ctx.author.mention} self destructed due to overloaded fuel canisters")
+        await ctx.send(embed=a)
 
     @commands.command(brief="Drop kicks someone")
     async def dropkick(self, ctx, *, mention:discord.Member):
         if mention == ctx.author:
-            await ctx.send(f"{ctx.author.mention} tried dropkicking themselves")
+            a = discord.Embed(description=f"{ctx.author.mention} tried dropkicking themselves")
+            await ctx.send(embed=a)
         else:
-            await ctx.send(f'{ctx.author.mention} dropkicked {mention.mention}')
+            b = discord.Embed(description=f'{ctx.author.mention} dropkicked {mention.mention}')
+            await ctx.send(embed=b)
 
     #Face Palm Command
     @commands.command(aliases=['fp', 'facep', 'fpalm'], brief="Hit yourself on the face!")
     async def facepalm(self, ctx):
-        await ctx.send (f'{ctx.author.mention} hit their face.')
+        a = discord.Embed(description=f'{ctx.author.mention} hit their face.')
+        await ctx.send(embed=a)
 
 def setup(avibot):
     avibot.add_cog(Fun(avibot))
