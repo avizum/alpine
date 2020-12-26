@@ -10,12 +10,13 @@ class AutoMod(commands.Cog):
     def __init__(self, avibot):
         self.avibot = avibot
         self.mc = commands.CooldownMapping.from_cooldown(5, 8, commands.BucketType.member)
+        self.coold = commands.CooldownMapping.from_cooldown(0, 1, commands.BucketType.member)
 
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author == self.avibot.user:
             return
-        if message.author.id == 750135653638865017:
+        if message.author.bot:
             return
         
         with open("avimetry/files/badword.json", "r") as f:
@@ -26,12 +27,7 @@ class AutoMod(commands.Cog):
                 await message.delete()
                 await message.channel.send(f"{message.author.mention}, don't say that word!", delete_after=3)
 
-        bucket = self.mc.get_bucket(message)
-        ra = bucket.update_rate_limit()
-        if ra:
-            return
-        else:
-            return
+
     @commands.Cog.listener()
     async def on_message_edit(self, message_before, message_after):
         if message_before.author == self.avibot.user:

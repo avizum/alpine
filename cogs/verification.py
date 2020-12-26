@@ -21,14 +21,22 @@ class Verification(commands.Cog):
         if member.guild.id != 751490725555994716:
             return
         else:
+            unv = member.guild.get_role(789334795100225556)
+            await member.add_roles(unv)
+
             channel = discord.utils.get(self.avibot.get_all_channels(),  name='joins-and-leaves')
             jm=discord.Embed()
             jm.add_field(name="Member Joined", value=f"Hey, {member.mention}, Welcome to {member.guild.name}! \nThe server now has **{member.guild.member_count}** members.")
             await channel.send(embed=jm)
             
-            wegipii=discord.Embed()
-            wegipii.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to the server! \nPlease read the rules over at the <#751967064310415360> channel. After reading the rules, come back here to start the verification process. \nTo start the verification process, use the command `{pre}verify`. \nYou will be given a randomly generated code to enter in the <#767651584254410763> channel.")
-            await member.send(f"{member.mention}", embed=wegipii)
+            channel = self.avibot.get_channel(767651584254410763)
+            x=discord.Embed()
+            x.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to **{member.guild.name}**! \nPlease read the rules over at the <#751967064310415360> channel. After reading the rules, come back here to start the verification process. \nTo start the verification process, use the command `{pre}verify`. \nYou will be given a randomly generated code to enter in the <#767651584254410763> channel.")
+            await channel.send(f"{member.mention}", embed=x, delete_after=60)
+            
+            y=discord.Embed()
+            y.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to **{member.guild.name}**! \nPlease read the rules over at the <#751967064310415360> channel. \nTo start the verification process, use the command `{pre}verify` in the <#767651584254410763> channel.")
+            await member.send(f"{member.mention}", embed=y)
             
             unv = member.guild.get_role(789334795100225556)
             await member.add_roles(unv)
@@ -48,7 +56,7 @@ class Verification(commands.Cog):
         if message.author == self.avibot.user:
             return
         if message.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
-            if message.content.startswith('a.v'):
+            if message.content.startswith(f"{pre}v"):
                 return
             else: 
                 await message.delete(delay=1)
@@ -67,13 +75,24 @@ class Verification(commands.Cog):
         else:
             letters = string.ascii_letters
             randomkey=(''.join(random.choice(letters) for i in range(10)))
-            rkey=discord.Embed()
-            rkey.add_field(name="Here is your key. Your key will expire in 60 seconds.", value=f"`{randomkey}`")
+            rkey=discord.Embed(title="Here is your key. Your key will expire in 60 seconds.")
+            rkey.add_field(name="If you are on mobile, react with the mobile emoji below to get the raw text to copy it easier.", value=f"`{randomkey}`")
             print(randomkey)
-            await ctx.author.send(embed=rkey)
+            dmm = await ctx.author.send(embed=rkey)
+            await dmm.add_reaction(emoji="<:mobile:792294580137492493>")
             ksid=discord.Embed()
             ksid.add_field(name="<:aviSuccess:777096731438874634> A key was sent to your DMs", value="Enter your key here to get verified and have access to the channels.")
             codemessage = await ctx.send(embed=ksid, delete_after=60)
+            
+
+            def mcheck(reaction, user):
+                return user == ctx.message.author and str(reaction.emoji)== "<:mobile:792294580137492493>"
+            try:
+                reaction, user = await self.avibot.wait_for('reaction_add', timeout=60.0, check=mcheck)
+            except asyncio.TimeoutError:
+                print("Desktop")
+            else:
+                await ctx.author.send(randomkey)
 
             channel=ctx.channel
                 

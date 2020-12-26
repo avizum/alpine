@@ -14,6 +14,8 @@ class BotLogs(commands.Cog):
     async def on_message(self, message):
         with open("avimetry/files/prefixes.json", "r") as f:
                 prefixes = json.load(f)
+        if message.guild is None:
+            return
         global pre
         pre = prefixes[str(message.guild.id)]
         if message.author == self.avibot.user:
@@ -23,8 +25,6 @@ class BotLogs(commands.Cog):
         elif message.channel == discord.utils.get(self.avibot.get_all_channels(), name='secret-chat'):
             return
         elif message.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
-            return
-        elif message.guild is None:
             return
         elif message.content.startswith(pre):
             return

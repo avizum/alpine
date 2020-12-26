@@ -2,3 +2,5 @@
 files/prefixes.json
 *.txt
 *.pyc
+files/prefixes.json
+*.pyc

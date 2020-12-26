@@ -8,7 +8,7 @@ class ErrorHandler(commands.Cog):
     
     def __init__(self, avibot):
         self.avibot = avibot
-
+        
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         with open("avimetry/files/prefixes.json", "r") as f:
