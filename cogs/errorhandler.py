@@ -8,7 +8,7 @@ class ErrorHandler(commands.Cog):
     
     def __init__(self, avibot):
         self.avibot = avibot
-        
+
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         with open("avimetry/files/prefixes.json", "r") as f:
@@ -41,6 +41,11 @@ class ErrorHandler(commands.Cog):
 
         if isinstance(error, commands.DisabledCommand):
             await ctx.send("This command is disabled. The command will be enabled when the command is done.")
+
+        if isinstance(error, commands.NotOwner):
+            no=discord.Embed()
+            no.add_field(name="<:aviError:777096756865269760> No Permission", value=f"You are not an owner, so you can't use `{pre}{ctx.command.name}`.", inline=False)
+            await ctx.send(embed=no, delete_after=10)
 
 
 def setup(avibot):
