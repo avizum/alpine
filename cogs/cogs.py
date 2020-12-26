@@ -1,4 +1,6 @@
 import discord
+import os
+import datetime
 from discord.ext import commands
 
 class Cogs(commands.Cog):
@@ -51,6 +53,23 @@ class Cogs(commands.Cog):
             noreload=discord.Embed()
             noreload.add_field(name="<:aviError:777096756865269760> Not Loaded", value=f"The **{extension}** module is not loaded. You can not reload a module that is not loaded.")
             await ctx.send(embed=noreload)
+
+    @commands.command(timestamp=datetime.datetime.utcnow())
+    @commands.is_owner()
+    async def globalreload(self, ctx):
+        ebbb = await ctx.send("Reloading Modules")
+        ap = list()
+        for filename in os.listdir('./avimetry/cogs'):
+            if filename.endswith('.py'):
+                self.avibot.reload_extension(f'cogs.{filename[:-3]}')
+                ap.append(filename[:-3])
+                yes = ",\n"
+        eb = discord.Embed(timestamp=datetime.datetime.utcnow())
+        eb.add_field(name="<:aviSuccess:777096731438874634> Global Reload", value=f"__Reloaded Modules:__\n {yes.join(ap)}")
+        ebbb.edit(embed=eb)
+        
+        await ctx.send(embed=eb, delete_after=60)
+
 
 def setup(avibot):
     avibot.add_cog(Cogs(avibot))
