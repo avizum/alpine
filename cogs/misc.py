@@ -58,15 +58,10 @@ class Miscellaneous(commands.Cog):
         pre = prefixes[str(ctx.guild.id)]
         await ctx.message.delete()
         def avibotuser(m):
-            return m.author == self.avibot.user 
-        def prefixmsg(m):
-            return m.content.startswith(pre)  
+            return m.author == self.avibot.user and m.content.startswith(pre)
         deleted = await ctx.channel.purge(limit=50, check=avibotuser)
-        deleted2 = await ctx.channel.purge(limit=50, check=prefixmsg)
-        total1=len(deleted)
-        total2=len(deleted2)
         ce=discord.Embed()
-        ce.add_field(name="<:aviSuccess:777096731438874634> Clean Messages",value=f"Successfully deleted **{total1}** bot messages and **{total2}** user messages")
+        ce.add_field(name="<:aviSuccess:777096731438874634> Clean Messages",value=f"Successfully deleted **{len(deleted)}** bot messages and user messages")
         await ctx.send(embed=ce, delete_after=5)
 
 #Poll command

@@ -4,3 +4,4 @@ files/prefixes.json
 *.pyc
 files/prefixes.json
 *.pyc
+/cogs/__pycache__
