@@ -66,9 +66,8 @@ class Cogs(commands.Cog):
                 yes = ",\n"
         eb = discord.Embed(timestamp=datetime.datetime.utcnow())
         eb.add_field(name="<:aviSuccess:777096731438874634> Global Reload", value=f"__Reloaded Modules:__\n {yes.join(ap)}")
-        ebbb.edit(embed=eb)
+        await ebbb.edit(content="", embed=eb, delete_after=30)
         
-        await ctx.send(embed=eb, delete_after=60)
 
 
 def setup(avibot):
