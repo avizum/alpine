@@ -115,6 +115,7 @@ class Miscellaneous(commands.Cog):
         command = 'cd /home/ec2-user/avimetry'
         process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
+        '''
         command = 'git pull origin main'
         process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
@@ -122,9 +123,9 @@ class Miscellaneous(commands.Cog):
         process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
         print(output, error)
+        '''
         await ctx.send("Pulling")
-        await ctx.send(f"`{output}`")
-
+        await ctx.send(f"`{output} {error}`")
 def setup(avibot):
     avibot.add_cog(Miscellaneous(avibot))
 
