@@ -126,7 +126,6 @@ class Moderation(commands.Cog):
         unbanenmbed.add_field(name="<:aviSuccess:777096731438874634> Unban Member", value=f"Unbanned <@{userid}> ({userid}) from **{ctx.guild.name}**.", inline=False)
         await ctx.send(embed=unbanenmbed)
 
-
 #CNick Command
     @commands.command(brief="Changes a member's nickname.")
     @commands.has_permissions(kick_members=True)
@@ -142,7 +141,6 @@ class Moderation(commands.Cog):
             nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
             await ctx.send(embed=nickembed)
 
-
 #RNick Command
     @commands.command(brief="Restores a member's nick name to their username.")
     @commands.has_permissions(kick_members=True)
@@ -156,7 +154,6 @@ class Moderation(commands.Cog):
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
 
-    
 #Slowmode Command
     @commands.command(brief="Sets the slowmode in the current channel.")
     @commands.has_permissions(manage_guild=True)
@@ -174,7 +171,6 @@ class Moderation(commands.Cog):
             await ctx.send("added")
         elif addremove == '-':
             await ctx.send("removed")  
-
     
 #mute command
     @commands.command(brief="Mutes a member.")
@@ -183,6 +179,6 @@ class Moderation(commands.Cog):
         role2 = discord.utils.get(ctx.guild.roles, name="Muted")
         await ctx.member.add_roles(member, role2)
         await ctx.send(f"muted {member}")
-#292 lines before
+
 def setup(avibot):
     avibot.add_cog(Moderation(avibot))

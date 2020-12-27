@@ -68,7 +68,6 @@ class BotLogs(commands.Cog):
                 editembed2.add_field(name='Edited Message Error:', value="Message is too long", inline=False)
                 await channel.send(embed=editembed2)
 
-
 #Message Delete
     @commands.Cog.listener()
     async def on_message_delete(self, message):

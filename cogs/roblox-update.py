@@ -12,7 +12,6 @@ class RobloxUpdate(commands.Cog):
     def __init__(self, avibot):
         self.avibot=avibot
 
-    #@tasks.loop(seconds=20)
     async def my_loop(self):
         while True:
             a = requests.get('http://setup.roblox.com/version')
@@ -49,8 +48,6 @@ class RobloxUpdate(commands.Cog):
             ru=discord.Embed()
             ru.add_field(name="<:roblox:788835896354013229> Roblox Update Ping", value="You will now get pinged everytime ROBLOX recieves an update.")
             await ctx.send(embed=ru)
-
-    
 
     @commands.Cog.listener()
     async def on_ready(self):

@@ -83,8 +83,6 @@ class Verification(commands.Cog):
             ksid=discord.Embed()
             ksid.add_field(name="<:aviSuccess:777096731438874634> A key was sent to your DMs", value="Enter your key here to get verified and have access to the channels.")
             codemessage = await ctx.send(embed=ksid, delete_after=60)
-            
-
             def mcheck(reaction, user):
                 return user == ctx.message.author and str(reaction.emoji)== "<:mobile:792294580137492493>"
             try:
@@ -93,9 +91,7 @@ class Verification(commands.Cog):
                 print("Desktop")
             else:
                 await ctx.author.send(randomkey)
-
             channel=ctx.channel
-                
             def check(m):
                 return m.content == randomkey and m.channel == channel
             try:

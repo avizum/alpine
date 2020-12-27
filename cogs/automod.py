@@ -27,7 +27,6 @@ class AutoMod(commands.Cog):
                 await message.delete()
                 await message.channel.send(f"{message.author.mention}, don't say that word!", delete_after=3)
 
-
     @commands.Cog.listener()
     async def on_message_edit(self, message_before, message_after):
         if message_before.author == self.avibot.user:
@@ -40,8 +39,6 @@ class AutoMod(commands.Cog):
             if words in message_after.content.lower():
                 await message_after.delete()
                 await message_after.channel.send(f"{message_after.author.mention}, don't edit your message to say that word!", delete_after=3)
-
-    
 
 def setup(avibot):
     avibot.add_cog(AutoMod(avibot))

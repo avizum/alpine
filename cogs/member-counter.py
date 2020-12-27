@@ -62,9 +62,5 @@ class MemberCount(commands.Cog):
         mce.add_field(name="Total Members:", value=f"{amc} members", inline=False)
         await ctx.send(embed=mce)
 
-
-
-
-
 def setup(avibot):
     avibot.add_cog(MemberCount(avibot))

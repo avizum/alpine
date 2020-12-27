@@ -131,7 +131,6 @@ class Fun(commands.Cog):
             time.sleep(0.5)
             await discord.Member.add_roles(member, role) 
 
-
 #Alive Command
     @commands.command(aliases=['undie' 'life'], brief="Come back from the dead after you have been killed.")
     @commands.cooldown(1, 60, commands.BucketType.member)
@@ -147,8 +146,7 @@ class Fun(commands.Cog):
             await ctx.send(embed=b)
         await asyncio.sleep(0.5)
         await discord.Member.remove_roles(member, role)
-    
-        
+       
 #Revive Command
     @commands.command(brief="Bring people back to life.")
     @commands.cooldown(1, 30, commands.BucketType.member)

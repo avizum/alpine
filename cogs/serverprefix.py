@@ -52,8 +52,6 @@ class ServerPrefix(commands.Cog):
             nopperm=discord.Embed()
             nopperm.add_field(name="<:aviError:777096756865269760> No Permission", value="You do not have have the required permissions to use the `a.setprefix` command.", inline=False)
             await ctx.send(embed=nopperm)
-        
-
 
 def setup(avibot):
     avibot.add_cog(ServerPrefix(avibot))
