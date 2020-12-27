@@ -6,6 +6,7 @@ import random
 import json
 import datetime
 import subprocess
+import os
 
 class Miscellaneous(commands.Cog):
     
@@ -118,7 +119,7 @@ class Miscellaneous(commands.Cog):
         output1, error1 = process.communicate()
        
         await ctx.send("Pulling")
-        await ctx.send(f"`{output} | {error} | {output1} | {error1}`")
+        await ctx.send(f"`{output1} | {error1}`")
 def setup(avibot):
     avibot.add_cog(Miscellaneous(avibot))
 
