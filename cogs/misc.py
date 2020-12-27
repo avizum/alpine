@@ -112,7 +112,7 @@ class Miscellaneous(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def pull(self, ctx):
-        command = 'git pull origin main'
+        command = 'cd avimetry'
         process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
        
