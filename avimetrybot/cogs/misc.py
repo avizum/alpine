@@ -63,10 +63,11 @@ class Miscellaneous(commands.Cog):
         def c2(m):
             return m.content.startswith(pre)
         d1 = await ctx.channel.purge(limit=50, check=c1)
+        cm = await ctx.send("Cleaning...")
         d2 = await ctx.channel.purge(limit=50, check=c2)
         ce=discord.Embed()
         ce.add_field(name="<:aviSuccess:777096731438874634> Clean Messages", value=f"Successfully deleted **{len(d1+d2)}** bot messages and user messages")
-        await ctx.send(embed=ce, delete_after=5)
+        await cm.edit(content="", embed=ce, delete_after=10)
 
 #Poll command
     @commands.command(brief="Launch a poll for users to vote to.")
@@ -88,7 +89,7 @@ class Miscellaneous(commands.Cog):
         react_message = await channel.send(embed=embed)
         for reaction in reactions[:len(options)]:
             await react_message.add_reaction(reaction)
-        embed.set_footer(text=f"Poll from: {ctx.author.name}#{ctx.author.discriminator}\nPoll ID = {react_message.id}")
+        embed.set_footer(text=f"Poll from: {ctx.author.name}#{ctx.author.discriminator}\nPoll ID: {react_message.id}")
         await react_message.edit(embed=embed)
     #Request Nick command
     @commands.command(brief="Requests a new nick name.")
