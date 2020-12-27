@@ -1,8 +1,5 @@
-*.env
-files/prefixes.json
-*.txt
-*.pyc
-files/prefixes.json
-*.pyc
 /cogs/__pycache__
 avimetrybot/files/prefixes.json
+avimetrybot/cogs/__pycache__
+avimetrybot/discord.log
+rules.txt
