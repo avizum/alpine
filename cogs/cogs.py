@@ -9,7 +9,7 @@ class Cogs(commands.Cog):
 
         
     #Load Command
-    @commands.command(hidden=True, brief="Loads a module if it was disabled.")
+    @commands.command(brief="Loads a module if it was disabled.")
     @commands.has_permissions(manage_roles=True)
     async def load(self, ctx, extension):
         try:
@@ -27,7 +27,7 @@ class Cogs(commands.Cog):
             await ctx.send(embed=notfound)
 
     #Unload Command
-    @commands.command(hidden=True, brief="Unloads a module if it is being abused.")
+    @commands.command(brief="Unloads a module if it is being abused.")
     @commands.has_permissions(manage_roles=True)
     async def unload(self, ctx, extension):
         try:    
@@ -41,7 +41,7 @@ class Cogs(commands.Cog):
             await ctx.send(embed=nounload)
 
     #Reload Command
-    @commands.command(hidden=True, brief="Reloads a module if it is not working.")
+    @commands.command(brief="Reloads a module if it is not working.")
     @commands.has_permissions(manage_roles=True)
     async def reload(self, ctx, extension):
         try:
@@ -59,7 +59,7 @@ class Cogs(commands.Cog):
     async def globalreload(self, ctx):
         ebbb = await ctx.send("Reloading Modules")
         ap = list()
-        for filename in os.listdir('./avimetry/cogs'):
+        for filename in os.listdir('./cogs'):
             if filename.endswith('.py'):
                 self.avibot.reload_extension(f'cogs.{filename[:-3]}')
                 ap.append(filename[:-3])

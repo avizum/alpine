@@ -54,7 +54,7 @@ class Miscellaneous(commands.Cog):
 #Clean Command    
     @commands.command(brief="Grabs messages sent by me and messages that contain the command prefix and deletes them.")
     async def clean(self, ctx):
-        with open("avimetry/files/prefixes.json", "r") as f:
+        with open("files/prefixes.json", "r") as f:
             prefixes = json.load(f)
         pre = prefixes[str(ctx.guild.id)]
         await ctx.message.delete()

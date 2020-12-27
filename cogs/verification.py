@@ -13,7 +13,7 @@ class Verification(commands.Cog):
 #Welcome Message
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        with open("avimetry/files/prefixes.json", "r") as f:
+        with open("files/prefixes.json", "r") as f:
             prefixes = json.load(f)
         global pre
         pre = prefixes[str(member.guild.id)]

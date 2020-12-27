@@ -16,7 +16,7 @@ class AutoResponder(commands.Cog):
         if message.author == self.avibot.user:
             return
         if message.content == '<@!756257170521063444>':
-            with open("avimetry/files/prefixes.json", "r") as f:
+            with open("files/prefixes.json", "r") as f:
                 prefixes = json.load(f)
 
             pre = prefixes[str(message.guild.id)]
