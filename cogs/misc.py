@@ -115,9 +115,13 @@ class Miscellaneous(commands.Cog):
         command = 'cd avimetry'
         process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
+        await asyncio.sleep(1)
+        command = 'git pull origin main'
+        process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+        output1, error1 = process.communicate()
        
         await ctx.send("Pulling")
-        await ctx.send(f"`{output} {error}`")
+        await ctx.send(f"`{output} {error} {output1} {error1}`")
 def setup(avibot):
     avibot.add_cog(Miscellaneous(avibot))
 
