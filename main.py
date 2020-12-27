@@ -38,7 +38,7 @@ async def globally_block_dms(ctx):
     return ctx.guild is not None
 
 #Load Cogs
-avibot.load_extension('jishaku')
+#avibot.load_extension('jishaku')
 for filename in os.listdir('./avimetry/cogs'):
     if filename.endswith('.py'):
         avibot.load_extension(f'cogs.{filename[:-3]}')
