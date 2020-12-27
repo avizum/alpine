@@ -5,3 +5,4 @@ files/prefixes.json
 files/prefixes.json
 *.pyc
 /cogs/__pycache__
+avimetrybot/files/prefixes.json
