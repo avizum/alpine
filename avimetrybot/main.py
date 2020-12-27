@@ -25,7 +25,7 @@ def prefix(client, message):
     if message.guild is None:
         return [str("a.")]
     else:
-        with open("avimetry/files/prefixes.json", "r") as f:
+        with open("avimetrybot/files/prefixes.json", "r") as f:
             prefixes = json.load(f)
         return prefixes[str(message.guild.id)]
 intents=discord.Intents.all()
@@ -39,7 +39,7 @@ async def globally_block_dms(ctx):
 
 #Load Cogs
 avibot.load_extension('jishaku')
-for filename in os.listdir('./avimetry/cogs'):
+for filename in os.listdir('./avimetrybot/cogs'):
     if filename.endswith('.py'):
         avibot.load_extension(f'cogs.{filename[:-3]}')
 

@@ -54,7 +54,7 @@ class Miscellaneous(commands.Cog):
 #Clean Command    
     @commands.command(brief="Grabs messages sent by me and messages that contain the command prefix and deletes them.")
     async def clean(self, ctx):
-        with open("files/prefixes.json", "r") as f:
+        with open("avimetrybot/files/prefixes.json", "r") as f:
             prefixes = json.load(f)
         pre = prefixes[str(ctx.guild.id)]
         await ctx.message.delete()
@@ -85,7 +85,8 @@ class Miscellaneous(commands.Cog):
         react_message = await channel.send(embed=embed)
         for reaction in reactions[:len(options)]:
             await react_message.add_reaction(reaction)
-
+        embed.set_footer(text=f"Poll from: {ctx.author.name}#{ctx.author.discriminator}\nPoll ID = {react_message.id}")
+        await react_message.edit(embed=embed)
     #Request Nick command
     @commands.command(brief="Requests a new nick name.")
     async def requestnick(self, ctx, *, rqnick):
@@ -101,7 +102,7 @@ class Miscellaneous(commands.Cog):
     #Info Command
     @commands.command(brief="Gets a member's information")
     async def info(self, ctx, *, member : discord.Member):
-        userroles = list
+        userroles = list()
         jnr = ", "
         for roles in member.roles:
             userroles.append(roles.name)

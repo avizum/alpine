@@ -59,7 +59,7 @@ class Cogs(commands.Cog):
     async def globalreload(self, ctx):
         ebbb = await ctx.send("Reloading Modules")
         ap = list()
-        for filename in os.listdir('./cogs'):
+        for filename in os.listdir('avimetrybot/cogs'):
             if filename.endswith('.py'):
                 self.avibot.reload_extension(f'cogs.{filename[:-3]}')
                 ap.append(filename[:-3])

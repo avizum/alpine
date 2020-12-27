@@ -11,33 +11,33 @@ class ServerPrefix(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
-        with open("files/prefixes.json", "r") as f:
+        with open("avimetrybot/files/prefixes.json", "r") as f:
             prefixes = json.load(f)
 
         prefixes[str(guild.id)] = "a."
 
-        with open("files/prefixes.json", "w") as f:
+        with open("avimetrybot/files/prefixes.json", "w") as f:
             json.dump(prefixes, f, indent=4)
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
-        with open("files/prefixes.json", "r") as f:
+        with open("avimetrybot/files/prefixes.json", "r") as f:
             prefixes = json.load(f)
 
         prefixes.pop(str(guild.id))
 
-        with open("files/prefixes.json", "w") as f:
+        with open("avimetrybot/files/prefixes.json", "w") as f:
             json.dump(prefixes, f, indent=4)
 
     @commands.command(brief="Set the prefix of the server.")
     @commands.has_permissions(administrator=True)
     async def setprefix(self, ctx, nprefix):
-        with open("files/prefixes.json", "r") as f:
+        with open("avimetrybot/files/prefixes.json", "r") as f:
             prefixes = json.load(f)
 
         prefixes[str(ctx.guild.id)] = nprefix
 
-        with open("files/prefixes.json", "w") as f:
+        with open("avimetrybot/files/prefixes.json", "w") as f:
             json.dump(prefixes, f, indent=4)
         
         cp=discord.Embed()
