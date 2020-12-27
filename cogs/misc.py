@@ -112,7 +112,7 @@ class Miscellaneous(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def pull(self, ctx):
-        command = 'cd /home/ec2-user/avimetry/'
+        command = 'ls'
         process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
         await asyncio.sleep(1)
