@@ -20,7 +20,7 @@ def prefix(client, message):
     if message.guild is None:
         return [str("a.")]
     else:
-        with open("avimetrybot/files/prefixes.json", "r") as f:
+        with open("./avimetrybot/files/prefixes.json", "r") as f:
             prefixes = json.load(f)
         return prefixes[str(message.guild.id)]
 intents=discord.Intents.all()
