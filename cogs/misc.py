@@ -112,16 +112,13 @@ class Miscellaneous(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def pull(self, ctx):
-        command = 'cd avimetry'
-        process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-        output, error = process.communicate()
-        await asyncio.sleep(1)
+        os.system("/home/ec2-user/avimetry")
         command = 'ls'
         process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
         output1, error1 = process.communicate()
        
         await ctx.send("Pulling")
-        await ctx.send(f"`{output} {error} {output1} {error1}`")
+        await ctx.send(f"`{output} | {error} | {output1} | {error1}`")
 def setup(avibot):
     avibot.add_cog(Miscellaneous(avibot))
 
