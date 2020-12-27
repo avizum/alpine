@@ -21,7 +21,7 @@ class RobloxUpdate(commands.Cog):
             if b.text not in a.text:
                 print("Update Detected!")
                 channel = discord.utils.get(self.avibot.get_all_channels(),  name='gaming-announcements')
-                embed = discord.Embed(title="<:roblox:788835896354013229> A ROBLOX update has been detected.", description= "If you don't want to update roblox, do not close roblox.")
+                embed = discord.Embed(title="<:roblox:788835896354013229> A ROBLOX update has been detected.", description= "If you don't want ROBLOX to update, keep ROBLOX open. Please wait while people update their cool lego hak.")
                 embed.add_field(name="Latest Version", value=f"{b.text}", inline=True)
                 embed.add_field(name="Last Version", value=f"{a.text}", inline=True)
                 embed.set_footer(text="If you want to get pinged when ROBLOX updates, use the command 'a.updateping'.")

@@ -109,17 +109,6 @@ class Miscellaneous(commands.Cog):
         ie.add_field(name="Server Permissions", value="wip")
         await ctx.send(embed=ie)
 
-    #Pull from GitHub command
-    @commands.command()
-    @commands.is_owner()
-    async def pull(self, ctx):
-        os.system("/home/ec2-user/avimetry")
-        command = 'ls'
-        process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-        output1, error1 = process.communicate()
-       
-        await ctx.send("Pulling")
-        await ctx.send(f"`{output1} | {error1}`")
 def setup(avibot):
     avibot.add_cog(Miscellaneous(avibot))
 
