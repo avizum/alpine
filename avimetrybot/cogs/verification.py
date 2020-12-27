@@ -13,7 +13,7 @@ class Verification(commands.Cog):
 #Welcome Message
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        with open("files/prefixes.json", "r") as f:
+        with open("avimetrybot/files/prefixes.json", "r") as f:
             prefixes = json.load(f)
         global pre
         pre = prefixes[str(member.guild.id)]
@@ -65,8 +65,10 @@ class Verification(commands.Cog):
     @commands.command(brief="Verify now!")
     async def verify(self, ctx):
         member = ctx.author
+        
         role = ctx.guild.get_role(757664936548892752)
         unv = ctx.guild.get_role(789334795100225556)
+        
         await ctx.message.delete()
         if role in member.roles:
             fver=discord.Embed()
@@ -75,31 +77,30 @@ class Verification(commands.Cog):
         else:
             letters = string.ascii_letters
             randomkey=(''.join(random.choice(letters) for i in range(10)))
-            rkey=discord.Embed(title="Here is your key. Your key will expire in 60 seconds.")
-            rkey.add_field(name="If you are on mobile, react with the mobile emoji below to get the raw text to copy it easier.", value=f"`{randomkey}`")
             print(randomkey)
-            dmm = await ctx.author.send(embed=rkey)
-            await dmm.add_reaction(emoji="<:mobile:792294580137492493>")
+            if member.is_on_mobile():
+                await member.send("**Here is your key. Your key will expire in 60 seconds.**")
+                await member.send(f"{randomkey}")
+            else:
+                rkey=discord.Embed()
+                rkey.add_field(name="Here is your key. Your key will expire in 60 seconds.", value=f"`{randomkey}`")
+                await member.send(embed=rkey)
+
             ksid=discord.Embed()
             ksid.add_field(name="<:aviSuccess:777096731438874634> A key was sent to your DMs", value="Enter your key here to get verified and have access to the channels.")
             codemessage = await ctx.send(embed=ksid, delete_after=60)
-            def mcheck(reaction, user):
-                return user == ctx.message.author and str(reaction.emoji)== "<:mobile:792294580137492493>"
-            try:
-                reaction, user = await self.avibot.wait_for('reaction_add', timeout=60.0, check=mcheck)
-            except asyncio.TimeoutError:
-                print("Desktop")
-            else:
-                await ctx.author.send(randomkey)
             channel=ctx.channel
             def check(m):
                 return m.content == randomkey and m.channel == channel
             try:
                 await self.avibot.wait_for("message", timeout=60, check=check)
             except asyncio.TimeoutError:
-                timeup=discord.Embed()
-                timeup.add_field(name="<:aviError:777096756865269760> Your Key has expired", value="Sorry, your key has expired. If you want to generate a new key, use the command `a.verify` to generate a new key.")
-                await ctx.author.send(embed=timeup)
+                if member.is_on_mobile():
+                    await member.send("<:aviError:777096756865269760> **Your Key has expired**\nSorry, your key has expired. If you want to generate a new key, use the command `a.verify` to generate a new key.")
+                else:
+                    timeup=discord.Embed()
+                    timeup.add_field(name="<:aviError:777096756865269760> Your Key has expired", value="Sorry, your key has expired. If you want to generate a new key, use the command `a.verify` to generate a new key.")
+                    await ctx.author.send(embed=timeup)
             else:
                 verembed=discord.Embed()
                 verembed.add_field(name="<:aviSuccess:777096731438874634> Thank you", value="You have been verified!", inline=False)

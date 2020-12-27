@@ -37,7 +37,6 @@ class Moderation(commands.Cog):
             await ctx.send(embed=pe, delete_after=15)
 
 #Lock Channel Command
-
     @commands.command(brief="Locks the mentioned channel.", timestamp=datetime.datetime.utcnow())
     @commands.has_permissions(manage_messages=True)
     async def lock(self, ctx, channel : discord.TextChannel, *, reason):

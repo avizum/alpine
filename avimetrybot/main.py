@@ -52,6 +52,7 @@ async def uptime(ctx):
     days, hours = divmod(hours, 24)
     ue = discord.Embed(title="Current Uptime", description=f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds")
     await ctx.send(embed=ue)
+
 #HCEmbed
 class HCEmbed(commands.HelpCommand):
     def get_ending_note(self):
