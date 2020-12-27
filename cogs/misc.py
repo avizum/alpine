@@ -116,7 +116,7 @@ class Miscellaneous(commands.Cog):
         process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
         await asyncio.sleep(1)
-        command = 'git pull origin main'
+        command = 'echo hello'
         process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
         output1, error1 = process.communicate()
        
