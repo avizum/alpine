@@ -32,6 +32,13 @@ avibot.launch_time = datetime.datetime.utcnow()
 async def globally_block_dms(ctx):
     return ctx.guild is not None
 
+@tasks.loop(seconds=60)
+async def loop():
+    try:
+        avibot.load_extension("./avimetrybot/cogs/cogs")
+    except commands.ExtensionAlreadyLoaded:
+        return
+
 #Load Cogs
 avibot.load_extension('jishaku')
 for filename in os.listdir('./avimetrybot/cogs'):

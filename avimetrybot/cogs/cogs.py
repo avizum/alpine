@@ -54,9 +54,13 @@ class Cogs(commands.Cog):
             noreload.add_field(name="<:aviError:777096756865269760> Not Loaded", value=f"The **{extension}** module is not loaded. You can not reload a module that is not loaded.")
             await ctx.send(embed=noreload)
 
-    @commands.command(timestamp=datetime.datetime.utcnow())
+    @commands.group(brief="Load, unload, or reload all modules at the same time",invoke_without_command=True,timestamp=datetime.datetime.utcnow())
     @commands.is_owner()
-    async def globalreload(self, ctx):
+    async def o(self, ctx):
+        await ctx.send("Error")
+
+    @o.command(brief="Reload all modules")
+    async def greload(self, ctx):
         ebbb = await ctx.send("Reloading Modules")
         ap = list()
         for filename in os.listdir('./avimetrybot/cogs'):
@@ -67,7 +71,32 @@ class Cogs(commands.Cog):
         eb = discord.Embed(timestamp=datetime.datetime.utcnow())
         eb.add_field(name="<:aviSuccess:777096731438874634> Global Reload", value=f"__Reloaded Modules:__\n {yes.join(ap)}")
         await ebbb.edit(content="", embed=eb, delete_after=30)
+
+    @o.command(brief="Unload all modules")
+    async def gunload(self, ctx):
+        ebbb = await ctx.send("Unloading Modules")
+        ap = list()
+        for filename in os.listdir('./avimetrybot/cogs'):
+            if filename.endswith('.py'):
+                self.avibot.unload_extension(f'cogs.{filename[:-3]}')
+                ap.append(filename[:-3])
+                yes = ",\n"
+        eb = discord.Embed(timestamp=datetime.datetime.utcnow())
+        eb.add_field(name="<:aviSuccess:777096731438874634> Global Unload", value=f"__Unloaded Modules:__\n {yes.join(ap)}")
+        await ebbb.edit(content="", embed=eb, delete_after=30)
         
+    @o.command(brief="Load all modules")
+    async def gload(self, ctx):
+        ebbb = await ctx.send("Loading Modules")
+        ap = list()
+        for filename in os.listdir('./avimetrybot/cogs'):
+            if filename.endswith('.py'):
+                self.avibot.load_extension(f'cogs.{filename[:-3]}')
+                ap.append(filename[:-3])
+                yes = ",\n"
+        eb = discord.Embed(timestamp=datetime.datetime.utcnow())
+        eb.add_field(name="<:aviSuccess:777096731438874634> Global Load", value=f"__Loaded Modules:__\n {yes.join(ap)}")
+        await ebbb.edit(content="", embed=eb, delete_after=30)
 
 
 def setup(avibot):

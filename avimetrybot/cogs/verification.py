@@ -21,6 +21,14 @@ class Verification(commands.Cog):
         if member.guild.id != 751490725555994716:
             return
         else:
+            name = 'New Members'
+            category = discord.utils.get(member.guild.categories, name=name)
+            overwrites = {
+                member.guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                member: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True)
+            }
+            await member.guild.create_text_channel(f'{member.id}', category=category, reason = f"{member.name} verification", overwrites=overwrites)
+            
             unv = member.guild.get_role(789334795100225556)
             await member.add_roles(unv)
 
@@ -29,10 +37,10 @@ class Verification(commands.Cog):
             jm.add_field(name="Member Joined", value=f"Hey, {member.mention}, Welcome to {member.guild.name}! \nThe server now has **{member.guild.member_count}** members.")
             await channel.send(embed=jm)
             
-            channel = self.avibot.get_channel(767651584254410763)
+            channel = discord.utils.get(self.avibot.get_all_channels(),  name=f'{member.id}')
             x=discord.Embed()
             x.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to **{member.guild.name}**! \nPlease read the rules over at the <#751967064310415360> channel. After reading the rules, come back here to start the verification process. \nTo start the verification process, use the command `{pre}verify`. \nYou will be given a randomly generated code to enter in the <#767651584254410763> channel.")
-            await channel.send(f"{member.mention}", embed=x, delete_after=60)
+            await channel.send(f"{member.mention}", embed=x)
             
             y=discord.Embed()
             y.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to **{member.guild.name}**! \nPlease read the rules over at the <#751967064310415360> channel. \nTo start the verification process, use the command `{pre}verify` in the <#767651584254410763> channel.")
@@ -40,6 +48,7 @@ class Verification(commands.Cog):
             
             unv = member.guild.get_role(789334795100225556)
             await member.add_roles(unv)
+            
 #Leave Message    
     @commands.Cog.listener()
     async def on_member_remove(self, member):
@@ -49,17 +58,6 @@ class Verification(commands.Cog):
         lm=discord.Embed()
         lm.add_field(name="Member Left", value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.")
         await channel.send(embed=lm)
-
-#Auto-Delete Message
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.author == self.avibot.user:
-            return
-        if message.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
-            if message.content.startswith(f"{pre}v"):
-                return
-            else: 
-                await message.delete(delay=1)
 
 #Verify Command
     @commands.command(brief="Verify now!")
@@ -88,7 +86,7 @@ class Verification(commands.Cog):
 
             ksid=discord.Embed()
             ksid.add_field(name="<:aviSuccess:777096731438874634> A key was sent to your DMs", value="Enter your key here to get verified and have access to the channels.")
-            codemessage = await ctx.send(embed=ksid, delete_after=60)
+            await ctx.send(embed=ksid)
             channel=ctx.channel
             def check(m):
                 return m.content == randomkey and m.channel == channel
@@ -104,12 +102,14 @@ class Verification(commands.Cog):
             else:
                 verembed=discord.Embed()
                 verembed.add_field(name="<:aviSuccess:777096731438874634> Thank you", value="You have been verified!", inline=False)
-                await ctx.send(embed=verembed, delete_after=5)
+                await ctx.send(embed=verembed)
                 await asyncio.sleep(.5)
                 await member.add_roles(role)
                 await member.remove_roles(unv)
                 await asyncio.sleep(2)
-                await codemessage.delete()
+                cnl = discord.utils.get(self.avibot.get_all_channels(),  name=f'{member.id}')
+                await cnl.delete(reason=f"{member.name} finish verification")
+                
 
 def setup(avibot):
     avibot.add_cog(Verification(avibot))
