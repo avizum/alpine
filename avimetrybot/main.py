@@ -35,7 +35,7 @@ async def globally_block_dms(ctx):
 @tasks.loop(seconds=60)
 async def loop():
     try:
-        avibot.load_extension("./avimetrybot/cogs/cogs")
+        avibot.load_extension("./avimetrybot/cogs/loads")
     except commands.ExtensionAlreadyLoaded:
         return
 
