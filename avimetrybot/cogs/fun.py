@@ -9,7 +9,7 @@ class Fun(commands.Cog):
     
     def __init__(self, avibot):
         self.avibot = avibot
-
+        
 #Magic 8 Ball
     @commands.command(aliases=['8ball', '8b'], brief="Ask a question to the magic eight ball, and you will recieve an answer")
     @commands.cooldown(1, 5, commands.BucketType.member)
