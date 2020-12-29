@@ -13,6 +13,9 @@ class AutoResponder(commands.Cog):
     #If Bot is pinged it responds with prefix
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.author.bot:
+            return
+        
         with open("./avimetrybot/files/counting.json", "r") as f:
             cc = json.load(f)
             if str(message.guild.id) in cc:
