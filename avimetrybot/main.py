@@ -116,4 +116,4 @@ class HCEmbed(commands.HelpCommand):
 avibot.help_command = HCEmbed()
 
 #Log-In
-avibot.run(avitoken, bot=True)
+avibot.run(avitoken2, bot=True)

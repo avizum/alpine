@@ -91,6 +91,7 @@ class Miscellaneous(commands.Cog):
             await react_message.add_reaction(reaction)
         embed.set_footer(text=f"Poll from: {ctx.author.name}#{ctx.author.discriminator}\nPoll ID: {react_message.id}")
         await react_message.edit(embed=embed)
+    
     #Request Nick command
     @commands.command(brief="Requests a new nick name.")
     async def requestnick(self, ctx, *, rqnick):

@@ -6,11 +6,10 @@ from discord.ext import commands
 class Cogs(commands.Cog):
     def __init__(self, avibot):
         self.avibot = avibot
-
-        
+      
     #Load Command
     @commands.command(brief="Loads a module if it was disabled.")
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_permissions(administrator=True)
     async def load(self, ctx, extension):
         try:
             self.avibot.load_extension(f"cogs.{extension}")
@@ -28,7 +27,7 @@ class Cogs(commands.Cog):
 
     #Unload Command
     @commands.command(brief="Unloads a module if it is being abused.")
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_permissions(administrator=True)
     async def unload(self, ctx, extension):
         try:    
             self.avibot.unload_extension(f'cogs.{extension}')
@@ -42,7 +41,7 @@ class Cogs(commands.Cog):
 
     #Reload Command
     @commands.command(brief="Reloads a module if it is not working.")
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_permissions(administrator=True)
     async def reload(self, ctx, extension):
         try:
             self.avibot.reload_extension(f'cogs.{extension}')
@@ -53,13 +52,9 @@ class Cogs(commands.Cog):
             noreload=discord.Embed()
             noreload.add_field(name="<:aviError:777096756865269760> Not Loaded", value=f"The **{extension}** module is not loaded. You can not reload a module that is not loaded.")
             await ctx.send(embed=noreload)
-
-    @commands.group(brief="Load, unload, or reload all modules at the same time",invoke_without_command=True,timestamp=datetime.datetime.utcnow())
-    @commands.is_owner()
-    async def o(self, ctx):
-        await ctx.send("Error")
-
-    @o.command(brief="Reload all modules")
+    #Greload Command
+    @commands.command(brief="Reload all modules")
+    @commands.has_permissions(administrator=True)
     async def greload(self, ctx):
         ebbb = await ctx.send("Reloading Modules")
         ap = list()
@@ -71,33 +66,6 @@ class Cogs(commands.Cog):
         eb = discord.Embed(timestamp=datetime.datetime.utcnow())
         eb.add_field(name="<:aviSuccess:777096731438874634> Global Reload", value=f"__Reloaded Modules:__\n {yes.join(ap)}")
         await ebbb.edit(content="", embed=eb, delete_after=30)
-
-    @o.command(brief="Unload all modules")
-    async def gunload(self, ctx):
-        ebbb = await ctx.send("Unloading Modules")
-        ap = list()
-        for filename in os.listdir('./avimetrybot/cogs'):
-            if filename.endswith('.py'):
-                self.avibot.unload_extension(f'cogs.{filename[:-3]}')
-                ap.append(filename[:-3])
-                yes = ",\n"
-        eb = discord.Embed(timestamp=datetime.datetime.utcnow())
-        eb.add_field(name="<:aviSuccess:777096731438874634> Global Unload", value=f"__Unloaded Modules:__\n {yes.join(ap)}")
-        await ebbb.edit(content="", embed=eb, delete_after=30)
-        
-    @o.command(brief="Load all modules")
-    async def gload(self, ctx):
-        ebbb = await ctx.send("Loading Modules")
-        ap = list()
-        for filename in os.listdir('./avimetrybot/cogs'):
-            if filename.endswith('.py'):
-                self.avibot.load_extension(f'cogs.{filename[:-3]}')
-                ap.append(filename[:-3])
-                yes = ",\n"
-        eb = discord.Embed(timestamp=datetime.datetime.utcnow())
-        eb.add_field(name="<:aviSuccess:777096731438874634> Global Load", value=f"__Loaded Modules:__\n {yes.join(ap)}")
-        await ebbb.edit(content="", embed=eb, delete_after=30)
-
 
 def setup(avibot):
     avibot.add_cog(Cogs(avibot))
