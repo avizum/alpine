@@ -15,6 +15,7 @@ class AutoResponder(commands.Cog):
     async def on_message(self, message):
         if message.author.bot:
             return
+            
         with open("./avimetrybot/files/counting.json", "r") as f:
             cc = json.load(f)
             if str(message.guild.id) in cc:
