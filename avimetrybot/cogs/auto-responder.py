@@ -13,12 +13,13 @@ class AutoResponder(commands.Cog):
     #If Bot is pinged it responds with prefix
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.author.bot:
-            await message.delete()
-        else:
+        
 
-            with open("./avimetrybot/files/counting.json", "r") as f:
-                cc = json.load(f)
+        with open("./avimetrybot/files/counting.json", "r") as f:
+            cc = json.load(f)
+            if message.author.bot:
+                await message.delete()
+            else:
                 if str(message.guild.id) in cc:
                     if message.channel.name == "counting":
                         if message.content != str(cc[str(message.guild.id)]):
