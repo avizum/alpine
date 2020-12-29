@@ -15,25 +15,26 @@ class AutoResponder(commands.Cog):
     async def on_message(self, message):
         if message.author.bot:
             await message.delete()
+        else:
 
-        with open("./avimetrybot/files/counting.json", "r") as f:
-            cc = json.load(f)
-            if str(message.guild.id) in cc:
-                if message.channel.name == "counting":
-                    if message.content != str(cc[str(message.guild.id)]):
-                        await message.delete()
-                    else:
-                        with open("./avimetrybot/files/counting.json", "r") as f:
-                            cc = json.load(f)
-                    
-                        cc[str(message.guild.id)] +=1
-                        with open("./avimetrybot/files/counting.json", "w") as f:
-                            json.dump(cc, f, indent=4)
-            else:
+            with open("./avimetrybot/files/counting.json", "r") as f:
+                cc = json.load(f)
+                if str(message.guild.id) in cc:
+                    if message.channel.name == "counting":
+                        if message.content != str(cc[str(message.guild.id)]):
+                            await message.delete()
+                        else:
+                            with open("./avimetrybot/files/counting.json", "r") as f:
+                                cc = json.load(f)
+                        
+                            cc[str(message.guild.id)] +=1
+                            with open("./avimetrybot/files/counting.json", "w") as f:
+                                json.dump(cc, f, indent=4)
+                else:
 
-                cc[str(message.guild.id)] = 0
-                with open("./avimetrybot/files/counting.json", "w") as f:
-                    json.dump(cc, f, indent=4)
+                    cc[str(message.guild.id)] = 0
+                    with open("./avimetrybot/files/counting.json", "w") as f:
+                        json.dump(cc, f, indent=4)
 
         if message.author == self.avibot.user:
             return
