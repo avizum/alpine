@@ -22,9 +22,9 @@ class BotLogs(commands.Cog):
             return
         elif message.author.bot:
             return
-        elif message.channel == discord.utils.get(self.avibot.get_all_channels(), name='secret-chat'):
-            return
         elif message.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
+            return
+        elif message.channel == discord.utils.get(self.avibot.get_all_channels(), name='counting'):
             return
         elif message.content.startswith(pre):
             return
@@ -52,6 +52,8 @@ class BotLogs(commands.Cog):
             return
         elif message_before.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
             return 
+        elif message_before.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
+            return
         elif message_before.author.bot:
             return
         elif message_before.attachments:
@@ -73,6 +75,8 @@ class BotLogs(commands.Cog):
     async def on_message_delete(self, message):
         channel = discord.utils.get(self.avibot.get_all_channels(), name='bot-logs')
         if message.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
+            return
+        elif message.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
             return
         elif message.author.bot:
             return
