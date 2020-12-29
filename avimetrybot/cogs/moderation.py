@@ -175,8 +175,8 @@ class Moderation(commands.Cog):
     @commands.command(brief="Mutes a member.")
     @commands.has_permissions(kick_members=True)
     async def mute(self, ctx, member : discord.Member):
-        role2 = discord.utils.get(ctx.guild.roles, name="Muted")
-        await ctx.member.add_roles(member, role2)
+        role = discord.utils.get(ctx.guild.roles, name="Muted")
+        await ctx.member.add_roles(role)
         await ctx.send(f"muted {member}")
 
 def setup(avibot):

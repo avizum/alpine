@@ -26,7 +26,7 @@ class RobloxUpdate(commands.Cog):
                 embed.set_footer(text="If you want to get pinged when ROBLOX updates, use the command 'a.updateping'.")
                 await channel.send('<@&783946910364073985>', embed=embed)
 
-    #Roblox Version Command
+#Roblox Version Command
     @commands.command(aliases=['rblxver', 'rversion'], brief="Gets the current ROBLOX version.")
     async def robloxversion(self, ctx):
         a = requests.get('http://setup.roblox.com/version')

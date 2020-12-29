@@ -7,7 +7,7 @@ class Cogs(commands.Cog):
     def __init__(self, avibot):
         self.avibot = avibot
       
-    #Load Command
+#Load Command
     @commands.command(brief="Loads a module if it was disabled.")
     @commands.has_permissions(administrator=True)
     async def load(self, ctx, extension):
@@ -25,7 +25,7 @@ class Cogs(commands.Cog):
             notfound.add_field(name="<:aviError:777096756865269760> Module Not Found", value=f"The **{extension}** module does not exist.", inline=False)
             await ctx.send(embed=notfound)
 
-    #Unload Command
+#Unload Command
     @commands.command(brief="Unloads a module if it is being abused.")
     @commands.has_permissions(administrator=True)
     async def unload(self, ctx, extension):
@@ -39,7 +39,7 @@ class Cogs(commands.Cog):
             nounload.add_field(name="<:aviError:777096756865269760> Not Loaded",value=f"The **{extension}** module is not loaded. You can not unload an unloaded module.")
             await ctx.send(embed=nounload)
 
-    #Reload Command
+#Reload Command
     @commands.command(brief="Reloads a module if it is not working.")
     @commands.has_permissions(administrator=True)
     async def reload(self, ctx, extension):
@@ -52,7 +52,7 @@ class Cogs(commands.Cog):
             noreload=discord.Embed()
             noreload.add_field(name="<:aviError:777096756865269760> Not Loaded", value=f"The **{extension}** module is not loaded. You can not reload a module that is not loaded.")
             await ctx.send(embed=noreload)
-    #Greload Command
+#Greload Command
     @commands.command(brief="Reload all modules")
     @commands.has_permissions(administrator=True)
     async def greload(self, ctx):

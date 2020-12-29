@@ -92,7 +92,7 @@ class Miscellaneous(commands.Cog):
         embed.set_footer(text=f"Poll from: {ctx.author.name}#{ctx.author.discriminator}\nPoll ID: {react_message.id}")
         await react_message.edit(embed=embed)
     
-    #Request Nick command
+#Request Nick command
     @commands.command(brief="Requests a new nick name.")
     async def requestnick(self, ctx, *, rqnick):
         channels = self.avibot.get_channel(787942179310010368)
@@ -104,7 +104,7 @@ class Miscellaneous(commands.Cog):
         await channels.send(embed=ap)
         await ctx.message.add_reaction("<a:animyes:777100238573404171>")
 
-    #Info Command
+#Info Command
     @commands.command(brief="Gets a member's information")
     async def info(self, ctx, *, member : discord.Member):
         userroles = list()

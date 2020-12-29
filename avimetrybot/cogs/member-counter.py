@@ -50,7 +50,7 @@ class MemberCount(commands.Cog):
         true_bot_count = len([m for m in channel.guild.members if m.bot])
         await channel3.edit(name=f"Bots: {true_bot_count}")
         await ctx.send("Member Count Updated.")
-
+#Update Member Count Command
     @commands.command(aliases=["members", "mc"], brief="Gets the members of the server and shows you.")
     async def membercount(self, ctx):
         tmc = len([m for m in ctx.guild.members if not m.bot])
