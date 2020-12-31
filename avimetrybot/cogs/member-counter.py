@@ -2,15 +2,13 @@ import discord
 from discord.ext import commands
 
 class MemberCount(commands.Cog):
-
     def __init__(self, avimetry):
         self.avimetry=avimetry
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        if member.guild != 751490725555994716:
-            return
-        else:
+        refchan = self.avimetry.get_channel(783961111060938782)
+        if member.guild.id == refchan.guild.id:
             channel = self.avimetry.get_channel(783961111060938782)
             await channel.edit(name=f"Total Members: {member.guild.member_count}")
         
@@ -21,11 +19,11 @@ class MemberCount(commands.Cog):
             channel3 = self.avimetry.get_channel(783961050814611476)
             true_bot_count = len([m for m in member.guild.members if m.bot])
             await channel3.edit(name=f"Bots: {true_bot_count}")
+    
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        if member.guild != 751490725555994716:
-            return
-        else:
+        lrefchan = self.avimetry.get_channel(783961111060938782)
+        if member.guild.id == lrefchan.guild.id:
             channel = self.avimetry.get_channel(783961111060938782)
             await channel.edit(name=f"Total Members: {member.guild.member_count}")
             
