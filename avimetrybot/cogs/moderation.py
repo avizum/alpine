@@ -9,8 +9,8 @@ import datetime
 
 class Moderation(commands.Cog):
     
-    def __init__(self, avibot):
-        self.avibot = avibot
+    def __init__(self, avimetry):
+        self.avimetry = avimetry
         self.lockchannel=False
 
 #Purge Command
@@ -62,7 +62,7 @@ class Moderation(commands.Cog):
             mecma=discord.Embed()
             mecma.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't kick yourself. That's just stupid.")
             await ctx.send(embed=mecma)
-        elif member==self.avibot.user:
+        elif member==self.avimetry.user:
             msau=discord.Embed()
             msau.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't kick me, because that won't work.")
             await ctx.send(embed=msau)
@@ -92,7 +92,7 @@ class Moderation(commands.Cog):
                 mecma=discord.Embed()
                 mecma.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't ban yourself. That's just stupid.")
                 await ctx.send(embed=mecma)
-        elif member==self.avibot.user:
+        elif member==self.avimetry.user:
                 msau=discord.Embed()
                 msau.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't ban me, because that won't work.")
                 await ctx.send(embed=msau)
@@ -179,5 +179,5 @@ class Moderation(commands.Cog):
         await ctx.member.add_roles(role)
         await ctx.send(f"muted {member}")
 
-def setup(avibot):
-    avibot.add_cog(Moderation(avibot))
+def setup(avimetry):
+    avimetry.add_cog(Moderation(avimetry))

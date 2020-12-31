@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 from datetime import date
 
 class RobloxUpdate(commands.Cog):
-    def __init__(self, avibot):
-        self.avibot=avibot
+    def __init__(self, avimetry):
+        self.avimetry=avimetry
 
     async def my_loop(self):
         while True:
@@ -19,7 +19,7 @@ class RobloxUpdate(commands.Cog):
             b = requests.get('http://setup.roblox.com/version')
             if b.text not in a.text:
                 print("Update Detected!")
-                channel = discord.utils.get(self.avibot.get_all_channels(),  name='gaming-announcements')
+                channel = discord.utils.get(self.avimetry.get_all_channels(),  name='gaming-announcements')
                 embed = discord.Embed(title="<:roblox:788835896354013229> A ROBLOX update has been detected.", description= "If you don't want ROBLOX to update, keep ROBLOX open. Please wait while people update their cool lego hak.")
                 embed.add_field(name="Latest Version", value=f"{b.text}", inline=True)
                 embed.add_field(name="Last Version", value=f"{a.text}", inline=True)
@@ -51,6 +51,6 @@ class RobloxUpdate(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.avibot.loop.create_task(self.my_loop())
-def setup(avibot):
-    avibot.add_cog(RobloxUpdate(avibot))
+        self.avimetry.loop.create_task(self.my_loop())
+def setup(avimetry):
+    avimetry.add_cog(RobloxUpdate(avimetry))

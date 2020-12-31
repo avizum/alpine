@@ -6,8 +6,8 @@ from discord.ext import commands, tasks
 from itertools import cycle
 
 class ServerPrefix(commands.Cog):
-    def __init__(self, avibot):
-        self.avibot = avibot
+    def __init__(self, avimetry):
+        self.avimetry = avimetry
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
@@ -53,5 +53,5 @@ class ServerPrefix(commands.Cog):
             nopperm.add_field(name="<:aviError:777096756865269760> No Permission", value="You do not have have the required permissions to use the `a.setprefix` command.", inline=False)
             await ctx.send(embed=nopperm)
 
-def setup(avibot):
-    avibot.add_cog(ServerPrefix(avibot))
+def setup(avimetry):
+    avimetry.add_cog(ServerPrefix(avimetry))

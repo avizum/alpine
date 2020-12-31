@@ -7,22 +7,19 @@ import json
 
 class AutoResponder(commands.Cog):
 
-    def __init__(self, avibot):
-        self.avibot = avibot
+    def __init__(self, avimetry):
+        self.avimetry = avimetry
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        
-
         with open("./avimetrybot/files/counting.json", "r") as f:
             cc = json.load(f)
             if str(message.guild.id) in cc:
                 if message.channel.name == "counting":
                     if message.author.bot:
                         await message.delete()
-                    elif message.author == self.avibot.user:
+                    elif message.author == self.avimetry.user:
                         return
-    
                     elif message.content != str(cc[str(message.guild.id)]):
                         await message.delete()
                     else:
@@ -33,10 +30,9 @@ class AutoResponder(commands.Cog):
                         with open("./avimetrybot/files/counting.json", "w") as f:
                             json.dump(cc, f, indent=4)
             else:
-
                 cc[str(message.guild.id)] = 0
                 with open("./avimetrybot/files/counting.json", "w") as f:
                     json.dump(cc, f, indent=4)
             
-def setup(avibot):
-    avibot.add_cog(AutoResponder(avibot))
+def setup(avimetry):
+    avimetry.add_cog(AutoResponder(avimetry))

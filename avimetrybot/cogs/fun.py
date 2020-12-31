@@ -7,8 +7,8 @@ import json
 
 class Fun(commands.Cog):
     
-    def __init__(self, avibot):
-        self.avibot = avibot
+    def __init__(self, avimetry):
+        self.avimetry = avimetry
         
 #Magic 8 Ball
     @commands.command(aliases=['8ball', '8b'], brief="Ask a question to the magic eight ball, and you will recieve an answer")
@@ -79,7 +79,7 @@ class Fun(commands.Cog):
     async def kill(self, ctx, member: discord.Member):
         await ctx.message.delete()
         role = discord.utils.get(member.guild.roles, name='Dead')
-        if member == self.avibot.user:
+        if member == self.avimetry.user:
             a = discord.Embed(description="'You fool. I can not die. Now **YOU MUST DIE.**",)
             await ctx.send(embed=a)
             await asyncio.sleep(.5)
@@ -186,7 +186,7 @@ class Fun(commands.Cog):
         await ctx.message.delete()
         role = discord.utils.get(member.guild.roles, name='Server Owner')
         memberrr = ctx.author
-        if member == self.avibot.user:
+        if member == self.avimetry.user:
             a = discord.Embed(description="I don't have any skin, so you can not skin me.")
             await ctx.send(embed=a)
         if member.id == 672122220566413312:
@@ -224,5 +224,5 @@ class Fun(commands.Cog):
         a = discord.Embed(description=f'{ctx.author.mention} hit their face.')
         await ctx.send(embed=a)
 
-def setup(avibot):
-    avibot.add_cog(Fun(avibot))
+def setup(avimetry):
+    avimetry.add_cog(Fun(avimetry))

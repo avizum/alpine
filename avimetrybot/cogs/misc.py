@@ -10,14 +10,14 @@ import os
 
 class Miscellaneous(commands.Cog):
     
-    def __init__(self, avibot):
-        self.avibot = avibot
+    def __init__(self, avimetry):
+        self.avimetry = avimetry
 
 #Ping Command
     @commands.command(brief="Gets the bot's ping.")
     async def ping(self, ctx):
         pingembed=discord.Embed()
-        pingembed.add_field(name="🏓 Pong!", value=f"Bot's Ping: `{round(self.avibot.latency * 1000)}ms`")
+        pingembed.add_field(name="🏓 Pong!", value=f"Bot's Ping: `{round(self.avimetry.latency * 1000)}ms`")
         await ctx.send(embed=pingembed)
     
 #Study Hall Command
@@ -59,7 +59,7 @@ class Miscellaneous(commands.Cog):
         pre = prefixes[str(ctx.guild.id)]
         await ctx.message.delete()
         def c1(m):
-            return m.author == self.avibot.user
+            return m.author == self.avimetry.user
         def c2(m):
             return m.content.startswith(pre)
         d1 = await ctx.channel.purge(limit=50, check=c1)
@@ -74,7 +74,7 @@ class Miscellaneous(commands.Cog):
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def poll(self, ctx, question, *options: str):
         await ctx.message.delete()
-        channel = self.avibot.get_channel(774075297142013972)
+        channel = self.avimetry.get_channel(774075297142013972)
         if len(options) == 2 and options[0] == 'Yes' and options[1] == 'No':
             reactions = ['<:aviSuccess:777096731438874634>', '<:aviError:777096756865269760>']
         elif len(options) == 2 and options[0] == 'yes' and options[1] == 'no':
@@ -95,7 +95,7 @@ class Miscellaneous(commands.Cog):
 #Request Nick command
     @commands.command(brief="Requests a new nick name.")
     async def requestnick(self, ctx, *, rqnick):
-        channels = self.avibot.get_channel(787942179310010368)
+        channels = self.avimetry.get_channel(787942179310010368)
         rq=discord.Embed()
         rq.add_field(name="Request Nickname", value=f"Your request has been sent. \nRequested Nickname: `{rqnick}`")
         ap=discord.Embed()
@@ -116,7 +116,7 @@ class Miscellaneous(commands.Cog):
         ie.add_field(name="Server Permissions", value="wip")
         await ctx.send(embed=ie)
 
-def setup(avibot):
-    avibot.add_cog(Miscellaneous(avibot))
+def setup(avimetry):
+    avimetry.add_cog(Miscellaneous(avimetry))
 
 

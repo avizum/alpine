@@ -24,31 +24,31 @@ def prefix(client, message):
             prefixes = json.load(f)
         return prefixes[str(message.guild.id)]
 intents=discord.Intents.all()
-avibot = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=intents)
-avibot.launch_time = datetime.datetime.utcnow()
+avimetry = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=intents)
+avimetry.launch_time = datetime.datetime.utcnow()
 
 #No Commands in DMs
-@avibot.check
+@avimetry.check
 async def globally_block_dms(ctx):
     return ctx.guild is not None
 
 @tasks.loop(seconds=60)
 async def loop():
     try:
-        avibot.load_extension("./avimetrybot/cogs/loads")
+        avimetry.load_extension("./avimetrybot/cogs/loads")
     except commands.ExtensionAlreadyLoaded:
         return
 
 #Load Cogs
-avibot.load_extension('jishaku')
+avimetry.load_extension('jishaku')
 for filename in os.listdir('./avimetrybot/cogs'):
     if filename.endswith('.py'):
-        avibot.load_extension(f'cogs.{filename[:-3]}')
+        avimetry.load_extension(f'cogs.{filename[:-3]}')
 
 #Uptime
-@avibot.command()
+@avimetry.command()
 async def uptime(ctx):
-    delta_uptime = datetime.datetime.utcnow() - avibot.launch_time
+    delta_uptime = datetime.datetime.utcnow() - avimetry.launch_time
     hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
     minutes, seconds = divmod(remainder, 60)
     days, hours = divmod(hours, 24)
@@ -113,7 +113,7 @@ class HCEmbed(commands.HelpCommand):
         embed.add_field(name=f"Command does not exist",value="Command '{0}' is not a command. Make sure you capitalized and spelled it correctly.".format(command))
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
-avibot.help_command = HCEmbed()
+avimetry.help_command = HCEmbed()
 
 #Log-In
-avibot.run(avitoken, bot=True)
+avimetry.run(avitoken, bot=True)

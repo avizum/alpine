@@ -7,8 +7,8 @@ import asyncio
 #event = @commands.Cog.listener
 class Verification(commands.Cog):
 
-    def __init__(self, avibot):
-        self.avibot = avibot
+    def __init__(self, avimetry):
+        self.avimetry = avimetry
 
 #Welcome Message
     @commands.Cog.listener()
@@ -32,12 +32,12 @@ class Verification(commands.Cog):
             unv = member.guild.get_role(789334795100225556)
             await member.add_roles(unv)
 
-            channel = discord.utils.get(self.avibot.get_all_channels(),  name='joins-and-leaves')
+            channel = discord.utils.get(self.avimetry.get_all_channels(),  name='joins-and-leaves')
             jm=discord.Embed()
             jm.add_field(name="Member Joined", value=f"Hey, {member.mention}, Welcome to {member.guild.name}! \nThe server now has **{member.guild.member_count}** members.")
             await channel.send(embed=jm)
             
-            channel = discord.utils.get(self.avibot.get_all_channels(),  name=f'{member.id}')
+            channel = discord.utils.get(self.avimetry.get_all_channels(),  name=f'{member.id}')
             x=discord.Embed()
             x.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to **{member.guild.name}**! \nPlease read the rules over at the <#751967064310415360> channel. After reading the rules, come back here to start the verification process. \nTo start the verification process, use the command `{pre}verify`. \nYou will be given a randomly generated code to enter in the <#767651584254410763> channel.")
             await channel.send(f"{member.mention}", embed=x)
@@ -54,7 +54,7 @@ class Verification(commands.Cog):
     async def on_member_remove(self, member):
         if member.guild.id != 751490725555994716:
             return
-        channel = discord.utils.get(self.avibot.get_all_channels(),  name='joins-and-leaves')
+        channel = discord.utils.get(self.avimetry.get_all_channels(),  name='joins-and-leaves')
         lm=discord.Embed()
         lm.add_field(name="Member Left", value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.")
         await channel.send(embed=lm)
@@ -91,7 +91,7 @@ class Verification(commands.Cog):
             def check(m):
                 return m.content == randomkey and m.channel == channel
             try:
-                await self.avibot.wait_for("message", timeout=60, check=check)
+                await self.avimetry.wait_for("message", timeout=60, check=check)
             except asyncio.TimeoutError:
                 if member.is_on_mobile():
                     await member.send("<:aviError:777096756865269760> **Your Key has expired**\nSorry, your key has expired. If you want to generate a new key, use the command `a.verify` to generate a new key.")
@@ -107,9 +107,9 @@ class Verification(commands.Cog):
                 await member.add_roles(role)
                 await member.remove_roles(unv)
                 await asyncio.sleep(2)
-                cnl = discord.utils.get(self.avibot.get_all_channels(),  name=f'{member.id}')
+                cnl = discord.utils.get(self.avimetry.get_all_channels(),  name=f'{member.id}')
                 await cnl.delete(reason=f"{member.name} finish verification")
                 
 
-def setup(avibot):
-    avibot.add_cog(Verification(avibot))
+def setup(avimetry):
+    avimetry.add_cog(Verification(avimetry))

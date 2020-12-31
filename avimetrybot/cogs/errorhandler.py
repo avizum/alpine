@@ -6,8 +6,8 @@ import json
 
 class ErrorHandler(commands.Cog):
     
-    def __init__(self, avibot):
-        self.avibot = avibot
+    def __init__(self, avimetry):
+        self.avimetry = avimetry
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -32,7 +32,7 @@ class ErrorHandler(commands.Cog):
             await ctx.send(embed=np, delete_after=10)
 
         if isinstance(error, commands.MissingRequiredArgument):
-            prefix= await self.avibot.get_prefix(ctx.message)
+            prefix= await self.avimetry.get_prefix(ctx.message)
             ctx.command.reset_cooldown(ctx)
             cu = discord.Embed(title=f"Command: {ctx.command.name}")
             cu.add_field(name=f"Usage:", value=f"**{prefix}{ctx.command.name} {ctx.command.signature}**\n{ctx.command.brief}" or "No description.", inline=False)
@@ -48,5 +48,5 @@ class ErrorHandler(commands.Cog):
             await ctx.send(embed=no, delete_after=10)
 
 
-def setup(avibot):
-    avibot.add_cog(ErrorHandler(avibot))
+def setup(avimetry):
+    avimetry.add_cog(ErrorHandler(avimetry))

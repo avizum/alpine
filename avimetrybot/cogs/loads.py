@@ -4,15 +4,15 @@ import datetime
 from discord.ext import commands
 
 class Cogs(commands.Cog):
-    def __init__(self, avibot):
-        self.avibot = avibot
+    def __init__(self, avimetry):
+        self.avimetry = avimetry
       
 #Load Command
     @commands.command(brief="Loads a module if it was disabled.")
     @commands.has_permissions(administrator=True)
     async def load(self, ctx, extension):
         try:
-            self.avibot.load_extension(f"cogs.{extension}")
+            self.avimetry.load_extension(f"cogs.{extension}")
             loadsuc=discord.Embed()
             loadsuc.add_field(name="<:aviSuccess:777096731438874634> Module Enabled", value=f"The **{extension}** module has been enabled.", inline=False)
             await ctx.send(embed=loadsuc)
@@ -30,7 +30,7 @@ class Cogs(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def unload(self, ctx, extension):
         try:    
-            self.avibot.unload_extension(f'cogs.{extension}')
+            self.avimetry.unload_extension(f'cogs.{extension}')
             unloadsuc=discord.Embed()
             unloadsuc.add_field(name="<:aviSuccess:777096731438874634> Module Disabled", value=f"The **{extension}** module has been disabled.", inline=False)
             await ctx.send (embed=unloadsuc)
@@ -44,7 +44,7 @@ class Cogs(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def reload(self, ctx, extension):
         try:
-            self.avibot.reload_extension(f'cogs.{extension}')
+            self.avimetry.reload_extension(f'cogs.{extension}')
             reloadsuc=discord.Embed()
             reloadsuc.add_field(name="<:aviSuccess:777096731438874634> Module Reloaded", value=f"The **{extension}** module has been reloaded.", inline=False)
             await ctx.send (embed=reloadsuc)
@@ -60,14 +60,14 @@ class Cogs(commands.Cog):
         ap = list()
         for filename in os.listdir('./avimetrybot/cogs'):
             if filename.endswith('.py'):
-                self.avibot.reload_extension(f'cogs.{filename[:-3]}')
+                self.avimetry.reload_extension(f'cogs.{filename[:-3]}')
                 ap.append(filename[:-3])
                 yes = ",\n"
         eb = discord.Embed(timestamp=datetime.datetime.utcnow())
         eb.add_field(name="<:aviSuccess:777096731438874634> Global Reload", value=f"__Reloaded Modules:__\n {yes.join(ap)}")
         await ebbb.edit(content="", embed=eb, delete_after=30)
 
-def setup(avibot):
-    avibot.add_cog(Cogs(avibot))
+def setup(avimetry):
+    avimetry.add_cog(Cogs(avimetry))
 
     

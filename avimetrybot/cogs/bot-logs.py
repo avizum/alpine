@@ -6,41 +6,38 @@ import json
 
 class BotLogs(commands.Cog):
 
-    def __init__(self, avibot):
-        self.avibot = avibot
+    def __init__(self, avimetry):
+        self.avimetry = avimetry
 
 #Message Logger
     @commands.Cog.listener()
     async def on_message(self, message):
         with open("./avimetrybot/files/prefixes.json", "r") as f:
-                prefixes = json.load(f)
-        if message.guild is None:
-            return
+            prefixes = json.load(f)
         global pre
         pre = prefixes[str(message.guild.id)]
-        if message.author == self.avibot.user:
+        if message.guild is None:
+            return
+        if message.author == self.avimetry.user:
             return
         if message.content == '<@!756257170521063444>':
-            with open("./avimetrybot/files/prefixes.json", "r") as f:
-                prefixes = json.load(f)
-            pre = prefixes[str(message.guild.id)]
             await message.channel.send(f"Hey, {message.author.mention}, my prefix is `{pre}`")
         elif message.author.bot:
             return
-        elif message.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
+        elif message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
             return
-        elif message.channel == discord.utils.get(self.avibot.get_all_channels(), name='counting'):
+        elif message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='counting'):
             return
         elif message.content.startswith(pre):
             return
         elif message.attachments:
-            channel = discord.utils.get(self.avibot.get_all_channels(),  name='chat-logs')
+            channel = discord.utils.get(self.avimetry.get_all_channels(),  name='chat-logs')
             mcontent=message.attachments[0].url
             embed=discord.Embed(title=f"Image from {message.author}, Server {message.guild}", timestamp=datetime.datetime.utcnow())
             embed.set_image(url=f'{mcontent}')
             await channel.send(embed=embed)
         elif message.content:
-            channel = discord.utils.get(self.avibot.get_all_channels(),  name='chat-logs')
+            channel = discord.utils.get(self.avimetry.get_all_channels(),  name='chat-logs')
             mcontent=message.content
             embed=discord.Embed(title=f"Message from {message.author}, Server {message.guild}", description=f"`{mcontent}`",timestamp=datetime.datetime.utcnow())
             await channel.send(embed=embed) 
@@ -48,16 +45,16 @@ class BotLogs(commands.Cog):
 #Message Edit
     @commands.Cog.listener()
     async def on_message_edit(self, message_before, message_after):
-        channel = discord.utils.get(self.avibot.get_all_channels(), name='bot-logs')
-        if message_before.author == self.avibot.user:
+        channel = discord.utils.get(self.avimetry.get_all_channels(), name='bot-logs')
+        if message_before.author == self.avimetry.user:
             return
         elif message_before.content.startswith(pre):
             return
         elif message_after.content.startswith(pre):
             return
-        elif message_before.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
+        elif message_before.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
             return 
-        elif message_before.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
+        elif message_before.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
             return
         elif message_before.author.bot:
             return
@@ -78,14 +75,14 @@ class BotLogs(commands.Cog):
 #Message Delete
     @commands.Cog.listener()
     async def on_message_delete(self, message):
-        channel = discord.utils.get(self.avibot.get_all_channels(), name='bot-logs')
-        if message.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
+        channel = discord.utils.get(self.avimetry.get_all_channels(), name='bot-logs')
+        if message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
             return
-        elif message.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
+        elif message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
             return
         elif message.author.bot:
             return
-        elif message.author == self.avibot.user:
+        elif message.author == self.avimetry.user:
             return
         elif message.content.startswith(pre):
             return
@@ -106,11 +103,11 @@ class BotLogs(commands.Cog):
 #Bulk delete
     @commands.Cog.listener()
     async def on_bulk_message_delete(self, messages):
-        channel = discord.utils.get(self.avibot.get_all_channels(), name='bot-logs')
+        channel = discord.utils.get(self.avimetry.get_all_channels(), name='bot-logs')
         purgeembed=discord.Embed(title='Message Purge', description=f'Bulk delete detected. Information is below.')
         purgeembed.add_field(name='Affected messages:', value="{} messages".format(len(messages)))
         await channel.send(embed=purgeembed)
 
 
-def setup(avibot):
-    avibot.add_cog(BotLogs(avibot))
+def setup(avimetry):
+    avimetry.add_cog(BotLogs(avimetry))
