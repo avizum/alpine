@@ -20,6 +20,11 @@ class BotLogs(commands.Cog):
         pre = prefixes[str(message.guild.id)]
         if message.author == self.avibot.user:
             return
+        if message.content == '<@!756257170521063444>':
+            with open("./avimetrybot/files/prefixes.json", "r") as f:
+                prefixes = json.load(f)
+            pre = prefixes[str(message.guild.id)]
+            await message.channel.send(f"Hey, {message.author.mention}, my prefix is `{pre}`")
         elif message.author.bot:
             return
         elif message.channel == discord.utils.get(self.avibot.get_all_channels(), name='verify'):
