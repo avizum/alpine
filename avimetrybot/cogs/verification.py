@@ -29,12 +29,6 @@ class Verification(commands.Cog):
         unv = member.guild.get_role(789334795100225556)
         await member.add_roles(unv)
         
-        channel = discord.utils.get(self.avimetry.get_all_channels(),  name='joins-and-leaves')
-        if channel.guild.id == member.guild.id:
-            jm=discord.Embed()
-            jm.add_field(name="Member Joined", value=f"Hey, {member.mention}, Welcome to {member.guild.name}! \nThe server now has **{member.guild.member_count}** members.")
-            await channel.send(embed=jm)
-        
         channel = discord.utils.get(self.avimetry.get_all_channels(), name=f'{member.id}')
         x=discord.Embed()
         x.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to **{member.guild.name}**! \nPlease read the rules over at the <#751967064310415360> channel. After reading the rules, come back here to start the verification process. \nTo start the verification process, use the command `{pre}verify`. \nYou will be given a randomly generated code to enter in the <#767651584254410763> channel.")
@@ -52,11 +46,13 @@ class Verification(commands.Cog):
     async def on_member_remove(self, member):
         dchnl = discord.utils.get(self.avimetry.get_all_channels(), name=f'{member.id}')
         await dchnl.delete(reason=f"{member.name} left during verification process")
+        role = member.guild.get_role(757664936548892752)
         channel = discord.utils.get(self.avimetry.get_all_channels(),  name='joins-and-leaves')
-        if channel.guild.id == member.guild.id:
-            lm=discord.Embed()
-            lm.add_field(name="Member Left", value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.")
-            await channel.send(embed=lm)
+        if role in member.roles:
+            if channel.guild.id == member.guild.id:
+                lm=discord.Embed()
+                lm.add_field(name="Member Left", value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.")
+                await channel.send(embed=lm)
 
 #Verify Command
     @commands.command(brief="Verify now!")
@@ -108,6 +104,11 @@ class Verification(commands.Cog):
                 await asyncio.sleep(2)
                 cnl = discord.utils.get(self.avimetry.get_all_channels(),  name=f'{member.id}')
                 await cnl.delete(reason=f"{member.name} finished verification")
+                channel = discord.utils.get(self.avimetry.get_all_channels(),  name='joins-and-leaves')
+                if channel.guild.id == ctx.author.guild.id:
+                    jm=discord.Embed()
+                    jm.add_field(name="Member Joined", value=f"Hey, {member.mention}, Welcome to {member.guild.name}! \nThe server now has **{member.guild.member_count}** members.")
+                    await channel.send(embed=jm)
                 
 
 def setup(avimetry):
