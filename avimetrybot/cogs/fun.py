@@ -224,5 +224,7 @@ class Fun(commands.Cog):
         a = discord.Embed(description=f'{ctx.author.mention} hit their face.')
         await ctx.send(embed=a)
 
+
+
 def setup(avimetry):
     avimetry.add_cog(Fun(avimetry))

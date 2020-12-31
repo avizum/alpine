@@ -21,7 +21,7 @@ class BotLogs(commands.Cog):
         if message.author == self.avimetry.user:
             return
         if message.content == '<@!756257170521063444>':
-            await message.channel.send(f"Hey, {message.author.mention}, my prefix is `{pre}`")
+            await message.reply(f"Hey, {message.author.mention}, my prefix is `{pre}`")
         elif message.author.bot:
             return
         elif message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
