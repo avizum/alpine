@@ -18,7 +18,6 @@ class Verification(commands.Cog):
         global pre
         pre = prefixes[str(member.guild.id)]
 
-       
         name = 'New Members'
         category = discord.utils.get(member.guild.categories, name=name)
         overwrites = {
@@ -52,14 +51,12 @@ class Verification(commands.Cog):
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         dchnl = discord.utils.get(self.avimetry.get_all_channels(), name=f'{member.id}')
-        dchnl.delete(reason=f"{member.name} left during verification process")
+        await dchnl.delete(reason=f"{member.name} left during verification process")
         channel = discord.utils.get(self.avimetry.get_all_channels(),  name='joins-and-leaves')
         if channel.guild.id == member.guild.id:
             lm=discord.Embed()
             lm.add_field(name="Member Left", value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.")
             await channel.send(embed=lm)
-
-        
 
 #Verify Command
     @commands.command(brief="Verify now!")
