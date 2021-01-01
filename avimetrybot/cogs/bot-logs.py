@@ -21,7 +21,8 @@ class BotLogs(commands.Cog):
         if message.author == self.avimetry.user:
             return
         if message.content == '<@!756257170521063444>':
-            await message.reply(f"Hey, {message.author.mention}, my prefix is `{pre}`")
+            a = discord.Embed(title=f"{self.avimetry.user.name} Info", description=f"Hey, my prefix for **{message.guild.name}**. If you need help, use `{pre}help`")
+            await message.reply(embed=a)
         elif message.author.bot:
             return
         elif message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):

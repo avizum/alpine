@@ -49,7 +49,6 @@ class Verification(commands.Cog):
         role = member.guild.get_role(757664936548892752)
         channel = discord.utils.get(self.avimetry.get_all_channels(),  name='joins-and-leaves')
         if role in member.roles:
-            if channel.guild.id == member.guild.id:
                 lm=discord.Embed()
                 lm.add_field(name="Member Left", value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.")
                 await channel.send(embed=lm)
