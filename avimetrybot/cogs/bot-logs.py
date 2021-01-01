@@ -12,37 +12,47 @@ class BotLogs(commands.Cog):
 #Message Logger
     @commands.Cog.listener()
     async def on_message(self, message):
-        with open("./avimetrybot/files/prefixes.json", "r") as f:
-            prefixes = json.load(f)
-        global pre
-        pre = prefixes[str(message.guild.id)]
-        if message.guild is None:
-            return
-        if message.author == self.avimetry.user:
-            return
-        if message.content == '<@!756257170521063444>':
-            a = discord.Embed(title=f"{self.avimetry.user.name} Info", description=f"Hey, my prefix for **{message.guild.name}** is `{pre}` \nIf you need help, use `{pre}help`")
-            await message.reply(embed=a)
-        elif message.author.bot:
-            return
-        elif message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
-            return
-        elif message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='counting'):
-            return
-        elif message.content.startswith(pre):
-            return
-        elif message.attachments:
-            channel = discord.utils.get(self.avimetry.get_all_channels(),  name='chat-logs')
-            mcontent=message.attachments[0].url
-            embed=discord.Embed(title=f"Image from {message.author}, Server {message.guild}", timestamp=datetime.datetime.utcnow())
-            embed.set_image(url=f'{mcontent}')
-            await channel.send(embed=embed)
-        elif message.content:
-            channel = discord.utils.get(self.avimetry.get_all_channels(),  name='chat-logs')
-            mcontent=message.content
-            embed=discord.Embed(title=f"Message from {message.author}, Server {message.guild}", description=f"`{mcontent}`",timestamp=datetime.datetime.utcnow())
-            await channel.send(embed=embed) 
-
+        with open("./avimetrybot/files/bot-logs.json", "r") as f:
+            msglogger = json.load(f)
+            if str(message.guild.id) in msglogger:
+                if msglogger[str(message.guild.id)] == 0:
+                    return
+                elif msglogger[str(message.guild.id)] == 1:
+                    with open("./avimetrybot/files/prefixes.json", "r") as f:
+                        prefixes = json.load(f)
+                    global pre
+                    pre = prefixes[str(message.guild.id)]
+                    if message.guild is None:
+                        return
+                    if message.author == self.avimetry.user:
+                        return
+                    if message.content == '<@!756257170521063444>':
+                        a = discord.Embed(title=f"{self.avimetry.user.name} Info", description=f"Hey, my prefix for **{message.guild.name}** is `{pre}` \nIf you need help, use `{pre}help`")
+                        await message.reply(embed=a)
+                    elif message.author.bot:
+                        return
+                    elif message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
+                        return
+                    elif message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='counting'):
+                        return
+                    elif message.content.startswith(pre):
+                        return
+                    elif message.attachments:
+                        channel = discord.utils.get(self.avimetry.get_all_channels(),  name='chat-logs')
+                        mcontent=message.attachments[0].url
+                        embed=discord.Embed(title=f"Image from {message.author}, Server {message.guild}", timestamp=datetime.datetime.utcnow())
+                        embed.set_image(url=f'{mcontent}')
+                        await channel.send(embed=embed)
+                    elif message.content:
+                        channel = discord.utils.get(self.avimetry.get_all_channels(),  name='chat-logs')
+                        mcontent=message.content
+                        embed=discord.Embed(title=f"Message from {message.author}", description=f"<#{message.channel.id}>\n`{mcontent}`",timestamp=datetime.datetime.utcnow())
+                        await channel.send(embed=embed) 
+                else:
+                    msglogger[str(message.guild.id)] = 0
+                    with open("./avimetrybot/files/bot-logs.json", "w") as f:
+                        json.dump(msglogger, f, indent=4)
+                                            
 #Message Edit
     @commands.Cog.listener()
     async def on_message_edit(self, message_before, message_after):
@@ -109,6 +119,27 @@ class BotLogs(commands.Cog):
         purgeembed.add_field(name='Affected messages:', value="{} messages".format(len(messages)))
         await channel.send(embed=purgeembed)
 
+#Toggle Command
+    @commands.group(invoke_without_command=True)
+    @commands.has_permissions(administrator=True)
+    async def logs(self, ctx):
+        a = discord.Embed()
+        a.add_field(name="Options", value="chatlogs, botlogs")
+        await ctx.send(embed=a)
+    @logs.command()
+    async def chatlogs(self, ctx, toggle : str):
+        with open("./avimetrybot/files/bot-logs.json", "r") as f:
+            msglogger = json.load(f)
+        if toggle == "true":
+            await ctx.send("Set chat logs to `true`")
+            msglogger[str(ctx.guild.id)] = 1
+            with open("./avimetrybot/files/bot-logs.json", "w") as f:
+                json.dump(msglogger, f, indent=4)
+        if toggle == "false":
+            msglogger[str(ctx.guild.id)] = 0
+            with open("./avimetrybot/files/bot-logs.json", "w") as f:
+               json.dump(msglogger, f, indent=4)
+            await ctx.send("Set chat logs to `false`")
 
 def setup(avimetry):
     avimetry.add_cog(BotLogs(avimetry))

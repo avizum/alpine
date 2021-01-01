@@ -33,6 +33,7 @@ class AutoResponder(commands.Cog):
                 cc[str(message.guild.id)] = 0
                 with open("./avimetrybot/files/counting.json", "w") as f:
                     json.dump(cc, f, indent=4)
+
             
 def setup(avimetry):
     avimetry.add_cog(AutoResponder(avimetry))

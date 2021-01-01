@@ -116,4 +116,4 @@ class HCEmbed(commands.HelpCommand):
 avimetry.help_command = HCEmbed()
 
 #Log-In
-avimetry.run(avitoken3, bot=True)
+avimetry.run(avitoken, bot=True)
