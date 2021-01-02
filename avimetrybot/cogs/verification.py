@@ -47,11 +47,11 @@ class Verification(commands.Cog):
         dchnl = discord.utils.get(self.avimetry.get_all_channels(), name=f'{member.id}')
         await dchnl.delete(reason=f"{member.name} left during verification process")
         role = member.guild.get_role(757664936548892752)
-        channel = discord.utils.get(self.avimetry.get_all_channels(),  name='joins-and-leaves')
+        channel = discord.utils.get(self.avimetry.get_all_channels(), name='joins-and-leaves')
         if role in member.roles:
-                lm=discord.Embed()
-                lm.add_field(name="Member Left", value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.")
-                await channel.send(embed=lm)
+            lm=discord.Embed()
+            lm.add_field(name="Member Left", value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.")
+            await channel.send(embed=lm)
 
 #Verify Command
     @commands.command(brief="Verify now!")
