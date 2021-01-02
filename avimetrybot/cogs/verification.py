@@ -35,7 +35,7 @@ class Verification(commands.Cog):
         await channel.send(f"{member.mention}", embed=x)
         
         y=discord.Embed()
-        y.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to **{member.guild.name}**! \n\nPlease read the rules over at the <#751967064310415360> channel. \n\nTo start the verification process, use the command `{pre}verify` in the channel.")
+        y.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to **{member.guild.name}**! \n\nPlease read the rules over at the <#751967064310415360> channel. \n\nTo start the verification process, use the command `{pre}verify` in <#{member.id}>.")
         await member.send(f"{member.mention}", embed=y)
         
         unv = member.guild.get_role(789334795100225556)
@@ -45,13 +45,14 @@ class Verification(commands.Cog):
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         dchnl = discord.utils.get(self.avimetry.get_all_channels(), name=f'{member.id}')
-        await dchnl.delete(reason=f"{member.name} left during verification process")
-        role = member.guild.get_role(757664936548892752)
-        channel = discord.utils.get(self.avimetry.get_all_channels(), name='joins-and-leaves')
-        if role in member.roles:
+        if dchnl in member.guild.channels:
+            await dchnl.delete(reason=f"{member.name} left during verification process")
+        else:
+            channel = discord.utils.get(self.avimetry.get_all_channels(), name='joins-and-leaves')
             lm=discord.Embed()
             lm.add_field(name="Member Left", value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.")
             await channel.send(embed=lm)
+            
 
 #Verify Command
     @commands.command(brief="Verify now!")
