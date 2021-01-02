@@ -16,10 +16,15 @@ class Moderation(commands.Cog):
 #Purge Command
     @commands.command(brief="Delete a number of messages in the current channel.")
     @commands.has_permissions(manage_messages=True)
+    @commands.cooldown(5, 300, commands.BucketType.member)
     async def purge(self, ctx, amount: int):
         await ctx.message.delete()
         if amount == 0:
             pass
+        elif amount > 100:
+            a100=discord.Embed()
+            a100.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't purge more than 100 messages at a time.")
+            await ctx.send(embed=a100)
         else:
             authors = {}
             async for message in ctx.channel.history(limit=amount):
@@ -57,7 +62,7 @@ class Moderation(commands.Cog):
 #Kick Command
     @commands.command(brief="Kicks a member from the server.")
     @commands.has_permissions(kick_members=True)
-    async def kick(self, ctx, member : discord.Member, *, reason):
+    async def kick(self, ctx, member : discord.Member, *, reason = "No reason was provided"):
         if member==ctx.message.author:
             mecma=discord.Embed()
             mecma.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't kick yourself. That's just stupid.")
@@ -87,7 +92,7 @@ class Moderation(commands.Cog):
 #Ban Command
     @commands.command(brief="Bans a member from the server")
     @commands.has_permissions(ban_members=True)
-    async def ban(self, ctx, member : discord.Member, *, reason):
+    async def ban(self, ctx, member : discord.Member, *, reason = "No reason was provided"):
         if member==ctx.message.author:
                 mecma=discord.Embed()
                 mecma.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't ban yourself. That's just stupid.")

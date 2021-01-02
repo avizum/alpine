@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import random
 import time
+import datetime
 import json
 
 class ErrorHandler(commands.Cog):
@@ -17,8 +18,9 @@ class ErrorHandler(commands.Cog):
         pre = prefixes[str(ctx.guild.id)]
         
         if isinstance(error, commands.CommandNotFound):
-            return
-
+            a = discord.Embed(timestamp=datetime.datetime.utcnow())
+            a.add_field(name="<:aviError:777096756865269760> Invalid Command", value=f"That command does not exist.\n\n If you need help, use the command {pre}help to see the list of commands.")
+            await ctx.send(embed=a, delete_after=10)
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.message.delete()
             cd=discord.Embed()
