@@ -18,7 +18,7 @@ class OnReady(commands.Cog):
             await asyncio.sleep(60)
             await self.avimetry.change_presence(activity=discord.Game('discord.gg/zpj46np'))
             await asyncio.sleep(60)
-            await self.avimetry.change_presence(activity=discord.Activity(type=discord.ActivityType.competing, name='Sleeping Battles'))
+            await self.avimetry.change_presence(activity=discord.Activity(type=discord.ActivityType.competing, name='ROBLOX'))
             await asyncio.sleep(60)
 
     @commands.Cog.listener()

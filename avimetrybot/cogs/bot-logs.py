@@ -131,7 +131,9 @@ class BotLogs(commands.Cog):
         with open("./avimetrybot/files/bot-logs.json", "r") as f:
             msglogger = json.load(f)
         if toggle == "true":
-            await ctx.send("Set chat logs to `true`")
+            a = discord.Embed()
+            a.add_field(name="Chat Logs", value="Chat Logs set to `true`")
+            await ctx.send(embed=a)
             msglogger[str(ctx.guild.id)] = 1
             with open("./avimetrybot/files/bot-logs.json", "w") as f:
                 json.dump(msglogger, f, indent=4)
@@ -139,7 +141,9 @@ class BotLogs(commands.Cog):
             msglogger[str(ctx.guild.id)] = 0
             with open("./avimetrybot/files/bot-logs.json", "w") as f:
                json.dump(msglogger, f, indent=4)
-            await ctx.send("Set chat logs to `false`")
+            b = discord.Embed()
+            b.add_field(name="Chat Logs", value="Chat Logs set to `true`")
+            await ctx.send(embed = b)
 
 def setup(avimetry):
     avimetry.add_cog(BotLogs(avimetry))

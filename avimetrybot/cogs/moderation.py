@@ -24,7 +24,7 @@ class Moderation(commands.Cog):
         elif amount > 100:
             a100=discord.Embed()
             a100.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't purge more than 100 messages at a time.")
-            await ctx.send(embed=a100)
+            await ctx.send(embed=a100, delete_after=10)
         else:
             authors = {}
             async for message in ctx.channel.history(limit=amount):
