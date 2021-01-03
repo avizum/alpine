@@ -45,7 +45,12 @@ class Moderation(commands.Cog):
     @commands.command(brief="Locks the mentioned channel.", timestamp=datetime.datetime.utcnow())
     @commands.has_permissions(manage_messages=True)
     async def lock(self, ctx, channel : discord.TextChannel, *, reason):
-        await channel.set_permissions(ctx.guild.default_role, send_messages=False, read_messages=False)
+        overwrites = {
+            ctx.guild.default_role: discord.PermissionOverwrite(
+            send_messages=False
+            )
+        }
+        await channel.edit(reason="Locked", overwrites=overwrites)
         lc=discord.Embed()
         lc.add_field(name=":lock: Channel has been locked.", value=f"{ctx.author.mention} has locked down <#{channel.id}> with the reason of {reason}. Only Staff members can speak now.")
         await channel.send(embed=lc)
@@ -54,7 +59,12 @@ class Moderation(commands.Cog):
     @commands.command(brief="Unlocks the mentioned channel.", timestamp=datetime.datetime.utcnow())
     @commands.has_permissions(manage_messages=True)
     async def unlock(self, ctx, channel : discord.TextChannel, *, reason):
-        await channel.set_permissions(ctx.guild.default_role, send_messages=None, read_messages=False)
+        overwrites = {
+            ctx.guild.default_role: discord.PermissionOverwrite(
+            send_messages=None
+            )
+        }
+        await channel.edit(reason="Unlocked", overwrites=overwrites)
         uc=discord.Embed()
         uc.add_field(name=":unlock: Channel has been unlocked.", value=f"{ctx.author.mention} has unlocked <#{channel.id}> with the reason of {reason}. Everyone can speak now.")
         await channel.send(embed=uc)
@@ -64,21 +74,21 @@ class Moderation(commands.Cog):
     @commands.has_permissions(kick_members=True)
     async def kick(self, ctx, member : discord.Member, *, reason = "No reason was provided"):
         if member==ctx.message.author:
-            mecma=discord.Embed()
-            mecma.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't kick yourself. That's just stupid.")
-            await ctx.send(embed=mecma)
+            e1=discord.Embed()
+            e1.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't kick yourself. That's just stupid.")
+            await ctx.send(embed=e1, delete_after=10)
         elif member==self.avimetry.user:
-            msau=discord.Embed()
-            msau.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't kick me, because that won't work.")
-            await ctx.send(embed=msau)
+            e2=discord.Embed()
+            e2.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't kick me, because that won't work.")
+            await ctx.send(embed=e2, delete_after=10)
         elif member.top_role > ctx.author.top_role:
-            mtrgratr=discord.Embed()
-            mtrgratr.add_field(name="<:aviError:777096756865269760> No Permission", value="You can not kick someone that has a higher role than you. They must have a role under you.", inline=False)
-            await ctx.send(embed=mtrgratr)
+            e3=discord.Embed()
+            e3.add_field(name="<:aviError:777096756865269760> No Permission", value="You can not kick someone that has a higher role than you. They must have a role under you.", inline=False)
+            await ctx.send(embed=e3, delete_after=10)
         elif member.top_role== ctx.author.top_role:
-            mtretatr=discord.Embed()
-            mtretatr.add_field(name="<:aviError:777096756865269760> No Permission", value="You can not kick someone that has the same role as you. They must have a role under you.", inline=False)
-            await ctx.send(embed=mtretatr)
+            e4=discord.Embed()
+            e4.add_field(name="<:aviError:777096756865269760> No Permission", value="You can not kick someone that has the same role as you. They must have a role under you.", inline=False)
+            await ctx.send(embed=e4, delete_after=10)
         else:
             bae=discord.Embed(title=f"You have been kicked from {ctx.guild.name}", timestamp=datetime.datetime.utcnow())
             bae.add_field(name= "Moderator:", value=f"{ctx.author.mention} \n`{ctx.author.id}`")
