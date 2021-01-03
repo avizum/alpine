@@ -11,8 +11,7 @@ class Moderation(commands.Cog):
     
     def __init__(self, avimetry):
         self.avimetry = avimetry
-        self.lockchannel=False
-
+        
 #Purge Command
     @commands.command(brief="Delete a number of messages in the current channel.")
     @commands.has_permissions(manage_messages=True)
@@ -45,12 +44,7 @@ class Moderation(commands.Cog):
     @commands.command(brief="Locks the mentioned channel.", timestamp=datetime.datetime.utcnow())
     @commands.has_permissions(manage_messages=True)
     async def lock(self, ctx, channel : discord.TextChannel, *, reason):
-        overwrites = {
-            ctx.guild.default_role: discord.PermissionOverwrite(
-            send_messages=False
-            )
-        }
-        await channel.edit(reason="Locked", overwrites=overwrites)
+        await channel.set_permissions(ctx.guild.default_role, send_messages=False, read_messages=False)
         lc=discord.Embed()
         lc.add_field(name=":lock: Channel has been locked.", value=f"{ctx.author.mention} has locked down <#{channel.id}> with the reason of {reason}. Only Staff members can speak now.")
         await channel.send(embed=lc)
@@ -59,12 +53,7 @@ class Moderation(commands.Cog):
     @commands.command(brief="Unlocks the mentioned channel.", timestamp=datetime.datetime.utcnow())
     @commands.has_permissions(manage_messages=True)
     async def unlock(self, ctx, channel : discord.TextChannel, *, reason):
-        overwrites = {
-            ctx.guild.default_role: discord.PermissionOverwrite(
-            send_messages=None
-            )
-        }
-        await channel.edit(reason="Unlocked", overwrites=overwrites)
+        await channel.set_permissions(ctx.guild.default_role, send_messages=None, read_messages=False)
         uc=discord.Embed()
         uc.add_field(name=":unlock: Channel has been unlocked.", value=f"{ctx.author.mention} has unlocked <#{channel.id}> with the reason of {reason}. Everyone can speak now.")
         await channel.send(embed=uc)

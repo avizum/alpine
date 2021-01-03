@@ -38,6 +38,7 @@ async def loop():
         avimetry.load_extension("./avimetrybot/cogs/loads")
     except commands.ExtensionAlreadyLoaded:
         return
+loop.start()
 
 #Load Cogs
 avimetry.load_extension('jishaku')
