@@ -39,7 +39,7 @@ class AutoResponder(commands.Cog):
     async def on_message_edit(self, message_before, message_after):
         if message_after.channel.name == "counting":
             await message_after.delete()
-            await message_after.send("Don't Edit Messages", delete_after=5)
+            await message_after.channel.send("Don't Edit Messages", delete_after=5)
             with open("./avimetrybot/files/counting.json", "r") as f:
                 cc = json.load(f)
                         
