@@ -6,7 +6,6 @@ import datetime
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from discord.ext import menus
-#ps aux | grep python
 #Get Bot Token
 load_dotenv()
 avitoken = os.getenv('Bot_Token')

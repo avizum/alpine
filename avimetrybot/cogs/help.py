@@ -22,7 +22,7 @@ class HCEmbed(commands.HelpCommand):
                 value = '\u002c '.join(c.name for c in commands)
                 if cog and cog.description:
                     value = '{0}\n{1}'.format(cog.description, value)
-                embed.add_field(name=name, value=value)
+                embed.add_field(name=name, value=value, inline=False)
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
 
