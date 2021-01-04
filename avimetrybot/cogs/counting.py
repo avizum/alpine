@@ -37,6 +37,8 @@ class AutoResponder(commands.Cog):
                     json.dump(cc, f, indent=4)
     @commands.Cog.listener()
     async def on_message_edit(self, message_before, message_after):
+        if message_after.author == self.avimetry.user:
+            return
         if message_after.channel.name == "counting":
             await message_after.delete()
             await message_after.channel.send("Don't Edit Messages", delete_after=5)
