@@ -228,6 +228,7 @@ class Fun(commands.Cog):
     @commands.command()
     async def hyperlink(self, ctx):
         e = discord.Embed(title="Hyperlink", description="[Hey a hyperlink!](https://www.youtube.com/watch?v=dQw4w9WgXcQ)")
+        await ctx.send(embed=e)
 
 def setup(avimetry):
     avimetry.add_cog(Fun(avimetry))
