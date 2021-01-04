@@ -11,7 +11,7 @@ class Moderation(commands.Cog):
     
     def __init__(self, avimetry):
         self.avimetry = avimetry
-        
+
 #Purge Command
     @commands.command(brief="Delete a number of messages in the current channel.")
     @commands.has_permissions(manage_messages=True)
@@ -80,7 +80,7 @@ class Moderation(commands.Cog):
             await ctx.send(embed=e4, delete_after=10)
         else:
             bae=discord.Embed(title=f"You have been kicked from {ctx.guild.name}", timestamp=datetime.datetime.utcnow())
-            bae.add_field(name= "Moderator:", value=f"{ctx.author.mention} \n`{ctx.author.id}`")
+            bae.add_field(name= "Moderator:", value=f"{ctx.author.name} \n`{ctx.author.id}`")
             bae.add_field(name="Reason:", value=f"{reason}")
             await member.send(embed=bae)
             await member.kick(reason=reason)

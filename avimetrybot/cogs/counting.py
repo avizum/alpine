@@ -12,6 +12,8 @@ class AutoResponder(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.author == self.avimetry.user:
+            return
         with open("./avimetrybot/files/counting.json", "r") as f:
             cc = json.load(f)
             if str(message.guild.id) in cc:
@@ -33,6 +35,18 @@ class AutoResponder(commands.Cog):
                 cc[str(message.guild.id)] = 0
                 with open("./avimetrybot/files/counting.json", "w") as f:
                     json.dump(cc, f, indent=4)
+    @commands.Cog.listener()
+    async def on_message_edit(self, message_before, message_after):
+        if message_after.channel.name == "counting":
+            await message_after.delete()
+            await message_after.send("Don't Edit Messages", delete_after=5)
+            with open("./avimetrybot/files/counting.json", "r") as f:
+                cc = json.load(f)
+                        
+            cc[str(message_after.guild.id)] -=1
+            with open("./avimetrybot/files/counting.json", "w") as f:
+                json.dump(cc, f, indent=4)
+
 
             
 def setup(avimetry):
