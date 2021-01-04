@@ -4,6 +4,7 @@ import random
 import time
 import asyncio
 import json
+from disputils import BotEmbedPaginator
 
 class Fun(commands.Cog):
     
@@ -223,6 +224,18 @@ class Fun(commands.Cog):
     async def facepalm(self, ctx):
         a = discord.Embed(description=f'{ctx.author.mention} hit their face.')
         await ctx.send(embed=a)
+
+    @commands.command()
+    async def paginate(self, ctx):
+        embeds = [
+            discord.Embed(title="test page 1", description="Page one yes yes"),
+            discord.Embed(title="test page 2", description="Oh yeah yeah page 2"),
+            discord.Embed(title="test page 3", description="Yay! page 3 yeah :D")
+        ]
+
+        paginator = BotEmbedPaginator(ctx, embeds)
+        await paginator.run()
+
 
 def setup(avimetry):
     avimetry.add_cog(Fun(avimetry))

@@ -47,9 +47,19 @@ class AutoResponder(commands.Cog):
                         
             cc[str(message_after.guild.id)] -=1
             with open("./avimetrybot/files/counting.json", "w") as f:
-                json.dump(cc, f, indent=4)
+                json.dump(cc, f, indent=4)         
+
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def setcount(self, ctx, count : int):
+        with open("./avimetrybot/files/counting.json", "r") as f:
+            cc = json.load(f)
+                        
+        cc[str(ctx.guild.id)] = count
+        with open("./avimetrybot/files/counting.json", "w") as f:
+            json.dump(cc, f, indent=4)         
 
 
-            
+
 def setup(avimetry):
     avimetry.add_cog(AutoResponder(avimetry))
