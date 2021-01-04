@@ -1,10 +1,11 @@
 import discord
 from discord.ext import commands
 
-class MemberCount(commands.Cog):
+class Management(commands.Cog, name="Member Management"):
     def __init__(self, avimetry):
         self.avimetry=avimetry
 
+#Counter
     @commands.Cog.listener()
     async def on_member_join(self, member):
         refchan = self.avimetry.get_channel(783961111060938782)
@@ -34,9 +35,9 @@ class MemberCount(commands.Cog):
             channel3 = self.avimetry.get_channel(783961050814611476)
             true_bot_count = len([m for m in member.guild.members if m.bot])
             await channel3.edit(name=f"Bots: {true_bot_count}")
-
+#Update Member Count Command
     @commands.command(aliases=["updatemc", "umembercount"], brief="Updates the member count if the count gets out of sync.")
-    async def updatemembercount(self, ctx):
+    async def refreshcount(self, ctx):
         channel = self.avimetry.get_channel(783961111060938782)
         await channel.edit(name=f"Total Members: {channel.guild.member_count}")
         
@@ -48,7 +49,8 @@ class MemberCount(commands.Cog):
         true_bot_count = len([m for m in channel.guild.members if m.bot])
         await channel3.edit(name=f"Bots: {true_bot_count}")
         await ctx.send("Member Count Updated.")
-#Update Member Count Command
+        
+#Member Count
     @commands.command(aliases=["members", "mc"], brief="Gets the members of the server and shows you.")
     async def membercount(self, ctx):
         tmc = len([m for m in ctx.guild.members if not m.bot])
@@ -60,5 +62,42 @@ class MemberCount(commands.Cog):
         mce.add_field(name="Total Members:", value=f"{amc} members", inline=False)
         await ctx.send(embed=mce)
 
+#Role Command
+    @commands.command(brief="Gives or removes a role from a member.")
+    @commands.has_permissions(kick_members=True)
+    async def role(self, ctx, member:discord.Member, addremove, role:discord.Role):#, *, reason="No Reason was provided."):
+        if addremove == ["+", " +", "+ "]:
+            await ctx.send("added")
+        elif addremove == '-':
+            await ctx.send("removed")  
+
+#CNick Command
+    @commands.command(brief="Changes a member's nickname.")
+    @commands.has_permissions(kick_members=True)
+    async def cnick(self, ctx, member: discord.Member, *,nick):
+        if ctx.channel.id != 787942179310010368:
+            await ctx.send("This command can only be used in <#787942179310010368>.")
+        else:
+            oldnick=member.display_name
+            await member.edit(nick=nick)
+            newnick=member.display_name
+            nickembed=discord.Embed(title="<:aviSuccess:777096731438874634> Nickname Changed")
+            nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
+            nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
+            await ctx.send(embed=nickembed)
+
+#RNick Command
+    @commands.command(brief="Restores a member's nick name to their username.")
+    @commands.has_permissions(kick_members=True)
+    async def rnick(self, ctx, member: discord.Member):
+        nick=member.name
+        oldnick=member.display_name
+        await member.edit(nick=nick)
+        newnick=member.display_name
+        nickembed=discord.Embed(title="<:aviSuccess:777096731438874634> Restored Nickname")
+        nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
+        nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
+        await ctx.send(embed=nickembed)
+
 def setup(avimetry):
-    avimetry.add_cog(MemberCount(avimetry))
+    avimetry.add_cog(Management(avimetry))

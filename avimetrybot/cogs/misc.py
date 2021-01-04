@@ -13,13 +13,6 @@ class Miscellaneous(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
-#Ping Command
-    @commands.command(brief="Gets the bot's ping.")
-    async def ping(self, ctx):
-        pingembed=discord.Embed()
-        pingembed.add_field(name="🏓 Pong!", value=f"Bot's Ping: `{round(self.avimetry.latency * 1000)}ms`")
-        await ctx.send(embed=pingembed)
-    
 #Study Hall Command
     @commands.group()
     async def studyhall(self, ctx):
@@ -50,24 +43,6 @@ class Miscellaneous(commands.Cog):
         time.sleep(0.5)
         await discord.Member.remove_roles(member, role)
         await discord.Member.add_roles(member, role2)
-
-#Clean Command    
-    @commands.command(brief="Grabs messages sent by me and messages that contain the command prefix and deletes them.")
-    async def clean(self, ctx):
-        with open("./avimetrybot/files/prefixes.json", "r") as f:
-            prefixes = json.load(f)
-        pre = prefixes[str(ctx.guild.id)]
-        await ctx.message.delete()
-        def c1(m):
-            return m.author == self.avimetry.user
-        def c2(m):
-            return m.content.startswith(pre)
-        d1 = await ctx.channel.purge(limit=50, check=c1)
-        cm = await ctx.send("Cleaning...")
-        d2 = await ctx.channel.purge(limit=50, check=c2)
-        ce=discord.Embed()
-        ce.add_field(name="<:aviSuccess:777096731438874634> Clean Messages", value=f"Successfully deleted **{len(d1+d2)}** bot messages and user messages")
-        await cm.edit(content="", embed=ce, delete_after=10)
 
 #Poll command
     @commands.command(brief="Launch a poll for users to vote to.")

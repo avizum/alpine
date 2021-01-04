@@ -5,7 +5,7 @@ import time
 import asyncio
 import json
 
-class AutoResponder(commands.Cog):
+class Counting(commands.Cog):
 
     def __init__(self, avimetry):
         self.avimetry = avimetry
@@ -62,4 +62,4 @@ class AutoResponder(commands.Cog):
 
 
 def setup(avimetry):
-    avimetry.add_cog(AutoResponder(avimetry))
+    avimetry.add_cog(Counting(avimetry))

@@ -2,12 +2,15 @@ import discord
 import os
 import json
 import asyncio
+import datetime
+import time
 from discord.ext import commands
 
 class OnReady(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
-    
+
+#Loop Presence
     async def status_task(self):
         while True:
             await self.avimetry.change_presence(activity=discord.Game('Need Help? | a.help'))
@@ -20,19 +23,22 @@ class OnReady(commands.Cog):
             await asyncio.sleep(60)
             await self.avimetry.change_presence(activity=discord.Activity(type=discord.ActivityType.competing, name='ROBLOX'))
             await asyncio.sleep(60)
-
+#On Ready
     @commands.Cog.listener()
     async def on_ready(self):
         game = discord.Game(f"{self.avimetry.user.name} is online!")
         await self.avimetry.change_presence(status=discord.Status.idle, activity=game)
-        print('------')
-        print('Succesfully logged in as')
-        print(f"Username: {self.avimetry.user.name}")
-        print(f"UserID: {self.avimetry.user.id}")
-        print('------')
-        await asyncio.sleep(5)
+        print(f'------\n'
+              'Succesfully logged in as\n'
+              f'Username: {self.avimetry.user.name}\n'
+              f'Bot ID: {self.avimetry.user.id}\n'
+              f'Login Time (UTC): {datetime.datetime.utcnow()}\n'
+              '------'
+        )
+        await asyncio.sleep(2)
         self.avimetry.loop.create_task(self.status_task())
 
+#Shutdown Command
     @commands.command(hidden=True)
     @commands.is_owner()
     async def shutdown(self, ctx):
@@ -43,6 +49,29 @@ class OnReady(commands.Cog):
         await self.avimetry.change_presence(activity=discord.Game('Shutting down'))
         await asyncio.sleep(5)
         await self.avimetry.logout()
+
+#Uptime Command
+    @commands.command(brief="Get the bot's uptime")
+    async def uptime(self, ctx):
+        delta_uptime = datetime.datetime.utcnow() - self.avimetry.launch_time
+        hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        days, hours = divmod(hours, 24)
+        ue = discord.Embed(title="Current Uptime", description=f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds")
+        await ctx.send(embed=ue)
+
+#Ping Command
+    @commands.command(brief="Gets the bot's ping.")
+    async def ping(self, ctx):
+        start = time.perf_counter()
+        message = await ctx.send("Pinging...")
+        end = time.perf_counter()
+        duration = (end - start) * 1000
+        pingembed=discord.Embed(title="🏓 Pong!")
+        pingembed.add_field(name="Bot's Ping", value=f"`{round(self.avimetry.latency * 1000)}ms`")
+        pingembed.add_field(name="Message Ping", value='`{:.2f}ms`'.format(duration))
+        await message.edit(content="", embed=pingembed)
+        
 
 def setup(avimetry):
     avimetry.add_cog(OnReady((avimetry)))

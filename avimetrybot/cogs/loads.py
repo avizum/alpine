@@ -52,6 +52,7 @@ class Cogs(commands.Cog):
             noreload=discord.Embed()
             noreload.add_field(name="<:aviError:777096756865269760> Not Loaded", value=f"The **{extension}** module is not loaded. You can not reload a module that is not loaded.")
             await ctx.send(embed=noreload)
+
 #Greload Command
     @commands.command(brief="Reload all modules")
     @commands.has_permissions(administrator=True)
@@ -62,9 +63,9 @@ class Cogs(commands.Cog):
             if filename.endswith('.py'):
                 self.avimetry.reload_extension(f'cogs.{filename[:-3]}')
                 ap.append(filename[:-3])
-                yes = ",\n"
+                yes = ", "
         eb = discord.Embed(timestamp=datetime.datetime.utcnow())
-        eb.add_field(name="<:aviSuccess:777096731438874634> Global Reload", value=f"__Reloaded Modules:__\n {yes.join(ap)}")
+        eb.add_field(name="<:aviSuccess:777096731438874634> Global Reload", value=f"__Reloaded Modules:__\n `{yes.join(ap)}`")
         await ebbb.edit(content="", embed=eb, delete_after=30)
 
 def setup(avimetry):

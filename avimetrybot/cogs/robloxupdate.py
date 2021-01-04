@@ -8,7 +8,7 @@ import os
 from dotenv import load_dotenv
 from datetime import date
 
-class RobloxUpdate(commands.Cog):
+class RobloxUpdate(commands.Cog, name="Roblox Update"):
     def __init__(self, avimetry):
         self.avimetry=avimetry
 

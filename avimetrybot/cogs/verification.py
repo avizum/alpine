@@ -5,7 +5,7 @@ import random
 import json
 import asyncio
 #event = @commands.Cog.listener
-class Verification(commands.Cog):
+class Verification(commands.Cog, command_attrs=dict(hidden=True)):
 
     def __init__(self, avimetry):
         self.avimetry = avimetry

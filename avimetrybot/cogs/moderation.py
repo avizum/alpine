@@ -12,6 +12,25 @@ class Moderation(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
+#Clean Command    
+    @commands.command(brief="Cleans bot messages")
+    @commands.has_permissions(manage_messages=True)
+    async def clean(self, ctx):
+        with open("./avimetrybot/files/prefixes.json", "r") as f:
+            prefixes = json.load(f)
+        pre = prefixes[str(ctx.guild.id)]
+        await ctx.message.delete()
+        def c1(m):
+            return m.author == self.avimetry.user
+        def c2(m):
+            return m.content.startswith(pre)
+        d1 = await ctx.channel.purge(limit=50, check=c1)
+        cm = await ctx.send("Cleaning...")
+        d2 = await ctx.channel.purge(limit=50, check=c2)
+        ce=discord.Embed()
+        ce.add_field(name="<:aviSuccess:777096731438874634> Clean Messages", value=f"Successfully deleted **{len(d1+d2)}** bot messages and user messages")
+        await cm.edit(content="", embed=ce, delete_after=10)
+
 #Purge Command
     @commands.command(brief="Delete a number of messages in the current channel.")
     @commands.has_permissions(manage_messages=True)
@@ -20,9 +39,9 @@ class Moderation(commands.Cog):
         await ctx.message.delete()
         if amount == 0:
             pass
-        elif amount > 100:
+        elif amount > 250:
             a100=discord.Embed()
-            a100.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't purge more than 100 messages at a time.")
+            a100.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't purge more than 150 messages at a time.")
             await ctx.send(embed=a100, delete_after=10)
         else:
             authors = {}
@@ -129,34 +148,6 @@ class Moderation(commands.Cog):
         unbanenmbed.add_field(name="<:aviSuccess:777096731438874634> Unban Member", value=f"Unbanned <@{userid}> ({userid}) from **{ctx.guild.name}**.", inline=False)
         await ctx.send(embed=unbanenmbed)
 
-#CNick Command
-    @commands.command(brief="Changes a member's nickname.")
-    @commands.has_permissions(kick_members=True)
-    async def cnick(self, ctx, member: discord.Member, *,nick):
-        if ctx.channel.id != 787942179310010368:
-            await ctx.send("This command can only be used in <#787942179310010368>.")
-        else:
-            oldnick=member.display_name
-            await member.edit(nick=nick)
-            newnick=member.display_name
-            nickembed=discord.Embed(title="<:aviSuccess:777096731438874634> Nickname Changed")
-            nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
-            nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
-            await ctx.send(embed=nickembed)
-
-#RNick Command
-    @commands.command(brief="Restores a member's nick name to their username.")
-    @commands.has_permissions(kick_members=True)
-    async def rnick(self, ctx, member: discord.Member):
-        nick=member.name
-        oldnick=member.display_name
-        await member.edit(nick=nick)
-        newnick=member.display_name
-        nickembed=discord.Embed(title="<:aviSuccess:777096731438874634> Restored Nickname")
-        nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
-        nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
-        await ctx.send(embed=nickembed)
-
 #Slowmode Command
     @commands.command(brief="Sets the slowmode in the current channel.")
     @commands.has_permissions(manage_guild=True)
@@ -165,16 +156,7 @@ class Moderation(commands.Cog):
         smembed=discord.Embed()
         smembed.add_field(name="<:aviSuccess:777096731438874634> Set Slowmode", value=f"Slowmode delay is now set to {seconds} seconds.")
         await ctx.send(embed=smembed)
-
-#Role Command
-    @commands.command(brief="Gives or removes a role from a member.")
-    @commands.has_permissions(kick_members=True)
-    async def role(self, ctx, member:discord.Member, addremove, role:discord.Role):#, *, reason="No Reason was provided."):
-        if addremove == ["+", " +", "+ "]:
-            await ctx.send("added")
-        elif addremove == '-':
-            await ctx.send("removed")  
-    
+   
 #mute command
     @commands.command(brief="Mutes a member.")
     @commands.has_permissions(kick_members=True)
