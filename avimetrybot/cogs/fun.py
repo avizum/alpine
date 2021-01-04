@@ -224,6 +224,10 @@ class Fun(commands.Cog):
     async def facepalm(self, ctx):
         a = discord.Embed(description=f'{ctx.author.mention} hit their face.')
         await ctx.send(embed=a)
+    
+    @commands.command()
+    async def hyperlink(self, ctx):
+        e = discord.Embed(title="Hyperlink", description="[Hey a hyperlink!](https://www.youtube.com/watch?v=dQw4w9WgXcQ)")
 
 def setup(avimetry):
     avimetry.add_cog(Fun(avimetry))
