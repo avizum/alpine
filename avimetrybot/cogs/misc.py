@@ -81,7 +81,7 @@ class Miscellaneous(commands.Cog):
 
 #Info Command
     @commands.command(brief="Gets a member's information")
-    async def info(self, ctx, *, member : discord.Member):
+    async def uinfo(self, ctx, *, member : discord.Member):
         userroles = list()
         jnr = ", "
         for roles in member.roles:
