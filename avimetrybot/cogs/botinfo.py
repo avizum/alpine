@@ -15,20 +15,21 @@ class botinfo(commands.Cog, name="Bot Information"):
     def cog_unload(self):
         # pylint: disable=no-member
         self.status_task.cancel()
+        
 
 #Loop Presence
     @tasks.loop(seconds=1)
     async def status_task(self):
         await self.avimetry.change_presence(activity=discord.Game('Need Help? | a.help'))
-        await asyncio.sleep(15)
+        await asyncio.sleep(60)
         await self.avimetry.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name='for commands'))
-        await asyncio.sleep(15)
+        await asyncio.sleep(60)
         await self.avimetry.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="'a.'"))
-        await asyncio.sleep(15)
+        await asyncio.sleep(60)
         await self.avimetry.change_presence(activity=discord.Game('discord.gg/zpj46np'))
-        await asyncio.sleep(15)
+        await asyncio.sleep(60)
         await self.avimetry.change_presence(activity=discord.Activity(type=discord.ActivityType.competing, name='ROBLOX'))
-        await asyncio.sleep(15)
+        await asyncio.sleep(60)
     @status_task.before_loop
     # pylint: disable=no-member
     async def before_status_task(self):
@@ -36,7 +37,6 @@ class botinfo(commands.Cog, name="Bot Information"):
 #On Ready
     @commands.Cog.listener()
     async def on_ready(self):
-        await self.avimetry.change_presence(status=discord.Status.idle)
         print(f'------\n'
               'Succesfully logged in as\n'
               f'Username: {self.avimetry.user.name}\n'
@@ -50,13 +50,44 @@ class botinfo(commands.Cog, name="Bot Information"):
     @commands.is_owner()
     async def shutdown(self, ctx):
         await ctx.message.delete()
-        sd=discord.Embed()
-        sd.add_field(name="Shutting Down", value=f"You called the shutdown command, {self.avimetry.user.name} is now shutting down.")
-        aa=await ctx.send(embed=sd)
-        await asyncio.sleep(5)
-        await aa.delete() 
-        await self.avimetry.logout()
+        sm = discord.Embed()
+        sm.add_field(name=f"{self.avimetry.user.name} shutdown", value="Are you sure you want to shut down?")
+        rr=await ctx.send(embed=sm)
+        reactions = ['<:aviSuccess:777096731438874634>', '<:aviError:777096756865269760>']
+        for reaction in reactions:
+            await rr.add_reaction(reaction)
+        def check(reaction, user):
+            return str(reaction.emoji) in ['<:aviSuccess:777096731438874634>', '<:aviError:777096756865269760>'] and user != self.avimetry.user
 
+        try:
+            # pylint: disable = unused-variable
+            reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=60)
+
+        except asyncio.TimeoutError:
+            to=discord.Embed()
+            to.add_field(name=f"{self.avimetry.user.name} shutdown", value="Timed Out.")
+            await rr.edit(embed=to)
+            await rr.clear_reactions()
+
+        else:
+            if str(reaction.emoji) == '<:aviSuccess:777096731438874634>':
+                rre=discord.Embed()
+                rre.add_field(name=f"{self.avimetry.user.name} shutdown", value="Shutting down...")
+                await rr.edit(embed=rre)
+                await rr.clear_reactions()
+                await asyncio.sleep(5)
+                await rr.delete()
+                await self.avimetry.logout()
+
+            if str(reaction.emoji) == '<:aviError:777096756865269760>':
+                rre2=discord.Embed()
+                rre2.add_field(name=f"{self.avimetry.user.name} shutdown", value="Shut down has been cancelled.")
+                await rr.edit(embed=rre2)
+                await rr.clear_reactions()
+                await asyncio.sleep(5)
+                await rr.delete()
+                
+        
 #Bot Info Command
     @commands.command()
     async def info(self, ctx):

@@ -31,8 +31,10 @@ class ErrorHandler(commands.Cog):
         
         if isinstance(error, commands.MissingPermissions):
             await ctx.message.delete()
+            mp = error.missing_perms
+            missing_perms = " ".join([str(elem) for elem in mp])
             np=discord.Embed()
-            np.add_field(name="<:aviError:777096756865269760> No Permission", value=f"You do not have have the required permissions to use the `{pre}{ctx.command.name}` command.", inline=False)
+            np.add_field(name="<:aviError:777096756865269760> No Permission", value=f"You do not have permissions to use the`{pre}{ctx.command.name}`command. \nRequired Permissions: `{missing_perms}`", inline=False)
             await ctx.send(embed=np, delete_after=10)
 
         if isinstance(error, commands.MissingRequiredArgument):

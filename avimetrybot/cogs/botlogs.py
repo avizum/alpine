@@ -20,7 +20,6 @@ class BotLogs(commands.Cog, name="Bot Logs"):
                 elif msglogger[str(message.guild.id)] == 1:
                     with open("./avimetrybot/files/prefixes.json", "r") as f:
                         prefixes = json.load(f)
-                    global pre
                     pre = prefixes[str(message.guild.id)]
                     if message.guild is None:
                         return
@@ -57,6 +56,9 @@ class BotLogs(commands.Cog, name="Bot Logs"):
     @commands.Cog.listener()
     async def on_message_edit(self, message_before, message_after):
         channel = discord.utils.get(self.avimetry.get_all_channels(), name='bot-logs')
+        with open("./avimetrybot/files/prefixes.json", "r") as f:
+            prefixes = json.load(f)
+        pre = prefixes[str(message_after.guild.id)]
         if message_before.author == self.avimetry.user:
             return
         elif message_before.content.startswith(pre):
@@ -87,6 +89,9 @@ class BotLogs(commands.Cog, name="Bot Logs"):
     @commands.Cog.listener()
     async def on_message_delete(self, message):
         channel = discord.utils.get(self.avimetry.get_all_channels(), name='bot-logs')
+        with open("./avimetrybot/files/prefixes.json", "r") as f:
+            prefixes = json.load(f)
+        pre = prefixes[str(message.guild.id)]
         if message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
             return
         elif message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
