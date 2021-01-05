@@ -21,14 +21,13 @@ class Moderation(commands.Cog):
         pre = prefixes[str(ctx.guild.id)]
         await ctx.message.delete()
         def c1(m):
-            return m.author == self.avimetry.user
-        def c2(m):
-            return m.content.startswith(pre)
+            return m.author == self.avimetry.user, m.content.startswith(pre)
+        
         d1 = await ctx.channel.purge(limit=50, check=c1)
         cm = await ctx.send("Cleaning...")
-        d2 = await ctx.channel.purge(limit=50, check=c2)
+        
         ce=discord.Embed()
-        ce.add_field(name="<:aviSuccess:777096731438874634> Clean Messages", value=f"Successfully deleted **{len(d1+d2)}** bot messages and user messages")
+        ce.add_field(name="<:aviSuccess:777096731438874634> Clean Messages", value=f"Successfully deleted **{len(d1)}** bot messages and user messages")
         await cm.edit(content="", embed=ce, delete_after=10)
 
 #Purge Command

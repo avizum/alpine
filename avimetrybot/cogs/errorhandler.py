@@ -18,9 +18,11 @@ class ErrorHandler(commands.Cog):
         pre = prefixes[str(ctx.guild.id)]
         
         if isinstance(error, commands.CommandNotFound):
-            a = discord.Embed(timestamp=datetime.datetime.utcnow())
-            a.add_field(name="<:aviError:777096756865269760> Invalid Command", value=f"That command does not exist.\n\n If you need help, use the command {pre}help to see the list of commands.")
+            a = discord.Embed()
+            a.add_field(name="<:aviError:777096756865269760> Invalid Command", value=f"{error}")
+            a.set_footer(text=f"Use `{pre}help` if you need help.")
             await ctx.send(embed=a, delete_after=10)
+
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.message.delete()
             cd=discord.Embed()

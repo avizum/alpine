@@ -63,13 +63,20 @@ class Management(commands.Cog, name="Member Management"):
         await ctx.send(embed=mce)
 
 #Role Command
-    @commands.command(brief="Gives or removes a role from a member.")
+    @commands.group(invoke_without_command=True, brief="Give or remove a role from a member.")
     @commands.has_permissions(kick_members=True)
-    async def role(self, ctx, member:discord.Member, addremove, role:discord.Role):#, *, reason="No Reason was provided."):
-        if addremove == ["+", " +", "+ "]:
-            await ctx.send("added")
-        elif addremove == '-':
-            await ctx.send("removed")  
+    async def role(self, ctx):
+        await ctx.send("Command: Role (work in progress)\n**add <member> <role>**\nGive a role to a member.\n\n**remove <member> <role>**\nRemove a role form a member.")
+
+    @role.command(brief="Give a role to a member.")
+    async def add(self, ctx, member:discord.Member, role:discord.Role):
+        await member.add_roles(role)
+        await ctx.send(f"added {role} to {member}")
+
+    @role.command(brief="Remove a role from a member.")
+    async def remove(self, ctx, member:discord.Member, role:discord.Role):
+        await member.remove_roles(role)
+        await ctx.send(f"removed {role} from {member}") 
 
 #CNick Command
     @commands.command(brief="Changes a member's nickname.")

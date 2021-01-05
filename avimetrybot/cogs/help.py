@@ -1,10 +1,11 @@
 import discord
 from discord.ext import commands, tasks
 import datetime
+from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 
 class HCEmbed(commands.HelpCommand):
     def get_ending_note(self):
-        return 'Use {0}{1} [command] for more info on a command.\nUse {0}{1} [module] for more info on a module.\n '.format(self.clean_prefix, self.invoked_with)
+        return 'Use {0}{1} [command] or [module] for more info on a command or module.'.format(self.clean_prefix, self.invoked_with)
 
     def get_command_signature(self, command):
         return '{0.qualified_name} {0.signature}'.format(command)
@@ -25,7 +26,7 @@ class HCEmbed(commands.HelpCommand):
                 embed.add_field(name=name, value=value, inline=False)
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
-
+        
     async def send_cog_help(self, cog):
         embed = discord.Embed(title='{0.qualified_name} Commands'.format(cog))
         if cog.description:
@@ -56,7 +57,7 @@ class HCEmbed(commands.HelpCommand):
     
     async def command_not_found(self, command):
         embed=discord.Embed(title="Help command")
-        embed.add_field(name=f"Command does not exist",value="Command '{0}' is not a command. Make sure you capitalized and spelled it correctly.".format(command))
+        embed.add_field(name=f"Command or Module does not exist", value='Command "{0}" is not a command. Make sure you capitalized and spelled it correctly.'.format(command))
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
 

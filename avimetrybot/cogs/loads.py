@@ -70,5 +70,3 @@ class Cogs(commands.Cog):
 
 def setup(avimetry):
     avimetry.add_cog(Cogs(avimetry))
-
-    
