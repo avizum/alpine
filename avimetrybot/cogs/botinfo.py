@@ -5,8 +5,9 @@ import asyncio
 import datetime
 import time
 from discord.ext import commands
+from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 
-class OnReady(commands.Cog):
+class OnReady(commands.Cog, name="Bot Information"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
@@ -71,7 +72,6 @@ class OnReady(commands.Cog):
         pingembed.add_field(name="Bot's Ping", value=f"`{round(self.avimetry.latency * 1000)}ms`")
         pingembed.add_field(name="Message Ping", value='`{:.2f}ms`'.format(duration))
         await message.edit(content="", embed=pingembed)
-        
-
+    
 def setup(avimetry):
     avimetry.add_cog(OnReady((avimetry)))
