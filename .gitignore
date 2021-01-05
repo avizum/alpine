@@ -4,4 +4,5 @@ avimetrybot/cogs/__pycache__
 avimetrybot/discord.log
 rules.txt
 avimetrybot/files/counting.json
+avimetrybot/files/bot-logs.json
 avimetrybot/.env
