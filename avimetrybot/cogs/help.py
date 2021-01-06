@@ -64,7 +64,12 @@ class HCEmbed(commands.HelpCommand):
 class Help(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
-        self.avimetry.help_command = HCEmbed()
+        self.avimetry.help_command = HCEmbed(
+             command_attrs=dict(
+                hidden=True,
+                aliases=['h', 'halp', 'helps']
+             )
+        )
 
 def setup(avimetry):
     avimetry.add_cog(Help(avimetry))

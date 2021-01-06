@@ -6,11 +6,10 @@ import datetime
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from discord.ext import menus
+
 #Get Bot Token
 load_dotenv()
 avitoken = os.getenv('Bot_Token')
-avitoken2 = os.getenv('Bot_Token2')
-avitoken3 = os.getenv('Bot_Token3')
 
 #Command Prefix and Intents
 def prefix(client, message):
@@ -29,9 +28,11 @@ avimetry.launch_time = datetime.datetime.utcnow()
 async def globally_block_dms(ctx):
     return ctx.guild is not None
 
+#Reload main cogs 
 @tasks.loop(minutes=5)
 async def loop():
     try:
+        avimetry.load_extension('jishaku')
         avimetry.load_extension("cogs.loads")
     except commands.ExtensionAlreadyLoaded:
         return
