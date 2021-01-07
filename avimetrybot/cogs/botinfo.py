@@ -7,7 +7,7 @@ import time
 from discord.ext import commands, tasks
 from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 
-class botinfo(commands.Cog, name="Bot Information"):
+class botinfo(commands.Cog, name="Bot Utilities"):
     def __init__(self, avimetry):
         # pylint: disable=no-member
         self.avimetry = avimetry
@@ -86,14 +86,31 @@ class botinfo(commands.Cog, name="Bot Information"):
                 await rr.clear_reactions()
                 await asyncio.sleep(5)
                 await rr.delete()
-                
+            
+    @commands.command(brief="Set the prefix of the server.")
+    @commands.has_permissions(administrator=True)
+    async def setprefix(self, ctx, nprefix):
+        with open("./avimetrybot/files/prefixes.json", "r") as f:
+            prefixes = json.load(f)
+
+        prefixes[str(ctx.guild.id)] = nprefix
+
+        with open("./avimetrybot/files/prefixes.json", "w") as f:
+            json.dump(prefixes, f, indent=4)
+        
+        cp=discord.Embed()
+        cp.add_field(
+            name="<:aviSuccess:777096731438874634> Set Prefix",
+            value=f"The prefix for **{ctx.guild.name}** is now `{nprefix}`"
+        )
+        await ctx.send(embed=cp)             
         
 #Bot Info Command
     @commands.command()
     async def info(self, ctx):
         a = discord.Embed(title=f"{self.avimetry.user.name}")
         a.add_field(name="WIP", value="Command not working yet")
-
+        
 #Uptime Command
     @commands.command(brief="Get the bot's uptime")
     async def uptime(self, ctx):

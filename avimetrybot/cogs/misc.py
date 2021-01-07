@@ -7,11 +7,44 @@ import json
 import datetime
 import subprocess
 import os
+import requests
 
 class Miscellaneous(commands.Cog):
     
     def __init__(self, avimetry):
         self.avimetry = avimetry
+
+#CoViD-19 Stats
+    @commands.command()
+    async def covid(self, ctx, country):
+        c = requests.get(f'https://coronavirus-19-api.herokuapp.com/countries/{country}')
+        js_in = c.json()
+        countries = js_in["country"]
+        totalCases = js_in["cases"]
+        todayCases = js_in["todayCases"]
+        casesPerMil = js_in["casesPerOneMillion"]
+        activeCases = js_in["active"]
+        criticalCases = js_in["critical"]
+        totalDeaths = js_in["deaths"]
+        todayDeaths = js_in["todayDeaths"]
+        deathsPerMil = js_in["deathsPerOneMillion"]
+        recovered = js_in["recovered"]
+        tests = js_in["totalTests"]
+        testPerMil = js_in["testsPerOneMillion"]
+
+        e = discord.Embed(title=f"COVID-19 Status for {countries}", description="Cases are not updated live, so it may not be very accurate at times.")
+        e.add_field(name="Total Cases:", value=totalCases, inline=True)
+        e.add_field(name="Cases Today:", value=todayCases, inline=True)
+        e.add_field(name="Cases Per 1M:", value=casesPerMil, inline=True)
+        e.add_field(name="Active Cases:", value=activeCases, inline=True)
+        e.add_field(name="Critical Cases:", value=criticalCases, inline=True)
+        e.add_field(name="Total Deaths:", value=totalDeaths, inline=True)
+        e.add_field(name="Deaths Today:", value=todayDeaths, inline=True)
+        e.add_field(name="Deaths Per 1M:", value=deathsPerMil, inline=True)
+        e.add_field(name="Recovered:", value=recovered, inline=True)
+        e.add_field(name="Tests Taken:", value=tests, inline=True)
+        e.add_field(name="Tests Taken Per 1M:", value=testPerMil, inline=True)
+        await ctx.send(embed=e)        
 
 #Study Hall Command
     @commands.group()
@@ -48,6 +81,8 @@ class Miscellaneous(commands.Cog):
     @commands.command(brief="Launch a poll for users to vote to.")
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def poll(self, ctx, question, *options: str):
+        if options < 3:
+            raise commands.MissingRequiredArgument
         await ctx.message.delete()
         channel = self.avimetry.get_channel(774075297142013972)
         if len(options) == 2 and options[0] == 'Yes' and options[1] == 'No':
@@ -86,11 +121,17 @@ class Miscellaneous(commands.Cog):
         jnr = ", "
         for roles in member.roles:
             userroles.append(roles.name)
-        ie = discord.Embed(title="User Info", description=f"User Information for {member.mention}:\n\n **Username:** {member.name}#{member.discriminator}\n**Nickname:** {member.nick}\n **Join Date:** {member.joined_at}\n**Roles** ({len(userroles)}) {jnr.join(userroles)}",timestamp=datetime.datetime.utcnow())
+        ie = discord.Embed(title="User Informaion", description=f'User Information for {member.mention}:\n'
+                                                          f'**Full Name:** {member.name}#{member.discriminator}\n'
+                                                          f'**User ID:** {member.id}\n'
+                                                          f'**Nickname:** {member.nick}\n' 
+                                                          f'**Server Join Date:** {member.joined_at}\n'
+                                                          f'**User Creation Date:** {member.created_at}\n' 
+                                                          f'**Roles** [{len(userroles)}] {jnr.join(userroles)}', timestamp=datetime.datetime.utcnow())
         ie.set_thumbnail(url=member.avatar_url)
         ie.add_field(name="Server Permissions", value="wip")
         await ctx.send(embed=ie)
-
+    
 def setup(avimetry):
     avimetry.add_cog(Miscellaneous(avimetry))
 

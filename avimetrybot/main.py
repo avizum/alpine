@@ -9,7 +9,7 @@ from discord.ext import menus
 
 #Get Bot Token
 load_dotenv()
-avitoken = os.getenv('Bot_Token')
+avitoken = os.getenv('Bot_Token2')
 
 #Command Prefix and Intents
 def prefix(client, message):
@@ -18,9 +18,9 @@ def prefix(client, message):
     else:
         with open("./avimetrybot/files/prefixes.json", "r") as f:
             prefixes = json.load(f)
-        return prefixes[str(message.guild.id)]
-intents=discord.Intents.all()
-avimetry = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=intents)
+            pre = prefixes[str(message.guild.id)]
+        return pre
+avimetry = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=discord.Intents.all())
 avimetry.launch_time = datetime.datetime.utcnow()
 
 #No Commands in DMs

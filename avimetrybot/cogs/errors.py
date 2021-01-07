@@ -13,15 +13,11 @@ class ErrorHandler(commands.Cog):
 #Command Error
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        with open("./avimetrybot/files/prefixes.json", "r") as f:
-            prefixes = json.load(f)
-        global pre
-        pre = prefixes[str(ctx.guild.id)]
-        
+        pre = await self.avimetry.get_prefix(ctx.message)
         if isinstance(error, commands.CommandNotFound):
             a = discord.Embed()
             a.add_field(name="<:aviError:777096756865269760> Invalid Command", value=f"{error}. \n ")
-            a.set_footer(text=f"Use `{pre}help` if you need help.")
+            a.set_footer(text=f"Use '{pre}help' if you need help.")
             await ctx.send(embed=a, delete_after=10)
 
         if isinstance(error, commands.CommandOnCooldown):
@@ -39,12 +35,12 @@ class ErrorHandler(commands.Cog):
             await ctx.send(embed=np, delete_after=10)
 
         if isinstance(error, commands.MissingRequiredArgument):
-            prefix= await self.avimetry.get_prefix(ctx.message)
+            pre = await self.avimetry.get_prefix(ctx.message)
             ctx.command.reset_cooldown(ctx)
-            cu = discord.Embed(title=f"Command: {ctx.command.name}")
-            cu.add_field(name=f"Usage:", value=f"**{prefix}{ctx.command.name} {ctx.command.signature}\n{ctx.command.short_doc}", inline=False)
-            cu.set_footer(text=f"If you need help, use '{prefix}help'. \nThe help command has all the information.")
-            await ctx.send(embed=cu, delete_after=15)
+            a = discord.Embed()
+            a.add_field(name="<:aviError:777096756865269760> Missing required argument(s)", value=f'Here are the missing argument(s): "{error.param.name}"')
+            a.set_footer(text=f"Use '{pre}help' if you need help.")
+            await ctx.send(embed=a, delete_after=15)
 
         if isinstance(error, commands.DisabledCommand):
             await ctx.send("This command is disabled. The command will be enabled when the command is done.")

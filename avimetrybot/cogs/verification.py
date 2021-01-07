@@ -38,9 +38,6 @@ class Verification(commands.Cog, command_attrs=dict(hidden=True)):
         y.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to **{member.guild.name}**! \n\nPlease read the rules over at the <#751967064310415360> channel. \n\nTo start the verification process, use the command `{pre}verify` in <#{member.id}>.")
         await member.send(f"{member.mention}", embed=y)
         
-        unv = member.guild.get_role(789334795100225556)
-        await member.add_roles(unv)
-        
 #Leave Message    
     @commands.Cog.listener()
     async def on_member_remove(self, member):
@@ -58,10 +55,7 @@ class Verification(commands.Cog, command_attrs=dict(hidden=True)):
     @commands.command(brief="Verify now!")
     async def verify(self, ctx):
         member = ctx.author
-        
-        role = ctx.guild.get_role(757664936548892752)
-        unv = ctx.guild.get_role(789334795100225556)
-        
+        role = ctx.guild.get_role(757664936548892752)        
         await ctx.message.delete()
         if role in member.roles:
             fver=discord.Embed()
@@ -100,7 +94,6 @@ class Verification(commands.Cog, command_attrs=dict(hidden=True)):
                 await ctx.send(embed=verembed)
                 await asyncio.sleep(.5)
                 await member.add_roles(role)
-                await member.remove_roles(unv)
                 await asyncio.sleep(2)
                 cnl = discord.utils.get(self.avimetry.get_all_channels(),  name=f'{member.id}')
                 await cnl.delete(reason=f"{member.name} finished verification")
@@ -110,6 +103,5 @@ class Verification(commands.Cog, command_attrs=dict(hidden=True)):
                     jm.add_field(name="Member Joined", value=f"Hey, {member.mention}, Welcome to {member.guild.name}! \nThe server now has **{member.guild.member_count}** members.")
                     await channel.send(embed=jm)
                 
-
 def setup(avimetry):
     avimetry.add_cog(Verification(avimetry))

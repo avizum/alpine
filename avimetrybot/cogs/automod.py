@@ -6,7 +6,6 @@ import json
 import datetime
 
 class AutoMod(commands.Cog, name="Auto Moderation"):
-    
     def __init__(self, avimetry):
         self.avimetry = avimetry
         self.mc = commands.CooldownMapping.from_cooldown(5, 8, commands.BucketType.member)

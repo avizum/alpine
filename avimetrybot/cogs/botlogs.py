@@ -67,7 +67,7 @@ class BotLogs(commands.Cog, name="Bot Logs"):
             return
         elif message_before.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
             return 
-        elif message_before.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
+        elif message_before.channel == discord.utils.get(self.avimetry.get_all_channels(), name='counting'):
             return
         elif message_before.author.bot:
             return
@@ -94,7 +94,7 @@ class BotLogs(commands.Cog, name="Bot Logs"):
         pre = prefixes[str(message.guild.id)]
         if message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
             return
-        elif message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
+        elif message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='counting'):
             return
         elif message.author.bot:
             return

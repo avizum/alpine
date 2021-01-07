@@ -16,22 +16,17 @@ class Moderation(commands.Cog):
     @commands.command(brief="Cleans bot messages")
     @commands.has_permissions(manage_messages=True)
     async def clean(self, ctx):
-        with open("./avimetrybot/files/prefixes.json", "r") as f:
-            prefixes = json.load(f)
-        pre = prefixes[str(ctx.guild.id)]
         await ctx.message.delete()
-        def c1(m):
-            return m.author == self.avimetry.user, m.content.startswith(pre)
-        
-        d1 = await ctx.channel.purge(limit=50, check=c1)
+        def avimetrybot(m):
+            return m.author == self.avimetry.user
+        d1 = await ctx.channel.purge(limit=100, check=avimetrybot)
         cm = await ctx.send("Cleaning...")
-        
         ce=discord.Embed()
-        ce.add_field(name="<:aviSuccess:777096731438874634> Clean Messages", value=f"Successfully deleted **{len(d1)}** bot messages and user messages")
+        ce.add_field(name="<:aviSuccess:777096731438874634> Clean Messages", value=f"Successfully deleted **{len(d1)}** messages")
         await cm.edit(content="", embed=ce, delete_after=10)
 
 #Purge Command
-    @commands.command(brief="Delete a number of messages in the current channel.")
+    @commands.group(brief="Delete a number of messages in the current channel.")
     @commands.has_permissions(manage_messages=True)
     @commands.cooldown(5, 300, commands.BucketType.member)
     async def purge(self, ctx, amount: int):

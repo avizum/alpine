@@ -4,6 +4,7 @@ import random
 import time
 import asyncio
 import json
+import typing
 from disputils import BotEmbedPaginator
 
 class Fun(commands.Cog):
@@ -25,54 +26,13 @@ class Fun(commands.Cog):
         ballembed.add_field(name="Answer:", value=f"{random.choice(responses)}", inline=False)
         await ctx.send(embed=ballembed)
 
-#Roll Dice
-    @commands.group(brief="Roll a dice!")
-    async def roll(self, ctx):
-        if ctx.invoked_subcommand is None:
-            rollembed=discord.Embed(title="Command: a.roll", description="There are different types of die you can choose from. Check below.")
-            rollembed.add_field(name="Four Sided", value="`a.roll d4`", inline=True)
-            rollembed.add_field(name="Six Sided ", value="`a.roll d6`", inline=True)
-            rollembed.add_field(name="Eight Sided", value="`a.roll d8`", inline=True)
-            rollembed.add_field(name="Ten Sided", value="`a.roll d10`", inline=True)
-            rollembed.add_field(name="Twelve Sided", value="`a.roll d12`", inline=True)
-            rollembed.add_field(name="Twenty Sided", value="`a.roll d20`", inline=True)
-            await ctx.send(embed=rollembed)
-    @roll.command(brief="Roll a 4 sided dice")
-    async def d4(self, ctx):
-        d4responses = ['1','2','3','4']
-        d4embed=discord.Embed()
-        d4embed.add_field(name="🎲 Roll Dice", value=f"I rolled a **{random.choice(d4responses)}**!", inline=False)
-        await ctx.send(embed=d4embed)
-    @roll.command(brief="Roll a 6 sided dice")
-    async def d6(self, ctx):
-        d6responses = ['1','2','3','4','5','6',]
-        d6embed=discord.Embed()
-        d6embed.add_field(name="🎲 Roll Dice", value=f"I rolled a **{random.choice(d6responses)}**!", inline=False)
-        await ctx.send(embed=d6embed)
-    @roll.command(brief="Roll an 8 sided dice")
-    async def d8(self, ctx):
-        d8responses = ['1','2','3','4','5','6','7','8']   
-        d8embed=discord.Embed()
-        d8embed.add_field(name="🎲 Roll Dice", value=f"I rolled a **{random.choice(d8responses)}**!", inline=False)
-        await ctx.send(embed=d8embed)
-    @roll.command(brief="Roll a 10 sided dice")
-    async def d10(self, ctx):
-        d10responses = ['1','2','3','4','5','6','7','8','10']
-        d10embed=discord.Embed()
-        d10embed.add_field(name="🎲 Roll Dice", value=f"I rolled a **{random.choice(d10responses)}**!", inline=False)
-        await ctx.send(embed=d10embed)   
-    @roll.command(brief="Roll a 12 sided dice")
-    async def d12(self, ctx):
-        d12responses = ['1','2','3','4','5','6','7','8','10','11','12']
-        d12embed=discord.Embed()
-        d12embed.add_field(name="🎲 Roll Dice", value=f"I rolled a **{random.choice(d12responses)}**!", inline=False)
-        await ctx.send(embed=d12embed)
-    @roll.command(brief="Roll a 20 sided dice") 
-    async def d20(self, ctx):
-        d20responses = ['1','2','3','4','5','6','7','8','10','11','12','13','14','15','16','17','18','19','20']
-        d20embed=discord.Embed()
-        d20embed.add_field(name="🎲 Roll Dice", value=f"I rolled a **{random.choice(d20responses)}**!", inline=False)
-        await ctx.send(embed=d20embed)
+#Random Number
+    @commands.group(brief="Pick a random number from 1 to 100")
+    async def random(self, ctx, amount: int = 100):
+        x = random.randint(1, amount) 
+        e = discord.Embed()
+        e.add_field(name="Random Number", value=f"The number is {x}")
+        await ctx.send(embed=e)
 
 #Kill Command
     @commands.command(aliases=["murder"], brief="Kill some people. Make sure you don't get caught!")
@@ -111,6 +71,7 @@ class Fun(commands.Cog):
                     await discord.Member.add_roles(member, role) 
 
 #Suicide Command
+    '''
     @commands.command(aliases=['commitdie', 'commitdeath'], brief="**For legal reasons this is a joke.** ||Just like you||")
     @commands.cooldown(1, 60, commands.BucketType.member)
     async def suicide(self, ctx):
@@ -131,7 +92,7 @@ class Fun(commands.Cog):
             await ye2.edit(embed=d)
             time.sleep(0.5)
             await discord.Member.add_roles(member, role) 
-
+    
 #Alive Command
     @commands.command(aliases=['undie' 'life'], brief="Come back from the dead after you have been killed.")
     @commands.cooldown(1, 60, commands.BucketType.member)
@@ -147,7 +108,7 @@ class Fun(commands.Cog):
             await ctx.send(embed=b)
         await asyncio.sleep(0.5)
         await discord.Member.remove_roles(member, role)
-       
+    '''   
 #Revive Command
     @commands.command(brief="Bring people back to life.")
     @commands.cooldown(1, 30, commands.BucketType.member)
@@ -225,10 +186,5 @@ class Fun(commands.Cog):
         a = discord.Embed(description=f'{ctx.author.mention} hit their face.')
         await ctx.send(embed=a)
     
-    @commands.command()
-    async def hyperlink(self, ctx):
-        e = discord.Embed(title="Hyperlink", description="[Hey a hyperlink!](https://www.youtube.com/watch?v=dQw4w9WgXcQ)")
-        await ctx.send(embed=e)
-
 def setup(avimetry):
     avimetry.add_cog(Fun(avimetry))
