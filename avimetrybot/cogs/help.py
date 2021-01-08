@@ -23,7 +23,7 @@ class HCEmbed(commands.HelpCommand):
                 value = '\u002c '.join(c.name for c in commands)
                 if cog and cog.description:
                     value = '{0}\n{1}'.format(cog.description, value)
-                embed.add_field(name=name, value=value, inline=False)
+                embed.add_field(name=name, value=f"`{value}`", inline=True)
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
         
@@ -33,7 +33,7 @@ class HCEmbed(commands.HelpCommand):
             embed.description = cog.description
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
         for command in filtered:
-            embed.add_field(name=self.get_command_signature(command), value=command.short_doc or '---', inline=False)
+            embed.add_field(name=self.get_command_signature(command), value=command.short_doc or 'No Description', inline=True)
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
 
@@ -45,13 +45,13 @@ class HCEmbed(commands.HelpCommand):
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
             for command in filtered:
-                embed.add_field(name=self.get_command_signature(command), value=command.short_doc or '---', inline=False)
+                embed.add_field(name=self.get_command_signature(command), value=command.short_doc or 'No description', inline=True)
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
 
     async def send_command_help(self, command):
         embed=discord.Embed(title="Command: {0.qualified_name}".format(command))
-        embed.add_field(name=self.get_command_signature(command), value=command.short_doc or '---', inline=False)
+        embed.add_field(name=self.get_command_signature(command), value=command.short_doc or 'No description', inline=False)
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
     

@@ -18,25 +18,24 @@ class Verification(commands.Cog, command_attrs=dict(hidden=True)):
         global pre
         pre = prefixes[str(member.guild.id)]
 
-        name = 'New Members'
-        category = discord.utils.get(member.guild.categories, name=name)
-        overwrites = {
-            member.guild.default_role: discord.PermissionOverwrite(read_messages=False),
-            member: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True)
-        }
-        await member.guild.create_text_channel(f'{member.id}', category=category, reason = f"Started Verification for {member.name}", overwrites=overwrites)
-        
-        unv = member.guild.get_role(789334795100225556)
-        await member.add_roles(unv)
-        
-        channel = discord.utils.get(self.avimetry.get_all_channels(), name=f'{member.id}')
-        x=discord.Embed()
-        x.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to **{member.guild.name}**! \n\nPlease read the rules over at the <#751967064310415360> channel. After reading the rules, come back here to start the verification process. \n\nTo start the verification process, use the command `{pre}verify` \n\nYou will be given a randomly generated code to enter in this channel.")
-        await channel.send(f"{member.mention}", embed=x)
-        
-        y=discord.Embed()
-        y.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to **{member.guild.name}**! \n\nPlease read the rules over at the <#751967064310415360> channel. \n\nTo start the verification process, use the command `{pre}verify` in <#{member.id}>.")
-        await member.send(f"{member.mention}", embed=y)
+        if member.guild.id == 751490725555994716:
+            name = 'New Members'
+            category = discord.utils.get(member.guild.categories, name=name)
+            overwrites = {
+                member.guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                member: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True)
+            }
+            await member.guild.create_text_channel(f'{member.id}', category=category, reason = f"Started Verification for {member.name}", overwrites=overwrites)
+            
+            
+            channel = discord.utils.get(self.avimetry.get_all_channels(), name=f'{member.id}')
+            x=discord.Embed()
+            x.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to **{member.guild.name}**! \n\nPlease read the rules over at the rules channel. After reading the rules, come back here to start the verification process. \n\nTo start the verification process, use the command `{pre}verify` \n\nYou will be given a randomly generated code to enter in this channel.")
+            await channel.send(f"{member.mention}", embed=x)
+            
+            y=discord.Embed()
+            y.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to **{member.guild.name}**! \n\nPlease read the rules over at the rules channel. \n\nTo start the verification process, use the command `{pre}verify` in <#{channel.id}>.")
+            await member.send(f"{member.mention}", embed=y)
         
 #Leave Message    
     @commands.Cog.listener()

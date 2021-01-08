@@ -8,10 +8,12 @@ class BotLogs(commands.Cog, name="Bot Logs"):
 
     def __init__(self, avimetry):
         self.avimetry = avimetry
-
+    '''
 #Message Logger
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.guild is None:
+            return
         with open("./avimetrybot/files/bot-logs.json", "r") as f:
             msglogger = json.load(f)
             if str(message.guild.id) in msglogger:
@@ -55,6 +57,8 @@ class BotLogs(commands.Cog, name="Bot Logs"):
 #Message Edit
     @commands.Cog.listener()
     async def on_message_edit(self, message_before, message_after):
+        if message_after.guild is None and message_after.guild is None:
+            return
         channel = discord.utils.get(self.avimetry.get_all_channels(), name='bot-logs')
         with open("./avimetrybot/files/prefixes.json", "r") as f:
             prefixes = json.load(f)
@@ -88,6 +92,8 @@ class BotLogs(commands.Cog, name="Bot Logs"):
 #Message Delete
     @commands.Cog.listener()
     async def on_message_delete(self, message):
+        if message.guild is None:
+            return
         channel = discord.utils.get(self.avimetry.get_all_channels(), name='bot-logs')
         with open("./avimetrybot/files/prefixes.json", "r") as f:
             prefixes = json.load(f)
@@ -121,7 +127,7 @@ class BotLogs(commands.Cog, name="Bot Logs"):
     async def on_bulk_message_delete(self, messages):
         channel = discord.utils.get(self.avimetry.get_all_channels(), name='bot-logs')
         purgeembed=discord.Embed(title='Message Purge', description=f'Bulk delete detected. Information is below.')
-        purgeembed.add_field(name='Affected messages:', value="{} messages".format(len(messages)))
+        purgeembed.add_field(name='Affected messages:', value=f"Channel: {messages.channel} \n Amount: {len(messages)} messages")
         await channel.send(embed=purgeembed)
 
 #Toggle Command
@@ -149,6 +155,6 @@ class BotLogs(commands.Cog, name="Bot Logs"):
             b = discord.Embed()
             b.add_field(name="Chat Logs", value="Chat Logs set to `true`")
             await ctx.send(embed = b)
-
+    '''
 def setup(avimetry):
     avimetry.add_cog(BotLogs(avimetry))

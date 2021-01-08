@@ -17,35 +17,41 @@ class Miscellaneous(commands.Cog):
 #CoViD-19 Stats
     @commands.command()
     async def covid(self, ctx, country):
-        c = requests.get(f'https://coronavirus-19-api.herokuapp.com/countries/{country}')
-        js_in = c.json()
-        countries = js_in["country"]
-        totalCases = js_in["cases"]
-        todayCases = js_in["todayCases"]
-        casesPerMil = js_in["casesPerOneMillion"]
-        activeCases = js_in["active"]
-        criticalCases = js_in["critical"]
-        totalDeaths = js_in["deaths"]
-        todayDeaths = js_in["todayDeaths"]
-        deathsPerMil = js_in["deathsPerOneMillion"]
-        recovered = js_in["recovered"]
-        tests = js_in["totalTests"]
-        testPerMil = js_in["testsPerOneMillion"]
+        pre = await self.avimetry.get_prefix(ctx.message)
+        try:
+            c = requests.get(f'https://coronavirus-19-api.herokuapp.com/countries/{country}')
+            js_in = c.json()
+            countries = js_in["country"]
+            totalCases = js_in["cases"]
+            todayCases = js_in["todayCases"]
+            casesPerMil = js_in["casesPerOneMillion"]
+            activeCases = js_in["active"]
+            criticalCases = js_in["critical"]
+            totalDeaths = js_in["deaths"]
+            todayDeaths = js_in["todayDeaths"]
+            deathsPerMil = js_in["deathsPerOneMillion"]
+            recovered = js_in["recovered"]
+            tests = js_in["totalTests"]
+            testPerMil = js_in["testsPerOneMillion"]
 
-        e = discord.Embed(title=f"COVID-19 Status for {countries}", description="Cases are not updated live, so it may not be very accurate at times.")
-        e.add_field(name="Total Cases:", value=totalCases, inline=True)
-        e.add_field(name="Cases Today:", value=todayCases, inline=True)
-        e.add_field(name="Cases Per 1M:", value=casesPerMil, inline=True)
-        e.add_field(name="Active Cases:", value=activeCases, inline=True)
-        e.add_field(name="Critical Cases:", value=criticalCases, inline=True)
-        e.add_field(name="Total Deaths:", value=totalDeaths, inline=True)
-        e.add_field(name="Deaths Today:", value=todayDeaths, inline=True)
-        e.add_field(name="Deaths Per 1M:", value=deathsPerMil, inline=True)
-        e.add_field(name="Recovered:", value=recovered, inline=True)
-        e.add_field(name="Tests Taken:", value=tests, inline=True)
-        e.add_field(name="Tests Taken Per 1M:", value=testPerMil, inline=True)
-        await ctx.send(embed=e)        
-
+            e = discord.Embed(title=f"COVID-19 Status for {countries}", description="Cases are not updated live, so it may not be very accurate at times.")
+            e.add_field(name="Total Cases:", value=totalCases, inline=True)
+            e.add_field(name="Cases Today:", value=todayCases, inline=True)
+            e.add_field(name="Cases Per 1M:", value=casesPerMil, inline=True)
+            e.add_field(name="Active Cases:", value=activeCases, inline=True)
+            e.add_field(name="Critical Cases:", value=criticalCases, inline=True)
+            e.add_field(name="Total Deaths:", value=totalDeaths, inline=True)
+            e.add_field(name="Deaths Today:", value=todayDeaths, inline=True)
+            e.add_field(name="Deaths Per 1M:", value=deathsPerMil, inline=True)
+            e.add_field(name="Recovered:", value=recovered, inline=True)
+            e.add_field(name="Tests Taken:", value=tests, inline=True)
+            e.add_field(name="Tests Taken Per 1M:", value=testPerMil, inline=True)
+            await ctx.send(embed=e)        
+        except:
+            a = discord.Embed()
+            a.add_field(name="<:aviError:777096756865269760> Invalid Country", value=f"{country} is not a country, or the API may be down. Please try again later")
+            a.set_footer(text=f"Use '{pre}help' if you need help.")
+            await ctx.send(embed=a, delete_after=10)
 #Study Hall Command
     @commands.group()
     async def studyhall(self, ctx):
@@ -131,6 +137,20 @@ class Miscellaneous(commands.Cog):
         ie.set_thumbnail(url=member.avatar_url)
         ie.add_field(name="Server Permissions", value="wip")
         await ctx.send(embed=ie)
+    
+    @commands.command()
+    async def example(self, ctx):
+        e = discord.Embed(title="Title", description="Description i think 2048 char limit", timestamp=datetime.datetime.utcnow(), color=discord.Color.blurple())
+        e.set_author(name="cool author", url="https://www.youtube.com")
+        e.add_field(name="yes1", value="nice value1", inline=True)
+        e.add_field(name="yes2", value="nice value2", inline=True)
+        e.add_field(name="yes3", value="nice value3", inline=True)
+        e.add_field(name="yes4", value="non inline value", inline=False)
+        e.add_field(name="yes5", value="another non inline value", inline=False)
+        e.set_thumbnail(url=ctx.author.avatar_url)
+        e.set_footer(text="yes footer")
+        await ctx.send(embed=e)
+
     
 def setup(avimetry):
     avimetry.add_cog(Miscellaneous(avimetry))

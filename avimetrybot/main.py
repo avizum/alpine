@@ -9,7 +9,7 @@ from discord.ext import menus
 
 #Get Bot Token
 load_dotenv()
-avitoken = os.getenv('Bot_Token2')
+avitoken = os.getenv('Bot_Token')
 
 #Command Prefix and Intents
 def prefix(client, message):

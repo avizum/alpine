@@ -14,6 +14,8 @@ class Counting(commands.Cog):
     async def on_message(self, message):
         if message.author == self.avimetry.user:
             return
+        if message.guild is None:
+            return
         with open("./avimetrybot/files/counting.json", "r") as f:
             cc = json.load(f)
             if str(message.guild.id) in cc:
