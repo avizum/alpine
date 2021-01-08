@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands, tasks
 import datetime
-from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 
 class HCEmbed(commands.HelpCommand):
     def get_ending_note(self):

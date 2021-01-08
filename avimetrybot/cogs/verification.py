@@ -30,7 +30,7 @@ class Verification(commands.Cog, command_attrs=dict(hidden=True)):
             
             channel = discord.utils.get(self.avimetry.get_all_channels(), name=f'{member.id}')
             x=discord.Embed()
-            x.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to **{member.guild.name}**! \n\nPlease read the rules over at the rules channel. After reading the rules, come back here to start the verification process. \n\nTo start the verification process, use the command `{pre}verify` \n\nYou will be given a randomly generated code to enter in this channel.")
+            x.add_field(name=f"Welcome to **{member.guild.name}**!", value=f"Hey, {member.mention}, welcome to **{member.guild.name}**! \n\nPlease read the rules over at the rules channel. After reading the rules, come back here to start the verification process. \n\nTo start the verification process, use the command `{pre}verify` \n\nYou will be given a randomly generated code to enter in this channel. **If you are on mobile, Please set your status to anything but `INVISIBLE`**")
             await channel.send(f"{member.mention}", embed=x)
             
             y=discord.Embed()

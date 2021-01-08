@@ -5,7 +5,6 @@ import asyncio
 import datetime
 import time
 from discord.ext import commands, tasks
-from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 
 class botinfo(commands.Cog, name="Bot Utilities"):
     def __init__(self, avimetry):

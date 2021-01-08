@@ -6,7 +6,6 @@ import asyncio
 import json
 import datetime
 
-
 class Moderation(commands.Cog):
     
     def __init__(self, avimetry):

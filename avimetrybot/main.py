@@ -5,7 +5,6 @@ import json
 import datetime
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
-from discord.ext import menus
 
 #Get Bot Token
 load_dotenv()

@@ -5,7 +5,6 @@ import time
 import asyncio
 import json
 import typing
-from disputils import BotEmbedPaginator
 
 class Fun(commands.Cog):
     
