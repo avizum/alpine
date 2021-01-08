@@ -4,10 +4,8 @@ import random
 import time
 import datetime
 import json
-import difflib
 import sys
 import traceback
-import better_exceptions
 
 class ErrorHandler(commands.Cog):
     
