@@ -25,7 +25,7 @@ class Moderation(commands.Cog):
         await cm.edit(content="", embed=ce, delete_after=10)
 
 #Purge Command
-    @commands.group(brief="Delete a number of messages in the current channel.")
+    @commands.group(invoke_without_command=True, brief="Delete a number of messages in the current channel.")
     @commands.has_permissions(manage_messages=True)
     @commands.cooldown(5, 300, commands.BucketType.member)
     async def purge(self, ctx, amount: int):
@@ -51,6 +51,13 @@ class Moderation(commands.Cog):
             pe.add_field(name="<:aviSuccess:777096731438874634> Purge Messages", value=f"Here are the results of the purged messages:\n`{msg}`")
             pe.set_footer(text="This message will be deleted in 15 seconds.")
             await ctx.send(embed=pe, delete_after=15)
+    @purge.command()
+    async def match(self, ctx, amount: int, *, text):
+        def pmatch(m):
+            return text in m.content
+        await ctx.channel.purge(limit = amount, check = pmatch)
+        await ctx.send("Purge")
+        
 
 #Lock Channel Command
     @commands.command(brief="Locks the mentioned channel.", timestamp=datetime.datetime.utcnow())
