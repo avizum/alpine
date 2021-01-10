@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 #Get Bot Token
 load_dotenv()
-avitoken = os.getenv('Bot_Token')
+avitoken = os.getenv('Bot_Token2')
 
 #Command Prefix and Intents
 def prefix(client, message):

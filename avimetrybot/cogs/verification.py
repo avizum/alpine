@@ -6,7 +6,6 @@ import json
 import asyncio
 #event = @commands.Cog.listener
 class Verification(commands.Cog, command_attrs=dict(hidden=True)):
-
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
@@ -45,9 +44,10 @@ class Verification(commands.Cog, command_attrs=dict(hidden=True)):
             await dchnl.delete(reason=f"{member.name} left during verification process")
         else:
             channel = discord.utils.get(self.avimetry.get_all_channels(), name='joins-and-leaves')
-            lm=discord.Embed()
-            lm.add_field(name="Member Left", value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.")
-            await channel.send(embed=lm)
+            if member.guild.id == channel.guild.id:
+                lm=discord.Embed()
+                lm.add_field(name="Member Left", value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.")
+                await channel.send(embed=lm)
             
 
 #Verify Command

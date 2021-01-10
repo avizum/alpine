@@ -86,11 +86,9 @@ class Miscellaneous(commands.Cog):
 #Poll command
     @commands.command(brief="Launch a poll for users to vote to.")
     @commands.cooldown(1, 300, commands.BucketType.user)
-    async def poll(self, ctx, question,  *options: str):
-        if len(options) < 3:
-            raise commands.MissingRequiredArgument(options)
+    async def poll(self, ctx, question, *options: str):
+            
         await ctx.message.delete()
-        channel = self.avimetry.get_channel(774075297142013972)
         if len(options) == 2 and options[0] == 'Yes' and options[1] == 'No':
             reactions = ['<:aviSuccess:777096731438874634>', '<:aviError:777096756865269760>']
         elif len(options) == 2 and options[0] == 'yes' and options[1] == 'no':
@@ -102,7 +100,7 @@ class Miscellaneous(commands.Cog):
             description +='\n\n {} {}'.format(reactions[x], option)
         embed = discord.Embed(title=question, description=''.join(description))
         embed.set_footer(text=f"Poll from: {ctx.author.name}#{ctx.author.discriminator}")
-        react_message = await channel.send(embed=embed)
+        react_message = await ctx.send(embed=embed)
         for reaction in reactions[:len(options)]:
             await react_message.add_reaction(reaction)
         embed.set_footer(text=f"Poll from: {ctx.author.name}#{ctx.author.discriminator}\nPoll ID: {react_message.id}")
