@@ -72,14 +72,14 @@ class Management(commands.Cog, name="Member Management"):
     async def add(self, ctx, member:discord.Member, role:discord.Role):
         await member.add_roles(role)
         ra = discord.Embed()
-        ra.add_field(name="<:aviSuccess:777096731438874634> Role Add", value=f"Added {role.mention} to {member.mention}.")
+        ra.add_field(name="<:yesTick:777096731438874634> Role Add", value=f"Added {role.mention} to {member.mention}.")
         await ctx.send(embed=ra)
 
     @role.command(brief="Remove a role from a member.")
     async def remove(self, ctx, member:discord.Member, role:discord.Role):
         await member.remove_roles(role)
         rr = discord.Embed()
-        rr.add_field(name="<:aviSuccess:777096731438874634> Role Remove", value=f"Removed {role.mention} from {member.mention}")
+        rr.add_field(name="<:yesTick:777096731438874634> Role Remove", value=f"Removed {role.mention} from {member.mention}")
         await ctx.send(embed=rr) 
 
 #CNick Command
@@ -89,7 +89,7 @@ class Management(commands.Cog, name="Member Management"):
         oldnick=member.display_name
         await member.edit(nick=nick)
         newnick=member.display_name
-        nickembed=discord.Embed(title="<:aviSuccess:777096731438874634> Nickname Changed")
+        nickembed=discord.Embed(title="<:yesTick:777096731438874634> Nickname Changed")
         nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
@@ -102,7 +102,20 @@ class Management(commands.Cog, name="Member Management"):
         oldnick=member.display_name
         await member.edit(nick=nick)
         newnick=member.display_name
-        nickembed=discord.Embed(title="<:aviSuccess:777096731438874634> Restored Nickname")
+        nickembed=discord.Embed(title="<:yesTick:777096731438874634> Restored Nickname")
+        nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
+        nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
+        await ctx.send(embed=nickembed)
+
+#Self Nick
+    @commands.command(aliases=["snick"], brief="Changes your nick name")
+    @commands.cooldown(1, 500, commands.BucketType.member)
+    async def selfnick(self, ctx, *, nick):
+        nick = ctx.author.name
+        oldnick = ctx.author.display_name
+        await ctx.author.edit(nick=nick)
+        newnick = ctx.author.display_name
+        nickembed=discord.Embed(title="<:yesTick:777096731438874634> Nickname Changed")
         nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)

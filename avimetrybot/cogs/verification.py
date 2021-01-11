@@ -58,7 +58,7 @@ class Verification(commands.Cog, command_attrs=dict(hidden=True)):
         await ctx.message.delete()
         if role in member.roles:
             fver=discord.Embed()
-            fver.add_field(name="<:aviError:777096756865269760> Already Verified", value="You are already verified!")
+            fver.add_field(name="<:noTick:777096756865269760> Already Verified", value="You are already verified!")
             await(await ctx.send(embed=fver)).delete(delay=5)
         else:
             letters = string.ascii_letters
@@ -73,7 +73,7 @@ class Verification(commands.Cog, command_attrs=dict(hidden=True)):
                 await member.send(embed=rkey)
 
             ksid=discord.Embed()
-            ksid.add_field(name="<:aviSuccess:777096731438874634> A key was sent to your DMs", value="Enter your key here to get verified and have access to the channels.")
+            ksid.add_field(name="<:yesTick:777096731438874634> A key was sent to your DMs", value="Enter your key here to get verified and have access to the channels.")
             await ctx.send(embed=ksid)
             channel=ctx.channel
             def check(m):
@@ -82,14 +82,14 @@ class Verification(commands.Cog, command_attrs=dict(hidden=True)):
                 await self.avimetry.wait_for("message", timeout=60, check=check)
             except asyncio.TimeoutError:
                 if member.is_on_mobile():
-                    await member.send("<:aviError:777096756865269760> **Your Key has expired**\nSorry, your key has expired. If you want to generate a new key, use the command `a.verify` to generate a new key.")
+                    await member.send("<:noTick:777096756865269760> **Your Key has expired**\nSorry, your key has expired. If you want to generate a new key, use the command `a.verify` to generate a new key.")
                 else:
                     timeup=discord.Embed()
-                    timeup.add_field(name="<:aviError:777096756865269760> Your Key has expired", value="Sorry, your key has expired. If you want to generate a new key, use the command `a.verify` to generate a new key.")
+                    timeup.add_field(name="<:noTick:777096756865269760> Your Key has expired", value="Sorry, your key has expired. If you want to generate a new key, use the command `a.verify` to generate a new key.")
                     await ctx.author.send(embed=timeup)
             else:
                 verembed=discord.Embed()
-                verembed.add_field(name="<:aviSuccess:777096731438874634> Thank you", value="You have been verified!", inline=False)
+                verembed.add_field(name="<:yesTick:777096731438874634> Thank you", value="You have been verified!", inline=False)
                 await ctx.send(embed=verembed)
                 await asyncio.sleep(.5)
                 await member.add_roles(role)

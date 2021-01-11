@@ -21,7 +21,7 @@ class Moderation(commands.Cog):
         d1 = await ctx.channel.purge(limit=100, check=avimetrybot)
         cm = await ctx.send("Cleaning...")
         ce=discord.Embed()
-        ce.add_field(name="<:aviSuccess:777096731438874634> Clean Messages", value=f"Successfully deleted **{len(d1)}** messages")
+        ce.add_field(name="<:yesTick:777096731438874634> Clean Messages", value=f"Successfully deleted **{len(d1)}** messages")
         await cm.edit(content="", embed=ce, delete_after=10)
 
 #Purge Command
@@ -34,7 +34,7 @@ class Moderation(commands.Cog):
             pass
         elif amount > 250:
             a100=discord.Embed()
-            a100.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't purge more than 150 messages at a time.")
+            a100.add_field(name="<:noTick:777096756865269760> No Permission", value="You can't purge more than 150 messages at a time.")
             await ctx.send(embed=a100, delete_after=10)
         else:
             authors = {}
@@ -48,7 +48,7 @@ class Moderation(commands.Cog):
             msg = "\n".join([f"{author}: {amount}" for author, amount in authors.items()])
 
             pe=discord.Embed()
-            pe.add_field(name="<:aviSuccess:777096731438874634> Purge Messages", value=f"Here are the results of the purged messages:\n`{msg}`")
+            pe.add_field(name="<:yesTick:777096731438874634> Purge Messages", value=f"Here are the results of the purged messages:\n`{msg}`")
             pe.set_footer(text="This message will be deleted in 15 seconds.")
             await ctx.send(embed=pe, delete_after=15)
     @purge.command()
@@ -83,19 +83,19 @@ class Moderation(commands.Cog):
     async def kick(self, ctx, member : discord.Member, *, reason = "No reason was provided"):
         if member==ctx.message.author:
             e1=discord.Embed()
-            e1.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't kick yourself. That's just stupid.")
+            e1.add_field(name="<:noTick:777096756865269760> No Permission", value="You can't kick yourself. That's just stupid.")
             await ctx.send(embed=e1, delete_after=10)
         elif member==self.avimetry.user:
             e2=discord.Embed()
-            e2.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't kick me, because that won't work.")
+            e2.add_field(name="<:noTick:777096756865269760> No Permission", value="You can't kick me, because that won't work.")
             await ctx.send(embed=e2, delete_after=10)
         elif member.top_role > ctx.author.top_role:
             e3=discord.Embed()
-            e3.add_field(name="<:aviError:777096756865269760> No Permission", value="You can not kick someone that has a higher role than you. They must have a role under you.", inline=False)
+            e3.add_field(name="<:noTick:777096756865269760> No Permission", value="You can not kick someone that has a higher role than you. They must have a role under you.", inline=False)
             await ctx.send(embed=e3, delete_after=10)
         elif member.top_role== ctx.author.top_role:
             e4=discord.Embed()
-            e4.add_field(name="<:aviError:777096756865269760> No Permission", value="You can not kick someone that has the same role as you. They must have a role under you.", inline=False)
+            e4.add_field(name="<:noTick:777096756865269760> No Permission", value="You can not kick someone that has the same role as you. They must have a role under you.", inline=False)
             await ctx.send(embed=e4, delete_after=10)
         else:
             bae=discord.Embed(title=f"You have been kicked from {ctx.guild.name}", timestamp=datetime.datetime.utcnow())
@@ -104,7 +104,7 @@ class Moderation(commands.Cog):
             await member.send(embed=bae)
             await member.kick(reason=reason)
             kickembed=discord.Embed()
-            kickembed.add_field(name="<:aviSuccess:777096731438874634> Kick Member", value=f"**{member}** has been kicked from the server.", inline=False)
+            kickembed.add_field(name="<:yesTick:777096731438874634> Kick Member", value=f"**{member}** has been kicked from the server.", inline=False)
             await ctx.send(embed=kickembed)
 
 #Ban Command
@@ -113,19 +113,19 @@ class Moderation(commands.Cog):
     async def ban(self, ctx, member : discord.Member, *, reason = "No reason was provided"):
         if member==ctx.message.author:
                 mecma=discord.Embed()
-                mecma.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't ban yourself. That's just stupid.")
+                mecma.add_field(name="<:noTick:777096756865269760> No Permission", value="You can't ban yourself. That's just stupid.")
                 await ctx.send(embed=mecma)
         elif member==self.avimetry.user:
                 msau=discord.Embed()
-                msau.add_field(name="<:aviError:777096756865269760> No Permission", value="You can't ban me, because that won't work.")
+                msau.add_field(name="<:noTick:777096756865269760> No Permission", value="You can't ban me, because that won't work.")
                 await ctx.send(embed=msau)
         elif member.top_role > ctx.author.top_role:
                 mtrgratr=discord.Embed()
-                mtrgratr.add_field(name="<:aviError:777096756865269760> No Permission", value="You can not ban someone that has a higher role than you. They must have a role under you.", inline=False)
+                mtrgratr.add_field(name="<:noTick:777096756865269760> No Permission", value="You can not ban someone that has a higher role than you. They must have a role under you.", inline=False)
                 await ctx.send(embed=mtrgratr)
         elif member.top_role== ctx.author.top_role:
             mtretatr=discord.Embed()
-            mtretatr.add_field(name="<:aviError:777096756865269760> No Permission", value="You can not ban someone that has the same role as you. They must have a role under you.", inline=False)
+            mtretatr.add_field(name="<:noTick:777096756865269760> No Permission", value="You can not ban someone that has the same role as you. They must have a role under you.", inline=False)
             await ctx.send(embed=mtretatr)
         else:
             bae=discord.Embed(title=f"You have been banned from {ctx.guild.name}", timestamp=datetime.datetime.utcnow())
@@ -135,7 +135,7 @@ class Moderation(commands.Cog):
             await asyncio.sleep(.5)
             await member.ban(reason=reason)
             banembed=discord.Embed()
-            banembed.add_field(name="<:aviSuccess:777096731438874634> Ban Member", value=f"{member.mention} (`{member.id}`) has been banned from **{ctx.guild.name}**.", inline=False)
+            banembed.add_field(name="<:yesTick:777096731438874634> Ban Member", value=f"{member.mention} (`{member.id}`) has been banned from **{ctx.guild.name}**.", inline=False)
             await ctx.send(embed=banembed)
 
 #Unban Command
@@ -145,7 +145,7 @@ class Moderation(commands.Cog):
         some_member = discord.Object(id=userid)
         await ctx.guild.unban(some_member)
         unbanenmbed=discord.Embed()
-        unbanenmbed.add_field(name="<:aviSuccess:777096731438874634> Unban Member", value=f"Unbanned <@{userid}> ({userid}) from **{ctx.guild.name}**.", inline=False)
+        unbanenmbed.add_field(name="<:yesTick:777096731438874634> Unban Member", value=f"Unbanned <@{userid}> ({userid}) from **{ctx.guild.name}**.", inline=False)
         await ctx.send(embed=unbanenmbed)
 
 #Slowmode Command
@@ -154,7 +154,7 @@ class Moderation(commands.Cog):
     async def slowmode(self, ctx, seconds: int):
         await ctx.channel.edit(slowmode_delay=seconds)
         smembed=discord.Embed()
-        smembed.add_field(name="<:aviSuccess:777096731438874634> Set Slowmode", value=f"Slowmode delay is now set to {seconds} seconds.")
+        smembed.add_field(name="<:yesTick:777096731438874634> Set Slowmode", value=f"Slowmode delay is now set to {seconds} seconds.")
         await ctx.send(embed=smembed)
    
 #mute command

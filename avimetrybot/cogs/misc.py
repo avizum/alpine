@@ -49,7 +49,7 @@ class Miscellaneous(commands.Cog):
             await ctx.send(embed=e)        
         except:
             a = discord.Embed()
-            a.add_field(name="<:aviError:777096756865269760> Invalid Country", value=f"{country} is not a country, or the API may be down. Please try again later")
+            a.add_field(name="<:noTick:777096756865269760> Invalid Country", value=f"{country} is not a country, or the API may be down. Please try again later")
             a.set_footer(text=f"Use '{pre}help' if you need help.")
             await ctx.send(embed=a, delete_after=10)
 #Study Hall Command
@@ -90,9 +90,9 @@ class Miscellaneous(commands.Cog):
             
         await ctx.message.delete()
         if len(options) == 2 and options[0] == 'Yes' and options[1] == 'No':
-            reactions = ['<:aviSuccess:777096731438874634>', '<:aviError:777096756865269760>']
+            reactions = ['<:yesTick:777096731438874634>', '<:noTick:777096756865269760>']
         elif len(options) == 2 and options[0] == 'yes' and options[1] == 'no':
-            reactions = ['<:aviSuccess:777096731438874634>', '<:aviError:777096756865269760>']
+            reactions = ['<:yesTick:777096731438874634>', '<:noTick:777096756865269760>']
         else:
             reactions = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']
         description = []
@@ -135,20 +135,6 @@ class Miscellaneous(commands.Cog):
         ie.set_thumbnail(url=member.avatar_url)
         ie.add_field(name="Server Permissions", value="wip")
         await ctx.send(embed=ie)
-    
-    @commands.command()
-    async def example(self, ctx):
-        e = discord.Embed(title="Title", description="Description i think 2048 char limit", timestamp=datetime.datetime.utcnow(), color=discord.Color.blurple())
-        e.set_author(name="cool author", url="https://www.youtube.com")
-        e.add_field(name="yes1", value="nice value1", inline=True)
-        e.add_field(name="yes2", value="nice value2", inline=True)
-        e.add_field(name="yes3", value="nice value3", inline=True)
-        e.add_field(name="yes4", value="non inline value", inline=False)
-        e.add_field(name="yes5", value="another non inline value", inline=False)
-        e.set_thumbnail(url=ctx.author.avatar_url)
-        e.set_footer(text="yes footer")
-        await ctx.send(embed=e)
-
     
 def setup(avimetry):
     avimetry.add_cog(Miscellaneous(avimetry))

@@ -45,18 +45,18 @@ class botinfo(commands.Cog, name="Bot Utilities"):
         )
 
 #Shutdown Command
-    @commands.command(hidden=True)
+    @commands.command(brief="Shutdown the bot")
     @commands.is_owner()
     async def shutdown(self, ctx):
         await ctx.message.delete()
         sm = discord.Embed()
         sm.add_field(name=f"{self.avimetry.user.name} shutdown", value="Are you sure you want to shut down?")
         rr=await ctx.send(embed=sm)
-        reactions = ['<:aviSuccess:777096731438874634>', '<:aviError:777096756865269760>']
+        reactions = ['<:yesTick:777096731438874634>', '<:noTick:777096756865269760>']
         for reaction in reactions:
             await rr.add_reaction(reaction)
         def check(reaction, user):
-            return str(reaction.emoji) in ['<:aviSuccess:777096731438874634>', '<:aviError:777096756865269760>'] and user != self.avimetry.user
+            return str(reaction.emoji) in ['<:yesTick:777096731438874634>', '<:noTick:777096756865269760>'] and user != self.avimetry.user
 
         try:
             # pylint: disable = unused-variable
@@ -69,7 +69,7 @@ class botinfo(commands.Cog, name="Bot Utilities"):
             await rr.clear_reactions()
 
         else:
-            if str(reaction.emoji) == '<:aviSuccess:777096731438874634>':
+            if str(reaction.emoji) == '<:yesTick:777096731438874634>':
                 rre=discord.Embed()
                 rre.add_field(name=f"{self.avimetry.user.name} shutdown", value="Shutting down...")
                 await rr.edit(embed=rre)
@@ -78,7 +78,7 @@ class botinfo(commands.Cog, name="Bot Utilities"):
                 await rr.delete()
                 await self.avimetry.logout()
 
-            if str(reaction.emoji) == '<:aviError:777096756865269760>':
+            if str(reaction.emoji) == '<:noTick:777096756865269760>':
                 rre2=discord.Embed()
                 rre2.add_field(name=f"{self.avimetry.user.name} shutdown", value="Shut down has been cancelled.")
                 await rr.edit(embed=rre2)
@@ -99,7 +99,7 @@ class botinfo(commands.Cog, name="Bot Utilities"):
         
         cp=discord.Embed()
         cp.add_field(
-            name="<:aviSuccess:777096731438874634> Set Prefix",
+            name="<:yesTick:777096731438874634> Set Prefix",
             value=f"The prefix for **{ctx.guild.name}** is now `{nprefix}`"
         )
         await ctx.send(embed=cp)             
