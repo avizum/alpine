@@ -23,26 +23,12 @@ def prefix(client, message):
             pre = prefixes[str(message.guild.id)]
         return pre
 avimetry = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=discord.Intents.all())
-avimetry.handler = AntiSpamHandler(avimetry)
 avimetry.launch_time=datetime.datetime.utcnow()
 
 #Database 
 avimetry.cluster=MongoClient(os.getenv('DB_Token'))
 avimetry.db=avimetry.cluster['avimetry']
 avimetry.collection=avimetry.db['new']
-
-@avimetry.event
-async def on_message(message):
-    await avimetry.handler.propagate(message)
-    await avimetry.process_commands(message)
-
-@avimetry.command()
-async def mongo(ctx):
-    id = ctx.command.name
-    name = ctx.author.name
-    guild = ctx.guild.name
-    mongo_cmd={"_id": id, "name": name, "guild": guild}
-    avimetry.collection.insert_one(mongo_cmd)
 
 #No Commands in DMs
 @avimetry.check
@@ -51,13 +37,13 @@ async def globally_block_dms(ctx):
 
 #Reload main cogs 
 @tasks.loop(minutes=5)
-async def loop():
+async def load_important():
     try:
         avimetry.load_extension('jishaku')
         avimetry.load_extension("cogs.loads")
     except commands.ExtensionAlreadyLoaded:
         return
-loop.start()
+load_important.start()
 
 #Load Cogs
 avimetry.load_extension('jishaku')
