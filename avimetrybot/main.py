@@ -3,12 +3,15 @@ import os
 import asyncio
 import json
 import datetime
+import pymongo
+from AntiSpam import AntiSpamHandler
+from pymongo import MongoClient
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
 #Get Bot Token
 load_dotenv()
-avitoken = os.getenv('Bot_Token2')
+avitoken = os.getenv('Bot_Token')
 
 #Command Prefix and Intents
 def prefix(client, message):
@@ -20,7 +23,26 @@ def prefix(client, message):
             pre = prefixes[str(message.guild.id)]
         return pre
 avimetry = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=discord.Intents.all())
-avimetry.launch_time = datetime.datetime.utcnow()
+avimetry.handler = AntiSpamHandler(avimetry)
+avimetry.launch_time=datetime.datetime.utcnow()
+
+#Database 
+avimetry.cluster=MongoClient(os.getenv('DB_Token'))
+avimetry.db=avimetry.cluster['avimetry']
+avimetry.collection=avimetry.db['new']
+
+@avimetry.event
+async def on_message(message):
+    await avimetry.handler.propagate(message)
+    await avimetry.process_commands(message)
+
+@avimetry.command()
+async def mongo(ctx):
+    id = ctx.command.name
+    name = ctx.author.name
+    guild = ctx.guild.name
+    mongo_cmd={"_id": id, "name": name, "guild": guild}
+    avimetry.collection.insert_one(mongo_cmd)
 
 #No Commands in DMs
 @avimetry.check
@@ -40,9 +62,11 @@ loop.start()
 #Load Cogs
 avimetry.load_extension('jishaku')
 os.environ["JISHAKU_HIDE"] = "True"
+os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
+os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
 for filename in os.listdir('./avimetrybot/cogs'):
     if filename.endswith('.py'):
         avimetry.load_extension(f'cogs.{filename[:-3]}')
 
 #Log-In
-avimetry.run(avitoken, bot=True)
+avimetry.run(avitoken)

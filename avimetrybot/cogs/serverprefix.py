@@ -19,6 +19,15 @@ class ServerPrefix(commands.Cog, name="Server Prefix"):
         with open("./avimetrybot/files/prefixes.json", "w") as f:
             json.dump(prefixes, f, indent=4)
 
+        with open("./avimetrybot/files/verification.json", "r") as v:
+            vergate = json.load(v)
+        vergate[str(member.guild.id)] = False
+
+        with open("./avimetrybot/files/verification.json", "w") as v:
+            json.dump(prefixes, v, indent=4)
+
+
+
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
         with open("./avimetrybot/files/prefixes.json", "r") as f:

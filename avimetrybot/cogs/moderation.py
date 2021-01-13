@@ -56,8 +56,9 @@ class Moderation(commands.Cog):
         def pmatch(m):
             return text in m.content
         await ctx.channel.purge(limit = amount, check = pmatch)
-        await ctx.send("Purge")
-        
+        purgematch=discord.Embed()
+        purgematch.add_field(name="<:yesTick:777096731438874634> Purge Match", value=f"Purged {amount} messages containing {text}.")
+        await ctx.send(embed=purgematch)
 
 #Lock Channel Command
     @commands.command(brief="Locks the mentioned channel.", timestamp=datetime.datetime.utcnow())
@@ -98,14 +99,21 @@ class Moderation(commands.Cog):
             e4.add_field(name="<:noTick:777096756865269760> No Permission", value="You can not kick someone that has the same role as you. They must have a role under you.", inline=False)
             await ctx.send(embed=e4, delete_after=10)
         else:
-            bae=discord.Embed(title=f"You have been kicked from {ctx.guild.name}", timestamp=datetime.datetime.utcnow())
-            bae.add_field(name= "Moderator:", value=f"{ctx.author.name} \n`{ctx.author.id}`")
-            bae.add_field(name="Reason:", value=f"{reason}")
-            await member.send(embed=bae)
-            await member.kick(reason=reason)
-            kickembed=discord.Embed()
-            kickembed.add_field(name="<:yesTick:777096731438874634> Kick Member", value=f"**{member}** has been kicked from the server.", inline=False)
-            await ctx.send(embed=kickembed)
+            try:
+                bae=discord.Embed(title=f"You have been kicked from {ctx.guild.name}", timestamp=datetime.datetime.utcnow())
+                bae.add_field(name= "Moderator:", value=f"{ctx.author.name} \n`{ctx.author.id}`")
+                bae.add_field(name="Reason:", value=f"{reason}")
+                await member.send(embed=bae)
+                await member.kick(reason=reason)
+                kickembed=discord.Embed()
+                kickembed.add_field(name="<:yesTick:777096731438874634> Kick Member", value=f"**{member}** has been kicked from the server.", inline=False)
+                await ctx.send(embed=kickembed)
+            except discord.HTTPException:
+                await member.kick(reason=reason)
+                kickembed=discord.Embed()
+                kickembed.add_field(name="<:yesTick:777096731438874634> Kick Member", value=f"**{member}** has been kicked from the server, but I could not DM them.", inline=False)
+                await ctx.send(embed=kickembed)
+
 
 #Ban Command
     @commands.command(brief="Bans a member from the server")
@@ -128,15 +136,22 @@ class Moderation(commands.Cog):
             mtretatr.add_field(name="<:noTick:777096756865269760> No Permission", value="You can not ban someone that has the same role as you. They must have a role under you.", inline=False)
             await ctx.send(embed=mtretatr)
         else:
-            bae=discord.Embed(title=f"You have been banned from {ctx.guild.name}", timestamp=datetime.datetime.utcnow())
-            bae.add_field(name= "Moderator:", value=f"{ctx.author.mention} \n`{ctx.author.id}`")
-            bae.add_field(name="Reason:", value=f"{reason}")
-            await member.send(embed=bae)
-            await asyncio.sleep(.5)
-            await member.ban(reason=reason)
-            banembed=discord.Embed()
-            banembed.add_field(name="<:yesTick:777096731438874634> Ban Member", value=f"{member.mention} (`{member.id}`) has been banned from **{ctx.guild.name}**.", inline=False)
-            await ctx.send(embed=banembed)
+            try:
+                bae=discord.Embed(title=f"You have been banned from {ctx.guild.name}", timestamp=datetime.datetime.utcnow())
+                bae.add_field(name= "Moderator:", value=f"{ctx.author.mention} \n`{ctx.author.id}`")
+                bae.add_field(name="Reason:", value=f"{reason}")
+                await member.send(embed=bae)
+                await member.ban(reason=reason)
+                banembed=discord.Embed()
+                banembed.add_field(name="<:yesTick:777096731438874634> Ban Member", value=f"{member.mention} (`{member.id}`) has been banned from **{ctx.guild.name}**.", inline=False)
+                await ctx.send(embed=banembed)
+            except discord.HTTPException:
+                await member.ban(reason=reason)
+                banembed=discord.Embed()
+                banembed.add_field(name="<:yesTick:777096731438874634> Ban Member", value=f"{member.mention} (`{member.id}`) has been banned from **{ctx.guild.name}**, but I could not DM them.", inline=False)
+                await ctx.send(embed=banembed)
+
+
 
 #Unban Command
     @commands.command(brief="Unbans a member from the server.")
@@ -157,7 +172,7 @@ class Moderation(commands.Cog):
         smembed.add_field(name="<:yesTick:777096731438874634> Set Slowmode", value=f"Slowmode delay is now set to {seconds} seconds.")
         await ctx.send(embed=smembed)
    
-#mute command
+#Mute command
     @commands.command(brief="Mutes a member.")
     @commands.has_permissions(kick_members=True)
     async def mute(self, ctx, member : discord.Member):

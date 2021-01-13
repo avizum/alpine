@@ -24,7 +24,7 @@ class AutoMod(commands.Cog, name="Auto Moderation"):
             if words in message.content.lower():
                 await message.delete()
                 await message.channel.send(f"{message.author.mention}, don't say that word!", delete_after=3)
-
+                
     @commands.Cog.listener()
     async def on_message_edit(self, message_before, message_after):
         if message_before.author == self.avimetry.user:

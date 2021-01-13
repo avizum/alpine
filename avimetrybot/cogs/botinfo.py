@@ -15,7 +15,6 @@ class botinfo(commands.Cog, name="Bot Utilities"):
         # pylint: disable=no-member
         self.status_task.cancel()
         
-
 #Loop Presence
     @tasks.loop(seconds=1)
     async def status_task(self):
@@ -40,7 +39,7 @@ class botinfo(commands.Cog, name="Bot Utilities"):
               'Succesfully logged in as\n'
               f'Username: {self.avimetry.user.name}\n'
               f'Bot ID: {self.avimetry.user.id}\n'
-              f'Login Time (UTC): {datetime.datetime.utcnow()}\n'
+              f'Login Date: {datetime.date.today()}\n'
               '------'
         )
 
