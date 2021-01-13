@@ -8,9 +8,7 @@ import datetime
 class AutoMod(commands.Cog, name="Auto Moderation"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
-        self.mc = commands.CooldownMapping.from_cooldown(5, 8, commands.BucketType.member)
-        self.coold = commands.CooldownMapping.from_cooldown(0, 1, commands.BucketType.member)
-
+        
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author == self.avimetry.user:
@@ -39,6 +37,6 @@ class AutoMod(commands.Cog, name="Auto Moderation"):
                 await message_after.channel.send(f"{message_after.author.mention}, don't edit your message to say that word!", delete_after=3)
 
 def setup(avimetry):
-    avimetry.add_cog(AutoMod(avimetry))
+    avimetry.add_cog(AutoMod(avimetry)) #40
 
 

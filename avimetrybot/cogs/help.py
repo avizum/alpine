@@ -32,7 +32,7 @@ class HCEmbed(commands.HelpCommand):
             embed.description = cog.description
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
         for command in filtered:
-            embed.add_field(name=self.gcommand_signature(command), value=command.short_doc or 'No Description', inline=True)
+            embed.add_field(name=self.gcommand_signature(command), value=f"`{command.short_doc}`" or 'No Description', inline=True)
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
 

@@ -4,6 +4,7 @@ import json
 import asyncio
 import datetime
 import time
+import pymongo
 from discord.ext import commands, tasks
 
 class botinfo(commands.Cog, name="Bot Utilities"):
@@ -84,25 +85,18 @@ class botinfo(commands.Cog, name="Bot Utilities"):
                 await rr.clear_reactions()
                 await asyncio.sleep(5)
                 await rr.delete()
-            
+
+#Set Prefix Command
     @commands.command(brief="Set the prefix of the server.")
     @commands.has_permissions(administrator=True)
     async def setprefix(self, ctx, nprefix):
-        with open("./avimetrybot/files/prefixes.json", "r") as f:
-            prefixes = json.load(f)
-
-        prefixes[str(ctx.guild.id)] = nprefix
-
-        with open("./avimetrybot/files/prefixes.json", "w") as f:
-            json.dump(prefixes, f, indent=4)
-        
+        gid = str(ctx.guild.id)
+        newpre = {gid: nprefix}
+        self.avimetry.collection.update_one({"_id":"prefixes"}, {"$set":newpre})
         cp=discord.Embed()
-        cp.add_field(
-            name="<:yesTick:777096731438874634> Set Prefix",
-            value=f"The prefix for **{ctx.guild.name}** is now `{nprefix}`"
-        )
+        cp.add_field(name="<:yesTick:777096731438874634> Set Prefix", value=f"The prefix for **{ctx.guild.name}** is now `{nprefix}`")
         await ctx.send(embed=cp)             
-        
+
 #Bot Info Command
     @commands.command()
     async def info(self, ctx):

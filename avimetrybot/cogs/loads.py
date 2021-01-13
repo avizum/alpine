@@ -52,5 +52,12 @@ class Cogs(commands.Cog):
             noreload=discord.Embed()
             noreload.add_field(name="<:noTick:777096756865269760> Not Loaded", value=f"The **{extension}** module is not loaded. You can not reload a module that is not loaded.")
             await ctx.send(embed=noreload)
+
+    @commands.group(brief="Developer Load", invoke_with_subcommand=True)
+    @commands.is_owner()
+    async def dev(self, ctx):
+        await ctx.send("haha you thought")
+    
+
 def setup(avimetry):
     avimetry.add_cog(Cogs(avimetry))

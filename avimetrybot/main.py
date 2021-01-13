@@ -4,23 +4,25 @@ import asyncio
 import json
 import datetime
 import pymongo
-from AntiSpam import AntiSpamHandler
 from pymongo import MongoClient
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
 #Get Bot Token
 load_dotenv()
-avitoken = os.getenv('Bot_Token')
+avitoken = os.getenv('Bot_Token2')
+
+ccluster=MongoClient(os.getenv('DB_Token'))
+cdb=ccluster['avimetry']
+ccollection=cdb['new']
 
 #Command Prefix and Intents
 def prefix(client, message):
     if message.guild is None:
         return [str("a.")]
     else:
-        with open("./avimetrybot/files/prefixes.json", "r") as f:
-            prefixes = json.load(f)
-            pre = prefixes[str(message.guild.id)]
+        prefixes = ccollection.find_one({"_id": "prefixes"})        
+        pre = prefixes[str(message.guild.id)]
         return pre
 avimetry = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=discord.Intents.all())
 avimetry.launch_time=datetime.datetime.utcnow()

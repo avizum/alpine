@@ -135,6 +135,11 @@ class Miscellaneous(commands.Cog):
         ie.set_thumbnail(url=member.avatar_url)
         ie.add_field(name="Server Permissions", value="wip")
         await ctx.send(embed=ie)
+
+    @commands.command()
+    async def test(self, ctx):
+        testing = self.avimetry.collection.find_one({"_id": "prefixes"})
+        await ctx.send(testing[str(ctx.guild.id)])
     
 def setup(avimetry):
     avimetry.add_cog(Miscellaneous(avimetry))

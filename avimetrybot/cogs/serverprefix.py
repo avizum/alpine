@@ -21,7 +21,7 @@ class ServerPrefix(commands.Cog, name="Server Prefix"):
 
         with open("./avimetrybot/files/verification.json", "r") as v:
             vergate = json.load(v)
-        vergate[str(member.guild.id)] = False
+        vergate[str(guild.id)] = False
 
         with open("./avimetrybot/files/verification.json", "w") as v:
             json.dump(prefixes, v, indent=4)

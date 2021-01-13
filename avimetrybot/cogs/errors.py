@@ -8,9 +8,9 @@ import sys
 import traceback
 
 class ErrorHandler(commands.Cog):
-    
     def __init__(self, avimetry):
         self.avimetry = avimetry
+
 #Command Error
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -76,17 +76,14 @@ class ErrorHandler(commands.Cog):
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
             ee = discord.Embed(color=discord.Color.red())
-            ee.add_field(name="<:noTick:777096756865269760> Unknown Error", value="Uh oh, an error has occured. The error has been recorded and will be fixed soon.")
+            ee.add_field(name="<:noTick:777096756865269760> Unknown Error", value="Uh oh, avi messaged up again! The error has been recorded and avi will cry. No worries, he will fix it.")
             try:
                 await ctx.send(embed=ee, delete_after=10)
                 chanel = self.avimetry.get_channel(797362270593613854)
                 ff = discord.Embed(title=f"{self.avimetry.user.name} Error", description=f"```{sexc}```")
                 await chanel.send(embed=ff)
-
             except discord.Forbidden:
                 return
             
-
-
 def setup(avimetry):
     avimetry.add_cog(ErrorHandler(avimetry))
