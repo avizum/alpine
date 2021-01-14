@@ -14,8 +14,10 @@ class Counting(commands.Cog):
             return
         if message.guild is None:
             return
-        countdoc = self.avimetry.collection.find_one({"_id": "counting"})
-        if message.channel.name == "counting":
+        config_channel=self.avimetry.collection.find_one({"_id":"counting_channel"})
+        count_chnl = config_channel[str(message.guild.id)]
+        if message.channel.id == int(count_chnl):
+            countdoc = self.avimetry.collection.find_one({"_id": "counting"})
             if str(message.guild.id) in countdoc:
                 if message.author.bot:
                     await message.delete()
@@ -43,16 +45,9 @@ class Counting(commands.Cog):
             return
         if message_after.channel.name == "counting":
             if message_before == message_after:
-                return
+                pass
             else:
                 await message_after.send(f"Don't Edit Messages, {message_after.author.mention}.", delete_after=5)
                    
-    @commands.command()
-    @commands.has_permissions(administrator=True)
-    async def setcount(self, ctx, count : int):
-        newcount={str(ctx.guild.id):count}
-        self.avimetry.collection.update_one({"$set":newcount})
-        await ctx.send(f"Set the count to {count}")     
-
 def setup(avimetry):
     avimetry.add_cog(Counting(avimetry))

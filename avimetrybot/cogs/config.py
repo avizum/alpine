@@ -21,5 +21,7 @@ class ServerPrefix(commands.Cog, name="Server Prefix"):
         rem_pre = {g_id: ""}
         self.avimetry.collection.update_one({"_id":"prefixes"}, {"$unset":rem_pre})
 
+    
+
 def setup(avimetry):
     avimetry.add_cog(ServerPrefix(avimetry))

@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 #Get Bot Token
 load_dotenv()
-avitoken = os.getenv('Bot_Token')
+avitoken = os.getenv('Bot_Token2')
 
 ccluster=MongoClient(os.getenv('DB_Token'))
 cdb=ccluster['avimetry']
@@ -24,6 +24,7 @@ def prefix(client, message):
         prefixes = ccollection.find_one({"_id": "prefixes"})        
         pre = prefixes[str(message.guild.id)]
         return pre
+
 avimetry = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=discord.Intents.all())
 avimetry.launch_time=datetime.datetime.utcnow()
 

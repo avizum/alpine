@@ -36,7 +36,7 @@ class botinfo(commands.Cog, name="Bot Utilities"):
 #On Ready
     @commands.Cog.listener()
     async def on_ready(self):
-        print(f'------\n'
+        print('------\n'
               'Succesfully logged in as\n'
               f'Username: {self.avimetry.user.name}\n'
               f'Bot ID: {self.avimetry.user.id}\n'
@@ -86,17 +86,36 @@ class botinfo(commands.Cog, name="Bot Utilities"):
                 await asyncio.sleep(5)
                 await rr.delete()
 
-#Set Prefix Command
-    @commands.command(brief="Set the prefix of the server.")
+#Config Command
+    @commands.group(invoke_without_command=True, brief="Configure the bot to your liking. (Per guild)")
     @commands.has_permissions(administrator=True)
-    async def setprefix(self, ctx, nprefix):
+    async def config(self, ctx):
+        return
+    @config.command(brief="Change the prefix of this server")
+    async def prefix(self, ctx, new_prefix):
         gid = str(ctx.guild.id)
-        newpre = {gid: nprefix}
+        newpre = {gid: new_prefix}
         self.avimetry.collection.update_one({"_id":"prefixes"}, {"$set":newpre})
         cp=discord.Embed()
-        cp.add_field(name="<:yesTick:777096731438874634> Set Prefix", value=f"The prefix for **{ctx.guild.name}** is now `{nprefix}`")
-        await ctx.send(embed=cp)             
-
+        cp.add_field(name="<:yesTick:777096731438874634> Set Prefix", value=f"The prefix for **{ctx.guild.name}** is now `{new_prefix}`")
+        await ctx.send(embed=cp)      
+    
+    
+    @config.group(invoke_without_command=True, brief="Configure counting settings")
+    async def counting(self, ctx):
+        return
+    @counting.command(brief="Set the count in the counting channel")
+    async def setcount(self, ctx, count:int):
+        newcount={str(ctx.guild.id):count}
+        self.avimetry.collection.update_one({"$set":newcount})
+        await ctx.send(f"Set the count to {count}")
+    @counting.command(brief="Set the channel for counting")
+    async def channel(self, ctx, channel:discord.TextChannel):
+        guild_id=str(ctx.guild.id)
+        count_channel=str(channel.id)
+        set_count_channel={guild_id:count_channel}
+        self.avimetry.collection.update_one({"_id":"counting_channel"}, {"$set":set_count_channel})
+        await ctx.send(f"Set the counting channel to {channel}")
 #Bot Info Command
     @commands.command()
     async def info(self, ctx):

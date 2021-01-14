@@ -27,7 +27,7 @@ class Moderation(commands.Cog):
 #Purge Command
     @commands.group(invoke_without_command=True, brief="Delete a number of messages in the current channel.")
     @commands.has_permissions(manage_messages=True)
-    @commands.cooldown(5, 300, commands.BucketType.member)
+    @commands.cooldown(5, 30, commands.BucketType.member)
     async def purge(self, ctx, amount: int):
         await ctx.message.delete()
         if amount == 0:

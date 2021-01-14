@@ -60,6 +60,12 @@ class HCEmbed(commands.HelpCommand):
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
 
+    async def subcommand_not_found(self, command, string):
+        embed=discord.Embed(title="Help Menu")
+        embed.add_field(name=f"Subcommand does not exist", value='"{0}" is not a subcommand of "{1}".'.format(string, command))
+        embed.set_footer(text=self.gending_note())
+        await self.get_destination().send(embed=embed)
+
 class Help(commands.Cog):
     def __init__(self, avimetry):
         self.HCne = avimetry.help_command
