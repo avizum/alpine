@@ -106,7 +106,8 @@ class botinfo(commands.Cog, name="Bot Utilities"):
         return
     @counting.command(brief="Set the count in the counting channel")
     async def setcount(self, ctx, count:int):
-        newcount={str(ctx.guild.id):count}
+        guildid=str(ctx.guild.id)
+        newcount={guildid:count}
         self.avimetry.collection.update_one({"$set":newcount})
         await ctx.send(f"Set the count to {count}")
     @counting.command(brief="Set the channel for counting")
