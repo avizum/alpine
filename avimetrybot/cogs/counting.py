@@ -45,7 +45,7 @@ class Counting(commands.Cog):
             if message_before == message_after:
                 return
             else:
-                await message_after.reply(f"Don't Edit Messages, {message_after.author.mention}.", delete_after=5)
+                await message_after.send(f"Don't Edit Messages, {message_after.author.mention}.", delete_after=5)
                    
     @commands.command()
     @commands.has_permissions(administrator=True)

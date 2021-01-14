@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 #Get Bot Token
 load_dotenv()
-avitoken = os.getenv('Bot_Token')
+avitoken = os.getenv('Bot_Token2')
 
 ccluster=MongoClient(os.getenv('DB_Token'))
 cdb=ccluster['avimetry']
