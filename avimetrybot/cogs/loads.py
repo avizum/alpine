@@ -57,7 +57,6 @@ class Cogs(commands.Cog):
     @commands.is_owner()
     async def dev(self, ctx):
         await ctx.send("haha you thought")
-    
 
 def setup(avimetry):
     avimetry.add_cog(Cogs(avimetry))

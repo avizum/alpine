@@ -9,13 +9,19 @@ class Verification(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
-#Welcome Message
+#Verification Gate
     @commands.Cog.listener()
     async def on_member_join(self, member):
         with open("./avimetrybot/files/prefixes.json", "r") as f:
             prefixes = json.load(f)
         global pre
         pre = prefixes[str(member.guild.id)]
+
+        channel = discord.utils.get(self.avimetry.get_all_channels(),  name='joins-and-leaves')
+        if channel.guild.id == member.guild.id:
+            jm=discord.Embed()
+            jm.add_field(name="Member Joined", value=f"Hey, {member.mention}, Welcome to {member.guild.name}! \nThe server now has **{member.guild.member_count}** members.")
+            await channel.send(embed=jm)
 
         with open("./avimetrybot/files/verification.json", "r") as f:
             vergate = json.load(f)
@@ -50,10 +56,9 @@ class Verification(commands.Cog):
             await dchnl.delete(reason=f"{member.name} left during verification process")
         else:
             channel = discord.utils.get(self.avimetry.get_all_channels(), name='joins-and-leaves')
-            if member.guild.id == channel.guild.id:
-                lm=discord.Embed()
-                lm.add_field(name="Member Left", value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.")
-                await channel.send(embed=lm)
+            lm=discord.Embed()
+            lm.add_field(name="Member Left", value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.")
+            await channel.send(embed=lm)
 
 
     @commands.command(aliases=["vgate", "vergate"])
@@ -138,11 +143,7 @@ class Verification(commands.Cog):
                 await asyncio.sleep(2)
                 cnl = discord.utils.get(self.avimetry.get_all_channels(),  name=f'{member.id}')
                 await cnl.delete(reason=f"{member.name} finished verification")
-                channel = discord.utils.get(self.avimetry.get_all_channels(),  name='joins-and-leaves')
-                if channel.guild.id == ctx.author.guild.id:
-                    jm=discord.Embed()
-                    jm.add_field(name="Member Joined", value=f"Hey, {member.mention}, Welcome to {member.guild.name}! \nThe server now has **{member.guild.member_count}** members.")
-                    await channel.send(embed=jm)
+                
                 
 def setup(avimetry):
     avimetry.add_cog(Verification(avimetry))
