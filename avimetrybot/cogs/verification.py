@@ -12,10 +12,10 @@ class Verification(commands.Cog):
 #Verification Gate
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        with open("./avimetrybot/files/prefixes.json", "r") as f:
-            prefixes = json.load(f)
-        global pre
+        prefixes = self.avimetry.collection.find_one({"_id": "prefixes"})    
+        global pre    
         pre = prefixes[str(member.guild.id)]
+        
 
         channel = discord.utils.get(self.avimetry.get_all_channels(),  name='joins-and-leaves')
         if channel.guild.id == member.guild.id:
@@ -55,12 +55,13 @@ class Verification(commands.Cog):
         if dchnl in member.guild.channels:
             await dchnl.delete(reason=f"{member.name} left during verification process")
         else:
-            channel = discord.utils.get(self.avimetry.get_all_channels(), name='joins-and-leaves')
-            lm=discord.Embed()
-            lm.add_field(name="Member Left", value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.")
-            await channel.send(embed=lm)
+            channel = discord.utils.get(self.avimetry.get_all_channels(),  name='joins-and-leaves')
+            if channel.guild.id == member.guild.id:
+                lm=discord.Embed()
+                lm.add_field(name="Member Left", value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.")
+                await channel.send(embed=lm)
 
-
+    '''
     @commands.command(aliases=["vgate", "vergate"])
     @commands.has_permissions(administrator=True)
     async def verificationgate(self, ctx, option):
@@ -82,7 +83,7 @@ class Verification(commands.Cog):
             disabled=discord.Embed()
             disabled.add_field(name="<:yesTick:777096731438874634> Verification Gate", value="Verification gate is set to `false`")
             await ctx.send(embed=disabled)
-
+    '''
             
 
 #Verify Command

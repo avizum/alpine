@@ -36,7 +36,7 @@ class Counting(commands.Cog):
 
             else:
                 guild=str(message.guild.id)
-                newguild={guild: 0}
+                newguild={guild: "0"}
                 self.avimetry.collection.update_one({"_id":"counting"}, {"$set":newguild})
 
     @commands.Cog.listener()

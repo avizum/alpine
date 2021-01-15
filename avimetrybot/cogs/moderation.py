@@ -14,6 +14,7 @@ class Moderation(commands.Cog):
 #Clean Command    
     @commands.command(brief="Cleans bot messages")
     @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(manage_messages=True)
     async def clean(self, ctx):
         await ctx.message.delete()
         def avimetrybot(m):
@@ -27,6 +28,7 @@ class Moderation(commands.Cog):
 #Purge Command
     @commands.group(invoke_without_command=True, brief="Delete a number of messages in the current channel.")
     @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(manage_messages=True)
     @commands.cooldown(5, 30, commands.BucketType.member)
     async def purge(self, ctx, amount: int):
         await ctx.message.delete()
@@ -62,7 +64,8 @@ class Moderation(commands.Cog):
 
 #Lock Channel Command
     @commands.command(brief="Locks the mentioned channel.", timestamp=datetime.datetime.utcnow())
-    @commands.has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_channels=True)
+    @commands.bot_has_permissions(manage_channels=True)
     async def lock(self, ctx, channel : discord.TextChannel, *, reason):
         await channel.set_permissions(ctx.guild.default_role, send_messages=False, read_messages=False)
         lc=discord.Embed()
@@ -71,7 +74,8 @@ class Moderation(commands.Cog):
 
 #Unlock Channel command
     @commands.command(brief="Unlocks the mentioned channel.", timestamp=datetime.datetime.utcnow())
-    @commands.has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_channels=True)
+    @commands.bot_has_permissions(manage_channels=True)
     async def unlock(self, ctx, channel : discord.TextChannel, *, reason):
         await channel.set_permissions(ctx.guild.default_role, send_messages=None, read_messages=False)
         uc=discord.Embed()
@@ -81,6 +85,7 @@ class Moderation(commands.Cog):
 #Kick Command
     @commands.command(brief="Kicks a member from the server.")
     @commands.has_permissions(kick_members=True)
+    @commands.bot_has_permissions(kick_members=True)
     async def kick(self, ctx, member : discord.Member, *, reason = "No reason was provided"):
         if member==ctx.message.author:
             e1=discord.Embed()
@@ -118,6 +123,7 @@ class Moderation(commands.Cog):
 #Ban Command
     @commands.command(brief="Bans a member from the server")
     @commands.has_permissions(ban_members=True)
+    @commands.bot_has_permissions(ban_members=True)
     async def ban(self, ctx, member : discord.Member, *, reason = "No reason was provided"):
         if member==ctx.message.author:
                 mecma=discord.Embed()
@@ -151,11 +157,10 @@ class Moderation(commands.Cog):
                 banembed.add_field(name="<:yesTick:777096731438874634> Ban Member", value=f"{member.mention} (`{member.id}`) has been banned from **{ctx.guild.name}**, but I could not DM them.", inline=False)
                 await ctx.send(embed=banembed)
 
-
-
 #Unban Command
     @commands.command(brief="Unbans a member from the server.")
     @commands.has_permissions(ban_members=True)
+    @commands.bot_has_permissions(ban_members=True)
     async def unban(self, ctx, userid):
         some_member = discord.Object(id=userid)
         await ctx.guild.unban(some_member)
@@ -165,7 +170,8 @@ class Moderation(commands.Cog):
 
 #Slowmode Command
     @commands.command(brief="Sets the slowmode in the current channel.")
-    @commands.has_permissions(manage_guild=True)
+    @commands.has_permissions(manage_channels=True)
+    @commands.bot_has_permissions(manage_channels=True)
     async def slowmode(self, ctx, seconds: int):
         await ctx.channel.edit(slowmode_delay=seconds)
         smembed=discord.Embed()
@@ -174,7 +180,8 @@ class Moderation(commands.Cog):
    
 #Mute command
     @commands.command(brief="Mutes a member.")
-    @commands.has_permissions(kick_members=True)
+    @commands.has_permissions(manage_roles=True)
+    @commands.bot_has_permissions(manage_roles=True)
     async def mute(self, ctx, member : discord.Member):
         role = discord.utils.get(ctx.guild.roles, name="Muted")
         await ctx.member.add_roles(role)

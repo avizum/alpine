@@ -42,6 +42,7 @@ class ErrorHandler(commands.Cog):
             await ctx.message.delete()
             mp = error.missing_perms
             missing_perms = " ".join([str(elem) for elem in mp])
+            missing_perms.replace("_", " ")
             np=discord.Embed(color=discord.Color.red())
             np.add_field(name="<:noTick:777096756865269760> No Permission", value=f"You do not have permissions to use the`{pre}{ctx.command.name}`command. \nRequired Permission(s): `{missing_perms}`", inline=False)
             await ctx.send(embed=np, delete_after=10)
@@ -71,6 +72,15 @@ class ErrorHandler(commands.Cog):
             bm = discord.Embed(color=discord.Color.red())
             bm.add_field(name="<:noTick:777096756865269760> I have no permission", value=f"I do not have permission to do that, Please give me these permission(s) `{missing_perms}`")
             await ctx.send(embed=bm, delete_after=10)
+
+        elif isinstance(error, commands.TooManyArguments):
+            await ctx.send(f"{error}")
+
+        elif isinstance(error, discord.Forbidden):
+            forbidden=discord.Embed(color=discord.Color.red())
+            forbidden.add_field(name="<:noTick:777096756865269760> No Permission", value="I do not have permission to do that. Make sure I have permission")
+            await ctx.send(embed=forbidden, delete_after=10)
+            await ctx.send(error)
         else:
             sexc = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)

@@ -36,11 +36,12 @@ class botinfo(commands.Cog, name="Bot Utilities"):
 #On Ready
     @commands.Cog.listener()
     async def on_ready(self):
+        timenow=datetime.datetime.now().strftime("%I:%M %p")
         print('------\n'
               'Succesfully logged in as\n'
               f'Username: {self.avimetry.user.name}\n'
               f'Bot ID: {self.avimetry.user.id}\n'
-              f'Login Date: {datetime.date.today()}\n'
+              f'Login Time: {datetime.date.today()} at {timenow}\n'
               '------'
         )
 
@@ -89,6 +90,7 @@ class botinfo(commands.Cog, name="Bot Utilities"):
 #Config Command
     @commands.group(invoke_without_command=True, brief="Configure the bot to your liking. (Per guild)")
     @commands.has_permissions(administrator=True)
+    @commands.bot_has_permissions(administrator=True)
     async def config(self, ctx):
         return
     @config.command(brief="Change the prefix of this server")
@@ -100,7 +102,10 @@ class botinfo(commands.Cog, name="Bot Utilities"):
         cp.add_field(name="<:yesTick:777096731438874634> Set Prefix", value=f"The prefix for **{ctx.guild.name}** is now `{new_prefix}`")
         await ctx.send(embed=cp)      
     
-    
+    @config.command(brief="Enable or disable the verification gate")
+    async def verificationgate(self, ctx, bool: bool):
+        await ctx.send(bool)
+
     @config.group(invoke_without_command=True, brief="Configure counting settings")
     async def counting(self, ctx):
         return
