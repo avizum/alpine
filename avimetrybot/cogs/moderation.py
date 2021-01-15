@@ -1,11 +1,29 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
+from copy import deepcopy
+from dateutil.relativedelta import relativedelta
 import random
 import time
 import asyncio
-import json
+import re
 import datetime
 
+# pylint: disable=anomalous-backslash-in-string
+time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
+time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400}
+
+class TimeConverter(commands.Converter):
+    async def convert(self, ctx, argument):
+        args=argument.lower()
+        matches=re.findall(time_regex, args)
+        time=0
+        for key, value in matches:
+            try:
+                time+=time_dict[value]*float(key)
+            except KeyError:
+                raise(commands.BadArgument(f"{key} is not a number!"))
+        return round(time)
+        
 class Moderation(commands.Cog):
     
     def __init__(self, avimetry):
@@ -119,7 +137,6 @@ class Moderation(commands.Cog):
                 kickembed.add_field(name="<:yesTick:777096731438874634> Kick Member", value=f"**{member}** has been kicked from the server, but I could not DM them.", inline=False)
                 await ctx.send(embed=kickembed)
 
-
 #Ban Command
     @commands.command(brief="Bans a member from the server")
     @commands.has_permissions(ban_members=True)
@@ -182,8 +199,11 @@ class Moderation(commands.Cog):
     @commands.command(brief="Mutes a member.")
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def mute(self, ctx, member : discord.Member):
+    async def mute(self, ctx, member : discord.Member, time: TimeConverter=None):
         role = discord.utils.get(ctx.guild.roles, name="Muted")
+        if not role:
+            await ctx.send("Couldn't mute user because there is not role named Muted.")
+            return
         await ctx.member.add_roles(role)
         await ctx.send(f"muted {member}")
 

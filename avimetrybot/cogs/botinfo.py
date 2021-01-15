@@ -95,9 +95,7 @@ class botinfo(commands.Cog, name="Bot Utilities"):
         return
     @config.command(brief="Change the prefix of this server")
     async def prefix(self, ctx, new_prefix):
-        gid = str(ctx.guild.id)
-        newpre = {gid: new_prefix}
-        self.avimetry.collection.update_one({"_id":"prefixes"}, {"$set":newpre})
+        await self.avimetry.config.upsert({"_id": ctx.guild.id, "prefix": new_prefix})
         cp=discord.Embed()
         cp.add_field(name="<:yesTick:777096731438874634> Set Prefix", value=f"The prefix for **{ctx.guild.name}** is now `{new_prefix}`")
         await ctx.send(embed=cp)      
