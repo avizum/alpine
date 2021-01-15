@@ -12,7 +12,7 @@ import motor.motor_asyncio
 
 #Get Bot Token
 load_dotenv()
-avitoken = os.getenv('Bot_Token2')
+avitoken = os.getenv('Bot_Token')
 
 ccluster=MongoClient(os.getenv('DB_Token'))
 cdb=ccluster['avimetry']
