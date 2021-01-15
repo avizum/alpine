@@ -28,6 +28,42 @@ class Moderation(commands.Cog):
     
     def __init__(self, avimetry):
         self.avimetry = avimetry
+        # pylint: disable=no-member
+        self.check_mutes.start()
+        # pylint: disable=unused-variable
+        def cog_unload(self):
+            self.check_mutes.cancel()
+
+    @tasks.loop(minutes=1)
+    async def check_mutes(self):
+        currentTime = datetime.datetime.now()
+        mutes = deepcopy(self.avimetry.muted_users)
+        # pylint: disable=unused-variable
+        for key, value in mutes.items():
+            if value['muteDuration'] is None:
+                continue
+
+            unmuteTime = value['mutedAt'] + relativedelta(seconds=value['muteDuration'])
+
+            if currentTime >= unmuteTime:
+                guild = self.avimetry.get_guild(value['guildId'])
+                member = guild.get_member(value['_id'])
+
+                role = discord.utils.get(guild.roles, name="Muted")
+                if role in member.roles:
+                    await member.remove_roles(role)
+                    await member.send(f"You have been unmuted in {guild.name}")
+
+                await self.avimetry.mutes.delete(member.id)
+                try:
+                    self.avimetry.muted_users.pop(member.id)
+                except KeyError:
+                    pass
+    
+    @check_mutes.before_loop
+    async def before_check_mutes(self):
+        # pylint: disable=unused-variable
+        await self.avimetry.wait_until_ready()
 
 #Clean Command    
     @commands.command(brief="Cleans bot messages")
@@ -202,10 +238,72 @@ class Moderation(commands.Cog):
     async def mute(self, ctx, member : discord.Member, time: TimeConverter=None):
         role = discord.utils.get(ctx.guild.roles, name="Muted")
         if not role:
-            await ctx.send("Couldn't mute user because there is not role named Muted.")
+            await ctx.send("Couldn't mute user because there is no role named Muted.")
             return
-        await ctx.member.add_roles(role)
-        await ctx.send(f"muted {member}")
+        try:
+            if self.avimetry.muted_users[member.id]:
+                await ctx.send("This member is already muted")
+            return
+        except KeyError:
+            pass
+        data={
+            "_id": member.id,
+            "mutedAt": datetime.datetime.now(),
+            "muteDuration": time or None,
+            "mutedBy": ctx.author.id,
+            'guildId': ctx.guild.id
+        }
+        await self.avimetry.mutes.upsert(data)
+        self.avimetry.muted_users[member.id]=data
+        await member.add_roles(role)
+        if not time: 
+            await ctx.send(f"{member.display_name} was muted forever.")
+        else:
+            minutes, seconds = divmod(time, 60)
+            hours, minutes=divmod(minutes, 60)
+            if int(hours):
+                await ctx.send(f"{member.display_name} was muted for {hours} hours, {minutes} minutes and {seconds} seconds")
+            elif int(minutes):
+                await ctx.send(f"{member.display_name} was muted for {minutes} minutes and {seconds} seconds")
+            elif int(seconds):
+                await ctx.send(f"{member.display_name} was muted for {seconds} seconds")
+
+        if time and time < 300:
+            await asyncio.sleep(time)
+            if role in member.roles:
+                await member.remove_roles(role)
+                await ctx.send(f"unmuted {member}")
+
+            await self.avimetry.mutes.delete(member.id)
+            try:
+                self.avimetry.muted_users.pop(member.id)
+            except KeyError:
+                pass
+
+    
+#Unmute command
+    @commands.command()
+    @commands.has_permissions(kick_members=True)
+    @commands.bot_has_permissions(kick_members=True)
+    async def unmute(self, ctx, member:discord.Member):
+        role=discord.utils.get(ctx.guild.roles, name="Muted")
+        if not role: 
+            await ctx.send("No role named muted")
+            return
+
+        await self.avimetry.mutes.delete(member.id)
+        try:
+            self.avimetry.muted_users.pop(member.id)
+        except KeyError:
+            pass
+        if role not in member.roles:
+            await ctx.send("This member is not muted")
+            return
+        
+        await member.remove_roles(role)
+        await ctx.send(f"Unmuted {member.display_name}")
+    
+        
 
 def setup(avimetry):
     avimetry.add_cog(Moderation(avimetry))

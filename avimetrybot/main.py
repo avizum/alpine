@@ -12,7 +12,7 @@ import motor.motor_asyncio
 
 #Get Bot Token
 load_dotenv()
-avitoken = os.getenv('Bot_Token')
+avitoken = os.getenv('Bot_Token2')
 
 ccluster=MongoClient(os.getenv('DB_Token'))
 cdb=ccluster['avimetry']
@@ -60,8 +60,16 @@ async def on_ready():
     avimetry.mongo = motor.motor_asyncio.AsyncIOMotorClient(os.getenv('DB_Token'))
     avimetry.db=avimetry.mongo['avimetry']
     avimetry.config=Document(avimetry.db, 'new')
+    avimetry.mutes=Document(avimetry.db, 'mutes')
     for yes in await avimetry.config.get_all():
         print(yes)
+    
+    current_mutes=await avimetry.mutes.get_all()
+    for mute in current_mutes:
+        avimetry.muted_users[mute["_id"]] = mute
+
+    print(avimetry.muted_users)
+
 
 
 #Load Cogs
