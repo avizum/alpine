@@ -8,9 +8,8 @@ import asyncio
 import re
 import datetime
 
-# pylint: disable=anomalous-backslash-in-string
-time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
-time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400}
+time_regex = re.compile(r"(?:(\d{1,5})(h|s|m|d|w))+?")
+time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400, }
 
 class TimeConverter(commands.Converter):
     async def convert(self, ctx, argument):

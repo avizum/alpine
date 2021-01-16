@@ -120,5 +120,20 @@ class Management(commands.Cog, name="Member Management"):
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
 
+    @commands.group()
+    async def color(self, ctx):
+        await ctx.send("color add\ncolor remove")
+    @color.command(name="add")
+    @commands.cooldown(5, 120, commands.BucketType.member)
+    async def _add(self, ctx, *, role:discord.Role):
+        await ctx.author.edit(role=role)
+        await ctx.send(f"added {role.name}")
+    
+    @color.command(name="remove")
+    @commands.cooldown(5, 120, commands.BucketType.member)
+    async def _remove(self, ctx, *, role:discord.Role):
+        await ctx.author.edit(role=role)
+        await ctx.send(f"removed {role.name}")
+
 def setup(avimetry):
     avimetry.add_cog(Management(avimetry))
