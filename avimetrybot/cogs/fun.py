@@ -46,11 +46,11 @@ class Fun(commands.Cog):
             if member == ctx.author:
                 await ctx.send(f"{ctx.author.mention} tried to kill themself, but your friend caught you and decided to bring you to the hospital. On the way to the hospital, your friend crashed the car. They both died.")
             else:
-                kill_response=[f"**{ctx.author.display_name}** went to go kill **{member.display_name}** but when loading the gun, but **{ctx.author.display_name}** they shot themselves. They died.", 
-                               f"**{ctx.author.display_name}** tried to kill **{member.display_name}** but then he remembered that **{member.display_name}** owes them money and decides to kill them later.",
+                kill_response=[f"**{ctx.author.display_name}** went to go kill **{member.display_name}** but when loading the gun, but **{ctx.author.display_name}** shot themself in the head. **{ctx.author.display_name}** died.", 
+                               f"**{ctx.author.display_name}** tried to kill **{member.display_name}** but then he remembered that **{member.display_name}** owes them money and decides to kill **{member.display_name}** later.",
                                f"**{ctx.author.display_name}** shot and killed **{member.display_name}**",
-                               f"**{ctx.author.display_name}** tried to kill **{member.display_name}** by pushing them down the stairs. They called the police and the police shot and killed you.",
-                               f"**{ctx.author.display_name}** tried to kill **{member.display_name}** by pushing them down the stairs. They died."]
+                               f"**{ctx.author.display_name}** tried to kill **{member.display_name}** by pushing them down the stairs. **{member.display_name}** called the police and the police shot and killed **{ctx.author.display_name}**.",
+                               f"**{ctx.author.display_name}** tried to kill **{member.display_name}** by pushing them down the stairs. **{member.display_name}** died."]
                 await ctx.send(f"{random.choice(kill_response)}")
 
 #Revive Command

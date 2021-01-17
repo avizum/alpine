@@ -20,7 +20,7 @@ async def prefix(client, message):
     try:
         data=await avimetry.config.find(message.guild.id)
         if not data or "prefix" not in data:
-            return "a."
+            await avimetry.config.upsert({"_id": message.guild.id, "prefix": "a."})
         return data["prefix"]
     except:
         return "a."
@@ -63,10 +63,10 @@ async def on_ready():
         avimetry.muted_users[mute["_id"]] = mute
 
 #Load Cogs
-avimetry.load_extension('jishaku')
 os.environ["JISHAKU_HIDE"] = "True"
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
+avimetry.load_extension('jishaku')
 for filename in os.listdir('./avimetrybot/cogs'):
     if filename.endswith('.py'):
         avimetry.load_extension(f'cogs.{filename[:-3]}')

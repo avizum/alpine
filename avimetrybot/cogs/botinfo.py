@@ -46,6 +46,13 @@ class botinfo(commands.Cog, name="Bot Utilities"):
               '------'
         )
 
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.author==self.avimetry.user:
+            return
+        if message.content=="<@!756257170521063444>":
+            cool=await self.avimetry.config.find(message.guild.id)
+            await message.channel.send(f"Hey {message.author.mention}, the prefix for **{message.guild.name}** is `{cool['prefix']}`")
 #Shutdown Command
     @commands.command(brief="Shutdown the bot")
     @commands.is_owner()
@@ -89,27 +96,37 @@ class botinfo(commands.Cog, name="Bot Utilities"):
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def config(self, ctx):
-          await ctx.invoke(self.avimetry.get_command("help"))
+          await ctx.send_help("config")
     @config.command(brief="Change the prefix of this server")
+    @commands.has_permissions(administrator=True)
+    @commands.bot_has_permissions(administrator=True)
     async def prefix(self, ctx, new_prefix):
         await self.avimetry.config.upsert({"_id": ctx.guild.id, "prefix": new_prefix})
         cp=discord.Embed()
         cp.add_field(name="<:yesTick:777096731438874634> Set Prefix", value=f"The prefix for **{ctx.guild.name}** is now `{new_prefix}`")
         await ctx.send(embed=cp)      
     @config.command(brief="Enable or disable the verification gate")
+    @commands.has_permissions(administrator=True)
+    @commands.bot_has_permissions(administrator=True)
     async def verificationgate(self, ctx, bool: bool):
         await ctx.send(bool)
 
     @config.group(invoke_without_command=True, brief="Configure counting settings")
+    @commands.has_permissions(administrator=True)
+    @commands.bot_has_permissions(administrator=True)
     async def counting(self, ctx):
-        return
+        await ctx.send_help("config counting")
     @counting.command(brief="Set the count in the counting channel")
+    @commands.has_permissions(administrator=True)
+    @commands.bot_has_permissions(administrator=True)
     async def setcount(self, ctx, count:int):
         guildid=str(ctx.guild.id)
         newcount={guildid: count}
         self.avimetry.collection.update_one({"_id":"counting"}, {"$set":newcount})
         await ctx.send(f"Set the count to {count}")
     @counting.command(brief="Set the channel for counting")
+    @commands.has_permissions(administrator=True)
+    @commands.bot_has_permissions(administrator=True)
     async def channel(self, ctx, channel:discord.TextChannel):
         guild_id=str(ctx.guild.id)
         count_channel=str(channel.id)

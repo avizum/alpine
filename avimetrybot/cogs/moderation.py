@@ -51,8 +51,12 @@ class Moderation(commands.Cog):
                 role = discord.utils.get(guild.roles, name="Muted")
                 if role in member.roles:
                     await member.remove_roles(role)
-                    await member.send(f"You have been unmuted in {guild.name}")
-
+                    try:
+                        unmuted=discord.Embed()
+                        unmuted.add_field(name="<:yesTick:777096731438874634> Unmuted", value=f"You have been unmuted in {member.guild.name}")
+                        await member.send(embed=unmuted)
+                    except discord.Forbidden:
+                        return
                 await self.avimetry.mutes.delete(member.id)
                 try:
                     self.avimetry.muted_users.pop(member.id)
@@ -65,21 +69,22 @@ class Moderation(commands.Cog):
         await self.avimetry.wait_until_ready()
 
 #Clean Command    
-    @commands.command(brief="Cleans bot messages")
+    @commands.command(brief="Cleans bot messages", usage="[amount]")
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
-    async def clean(self, ctx):
+    async def clean(self, ctx, limit=100):
         await ctx.message.delete()
         def avimetrybot(m):
-            return m.author == self.avimetry.user
-        d1 = await ctx.channel.purge(limit=100, check=avimetrybot)
+            c1=m.author==self.avimetry.user
+            return c1
+        d1 = await ctx.channel.purge(limit=limit, check=avimetrybot)
         cm = await ctx.send("Cleaning...")
         ce=discord.Embed()
         ce.add_field(name="<:yesTick:777096731438874634> Clean Messages", value=f"Successfully deleted **{len(d1)}** messages")
         await cm.edit(content="", embed=ce, delete_after=10)
 
 #Purge Command
-    @commands.group(invoke_without_command=True, brief="Delete a number of messages in the current channel.")
+    @commands.command(invoke_without_command=True, brief="Delete a number of messages in the current channel.")
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
     @commands.cooldown(5, 30, commands.BucketType.member)
@@ -106,37 +111,29 @@ class Moderation(commands.Cog):
             pe.add_field(name="<:yesTick:777096731438874634> Purge Messages", value=f"Here are the results of the purged messages:\n`{msg}`")
             pe.set_footer(text="This message will be deleted in 15 seconds.")
             await ctx.send(embed=pe, delete_after=15)
-    @purge.command()
-    async def match(self, ctx, amount: int, *, text):
-        def pmatch(m):
-            return text in m.content
-        await ctx.channel.purge(limit = amount, check = pmatch)
-        purgematch=discord.Embed()
-        purgematch.add_field(name="<:yesTick:777096731438874634> Purge Match", value=f"Purged {amount} messages containing {text}.")
-        await ctx.send(embed=purgematch)
 
 #Lock Channel Command
-    @commands.command(brief="Locks the mentioned channel.", timestamp=datetime.datetime.utcnow())
+    @commands.command(brief="Locks the mentioned channel.", usage="<channel> [reason]",timestamp=datetime.datetime.utcnow())
     @commands.has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def lock(self, ctx, channel : discord.TextChannel, *, reason):
+    async def lock(self, ctx, channel : discord.TextChannel, *, reason="No Reason Provided"):
         await channel.set_permissions(ctx.guild.default_role, send_messages=False, read_messages=False)
         lc=discord.Embed()
         lc.add_field(name=":lock: Channel has been locked.", value=f"{ctx.author.mention} has locked down <#{channel.id}> with the reason of {reason}. Only Staff members can speak now.")
         await channel.send(embed=lc)
 
 #Unlock Channel command
-    @commands.command(brief="Unlocks the mentioned channel.", timestamp=datetime.datetime.utcnow())
+    @commands.command(brief="Unlocks the mentioned channel.", usage="<channel> [reason]",timestamp=datetime.datetime.utcnow())
     @commands.has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def unlock(self, ctx, channel : discord.TextChannel, *, reason):
+    async def unlock(self, ctx, channel : discord.TextChannel, *, reason="No Reason Provided"):
         await channel.set_permissions(ctx.guild.default_role, send_messages=None, read_messages=False)
         uc=discord.Embed()
         uc.add_field(name=":unlock: Channel has been unlocked.", value=f"{ctx.author.mention} has unlocked <#{channel.id}> with the reason of {reason}. Everyone can speak now.")
         await channel.send(embed=uc)
     
 #Kick Command
-    @commands.command(brief="Kicks a member from the server.")
+    @commands.command(brief="Kicks a member from the server.", usage="<member> [reason]")
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
     async def kick(self, ctx, member : discord.Member, *, reason = "No reason was provided"):
@@ -173,7 +170,7 @@ class Moderation(commands.Cog):
                 await ctx.send(embed=kickembed)
 
 #Ban Command
-    @commands.command(brief="Bans a member from the server")
+    @commands.command(brief="Bans a member from the server", usage="<member> [reason]")
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
     async def ban(self, ctx, member : discord.Member, *, reason = "No reason was provided"):
@@ -210,14 +207,14 @@ class Moderation(commands.Cog):
                 await ctx.send(embed=banembed)
 
 #Unban Command
-    @commands.command(brief="Unbans a member from the server.")
+    @commands.command(brief="Unbans a member from the server.", usage="<member_id> [reason]")
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def unban(self, ctx, userid):
-        some_member = discord.Object(id=userid)
+    async def unban(self, ctx, member_id, *, reason="No reason was provided"):
+        some_member = discord.Object(id=member_id)
         await ctx.guild.unban(some_member)
         unbanenmbed=discord.Embed()
-        unbanenmbed.add_field(name="<:yesTick:777096731438874634> Unban Member", value=f"Unbanned <@{userid}> ({userid}) from **{ctx.guild.name}**.", inline=False)
+        unbanenmbed.add_field(name="<:yesTick:777096731438874634> Unban Member", value=f"Unbanned <@{member_id}> ({member_id}) from **{ctx.guild.name}**.", inline=False)
         await ctx.send(embed=unbanenmbed)
 
 #Slowmode Command
@@ -237,11 +234,14 @@ class Moderation(commands.Cog):
     async def mute(self, ctx, member : discord.Member, time: TimeConverter=None):
         role = discord.utils.get(ctx.guild.roles, name="Muted")
         if not role:
-            await ctx.send("Couldn't mute user because there is no role named Muted.")
+            no_muted_role=discord.Embed()
+            no_muted_role.add_field(name="<:noTick:777096756865269760> Mute Failed", value=f"Couldn't mute {member.mention} because there is no role named Muted.")
+            await ctx.send(embed=no_muted_role)
             return
         try:
             if self.avimetry.muted_users[member.id]:
-                await ctx.send("This member is already muted")
+                already_muted=discord.Embed()
+                already_muted.add_field(name="<:noTick:777096756865269760> Mute Failed", value=f"{member.mention} is already muted")
             return
         except KeyError:
             pass
@@ -256,23 +256,35 @@ class Moderation(commands.Cog):
         self.avimetry.muted_users[member.id]=data
         await member.add_roles(role)
         if not time: 
-            await ctx.send(f"{member.display_name} was muted forever.")
+            unlimited_mute=discord.Embed()
+            unlimited_mute.add_field(name="<:yesTick:777096731438874634> Muted Member", value=f"{member.mention} was muted with no unmute time.")
+            await ctx.send(embed=unlimited_mute)
         else:
             minutes, seconds = divmod(time, 60)
             hours, minutes=divmod(minutes, 60)
             if int(hours):
-                await ctx.send(f"{member.display_name} was muted for {hours} hours, {minutes} minutes and {seconds} seconds")
+                mute_hours=discord.Embed()
+                mute_hours.add_field(name="<:yesTick:777096731438874634> Muted Member", value=f"{member.mention} was muted for {hours} hours, {minutes} minutes and {seconds} seconds")
+                await ctx.send(embed=mute_hours)
             elif int(minutes):
-                await ctx.send(f"{member.display_name} was muted for {minutes} minutes and {seconds} seconds")
+                mute_minutes=discord.Embed()
+                mute_minutes.add_field(name="<:yesTick:777096731438874634> Muted Member", value=f"{member.mention} was muted for {minutes} minutes and {seconds} seconds")
+                await ctx.send(embed=mute_minutes)
             elif int(seconds):
-                await ctx.send(f"{member.display_name} was muted for {seconds} seconds")
+                mute_seconds=discord.Embed()
+                mute_seconds.add_field(name="<:yesTick:777096731438874634> Muted Member", value=f"{member.mention} was muted for {seconds} seconds")
+                await ctx.send(embed=mute_seconds)
 
         if time and time < 300:
             await asyncio.sleep(time)
             if role in member.roles:
                 await member.remove_roles(role)
-                await ctx.send(f"unmuted {member}")
-
+                try:
+                    unmuted=discord.Embed()
+                    unmuted.add_field(name="<:yesTick:777096731438874634> Unmuted", value=f"You have been unmuted in {member.guild.name}")
+                    await member.send(embed=unmuted)
+                except discord.Forbidden:
+                    return
             await self.avimetry.mutes.delete(member.id)
             try:
                 self.avimetry.muted_users.pop(member.id)

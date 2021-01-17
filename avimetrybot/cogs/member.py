@@ -90,17 +90,16 @@ class Management(commands.Cog, name="Member Management"):
     @commands.group(invoke_without_command=True, brief="Give or remove a role from a member.")
     @commands.has_permissions(kick_members=True)
     async def role(self, ctx):
-        await ctx.send("Command: Role (work in progress)\n**add <member> <role>**\nGive a role to a member.\n\n**remove <member> <role>**\nRemove a role form a member.")
-
+        await ctx.send_help("role")
     @role.command(brief="Give a role to a member.")
-    async def add(self, ctx, member:discord.Member, role:discord.Role):
+    async def add(self, ctx, member:discord.Member, role:Role):
         await member.add_roles(role)
         ra = discord.Embed()
         ra.add_field(name="<:yesTick:777096731438874634> Role Add", value=f"Added {role.mention} to {member.mention}.")
         await ctx.send(embed=ra)
 
     @role.command(brief="Remove a role from a member.")
-    async def remove(self, ctx, member:discord.Member, role:discord.Role):
+    async def remove(self, ctx, member:discord.Member, role:Role):
         await member.remove_roles(role)
         rr = discord.Embed()
         rr.add_field(name="<:yesTick:777096731438874634> Role Remove", value=f"Removed {role.mention} from {member.mention}")

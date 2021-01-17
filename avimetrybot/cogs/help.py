@@ -9,8 +9,11 @@ class HCEmbed(commands.HelpCommand):
     def gcommand_signature(self, command):
         return '{0.qualified_name} {0.signature}'.format(command)
 
+    async def send_error_message(self, command):
+        return
+
     async def send_bot_help(self, mapping):
-        embed = discord.Embed(title='Help Menu')
+        embed = discord.Embed(title='Help Menu', description=f"Command Syntax\n>>> ```[optional] <--- Optional Argument\n<requred> <--- Requred Argument```")
         description = self.context.bot.description
         if description:
             embed.description = description
@@ -32,7 +35,10 @@ class HCEmbed(commands.HelpCommand):
             embed.description = cog.description
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
         for command in filtered:
-            embed.add_field(name=self.gcommand_signature(command), value=f"`{command.short_doc}`" or 'No Description', inline=True)
+            usage=command.short_doc
+            if not usage:
+                usage="No Description"
+            embed.add_field(name=self.gcommand_signature(command), value=f"`{usage}`", inline=True)
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
 
@@ -44,13 +50,19 @@ class HCEmbed(commands.HelpCommand):
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
             for command in filtered:
-                embed.add_field(name=self.gcommand_signature(command), value=command.short_doc or 'No description', inline=True)
+                usage=command.short_doc
+                if not usage:
+                    usage="No Description"
+                embed.add_field(name=self.gcommand_signature(command), value=f"`{usage}`", inline=False)
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
 
     async def send_command_help(self, command):
         embed=discord.Embed(title="Command: {0.qualified_name}".format(command))
-        embed.add_field(name=self.gcommand_signature(command), value=command.short_doc or 'No description', inline=False)
+        usage=command.short_doc
+        if not usage:
+            usage="No Description"
+        embed.add_field(name=self.gcommand_signature(command), value=f"`{usage}`", inline=False)
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
     
