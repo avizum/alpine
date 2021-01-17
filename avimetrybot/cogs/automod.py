@@ -38,5 +38,3 @@ class AutoMod(commands.Cog, name="Auto Moderation"):
 
 def setup(avimetry):
     avimetry.add_cog(AutoMod(avimetry)) #40
-
-

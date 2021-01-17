@@ -1,5 +1,29 @@
 import discord
 from discord.ext import commands
+import re
+
+class Role(commands.Converter):
+    async def convert(self, ctx, argument):
+        found = None
+
+        if re.fullmatch("<@&[0-9]{15,}>", argument) is not None:
+            found = ctx.guild.get_role(int(argument[3:-1]))
+
+        if argument.isnumeric():
+            if re.fullmatch("[0-9]{15,}", argument) is not None:
+                found = ctx.guild.get_role(int(argument))
+
+        for role in ctx.guild.roles:
+            if found is not None:
+                break
+            if role.name.lower().startswith(argument.lower()):
+                found = role
+            else:
+                continue
+
+        if found is None:
+            raise commands.BadArgument("Could not find that role.")
+        return found
 
 class Management(commands.Cog, name="Member Management"):
     def __init__(self, avimetry):
@@ -119,21 +143,6 @@ class Management(commands.Cog, name="Member Management"):
         nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
-
-    @commands.group()
-    async def color(self, ctx):
-        await ctx.send("color add\ncolor remove")
-    @color.command(name="add")
-    @commands.cooldown(5, 120, commands.BucketType.member)
-    async def _add(self, ctx, *, role:discord.Role):
-        await ctx.author.edit(role=role)
-        await ctx.send(f"added {role.name}")
-    
-    @color.command(name="remove")
-    @commands.cooldown(5, 120, commands.BucketType.member)
-    async def _remove(self, ctx, *, role:discord.Role):
-        await ctx.author.edit(role=role)
-        await ctx.send(f"removed {role.name}")
 
 def setup(avimetry):
     avimetry.add_cog(Management(avimetry))

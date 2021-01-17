@@ -1,7 +1,6 @@
 import discord
 import os
 import asyncio
-import json
 import datetime
 import pymongo
 from pymongo import MongoClient
@@ -12,11 +11,7 @@ import motor.motor_asyncio
 
 #Get Bot Token
 load_dotenv()
-avitoken = os.getenv('Bot_Token2')
-
-ccluster=MongoClient(os.getenv('DB_Token'))
-cdb=ccluster['avimetry']
-ccollection=cdb['new']
+avitoken = os.getenv('Bot_Token')
 
 #Command Prefix and Intents
 async def prefix(client, message):
@@ -29,7 +24,9 @@ async def prefix(client, message):
         return data["prefix"]
     except:
         return "a."
-avimetry = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=discord.Intents.all())
+allowed_mentions=discord.AllowedMentions(everyone=False, users=True, roles=True, replied_user=False)
+intents=discord.Intents.all()
+avimetry = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=intents, allowed_mentions=allowed_mentions)
 avimetry.launch_time=datetime.datetime.utcnow()
 
 #Database 
@@ -52,10 +49,10 @@ async def load_important():
         avimetry.load_extension("cogs.loads")
     except commands.ExtensionAlreadyLoaded:
         return
-load_important.start()
 
 @avimetry.event
 async def on_ready():
+    load_important.start()
     avimetry.mongo = motor.motor_asyncio.AsyncIOMotorClient(os.getenv('DB_Token'))
     avimetry.db=avimetry.mongo['avimetry']
     avimetry.config=Document(avimetry.db, 'new')

@@ -33,6 +33,7 @@ class botinfo(commands.Cog, name="Bot Utilities"):
     # pylint: disable=no-member
     async def before_status_task(self):
         await self.avimetry.wait_until_ready()
+
 #On Ready
     @commands.Cog.listener()
     async def on_ready(self):
@@ -58,17 +59,14 @@ class botinfo(commands.Cog, name="Bot Utilities"):
             await rr.add_reaction(reaction)
         def check(reaction, user):
             return str(reaction.emoji) in ['<:yesTick:777096731438874634>', '<:noTick:777096756865269760>'] and user != self.avimetry.user
-
         try:
             # pylint: disable = unused-variable
             reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=60)
-
         except asyncio.TimeoutError:
             to=discord.Embed()
             to.add_field(name=f"{self.avimetry.user.name} shutdown", value="Timed Out.")
             await rr.edit(embed=to)
             await rr.clear_reactions()
-
         else:
             if str(reaction.emoji) == '<:yesTick:777096731438874634>':
                 rre=discord.Embed()
@@ -78,7 +76,6 @@ class botinfo(commands.Cog, name="Bot Utilities"):
                 await asyncio.sleep(5)
                 await rr.delete()
                 await self.avimetry.logout()
-
             if str(reaction.emoji) == '<:noTick:777096756865269760>':
                 rre2=discord.Embed()
                 rre2.add_field(name=f"{self.avimetry.user.name} shutdown", value="Shut down has been cancelled.")
@@ -92,14 +89,13 @@ class botinfo(commands.Cog, name="Bot Utilities"):
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def config(self, ctx):
-        return
+          await ctx.invoke(self.avimetry.get_command("help"))
     @config.command(brief="Change the prefix of this server")
     async def prefix(self, ctx, new_prefix):
         await self.avimetry.config.upsert({"_id": ctx.guild.id, "prefix": new_prefix})
         cp=discord.Embed()
         cp.add_field(name="<:yesTick:777096731438874634> Set Prefix", value=f"The prefix for **{ctx.guild.name}** is now `{new_prefix}`")
         await ctx.send(embed=cp)      
-    
     @config.command(brief="Enable or disable the verification gate")
     async def verificationgate(self, ctx, bool: bool):
         await ctx.send(bool)
