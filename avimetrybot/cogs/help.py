@@ -5,6 +5,9 @@ import datetime
 class HCEmbed(commands.HelpCommand):
     def gending_note(self):
         return 'Use {0}{1} [command] or [module] for more info on a command or module.'.format(self.clean_prefix, self.invoked_with)
+    
+    def bnote(self):
+        return ">>> ```[] <--- Optional Argument\n<> <--- Requred Argument```"
 
     def gcommand_signature(self, command):
         return '{0.qualified_name} {0.signature}'.format(command)
@@ -13,7 +16,7 @@ class HCEmbed(commands.HelpCommand):
         return
 
     async def send_bot_help(self, mapping):
-        embed = discord.Embed(title='Help Menu', description=f"Command Syntax\n>>> ```[optional] <--- Optional Argument\n<requred> <--- Requred Argument```")
+        embed = discord.Embed(title='Help Menu', description=self.bnote())
         description = self.context.bot.description
         if description:
             embed.description = description
@@ -30,7 +33,7 @@ class HCEmbed(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
         
     async def send_cog_help(self, cog):
-        embed = discord.Embed(title='{0.qualified_name} Commands'.format(cog))
+        embed = discord.Embed(title='{0.qualified_name} Commands'.format(cog), description=self.bnote())
         if cog.description:
             embed.description = cog.description
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
@@ -43,7 +46,7 @@ class HCEmbed(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
 
     async def send_group_help(self, group):
-        embed = discord.Embed(title=group.qualified_name)
+        embed = discord.Embed(title=group.qualified_name, description=self.bnote())
         if group.help:
             embed.description = group.help
 
@@ -58,7 +61,7 @@ class HCEmbed(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
 
     async def send_command_help(self, command):
-        embed=discord.Embed(title="Command: {0.qualified_name}".format(command))
+        embed=discord.Embed(title="Command: {0.qualified_name}".format(command), description=self.bnote())
         usage=command.short_doc
         if not usage:
             usage="No Description"

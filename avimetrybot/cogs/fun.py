@@ -26,7 +26,7 @@ class Fun(commands.Cog):
         await ctx.send(embed=ballembed)
 
 #Random Number
-    @commands.group(brief="Pick a random number from 1 to 100")
+    @commands.command(brief="Pick a random number from 1 to 100")
     async def random(self, ctx, amount: int = 100):
         x = random.randint(1, amount) 
         e = discord.Embed()
