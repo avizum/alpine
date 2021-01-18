@@ -11,15 +11,11 @@ class ServerPrefix(commands.Cog, name="Server Prefix"):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
-        g_id = str(guild.id)
-        def_pre = {g_id: "a."}
-        self.avimetry.collection.update_one({"_id":"prefixes"}, {"$set":def_pre})
+        await self.avimetry.config.upsert({"_id":guild.id, "prefix":"a."})
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
-        g_id = str(guild.id)
-        rem_pre = {g_id: ""}
-        self.avimetry.collection.update_one({"_id":"prefixes"}, {"$unset":rem_pre})
+        await self.avimetry.config.unset({"_id":guild})
 
     
 

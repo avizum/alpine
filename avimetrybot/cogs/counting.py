@@ -14,30 +14,25 @@ class Counting(commands.Cog):
             return
         if message.guild is None:
             return
-        config_channel=self.avimetry.collection.find_one({"_id":"counting_channel"})
-        count_chnl = config_channel[str(message.guild.id)]
+        config_channel=await self.avimetry.config.find(message.guild.id)
+        try:
+            count_chnl=(config_channel[str("counting_channel")])
+        except KeyError:
+            return
+        
         if message.channel.id == int(count_chnl):
-            countdoc = self.avimetry.collection.find_one({"_id": "counting"})
-            if str(message.guild.id) in countdoc:
-                if message.author.bot:
-                    await message.delete()
-                    print("bot")
-                elif message.author == self.avimetry.user:
-                    print("self")
-                    return
-                elif message.content != str(countdoc[str(message.guild.id)]):
-                    print(countdoc[str(message.guild.id)])
-                    await message.delete()
-                else:
-                    guild=str(message.guild.id)
-                    newcount={guild: 1}
-
-                    self.avimetry.collection.update_one({"_id":"counting"}, {"$inc": newcount})
-
+            countdoc=(config_channel[str("current_count")])
+            if message.author.bot:
+                await message.delete()
+                print("bot")
+            elif message.author==self.avimetry.user:
+                print("self")
+                return
+            elif message.content!=str(countdoc):
+                await message.delete()
             else:
-                guild=str(message.guild.id)
-                newguild={guild: "0"}
-                self.avimetry.collection.update_one({"_id":"counting"}, {"$set":newguild})
+                await self.avimetry.config.increment(message.guild.id, 1, "current_count")
+
 
     @commands.Cog.listener()
     async def on_message_edit(self, message_before, message_after):

@@ -5,6 +5,32 @@ import time
 import asyncio
 import json
 import typing
+import re
+
+class Member(commands.Converter):
+    async def convert(self, ctx, argument):
+        found = None
+
+        if re.fullmatch("<@&[0-9]{15,}>", argument) is not None:
+            found = ctx.guild.get_member(int(argument[3:-1]))
+
+        if argument.isnumeric():
+            if re.fullmatch("[0-9]{15,}", argument) is not None:
+                found = ctx.guild.get_member(int(argument))
+
+        for member in ctx.guild.members:
+            if found is not None:
+                break
+            if member.name.lower().startswith(argument.lower()):
+                found = member
+            else:
+                continue
+
+        if found is None:
+            raise commands.BadArgument(f"'{argument}' is not a member of this server.")
+        return found
+
+
 
 class Fun(commands.Cog):
     
@@ -35,12 +61,11 @@ class Fun(commands.Cog):
 
 #Kill Command
     @commands.command(aliases=["murder"], brief="Kill some people. Make sure you don't get caught!")
-    @commands.cooldown(1, 30, commands.BucketType.member)
-    async def kill(self, ctx, member: discord.Member):
+    @commands.cooldown(5, 30, commands.BucketType.member)
+    async def kill(self, ctx, member: Member):
         await ctx.message.delete()
         if member == self.avimetry.user or member.bot:
-            a = discord.Embed(description="You fool. Us bots can't die",)
-            await ctx.send(embed=a)
+            await ctx.send("You fool. Us bots can't die")
             
         else:    
             if member == ctx.author:
@@ -55,8 +80,8 @@ class Fun(commands.Cog):
 
 #Revive Command
     @commands.command(brief="Bring people back to life.")
-    @commands.cooldown(1, 30, commands.BucketType.member)
-    async def revive(self, ctx, member: discord.Member):
+    @commands.cooldown(5, 30, commands.BucketType.member)
+    async def revive(self, ctx, member: Member):
         await ctx.message.delete()
         if member == ctx.author:
                 await ctx.send('{ctx.author.mention} has come back from the dead')      
@@ -64,13 +89,13 @@ class Fun(commands.Cog):
             await ctx.send(description=f"{ctx.author.mention} revived {member.mention}")
             
 #Say Command
-    @commands.command(brief="You can make me say whatever you please!")
+    @commands.command(brief="You can make me say whatever you please!", usage="<message>")
     @commands.cooldown(1, 120, commands.BucketType.member)
     async def say(self, ctx, *, botsay):
         await ctx.send(f'{botsay}')
 
 #Delete Say Command
-    @commands.command(brief="You can make me say whatever you please, but I delete your message so it looks like I sent it!")
+    @commands.command(brief="You can make me say whatever you please, but I delete your message so it looks like I sent it!", usage="<message>")
     @commands.cooldown(1, 120, commands.BucketType.member)
     async def dsay(self, ctx, *, dbotsay):
         await ctx.message.delete()
@@ -78,7 +103,7 @@ class Fun(commands.Cog):
 
 #Skin Command
     @commands.command(brief="Remove the skin off of people that you don't like.")
-    async def skin(self, ctx, member:discord.Member):
+    async def skin(self, ctx, member:Member):
         await ctx.message.delete()
         if member == ctx.author:
             c = discord.Embed(description="You can't skin yourself, stupid")
@@ -93,7 +118,7 @@ class Fun(commands.Cog):
         await ctx.send(embed=a)
 
     @commands.command(brief="Drop kicks someone")
-    async def dropkick(self, ctx, *, mention:discord.Member):
+    async def dropkick(self, ctx, *, mention:Member):
         if mention == ctx.author:
             a = discord.Embed(description=f"{ctx.author.mention} tried dropkicking themselves")
             await ctx.send(embed=a)

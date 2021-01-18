@@ -60,6 +60,7 @@ async def on_ready():
     
     current_mutes=await avimetry.mutes.get_all()
     for mute in current_mutes:
+        
         avimetry.muted_users[mute["_id"]] = mute
 
 #Load Cogs

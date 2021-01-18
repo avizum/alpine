@@ -97,6 +97,7 @@ class botinfo(commands.Cog, name="Bot Utilities"):
     @commands.bot_has_permissions(administrator=True)
     async def config(self, ctx):
           await ctx.send_help("config")
+#Config Prefix Commnad
     @config.command(brief="Change the prefix of this server")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
@@ -105,34 +106,33 @@ class botinfo(commands.Cog, name="Bot Utilities"):
         cp=discord.Embed()
         cp.add_field(name="<:yesTick:777096731438874634> Set Prefix", value=f"The prefix for **{ctx.guild.name}** is now `{new_prefix}`")
         await ctx.send(embed=cp)      
+#Config Verification Gate Command
     @config.command(brief="Enable or disable the verification gate")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def verificationgate(self, ctx, bool: bool):
         await ctx.send(bool)
-
+#Config Counting Command
     @config.group(invoke_without_command=True, brief="Configure counting settings")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def counting(self, ctx):
         await ctx.send_help("config counting")
+#Counting Set Count Command
     @counting.command(brief="Set the count in the counting channel")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def setcount(self, ctx, count:int):
-        guildid=str(ctx.guild.id)
-        newcount={guildid: count}
-        self.avimetry.collection.update_one({"_id":"counting"}, {"$set":newcount})
+        await self.avimetry.config.upsert({"_id": ctx.guild.id, "current_count":count})
         await ctx.send(f"Set the count to {count}")
+#Counting Set Channel Command
     @counting.command(brief="Set the channel for counting")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def channel(self, ctx, channel:discord.TextChannel):
-        guild_id=str(ctx.guild.id)
-        count_channel=str(channel.id)
-        set_count_channel={guild_id:count_channel}
-        self.avimetry.collection.update_one({"_id":"counting_channel"}, {"$set":set_count_channel})
+        await self.avimetry.config.upsert({"_id": ctx.guild.id, "counting_channel":channel.id})
         await ctx.send(f"Set the counting channel to {channel}")
+
 #Bot Info Command
     @commands.command()
     async def info(self, ctx):

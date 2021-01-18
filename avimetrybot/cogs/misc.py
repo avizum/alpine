@@ -53,13 +53,10 @@ class Miscellaneous(commands.Cog):
             a.set_footer(text=f"Use '{pre}help' if you need help.")
             await ctx.send(embed=a, delete_after=10)
 #Study Hall Command
-    @commands.group()
+    @commands.group(invoke_without_command=True)
     async def studyhall(self, ctx):
-        if ctx.invoked_subcommand is None:
-            subcn=discord.Embed(title="Command: Studyhall")
-            subcn.add_field(name="Description:", value="Gives you access to the studyhall VC and channel", inline=False)
-            subcn.add_field(name="Example:", value="`a.studyhall [on | off]`", inline=False)
-            await ctx.send(embed=subcn)
+        await ctx.send_help("studyhall")
+    
     @studyhall.command(brief="Puts yourself in to study hall.")
     async def on(self, ctx):
         member = ctx.author
@@ -87,6 +84,8 @@ class Miscellaneous(commands.Cog):
     @commands.command(brief="Launch a poll for users to vote to.")
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def poll(self, ctx, question, *options: str):
+        if len(options)<2:
+            raise commands.BadArgument("You need to have at least two options in the poll.")
             
         await ctx.message.delete()
         if len(options) == 2 and options[0] == 'Yes' and options[1] == 'No':
