@@ -107,11 +107,25 @@ class botinfo(commands.Cog, name="Bot Utilities"):
         cp.add_field(name="<:yesTick:777096731438874634> Set Prefix", value=f"The prefix for **{ctx.guild.name}** is now `{new_prefix}`")
         await ctx.send(embed=cp)      
 #Config Verification Gate Command
-    @config.command(brief="Enable or disable the verification gate")
+    @config.group(brief="Verification gate configuration for this server")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
-    async def verificationgate(self, ctx, bool: bool):
-        await ctx.send(bool)
+    async def verificationgate(self, ctx):
+        await ctx.send_help("config verificationgate")
+
+    @verificationgate.command(brief="Toggle the verification gate")
+    @commands.has_permissions(administrator=True)
+    @commands.bot_has_permissions(administrator=True)
+    async def toggle(self, ctx, bool: bool):
+        await self.avimetry.config.upsert({"_id":ctx.guild.id, "verification_gate":bool})
+        await ctx.send(f"Verification Gate is now {bool}")
+
+    @verificationgate.command(brief="Set the role to give when a member finishes verification.")
+    @commands.has_permissions(administrator=True)
+    @commands.bot_has_permissions(administrator=True)
+    async def role(self, ctx, role:discord.Role):
+        await self.avimetry.config.upsert({"_id":ctx.guild.id, "gate_role":role.id})
+        await ctx.send(f"The verification gate role is set to {role}")
 #Config Counting Command
     @config.group(invoke_without_command=True, brief="Configure counting settings")
     @commands.has_permissions(administrator=True)

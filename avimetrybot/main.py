@@ -11,7 +11,7 @@ import motor.motor_asyncio
 
 #Get Bot Token
 load_dotenv()
-avitoken = os.getenv('Bot_Token')
+avitoken = os.getenv('Bot_Token2')
 
 #Command Prefix and Intents
 async def prefix(client, message):
@@ -39,7 +39,10 @@ avimetry.muted_users={}
 #No Commands in DMs
 @avimetry.check
 async def globally_block_dms(ctx):
-    return ctx.guild is not None
+    if not ctx.guild:
+        raise commands.NoPrivateMessage("Commands do not work in dm channels.")
+    else:
+        return True
 
 #Reload main cogs 
 @tasks.loop(minutes=5)

@@ -98,11 +98,11 @@ class Miscellaneous(commands.Cog):
         for x, option in enumerate(options):
             description +='\n\n {} {}'.format(reactions[x], option)
         embed = discord.Embed(title=question, description=''.join(description))
-        embed.set_footer(text=f"Poll from: {ctx.author.name}#{ctx.author.discriminator}")
+        embed.set_footer(text=f"Poll from: {str(ctx.author)}")
         react_message = await ctx.send(embed=embed)
         for reaction in reactions[:len(options)]:
             await react_message.add_reaction(reaction)
-        embed.set_footer(text=f"Poll from: {ctx.author.name}#{ctx.author.discriminator}\nPoll ID: {react_message.id}")
+        embed.set_footer(text=f"Poll from: {str(ctx.author)}\nPoll ID: {react_message.id}")
         await react_message.edit(embed=embed)
     
 #Request Nick command

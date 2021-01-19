@@ -33,32 +33,38 @@ class Management(commands.Cog, name="Member Management"):
     @commands.Cog.listener()
     async def on_member_join(self, member):
         refchan = self.avimetry.get_channel(783961111060938782)
-        if member.guild.id == refchan.guild.id:
-            channel = self.avimetry.get_channel(783961111060938782)
-            await channel.edit(name=f"Total Members: {member.guild.member_count}")
-        
-            channel2 = self.avimetry.get_channel(783960970472456232)
-            true_member_count = len([m for m in member.guild.members if not m.bot])
-            await channel2.edit(name=f"Members: {true_member_count}")
+        try:
+            if member.guild.id == refchan.guild.id:
+                channel = self.avimetry.get_channel(783961111060938782)
+                await channel.edit(name=f"Total Members: {member.guild.member_count}")
+            
+                channel2 = self.avimetry.get_channel(783960970472456232)
+                true_member_count = len([m for m in member.guild.members if not m.bot])
+                await channel2.edit(name=f"Members: {true_member_count}")
 
-            channel3 = self.avimetry.get_channel(783961050814611476)
-            true_bot_count = len([m for m in member.guild.members if m.bot])
-            await channel3.edit(name=f"Bots: {true_bot_count}")
+                channel3 = self.avimetry.get_channel(783961050814611476)
+                true_bot_count = len([m for m in member.guild.members if m.bot])
+                await channel3.edit(name=f"Bots: {true_bot_count}")
+        except:
+            return
     
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         lrefchan = self.avimetry.get_channel(783961111060938782)
-        if member.guild.id == lrefchan.guild.id:
-            channel = self.avimetry.get_channel(783961111060938782)
-            await channel.edit(name=f"Total Members: {member.guild.member_count}")
-            
-            channel2 = self.avimetry.get_channel(783960970472456232)
-            true_member_count = len([m for m in member.guild.members if not m.bot])
-            await channel2.edit(name=f"Members: {true_member_count}")
+        try:
+            if member.guild.id == lrefchan.guild.id:
+                channel = self.avimetry.get_channel(783961111060938782)
+                await channel.edit(name=f"Total Members: {member.guild.member_count}")
+                
+                channel2 = self.avimetry.get_channel(783960970472456232)
+                true_member_count = len([m for m in member.guild.members if not m.bot])
+                await channel2.edit(name=f"Members: {true_member_count}")
 
-            channel3 = self.avimetry.get_channel(783961050814611476)
-            true_bot_count = len([m for m in member.guild.members if m.bot])
-            await channel3.edit(name=f"Bots: {true_bot_count}")
+                channel3 = self.avimetry.get_channel(783961050814611476)
+                true_bot_count = len([m for m in member.guild.members if m.bot])
+                await channel3.edit(name=f"Bots: {true_bot_count}")
+        except:
+            return
 #Update Member Count Command
     @commands.command(aliases=["updatemc", "umembercount"], brief="Updates the member count if the count gets out of sync.")
     async def refreshcount(self, ctx):

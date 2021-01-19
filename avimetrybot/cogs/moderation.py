@@ -8,8 +8,8 @@ import asyncio
 import re
 import datetime
 
-time_regex = re.compile(r"(?:(\d{1,5})(h|s|m|d|w))+?")
-time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400, }
+time_regex = re.compile(r"(?:(\d{1,5})(h|s|m|d))+?")
+time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400}
 
 class TimeConverter(commands.Converter):
     async def convert(self, ctx, argument):
@@ -262,7 +262,12 @@ class Moderation(commands.Cog):
         else:
             minutes, seconds = divmod(time, 60)
             hours, minutes=divmod(minutes, 60)
-            if int(hours):
+            days, hours=divmod(hours, 24)
+            if int(days):
+                mute_days=discord.Embed()
+                mute_days.add_field(name="<:yesTick:777096731438874634> Muted Member", value=f"{member.mention} was muted for {days} days, {hours} hours, {minutes} minutes and {seconds} seconds")
+                await ctx.send(embed=mute_days)
+            elif int(hours):
                 mute_hours=discord.Embed()
                 mute_hours.add_field(name="<:yesTick:777096731438874634> Muted Member", value=f"{member.mention} was muted for {hours} hours, {minutes} minutes and {seconds} seconds")
                 await ctx.send(embed=mute_hours)

@@ -81,6 +81,11 @@ class ErrorHandler(commands.Cog):
             forbidden.add_field(name="<:noTick:777096756865269760> No Permission", value="I do not have permission to do that. Make sure I have permission")
             await ctx.send(embed=forbidden, delete_after=10)
             await ctx.send(error)
+        
+        elif isinstance(error, commands.NoPrivateMessage):
+            NoPrivate=discord.Embed()
+            NoPrivate.add_field(name="<:noTick:777096756865269760> No commands in Direct Messages", value="Commands do not work in DMs. They only work in guilds/servers.")
+            await ctx.send(embed=NoPrivate)
         else:
             sexc = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
