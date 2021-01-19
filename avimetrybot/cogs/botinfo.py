@@ -107,7 +107,7 @@ class botinfo(commands.Cog, name="Bot Utilities"):
         cp.add_field(name="<:yesTick:777096731438874634> Set Prefix", value=f"The prefix for **{ctx.guild.name}** is now `{new_prefix}`")
         await ctx.send(embed=cp)      
 #Config Verification Gate Command
-    @config.group(brief="Verification gate configuration for this server")
+    @config.group(brief="Verification gate configuration for this server", aliases=["vgate", "verificationg", "vg"], invoke_without_command=True)
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def verificationgate(self, ctx):

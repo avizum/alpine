@@ -48,7 +48,7 @@ class HCEmbed(commands.HelpCommand):
     async def send_group_help(self, group):
         embed = discord.Embed(title=group.qualified_name, description=self.bnote())
         if group.help:
-            embed.description = group.help
+            embed.description = group.short_doc
 
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
