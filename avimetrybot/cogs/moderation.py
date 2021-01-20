@@ -84,7 +84,7 @@ class Moderation(commands.Cog):
         await cm.edit(content="", embed=ce, delete_after=10)
 
 #Purge Command
-    @commands.command(invoke_without_command=True, brief="Delete a number of messages in the current channel.")
+    @commands.group(invoke_without_command=True, brief="Delete a number of messages in the current channel.")
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
     @commands.cooldown(5, 30, commands.BucketType.member)
@@ -104,14 +104,52 @@ class Moderation(commands.Cog):
                 else:
                     authors[message.author] += 1
             await asyncio.sleep(.1)
-            await ctx.channel.purge(limit=amount)   
+            purge_amount=await ctx.channel.purge(limit=amount)   
             msg = "\n".join([f"{author}: {amount}" for author, amount in authors.items()])
 
             pe=discord.Embed()
-            pe.add_field(name="<:yesTick:777096731438874634> Purge Messages", value=f"Here are the results of the purged messages:\n`{msg}`")
-            pe.set_footer(text="This message will be deleted in 15 seconds.")
-            await ctx.send(embed=pe, delete_after=15)
+            pe.add_field(name="<:yesTick:777096731438874634> Purge Messages", value=f"Here are the results of the purged messages:\n`{msg}`\n\n Total Messages Deleted:`{len(purge_amount)}`")
+            pe.set_footer(text="React with the emoji to delete this message")
+            purge_results=await ctx.send(embed=pe)
+            await purge_results.add_reaction("<:noTick:777096756865269760>")
 
+            def check(reaction, user):
+                return str(reaction.emoji) in "<:noTick:777096756865269760>" and user != self.avimetry.user
+            try:
+                # pylint: disable = unused-variable
+                reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=60)
+            except asyncio.TimeoutError:
+                pe.set_footer(text="Menu has timed out")
+                await purge_results.edit(embed=pe)
+            else:
+                if str(reaction.emoji) == '<:noTick:777096756865269760>':
+                    pe.set_footer(text="Deleting...")
+                    await purge_results.edit(embed=pe)
+                    await asyncio.sleep(2.5)
+                    await purge_results.delete()
+
+
+
+
+    @purge.command()	
+    @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(manage_messages=True)
+    async def match(self, ctx, amount: int, *, text):	
+        await ctx.message.delete()
+        def pmatch(m):	
+            return text in m.content	
+        await ctx.channel.purge(limit = amount, check = pmatch)	
+        purgematch=discord.Embed()	
+        purgematch.add_field(name="<:yesTick:777096731438874634> Purge Match", value=f"Purged {amount} messages containing {text}.")
+    @purge.command()
+    @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(manage_messages=True)
+    async def startswith(self, ctx, text:str, amount:int):
+        await ctx.message.delete()
+        def check(m):
+            return m.content.startswith(text)
+        purge_amount=await ctx.channel.purge(limit=amount, check=check)
+        await ctx.send(f"Deleted {len(purge_amount)} messages that start with '{text}'")
 #Lock Channel Command
     @commands.command(brief="Locks the mentioned channel.", usage="<channel> [reason]",timestamp=datetime.datetime.utcnow())
     @commands.has_permissions(manage_channels=True)

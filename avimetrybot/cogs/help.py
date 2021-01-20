@@ -46,9 +46,12 @@ class HCEmbed(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
 
     async def send_group_help(self, group):
-        embed = discord.Embed(title=group.qualified_name, description=self.bnote())
-        if group.help:
-            embed.description = group.short_doc
+        embed = discord.Embed(title=f"Command Group: {group.qualified_name}", description=self.bnote())
+        if group.short_doc:
+            usage=group.short_doc
+            if not usage:
+                usage="No Description"
+            embed.add_field(name=self.gcommand_signature(group), value=f"`{usage}`")
 
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
@@ -66,6 +69,10 @@ class HCEmbed(commands.HelpCommand):
         if not usage:
             usage="No Description"
         embed.add_field(name=self.gcommand_signature(command), value=f"`{usage}`", inline=False)
+        alias = command.aliases
+        if alias:
+            embed.add_field(name="Aliases", value=f'`{", ".join(alias)}`', inline=False)
+
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
     

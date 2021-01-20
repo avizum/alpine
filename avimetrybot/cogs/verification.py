@@ -12,6 +12,8 @@ class Verification(commands.Cog):
 #Verification Gate
     @commands.Cog.listener()
     async def on_member_join(self, member):
+        if member.bot:
+            return
         prefixes = await self.avimetry.config.find(member.guild.id)
         global pre    
         pre = prefixes["prefix"]
@@ -61,7 +63,7 @@ class Verification(commands.Cog):
                 await channel.send(embed=lm)
 
 #Verify Command
-    @commands.command(brief="Verify now!")
+    @commands.group(brief="Verify now!", invoke_without_command=True, hidden=True)
     async def verify(self, ctx):
         member = ctx.author
         get_role = await self.avimetry.config.find(ctx.guild.id)
@@ -128,6 +130,22 @@ class Verification(commands.Cog):
                 except:
                     await ctx.send("Channel Delete failed, please contact a server staff member to delete this channel ")
                 
-                
+    @verify.command(hidden=True)
+    @commands.has_permissions(kick_members=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    async def member(self, ctx, member:discord.Member):
+        get_role = await self.avimetry.config.find(ctx.guild.id)
+        try:
+            role=get_role["gate_role"]
+        except KeyError:
+            await ctx.send("The verification role has not been set. Use the config commaand to set it up.")
+            return
+        roleid=ctx.guild.get_role(role)
+        if roleid in member.roles:
+            await ctx.send("That member is already verified")
+            return
+        await member.add_roles(roleid)
+        await ctx.send(f"{member} was manually verified")
+
 def setup(avimetry):
     avimetry.add_cog(Verification(avimetry))

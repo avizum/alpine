@@ -104,19 +104,7 @@ class Miscellaneous(commands.Cog):
             await react_message.add_reaction(reaction)
         embed.set_footer(text=f"Poll from: {str(ctx.author)}\nPoll ID: {react_message.id}")
         await react_message.edit(embed=embed)
-    
-#Request Nick command
-    @commands.command(brief="Requests a new nick name.")
-    async def requestnick(self, ctx, *, rqnick):
-        channels = self.avimetry.get_channel(787942179310010368)
-        rq=discord.Embed()
-        rq.add_field(name="Request Nickname", value=f"Your request has been sent. \nRequested Nickname: `{rqnick}`")
-        ap=discord.Embed()
-        ap.add_field(name="Incoming Request", value=f"{ctx.author.mention} requested to change their nickname to `{rqnick}` \nIf you want to change their nickname, use the command below to change their nickname \n`a.cnick {ctx.author.id} {rqnick}`")
-        await ctx.send(embed=rq, delete_after=5)
-        await channels.send(embed=ap)
-        await ctx.message.add_reaction("<a:animyes:777100238573404171>")
-
+        
 #Info Command
     @commands.command(brief="Gets a member's information")
     async def uinfo(self, ctx, *, member : discord.Member):
@@ -133,9 +121,6 @@ class Miscellaneous(commands.Cog):
                                                           f'**Roles** [{len(userroles)}] {jnr.join(userroles)}', timestamp=datetime.datetime.utcnow())
         ie.set_thumbnail(url=member.avatar_url)
         ie.add_field(name="Server Permissions", value="wip")
-        await ctx.send(embed=ie)
-
-    
 def setup(avimetry):
     avimetry.add_cog(Miscellaneous(avimetry))
 

@@ -93,7 +93,7 @@ class Management(commands.Cog, name="Member Management"):
         await ctx.send(embed=mce)
 
 #Role Command
-    @commands.group(invoke_without_command=True, brief="Give or remove a role from a member.")
+    @commands.group(invoke_without_command=True, brief="The command you just called")
     @commands.has_permissions(kick_members=True)
     async def role(self, ctx):
         await ctx.send_help("role")

@@ -92,7 +92,7 @@ class botinfo(commands.Cog, name="Bot Utilities"):
                 await rr.delete()
 
 #Config Command
-    @commands.group(invoke_without_command=True, brief="Configure the bot to your liking. (Per guild)")
+    @commands.group(invoke_without_command=True, brief="The base command, use this configure settings")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def config(self, ctx):

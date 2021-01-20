@@ -97,7 +97,7 @@ class ErrorHandler(commands.Cog):
                 chanel = self.avimetry.get_channel(797362270593613854)
                 ff = discord.Embed(title=f"{self.avimetry.user.name} Error", description=f"```{sexc}```")
                 await chanel.send(embed=ff)
-            except discord.Forbidden:
+            except:
                 return
             
 def setup(avimetry):
