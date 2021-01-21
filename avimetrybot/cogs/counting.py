@@ -22,11 +22,11 @@ class Counting(commands.Cog):
         
         if message.channel.id == int(count_chnl):
             countdoc=(config_channel[str("current_count")])
-            if message.author.bot:
+            if message.author==self.avimetry.user:
+                print("self")
+            elif message.author.bot:
                 await message.delete()
                 print("bot")
-            elif message.author==self.avimetry.user:
-                print("self")
                 return
             elif message.content!=str(countdoc):
                 await message.delete()

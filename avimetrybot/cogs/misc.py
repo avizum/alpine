@@ -96,8 +96,8 @@ class Miscellaneous(commands.Cog):
             reactions = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']
         description = []
         for x, option in enumerate(options):
-            description +='\n\n {} {}'.format(reactions[x], option)
-        embed = discord.Embed(title=question, description=''.join(description))
+            description +='\n\n{} {}'.format(reactions[x], option)
+        embed = discord.Embed(title=question, description="".join(description))
         embed.set_footer(text=f"Poll from: {str(ctx.author)}")
         react_message = await ctx.send(embed=embed)
         for reaction in reactions[:len(options)]:

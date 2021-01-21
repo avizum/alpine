@@ -13,6 +13,11 @@ import motor.motor_asyncio
 load_dotenv()
 avitoken = os.getenv('Bot_Token2')
 
+class avimetry(commands.Bot):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._BotBase__cogs = commands.core._CaseInsensitiveDict()
+
 #Command Prefix and Intents
 async def prefix(client, message):
     if not message.guild:

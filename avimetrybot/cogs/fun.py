@@ -27,7 +27,7 @@ class Fun(commands.Cog):
         await ctx.send(embed=ballembed)
 
 #Random Number
-    @commands.command(brief="Pick a random number from 1 to 100")
+    @commands.command(brief="Pick a random number from 1 to 100", usage="[amount]")
     async def random(self, ctx, amount: int = 100):
         x = random.randint(1, amount) 
         e = discord.Embed()
@@ -46,11 +46,12 @@ class Fun(commands.Cog):
             if member == ctx.author:
                 await ctx.send(f"{ctx.author.mention} tried to kill themself, but your friend caught you and decided to bring you to the hospital. On the way to the hospital, your friend crashed the car. They both died.")
             else:
-                kill_response=[f"**{ctx.author.display_name}** went to go kill **{member.display_name}** but when loading the gun, but **{ctx.author.display_name}** shot themself in the head. **{ctx.author.display_name}** died.", 
+                kill_response=[f"**{ctx.author.display_name}** went to go kill **{member.display_name}** but when loading the gun, **{ctx.author.display_name}** shot themself in the head. **{ctx.author.display_name}** died.", 
                                f"**{ctx.author.display_name}** tried to kill **{member.display_name}** but then he remembered that **{member.display_name}** owes them money and decides to kill **{member.display_name}** later.",
                                f"**{ctx.author.display_name}** shot and killed **{member.display_name}**",
                                f"**{ctx.author.display_name}** tried to kill **{member.display_name}** by pushing them down the stairs. **{member.display_name}** called the police and the police shot and killed **{ctx.author.display_name}**.",
-                               f"**{ctx.author.display_name}** tried to kill **{member.display_name}** by pushing them down the stairs. **{member.display_name}** died."]
+                               f"**{ctx.author.display_name}** tried to kill **{member.display_name}** by pushing them down the stairs. **{member.display_name}** died.",
+                               f"**{ctx.author.display_name} went to go kill {member.display_name} by summoning a demon, but the demon killed them both!"]
                 await ctx.send(f"{random.choice(kill_response)}")
 
 #Revive Command
