@@ -51,7 +51,7 @@ class Fun(commands.Cog):
                                f"**{ctx.author.display_name}** shot and killed **{member.display_name}**",
                                f"**{ctx.author.display_name}** tried to kill **{member.display_name}** by pushing them down the stairs. **{member.display_name}** called the police and the police shot and killed **{ctx.author.display_name}**.",
                                f"**{ctx.author.display_name}** tried to kill **{member.display_name}** by pushing them down the stairs. **{member.display_name}** died.",
-                               f"**{ctx.author.display_name} went to go kill {member.display_name} by summoning a demon, but the demon killed them both!"]
+                               f"**{ctx.author.display_name}** went to go kill **{member.display_name}** by summoning a demon, but the demon killed them both!"]
                 await ctx.send(f"{random.choice(kill_response)}")
 
 #Revive Command
