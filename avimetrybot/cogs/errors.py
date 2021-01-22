@@ -65,7 +65,7 @@ class ErrorHandler(commands.Cog):
 
         elif isinstance(error, commands.BadArgument):
             ba = discord.Embed(color=discord.Color.red())
-            ba.add_field(name="<:noTick:777096756865269760> Bad Argument", value=error)
+            ba.add_field(name="<:noTick:777096756865269760> Bad argument", value=error)
             await ctx.send(embed=ba, delete_after=10)
         
         elif isinstance(error, commands.BotMissingPermissions):

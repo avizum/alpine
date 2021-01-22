@@ -3,12 +3,10 @@ from discord.ext import commands
 import random
 import time
 import asyncio
-import json
 import typing
 import re
 
 class Fun(commands.Cog):
-    
     def __init__(self, avimetry):
         self.avimetry = avimetry
         
@@ -16,10 +14,6 @@ class Fun(commands.Cog):
     @commands.command(aliases=['8ball', '8b'], brief="Ask a question to the magic eight ball, and you will recieve an answer")
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def eightball(self, ctx, *, question):
-        with open("./avimetrybot/files/prefixes.json", "r") as f:
-            prefixes = json.load(f)
-        global pre
-        pre = prefixes[str(ctx.guild.id)]
         responses = ["As I see it, yes.", "Ask again later.", "Better not tell you now.", "Cannot predict now.", "Concentrate and ask again.", "Don’t count on it.", "It is certain.", "It is decidedly so.", "Most likely.", "My reply is no.", "My sources say no.", "Outlook not so good.", "Outlook good.", "Reply hazy, try again.", "Signs point to yes.", "Very doubtful.", "Without a doubt.", "Yes.", "Yes – definitely.", "You may rely on it.",]
         ballembed=discord.Embed(title=":8ball: Magic 8 Ball")
         ballembed.add_field(name="Question:", value=f"{question}", inline=False)

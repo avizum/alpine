@@ -9,10 +9,27 @@ import subprocess
 import os
 import requests
 
+from discord.ext import menus
+
+class EmbedPageSource(menus.ListPageSource):
+    async def format_page(self, menu, item):
+        embed = discord.Embed(title=item)
+        
+        # you can format the embed however you'd like
+        return embed
+
 class Miscellaneous(commands.Cog):
     
     def __init__(self, avimetry):
         self.avimetry = avimetry
+
+
+# somewhere else
+    @commands.command()
+    async def command(self, ctx):
+        items = ["title 1", "title 2", "title 3"]
+        menu = menus.MenuPages(EmbedPageSource(items, per_page=1))
+        await menu.start(ctx)
 
 #CoViD-19 Stats
     @commands.command()
