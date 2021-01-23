@@ -128,9 +128,6 @@ class Moderation(commands.Cog):
                     await asyncio.sleep(2.5)
                     await purge_results.delete()
 
-
-
-
     @purge.command()	
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
@@ -280,6 +277,7 @@ class Moderation(commands.Cog):
             if self.avimetry.muted_users[member.id]:
                 already_muted=discord.Embed()
                 already_muted.add_field(name="<:noTick:777096756865269760> Mute Failed", value=f"{member.mention} is already muted")
+                await ctx.send(embed=already_muted)
             return
         except KeyError:
             pass
