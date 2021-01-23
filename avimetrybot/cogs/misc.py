@@ -8,29 +8,14 @@ import datetime
 import subprocess
 import os
 import requests
-
+import aiohttp
 from discord.ext import menus
 
-class EmbedPageSource(menus.ListPageSource):
-    async def format_page(self, menu, item):
-        embed = discord.Embed(title=item)
-        
-        # you can format the embed however you'd like
-        return embed
-
-class Miscellaneous(commands.Cog):
+class miscellaneous(commands.Cog):
     
     def __init__(self, avimetry):
         self.avimetry = avimetry
-
-
-# somewhere else
-    @commands.command()
-    async def command(self, ctx):
-        items = ["title 1", "title 2", "title 3"]
-        menu = menus.MenuPages(EmbedPageSource(items, per_page=1))
-        await menu.start(ctx)
-
+        
 #CoViD-19 Stats
     @commands.command()
     async def covid(self, ctx, country):
@@ -139,6 +124,6 @@ class Miscellaneous(commands.Cog):
         ie.set_thumbnail(url=member.avatar_url)
         ie.add_field(name="Server Permissions", value="wip")
 def setup(avimetry):
-    avimetry.add_cog(Miscellaneous(avimetry))
+    avimetry.add_cog(miscellaneous(avimetry))
 
 

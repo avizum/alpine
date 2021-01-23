@@ -3,7 +3,7 @@ import os
 import datetime
 from discord.ext import commands
 
-class Cogs(commands.Cog):
+class cogs(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
       
@@ -72,4 +72,4 @@ class Cogs(commands.Cog):
         await ctx.send("haha you thought")
 
 def setup(avimetry):
-    avimetry.add_cog(Cogs(avimetry))
+    avimetry.add_cog(cogs(avimetry))

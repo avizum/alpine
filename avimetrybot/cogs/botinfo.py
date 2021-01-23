@@ -6,6 +6,7 @@ import datetime
 import time
 import pymongo
 from discord.ext import commands, tasks
+import aiohttp
 
 class botinfo(commands.Cog, name="Bot Utilities"):
     def __init__(self, avimetry):

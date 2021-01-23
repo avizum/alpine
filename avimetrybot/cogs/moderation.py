@@ -23,7 +23,7 @@ class TimeConverter(commands.Converter):
                 raise(commands.BadArgument(f"{key} is not a number!"))
         return round(time)
         
-class Moderation(commands.Cog):
+class moderation(commands.Cog):
     
     def __init__(self, avimetry):
         self.avimetry = avimetry
@@ -56,6 +56,12 @@ class Moderation(commands.Cog):
                         unmuted.add_field(name="<:yesTick:777096731438874634> Unmuted", value=f"You have been unmuted in {member.guild.name}")
                         await member.send(embed=unmuted)
                     except discord.Forbidden:
+                        return
+                else:
+                    try:
+                        await self.avimetry.mutes.delete(member.id)
+                        await self.avimetry.muted_users.pop(member.id)
+                    except:
                         return
                 await self.avimetry.mutes.delete(member.id)
                 try:
@@ -301,11 +307,11 @@ class Moderation(commands.Cog):
             days, hours=divmod(hours, 24)
             if int(days):
                 mute_days=discord.Embed()
-                mute_days.add_field(name="<:yesTick:777096731438874634> Muted Member", value=f"{member.mention} was muted for {days} days, {hours} hours, {minutes} minutes and {seconds} seconds")
+                mute_days.add_field(name="<:yesTick:777096731438874634> Muted Member", value=f"{member.mention} was muted for {days} days, and {hours} hours.")
                 await ctx.send(embed=mute_days)
             elif int(hours):
                 mute_hours=discord.Embed()
-                mute_hours.add_field(name="<:yesTick:777096731438874634> Muted Member", value=f"{member.mention} was muted for {hours} hours, {minutes} minutes and {seconds} seconds")
+                mute_hours.add_field(name="<:yesTick:777096731438874634> Muted Member", value=f"{member.mention} was muted for {hours} hours, and {minutes} minutes.")
                 await ctx.send(embed=mute_hours)
             elif int(minutes):
                 mute_minutes=discord.Embed()
@@ -331,7 +337,6 @@ class Moderation(commands.Cog):
                 self.avimetry.muted_users.pop(member.id)
             except KeyError:
                 pass
-
     
 #Unmute command
     @commands.command()
@@ -355,7 +360,6 @@ class Moderation(commands.Cog):
         await member.remove_roles(role)
         await ctx.send(f"Unmuted {member.display_name}")
     
-        
 
 def setup(avimetry):
-    avimetry.add_cog(Moderation(avimetry))
+    avimetry.add_cog(moderation(avimetry))

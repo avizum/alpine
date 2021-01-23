@@ -6,7 +6,7 @@ import asyncio
 import typing
 import re
 
-class Fun(commands.Cog):
+class fun(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
         
@@ -103,4 +103,4 @@ class Fun(commands.Cog):
         await ctx.send(embed=a)
     
 def setup(avimetry):
-    avimetry.add_cog(Fun(avimetry))
+    avimetry.add_cog(fun(avimetry))

@@ -7,7 +7,7 @@ import json
 import sys
 import traceback
 
-class ErrorHandler(commands.Cog):
+class errorhandler(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
@@ -101,4 +101,4 @@ class ErrorHandler(commands.Cog):
                 return
             
 def setup(avimetry):
-    avimetry.add_cog(ErrorHandler(avimetry))
+    avimetry.add_cog(errorhandler(avimetry))

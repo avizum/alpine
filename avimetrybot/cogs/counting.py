@@ -4,7 +4,7 @@ import random
 import time
 import asyncio
 
-class Counting(commands.Cog):
+class counting(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
@@ -38,11 +38,20 @@ class Counting(commands.Cog):
     async def on_message_edit(self, message_before, message_after):
         if message_after.author == self.avimetry.user:
             return
-        if message_after.channel.name == "counting":
-            if message_before == message_after:
-                pass
-            else:
-                await message_after.send(f"Don't Edit Messages, {message_after.author.mention}.", delete_after=5)
-                   
+        config_channel=await self.avimetry.config.find(message_after.guild.id)
+        try:
+            count_chnl=(config_channel[str("counting_channel")])
+        except KeyError:
+            return
+        
+        if message_after.channel.id == int(count_chnl):
+            print("easdas")
+            if message_after.content.startswith(message_before.content):
+                return
+            elif message_before.content!=message_after.content:
+                await message_after.channel.send("Do not edit your messages to say something else.")
+            elif message_before == message_after:
+                return
+
 def setup(avimetry):
-    avimetry.add_cog(Counting(avimetry))
+    avimetry.add_cog(counting(avimetry))

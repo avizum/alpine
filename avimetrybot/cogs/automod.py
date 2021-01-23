@@ -5,7 +5,7 @@ import asyncio
 import json
 import datetime
 
-class AutoMod(commands.Cog, name="Auto Moderation"):
+class automod(commands.Cog, name="Auto Moderation"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
         
@@ -37,4 +37,4 @@ class AutoMod(commands.Cog, name="Auto Moderation"):
                 await message_after.channel.send(f"{message_after.author.mention}, don't edit your message to say that word!", delete_after=3)
 
 def setup(avimetry):
-    avimetry.add_cog(AutoMod(avimetry)) #40
+    avimetry.add_cog(automod(avimetry)) #40

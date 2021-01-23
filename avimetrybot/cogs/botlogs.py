@@ -4,7 +4,7 @@ import random
 import datetime
 import json
 
-class BotLogs(commands.Cog, name="Bot Logs"):
+class botlogs(commands.Cog, name="Bot Logs"):
 
     def __init__(self, avimetry):
         self.avimetry = avimetry
@@ -157,4 +157,4 @@ class BotLogs(commands.Cog, name="Bot Logs"):
             await ctx.send(embed = b)
     '''
 def setup(avimetry):
-    avimetry.add_cog(BotLogs(avimetry))
+    avimetry.add_cog(botlogs(avimetry))

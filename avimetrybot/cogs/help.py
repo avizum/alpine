@@ -23,10 +23,10 @@ class HCEmbed(commands.HelpCommand):
             embed.description = description
 
         for cog, commands in mapping.items():
-            name = 'No Category' if cog is None else cog.qualified_name
+            name = 'No Category' if cog is None else cog.qualified_name.title()
             filtered = await self.filter_commands(commands, sort=True)
             if filtered:
-                value = f"{self.clean_prefix}{self.invoked_with} {name}"#'\u002c '.join(c.name for c in commands)
+                value = f"{self.clean_prefix}{self.invoked_with} {name.lower()}"#'\u002c '.join(c.name for c in commands)
                 if cog and cog.description:
                     value = '{0}\n{1}'.format(cog.description, value)
                 embed.add_field(name=name, value=f"`{value}`", inline=True)
@@ -34,7 +34,7 @@ class HCEmbed(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
         
     async def send_cog_help(self, cog):
-        embed = discord.Embed(title='{0.qualified_name} Commands'.format(cog), description=self.bnote())
+        embed = discord.Embed(title=f'{cog.qualified_name.title()} Commands', description=self.bnote())
         if cog.description:
             embed.description = cog.description
         filtered = await self.filter_commands(cog.get_commands(), sort=True)

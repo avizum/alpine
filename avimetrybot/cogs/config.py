@@ -5,7 +5,7 @@ import json
 from discord.ext import commands, tasks
 from itertools import cycle
 
-class ServerPrefix(commands.Cog, name="Server Prefix"):
+class serverprefix(commands.Cog, name="Server Prefix"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
@@ -20,4 +20,4 @@ class ServerPrefix(commands.Cog, name="Server Prefix"):
     
 
 def setup(avimetry):
-    avimetry.add_cog(ServerPrefix(avimetry))
+    avimetry.add_cog(serverprefix(avimetry))

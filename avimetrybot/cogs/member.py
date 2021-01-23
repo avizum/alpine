@@ -25,7 +25,7 @@ class Role(commands.Converter):
             raise commands.BadArgument("Could not find that role.")
         return found
 
-class Management(commands.Cog, name="Member Management"):
+class management(commands.Cog, name="member management"):
     def __init__(self, avimetry):
         self.avimetry=avimetry
 
@@ -150,4 +150,4 @@ class Management(commands.Cog, name="Member Management"):
         await ctx.send(embed=nickembed)
 
 def setup(avimetry):
-    avimetry.add_cog(Management(avimetry))
+    avimetry.add_cog(management(avimetry))
