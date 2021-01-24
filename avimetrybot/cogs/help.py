@@ -17,7 +17,7 @@ class HCEmbed(commands.HelpCommand):
         return
 
     async def send_bot_help(self, mapping):
-        embed = discord.Embed(title='Help Menu', description=f'The prefix for this server is [**{self.clean_prefix}**]')
+        embed = discord.Embed(title='Help Menu', description=f'The prefix for this server is `{self.clean_prefix}`')
         description = self.context.bot.description
         if description:
             embed.description = description
