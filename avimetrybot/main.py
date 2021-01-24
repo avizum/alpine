@@ -11,7 +11,7 @@ import motor.motor_asyncio
 
 #Get Bot Token
 load_dotenv()
-avitoken = os.getenv('Bot_Token2')
+avitoken = os.getenv('Bot_Token')
 
 #Command Prefix and Intents
 async def prefix(client, message):
@@ -63,7 +63,6 @@ async def on_ready():
     
     current_mutes=await avimetry.mutes.get_all()
     for mute in current_mutes:
-        
         avimetry.muted_users[mute["_id"]] = mute
 
 #Load Cogs

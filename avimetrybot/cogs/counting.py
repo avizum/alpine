@@ -45,10 +45,7 @@ class counting(commands.Cog):
             return
         
         if message_after.channel.id == int(count_chnl):
-            print("easdas")
-            if message_after.content.startswith(message_before.content):
-                return
-            elif message_before.content!=message_after.content:
+            if message_before.content!=message_after.content:
                 await message_after.channel.send("Do not edit your messages to say something else.")
             elif message_before == message_after:
                 return

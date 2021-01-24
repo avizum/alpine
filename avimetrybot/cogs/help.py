@@ -17,7 +17,7 @@ class HCEmbed(commands.HelpCommand):
         return
 
     async def send_bot_help(self, mapping):
-        embed = discord.Embed(title='Help Menu', description=f'The prefix for this server is [**{self.clean_prefix}**]\nThe Modules are case sensitive, Sorry for the inconvenience')
+        embed = discord.Embed(title='Help Menu', description=f'The prefix for this server is [**{self.clean_prefix}**]')
         description = self.context.bot.description
         if description:
             embed.description = description
@@ -29,7 +29,7 @@ class HCEmbed(commands.HelpCommand):
                 value = f"{self.clean_prefix}{self.invoked_with} {name.lower()}"#'\u002c '.join(c.name for c in commands)
                 if cog and cog.description:
                     value = '{0}\n{1}'.format(cog.description, value)
-                embed.add_field(name=name, value=f"`{value}`", inline=True)
+                embed.add_field(name=f"{name} ({len(commands)})", value=f"`{value}`", inline=True)
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
         
