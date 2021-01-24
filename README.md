@@ -5,7 +5,7 @@ avi()#6411
 discord.gg/zpj46np
 
 # Running the bot
-I would rather you invite my bot to your server with this [link].(https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)
+I would rather you invite my bot to your server with this [link](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647).
 
 Otherwise, Here is how you can run your own version of avimetry. If you do run or use the source code, You must open source your bot too, according to the licence.
 
