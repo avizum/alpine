@@ -83,7 +83,10 @@ class moderation(commands.Cog):
         def avimetrybot(m):
             c1=m.author==self.avimetry.user
             return c1
-        d1 = await ctx.channel.purge(limit=limit, check=avimetrybot)
+        try:
+            d1 = await ctx.channel.purge(limit=limit, check=avimetrybot)
+        except discord.Forbidden:
+            d1 = await ctx.channel.purge(limit=limit, check=avimetrybot, bulk=False)
         cm = await ctx.send("Cleaning...")
         ce=discord.Embed()
         ce.add_field(name="<:yesTick:777096731438874634> Clean Messages", value=f"Successfully deleted **{len(d1)}** messages")

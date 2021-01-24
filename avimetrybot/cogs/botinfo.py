@@ -46,7 +46,7 @@ class botinfo(commands.Cog, name="Bot Utilities"):
               f'Login Time: {datetime.date.today()} at {timenow}\n'
               '------'
         )
-
+#Mention prefix
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author==self.avimetry.user:
@@ -91,7 +91,6 @@ class botinfo(commands.Cog, name="Bot Utilities"):
                 await rr.clear_reactions()
                 await asyncio.sleep(5)
                 await rr.delete()
-
 #Config Command
     @commands.group(invoke_without_command=True, brief="The base command, use this configure settings")
     @commands.has_permissions(administrator=True)
@@ -147,12 +146,13 @@ class botinfo(commands.Cog, name="Bot Utilities"):
     async def channel(self, ctx, channel:discord.TextChannel):
         await self.avimetry.config.upsert({"_id": ctx.guild.id, "counting_channel":channel.id})
         await ctx.send(f"Set the counting channel to {channel}")
-
 #Bot Info Command
     @commands.command()
     async def info(self, ctx):
-        a = discord.Embed(title=f"{self.avimetry.user.name}")
-        a.add_field(name="WIP", value="Command not working yet")
+        info=discord.Embed()
+        info.add_field(name=f"{self.avimetry.user.name} Information", value=f"Discord Py Version: {discord.__version__}\nPython Version: 3.9\nGuilds: {len(self.avimetry.guilds)}\nMembers: {len(self.avimetry.users)}\nBot Invite link: [here](https://discord.com/oauth2/authorize?client_id={self.avimetry.user.id}&scope=bot&permissions=2147483647)", inline=False)
+        info.add_field(name="Bot Status", value=f"Ping: `{round(self.avimetry.latency * 1000)}ms`")
+        await ctx.send(embed=info)
         
 #Uptime Command
     @commands.command(brief="Get the bot's uptime")
@@ -177,5 +177,15 @@ class botinfo(commands.Cog, name="Bot Utilities"):
         await asyncio.sleep(.5)
         await message.edit(content="", embed=pingembed)
     
+#Source Command
+    @commands.command(brief="Sends the bot's source")
+    async def source(self, ctx):
+        source_embed=discord.Embed(title=f"{self.avimetry.user.name}'s source code", timestamp=datetime.datetime.utcnow())
+        if self.avimetry.user.id!=756257170521063444:
+            source_embed.description="The owner of this bot is not the creator of this bot. It is run off of this [source code](https://github.com/jbkn/avimetry 'Hello there from avi#0005')."
+        else:
+            source_embed.description="Here is my [source code](https://github.com/jbkn/avimetry)."
+        await ctx.send(embed=source_embed)
+
 def setup(avimetry):
     avimetry.add_cog(botinfo((avimetry)))

@@ -54,33 +54,6 @@ class miscellaneous(commands.Cog):
             a.add_field(name="<:noTick:777096756865269760> Invalid Country", value=f"{country} is not a country, or the API may be down. Please try again later")
             a.set_footer(text=f"Use '{pre}help' if you need help.")
             await ctx.send(embed=a, delete_after=10)
-#Study Hall Command
-    @commands.group(invoke_without_command=True)
-    async def studyhall(self, ctx):
-        await ctx.send_help("studyhall")
-    
-    @studyhall.command(brief="Puts yourself in to study hall.")
-    async def on(self, ctx):
-        member = ctx.author
-        role = discord.utils.get(member.guild.roles, name="Studying")
-        role2 = discord.utils.get(member.guild.roles, name="Member")
-        sho=discord.Embed()
-        sho.add_field(name="Study Hall", value=f"{member.mention} is now in study hall.", inline=False)
-        await ctx.send(embed=sho)
-        time.sleep(0.5)
-        await discord.Member.add_roles(member, role)
-        await discord.Member.remove_roles(member, role2)
-    @studyhall.command(brief="Removes yourself from study hall.")
-    async def off(self, ctx):
-        member = ctx.author
-        role = discord.utils.get(member.guild.roles, name="Studying")
-        role2 = discord.utils.get(member.guild.roles, name="Member")
-        shof = discord.Embed()
-        shof.add_field(name="Study hall", value="Now exiting study hall...")
-        await ctx.send(embed=shof)
-        time.sleep(0.5)
-        await discord.Member.remove_roles(member, role)
-        await discord.Member.add_roles(member, role2)
 
 #Poll command
     @commands.command(brief="Launch a poll for users to vote to.")
