@@ -4,6 +4,8 @@
 avi()#6411
 discord.gg/zpj46np
 
+In bot history, the tokens you see are old and outdated. You can try using them but they will not work
+
 # Running the bot
 I would rather you invite my bot to your server with this [link](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647).
 
