@@ -6,7 +6,7 @@ import pymongo
 from pymongo import MongoClient
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
-from utils.mongo import Document
+from utils.mongo import MongoDB
 import motor.motor_asyncio
 
 #Get Bot Token
@@ -58,8 +58,8 @@ async def on_ready():
     load_important.start()
     avimetry.mongo = motor.motor_asyncio.AsyncIOMotorClient(os.getenv('DB_Token'))
     avimetry.db=avimetry.mongo['avimetry']
-    avimetry.config=Document(avimetry.db, 'new')
-    avimetry.mutes=Document(avimetry.db, 'mutes')
+    avimetry.config=MongoDB(avimetry.db, 'new')
+    avimetry.mutes=MongoDB(avimetry.db, 'mutes')
     
     current_mutes=await avimetry.mutes.get_all()
     for mute in current_mutes:
