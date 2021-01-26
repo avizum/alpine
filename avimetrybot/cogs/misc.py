@@ -9,7 +9,6 @@ import subprocess
 import os
 import requests
 import aiohttp
-from discord.ext import menus
 
 class miscellaneous(commands.Cog):
     
