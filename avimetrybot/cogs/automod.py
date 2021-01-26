@@ -5,7 +5,7 @@ import asyncio
 import json
 import datetime
 
-class automod(commands.Cog, name="Auto Moderation"):
+class automod(commands.Cog, name="auto moderation"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
         

@@ -8,7 +8,7 @@ import pymongo
 from discord.ext import commands, tasks
 import aiohttp
 
-class botinfo(commands.Cog, name="Bot Utilities"):
+class botinfo(commands.Cog, name="bot utilities"):
     def __init__(self, avimetry):
         # pylint: disable=no-member
         self.avimetry = avimetry
@@ -92,7 +92,7 @@ class botinfo(commands.Cog, name="Bot Utilities"):
                 await asyncio.sleep(5)
                 await rr.delete()
 #Config Command
-    @commands.group(invoke_without_command=True, brief="The base command, use this configure settings")
+    @commands.group(invoke_without_command=True, brief="The base config command, use this configure settings")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def config(self, ctx):
@@ -173,7 +173,7 @@ class botinfo(commands.Cog, name="Bot Utilities"):
         duration = (end - start) * 1000
         pingembed=discord.Embed(title="🏓 Pong!")
         pingembed.add_field(name="Bot's Ping", value=f"`{round(self.avimetry.latency * 1000)}ms`")
-        pingembed.add_field(name="Message Ping", value='`{:.2f}ms`'.format(duration))
+        pingembed.add_field(name="Message Ping", value=f'`{round(duration)}ms`')
         await asyncio.sleep(.5)
         await message.edit(content="", embed=pingembed)
     

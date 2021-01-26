@@ -5,7 +5,7 @@ import json
 from discord.ext import commands, tasks
 from itertools import cycle
 
-class serverprefix(commands.Cog, name="Server Prefix"):
+class serverprefix(commands.Cog, name="server prefix"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 

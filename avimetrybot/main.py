@@ -11,7 +11,7 @@ import motor.motor_asyncio
 
 #Get Bot Token
 load_dotenv()
-avitoken = os.getenv('Bot_Token2')
+avitoken = os.getenv('Bot_Token')
 
 #Command Prefix and Intents
 async def prefix(client, message):
@@ -27,13 +27,9 @@ async def prefix(client, message):
 allowed_mentions=discord.AllowedMentions(everyone=False, users=True, roles=True, replied_user=False)
 intents=discord.Intents.all()
 avimetry = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=intents, allowed_mentions=allowed_mentions)
+#Bot Vars
 avimetry.launch_time=datetime.datetime.utcnow()
-
-#Database 
-avimetry.cluster=MongoClient(os.getenv('DB_Token'))
-avimetry.db=avimetry.cluster['avimetry']
-avimetry.collection=avimetry.db['new']
-avimetry.mutes=avimetry.collection.find_one({"_id":"mutes"})
+avimetry.dev_mode=False
 avimetry.muted_users={}
 
 #No Commands in DMs
@@ -49,7 +45,7 @@ async def globally_block_dms(ctx):
 async def load_important():
     try:
         avimetry.load_extension('jishaku')
-        avimetry.load_extension("cogs.loads")
+        avimetry.load_extension("cogs.owner")
     except commands.ExtensionAlreadyLoaded:
         return
 
@@ -64,7 +60,7 @@ async def on_ready():
     current_mutes=await avimetry.mutes.get_all()
     for mute in current_mutes:
         avimetry.muted_users[mute["_id"]] = mute
-
+        
 #Load Cogs
 os.environ["JISHAKU_HIDE"] = "True"
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"

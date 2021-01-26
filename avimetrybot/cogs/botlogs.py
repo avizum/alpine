@@ -4,7 +4,7 @@ import random
 import datetime
 import json
 
-class botlogs(commands.Cog, name="Bot Logs"):
+class botlogs(commands.Cog, name="bot logs"):
 
     def __init__(self, avimetry):
         self.avimetry = avimetry

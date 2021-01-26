@@ -96,6 +96,17 @@ class miscellaneous(commands.Cog):
                                                           f'**Roles** [{len(userroles)}] {jnr.join(userroles)}', timestamp=datetime.datetime.utcnow())
         ie.set_thumbnail(url=member.avatar_url)
         ie.add_field(name="Server Permissions", value="wip")
+
+    @commands.command()
+    async def guess(self, ctx, number: int):
+        """ Guess a random number from 1 to 6. """
+        # explained in a previous example, this gives you
+        # a random number from 1-6
+        value = random.randint(1, 6)
+        # with your new helper function, you can add a
+        # green check mark if the guess was correct,
+        # or a red cross mark if it wasnt
+        await ctx.tick(number == value)
 def setup(avimetry):
     avimetry.add_cog(miscellaneous(avimetry))
 

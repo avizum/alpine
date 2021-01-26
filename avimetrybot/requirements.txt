@@ -7,8 +7,6 @@ braceexpand==0.1.6
 buttons==0.1.9
 certifi==2020.12.5
 chardet==3.0.4
-Discord-Anti-Spam==0.5.1
-discord-ext-menus @ git+https://github.com/Rapptz/discord-ext-menus@6f2b873bf0d28903eb752aa1166b3aac26dc9007
 discord.py==1.6.0
 dnspython==2.1.0
 emojis==0.6.0

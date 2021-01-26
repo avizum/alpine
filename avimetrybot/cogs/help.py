@@ -16,23 +16,21 @@ class HCEmbed(commands.HelpCommand):
     async def send_error_message(self, command):
         return
 
+
     async def send_bot_help(self, mapping):
-        embed = discord.Embed(title='Help Menu', description=f'The prefix for **{self.get_destination().guild.name}** is `{self.clean_prefix}`')
+        embed = discord.Embed(title='Help Menu', description=f"The prefix for **{self.get_destination().guild.name}** is `{self.clean_prefix}`\n{self.bnote()}")
         description = self.context.bot.description
         if description:
             embed.description = description
-
         for cog, commands in mapping.items():
             name = 'No Category' if cog is None else cog.qualified_name.title()
             filtered = await self.filter_commands(commands, sort=True)
             if filtered:
-                value = f"{self.clean_prefix}{self.invoked_with} {name.lower()}"#'\u002c '.join(c.name for c in commands)
-                if cog and cog.description:
-                    value = '{0}\n{1}'.format(cog.description, value)
-                embed.add_field(name=f"{name} ({len(commands)})", value=f"`{value}`", inline=True)
+                value=f"`{self.clean_prefix}{self.invoked_with} {name.lower()}`"
+                embed.add_field(name=name, value=f"{value}", inline=False)
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
-        
+   
     async def send_cog_help(self, cog):
         embed = discord.Embed(title=f'{cog.qualified_name.title()} Commands', description=self.bnote())
         if cog.description:
@@ -42,7 +40,7 @@ class HCEmbed(commands.HelpCommand):
             usage=command.short_doc
             if not usage:
                 usage="No Description"
-            embed.add_field(name=self.gcommand_signature(command), value=f"`{usage}`", inline=True)
+            embed.add_field(name=self.gcommand_signature(command), value=f"`{usage}`", inline=False)
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
 
@@ -79,15 +77,15 @@ class HCEmbed(commands.HelpCommand):
     
     async def command_not_found(self, string):
         embed=discord.Embed(title="Help Menu")
-        embed.add_field(name=f"Command/Module does not exist", value='"{0}" is not a command/module.\nMake sure you capitalized and spelled it correctly.'.format(string))
+        embed.add_field(name=f"Command/Module does not exist", value='"{0}" is not a command/module.\nMake sure you spelled it correctly.'.format(string))
         embed.set_footer(text=self.gending_note())
-        await self.get_destination().send(embed=embed)
+        await self.get_destination().send(embed=embed, delete_after=10)
     
     async def subcommand_not_found(self, command, string):
         embed=discord.Embed(title="Help Menu")
         embed.add_field(name=f"Subcommand does not exist", value='"{0}" is not a subcommand of "{1}".'.format(string, command))
         embed.set_footer(text=self.gending_note())
-        await self.get_destination().send(embed=embed)
+        await self.get_destination().send(embed=embed, delete_after=10)
 
 class Help(commands.Cog):
     def __init__(self, avimetry):

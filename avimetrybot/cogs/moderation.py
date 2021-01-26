@@ -132,9 +132,6 @@ class moderation(commands.Cog):
                 await purge_results.edit(embed=pe)
             else:
                 if str(reaction.emoji) == '<:noTick:777096756865269760>':
-                    pe.set_footer(text="Deleting...")
-                    await purge_results.edit(embed=pe)
-                    await asyncio.sleep(2.5)
                     await purge_results.delete()
 
     @purge.command()	

@@ -5,6 +5,7 @@ import time
 import asyncio
 import typing
 import re
+import datetime
 
 class fun(commands.Cog):
     def __init__(self, avimetry):
@@ -102,5 +103,41 @@ class fun(commands.Cog):
         a = discord.Embed(description=f'{ctx.author.mention} hit their face.')
         await ctx.send(embed=a)
     
+    @commands.command(aliases=["\U0001F36A", "kookie", "cookies"])
+    @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
+    @commands.cooldown(1, 30, commands.BucketType.guild)
+    async def cookie(self, ctx):
+        cntdown=3
+        cookie_embed=discord.Embed()
+        cookie_embed.add_field(name="Get the cookie!", value="Who can get the cookie the fastest? Get ready!")
+        cd_cookie=await ctx.send(embed=cookie_embed)
+        # pylint: disable=unused-variable
+        for i in range(3):
+        # pylint: enable=unused-variable
+            await asyncio.sleep(1)
+            cookie_embed.set_field_at(0, name="Get Ready", value=f"Get the cookie in {cntdown}")
+            await cd_cookie.edit(embed=cookie_embed)
+            cntdown -=1
+        await asyncio.sleep(1)
+        cookie_embed.set_field_at(0, name="Go!", value="Get the cookie now!")
+        await cd_cookie.edit(embed=cookie_embed)
+        await cd_cookie.add_reaction("\U0001F36A")
+        start=time.perf_counter()
+        def check(reaction, user):
+            return str(reaction.emoji) in "\U0001F36A" and user != self.avimetry.user
+        try:
+            # pylint: disable = unused-variable
+            reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=10)
+        except asyncio.TimeoutError:
+            cookie_embed.set_field_at(0, name="Game over!", value=f"Nobody got the cookie :(")
+            await cd_cookie.edit(embed=cookie_embed)
+            await cd_cookie.clear_reactions()
+        else:
+            if str(reaction.emoji) == "\U0001F36A":
+                end=time.perf_counter()
+                gettime=(end-start)*1000
+                cookie_embed.set_field_at(0, name="Game over!", value=f"{user.mention} got the cookie in `{round(gettime)}ms`")
+                await cd_cookie.edit(embed=cookie_embed)
+                await cd_cookie.clear_reactions()
 def setup(avimetry):
     avimetry.add_cog(fun(avimetry))

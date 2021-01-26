@@ -6,6 +6,7 @@ import datetime
 import json
 import sys
 import traceback
+import prettify_exceptions
 
 class errorhandler(commands.Cog):
     def __init__(self, avimetry):
@@ -83,15 +84,21 @@ class errorhandler(commands.Cog):
             await ctx.send(error)
         
         elif isinstance(error, commands.NoPrivateMessage):
-            NoPrivate=discord.Embed()
+            NoPrivate=discord.Embed(color=discord.Color.red())
             NoPrivate.add_field(name="<:noTick:777096756865269760> No commands in Direct Messages", value="Commands do not work in DMs. They only work in guilds/servers.")
             await ctx.send(embed=NoPrivate)
+        
+        elif isinstance(error, commands.MaxConcurrencyReached):
+            max_uses=discord.Embed(color=discord.Color.red())
+            max_uses.add_field(name="<:noTick:777096756865269760> Limited Command", value=f"Sorry, `{ctx.command.name}` has limited usage. Please try again later.")
+            await ctx.send(embed=max_uses)
         else:
             sexc = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
             ee = discord.Embed(color=discord.Color.red())
-            ee.add_field(name="<:noTick:777096756865269760> Unknown Error", value="Uh oh, avi messaged up again! The error has been recorded and avi will cry. No worries, he will fix it.")
+            exco=''.join(traceback.format_exception_only(type(error), error))
+            ee.add_field(name="<:noTick:777096756865269760> Unknown Error", value=f"Uh oh, an error has occured! Do not worry, the error has been recorded.\n\n`{exco}`")
             try:
                 await ctx.send(embed=ee, delete_after=10)
                 chanel = self.avimetry.get_channel(797362270593613854)
