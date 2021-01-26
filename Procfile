@@ -1,1 +1,1 @@
-worker: python avimetry/main.py
+worker: python avimetrybot/main.py
