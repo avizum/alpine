@@ -71,4 +71,7 @@ for filename in os.listdir('./avimetrybot/cogs'):
         avimetry.load_extension(f'cogs.{filename[:-3]}')
 
 #Log-In
-avimetry.run(avitoken)
+try:
+    avimetry.run(avitoken)
+except:
+    avimetry.run(os.environ["Bot_Token"])
