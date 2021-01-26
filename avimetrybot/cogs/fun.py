@@ -118,7 +118,7 @@ class fun(commands.Cog):
             cookie_embed.set_field_at(0, name="Get Ready", value=f"Get the cookie in {cntdown}")
             await cd_cookie.edit(embed=cookie_embed)
             cntdown -=1
-        await asyncio.sleep(1)
+        await asyncio.sleep(random.randint(1,5))
         cookie_embed.set_field_at(0, name="Go!", value="Get the cookie now!")
         await cd_cookie.edit(embed=cookie_embed)
         await cd_cookie.add_reaction("\U0001F36A")
