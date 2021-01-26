@@ -6,7 +6,6 @@ import datetime
 import json
 import sys
 import traceback
-import prettify_exceptions
 
 class errorhandler(commands.Cog):
     def __init__(self, avimetry):
