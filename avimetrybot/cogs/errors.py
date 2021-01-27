@@ -34,6 +34,9 @@ class errorhandler(commands.Cog):
         
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.message.delete()
+            if ctx.author.id==750135653638865017:
+                await ctx.reinvoke()
+                return
             cd=discord.Embed(color=discord.Color.red())
             cd.add_field(name="<:noTick:777096756865269760> Command on cooldown", value=f"Please wait {error.retry_after:.2f} seconds before running `{pre}{ctx.command.name}` again")
             await ctx.send(embed=cd, delete_after=10) 

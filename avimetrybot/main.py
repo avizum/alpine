@@ -29,7 +29,6 @@ intents=discord.Intents.all()
 avimetry = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=intents, allowed_mentions=allowed_mentions)
 #Bot Vars
 avimetry.launch_time=datetime.datetime.utcnow()
-avimetry.dev_mode=False
 avimetry.muted_users={}
 
 #No Commands in DMs
