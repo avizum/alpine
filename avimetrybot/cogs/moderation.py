@@ -32,7 +32,7 @@ class moderation(commands.Cog):
         # pylint: disable=unused-variable
         def cog_unload(self):
             self.check_mutes.cancel()
-
+#Unmute Loop
     @tasks.loop(minutes=1)
     async def check_mutes(self):
         currentTime = datetime.datetime.now()
@@ -123,7 +123,7 @@ class moderation(commands.Cog):
             await purge_results.add_reaction("<:noTick:777096756865269760>")
 
             def check(reaction, user):
-                return str(reaction.emoji) in "<:noTick:777096756865269760>" and user != self.avimetry.user
+                return str(reaction.emoji) in "<:noTick:777096756865269760>" and user != self.avimetry.user and user==ctx.author
             try:
                 # pylint: disable = unused-variable
                 reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=60)
@@ -153,6 +153,7 @@ class moderation(commands.Cog):
             return m.content.startswith(text)
         purge_amount=await ctx.channel.purge(limit=amount, check=check)
         await ctx.send(f"Deleted {len(purge_amount)} messages that start with '{text}'")
+
 #Lock Channel Command
     @commands.command(brief="Locks the mentioned channel.", usage="<channel> [reason]",timestamp=datetime.datetime.utcnow())
     @commands.has_permissions(manage_channels=True)
@@ -360,6 +361,5 @@ class moderation(commands.Cog):
         await member.remove_roles(role)
         await ctx.send(f"Unmuted {member.display_name}")
     
-
 def setup(avimetry):
     avimetry.add_cog(moderation(avimetry))

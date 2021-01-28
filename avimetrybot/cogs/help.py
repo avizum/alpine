@@ -94,7 +94,8 @@ class Help(commands.Cog):
         self.avimetry.help_command = HCEmbed(
              command_attrs=dict(
                 hidden=True,
-                aliases=['h', 'halp', 'helps','cmds', 'commands', 'cmd']
+                aliases=['h', 'halp', 'helps','cmds', 'commands', 'cmd'],
+                usage="[command] or [module]"
              )
         )
 

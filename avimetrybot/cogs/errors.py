@@ -1,11 +1,7 @@
 import discord
 from discord.ext import commands
-import random
-import time
 import datetime
-import json
-import sys
-import traceback
+import traceback, sys, os
 
 class errorhandler(commands.Cog):
     def __init__(self, avimetry):
@@ -14,7 +10,6 @@ class errorhandler(commands.Cog):
 #Command Error
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-
         if ctx.author.id==750135653638865017:
             try:
                 await ctx.reinvoke()
@@ -23,9 +18,8 @@ class errorhandler(commands.Cog):
                 pass
 
         pre = await self.avimetry.get_prefix(ctx.message)
-
         error = getattr(error, 'original', error)
-        
+    
         if isinstance(error, commands.CommandNotFound):
             a = discord.Embed(color=discord.Color.red())
             a.add_field(name="<:noTick:777096756865269760> Invalid Command", value=f"{error}. \n ")
@@ -101,16 +95,16 @@ class errorhandler(commands.Cog):
             max_uses.add_field(name="<:noTick:777096756865269760> Limited Command", value=f"Sorry, `{ctx.command.name}` has limited usage. Please try again later.")
             await ctx.send(embed=max_uses)
         else:
-            sexc = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
+            long_exception = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
             ee = discord.Embed(color=discord.Color.red())
-            exco=''.join(traceback.format_exception_only(type(error), error))
-            ee.add_field(name="<:noTick:777096756865269760> Unknown Error", value=f"Uh oh, an error has occured! Do not worry, the error has been recorded.\n\n`{exco}`")
+            short_exception=''.join(traceback.format_exception_only(type(error), error))
+            ee.add_field(name="<:noTick:777096756865269760> Unknown Error", value=f"Uh oh, an error has occured! Do not worry, the error has been recorded.\n\n`{short_exception}`")
             try:
                 await ctx.send(embed=ee, delete_after=10)
                 chanel = self.avimetry.get_channel(797362270593613854)
-                ff = discord.Embed(title=f"{self.avimetry.user.name} Error", description=f"```{sexc}```")
+                ff = discord.Embed(title=f"{self.avimetry.user.name} Error", description=f"```{long_exception}```")
                 await chanel.send(embed=ff)
             except:
                 return

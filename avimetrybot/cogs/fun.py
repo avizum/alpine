@@ -107,18 +107,13 @@ class fun(commands.Cog):
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     @commands.cooldown(1, 30, commands.BucketType.guild)
     async def cookie(self, ctx):
-        cntdown=3
         cookie_embed=discord.Embed()
-        cookie_embed.add_field(name="Get the cookie!", value="Who can get the cookie the fastest? Get ready!")
+        cookie_embed.add_field(name="Get the cookie!", value="Who can get the cookie the fastest?")
         cd_cookie=await ctx.send(embed=cookie_embed)
-        # pylint: disable=unused-variable
-        for i in range(3):
-        # pylint: enable=unused-variable
-            await asyncio.sleep(1)
-            cookie_embed.set_field_at(0, name="Get Ready", value=f"Get the cookie in {cntdown}")
-            await cd_cookie.edit(embed=cookie_embed)
-            cntdown -=1
-        await asyncio.sleep(random.randint(1,5))
+        await asyncio.sleep(2)
+        cookie_embed.set_field_at(0, name="Get Ready", value=f"Be ready to get the cookie")
+        await cd_cookie.edit(embed=cookie_embed)
+        await asyncio.sleep(random.randint(1,11))
         cookie_embed.set_field_at(0, name="Go!", value="Get the cookie now!")
         await cd_cookie.edit(embed=cookie_embed)
         await cd_cookie.add_reaction("\U0001F36A")
