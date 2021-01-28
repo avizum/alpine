@@ -103,28 +103,23 @@ class fun(commands.Cog):
         a = discord.Embed(description=f'{ctx.author.mention} hit their face.')
         await ctx.send(embed=a)
     
-    @commands.command()
-    async def cookie(self, ctx):
-        await ctx.send("This command is now called reaction.")
-        await ctx.send_help("reaction")
-
-    @commands.command(aliases=["\U0001F36A", "reacttime", "reactiontime"])
+    @commands.command(aliases=["\U0001F36A", "kookie", "cookies"])
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     @commands.cooldown(1, 30, commands.BucketType.guild)
-    async def reaction(self, ctx, emoji:discord.Emoji):
+    async def cookie(self, ctx):
         cookie_embed=discord.Embed()
-        cookie_embed.add_field(name=f"Get the {emoji}!", value=f"Who can get the {emoji} the fastest?")
+        cookie_embed.add_field(name="Get the cookie!", value="Who can get the cookie the fastest? Get ready!")
         cd_cookie=await ctx.send(embed=cookie_embed)
         await asyncio.sleep(2)
-        cookie_embed.set_field_at(0, name="Get Ready", value=f"Be ready to get the {emoji}")
+        cookie_embed.set_field_at(0, name="Get Ready", value=f"Be ready to get the cookie")
         await cd_cookie.edit(embed=cookie_embed)
         await asyncio.sleep(random.randint(1,11))
-        cookie_embed.set_field_at(0, name="Go!", value=f"Get the {emoji} now!")
+        cookie_embed.set_field_at(0, name="Go!", value="Get the cookie now!")
         await cd_cookie.edit(embed=cookie_embed)
-        await cd_cookie.add_reaction(f"{emoji}")
+        await cd_cookie.add_reaction("\U0001F36A")
         start=time.perf_counter()
         def check(reaction, user):
-            return str(reaction.emoji) in emoji and user != self.avimetry.user
+            return str(reaction.emoji) in "\U0001F36A" and user != self.avimetry.user
         try:
             # pylint: disable = unused-variable
             reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=10)
