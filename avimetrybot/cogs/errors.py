@@ -10,7 +10,7 @@ class errorhandler(commands.Cog):
 #Command Error
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        if ctx.author.id==750135653638865017:
+        if ctx.author.id in self.avimetry.owner_ids:
             try:
                 await ctx.reinvoke()
                 return
