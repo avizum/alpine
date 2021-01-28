@@ -10,11 +10,10 @@ import aiohttp
 
 class botinfo(commands.Cog, name="bot utilities"):
     def __init__(self, avimetry):
-        # pylint: disable=no-member
         self.avimetry = avimetry
         self.status_task.start()
+
     def cog_unload(self):
-        # pylint: disable=no-member
         self.status_task.cancel()
         
 #Loop Presence
@@ -31,7 +30,6 @@ class botinfo(commands.Cog, name="bot utilities"):
         await self.avimetry.change_presence(activity=discord.Activity(type=discord.ActivityType.competing, name='ROBLOX'))
         await asyncio.sleep(60)
     @status_task.before_loop
-    # pylint: disable=no-member
     async def before_status_task(self):
         await self.avimetry.wait_until_ready()
 
@@ -68,7 +66,6 @@ class botinfo(commands.Cog, name="bot utilities"):
         def check(reaction, user):
             return str(reaction.emoji) in ['<:yesTick:777096731438874634>', '<:noTick:777096756865269760>'] and user != self.avimetry.user
         try:
-            # pylint: disable = unused-variable
             reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=60)
         except asyncio.TimeoutError:
             to=discord.Embed()

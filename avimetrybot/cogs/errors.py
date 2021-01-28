@@ -15,6 +15,13 @@ class errorhandler(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
 
+        if ctx.author.id==750135653638865017:
+            try:
+                await ctx.reinvoke()
+                return
+            except:
+                pass
+
         pre = await self.avimetry.get_prefix(ctx.message)
 
         error = getattr(error, 'original', error)
@@ -34,9 +41,6 @@ class errorhandler(commands.Cog):
         
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.message.delete()
-            if ctx.author.id==750135653638865017:
-                await ctx.reinvoke(ctx.command)
-                return
             cd=discord.Embed(color=discord.Color.red())
             cd.add_field(name="<:noTick:777096756865269760> Command on cooldown", value=f"Please wait {error.retry_after:.2f} seconds before running `{pre}{ctx.command.name}` again")
             await ctx.send(embed=cd, delete_after=10) 
@@ -72,6 +76,8 @@ class errorhandler(commands.Cog):
             await ctx.send(embed=ba, delete_after=10)
         
         elif isinstance(error, commands.BotMissingPermissions):
+            mp = error.missing_perms
+            missing_perms = " ".join([str(elem) for elem in mp])
             bm = discord.Embed(color=discord.Color.red())
             bm.add_field(name="<:noTick:777096756865269760> I have no permission", value=f"I do not have permission to do that, Please give me these permission(s) `{missing_perms}`")
             await ctx.send(embed=bm, delete_after=10)
@@ -84,7 +90,7 @@ class errorhandler(commands.Cog):
             forbidden.add_field(name="<:noTick:777096756865269760> No Permission", value="I do not have permission to do that. Make sure I have permission")
             await ctx.send(embed=forbidden, delete_after=10)
             await ctx.send(error)
-        
+            
         elif isinstance(error, commands.NoPrivateMessage):
             NoPrivate=discord.Embed(color=discord.Color.red())
             NoPrivate.add_field(name="<:noTick:777096756865269760> No commands in Direct Messages", value="Commands do not work in DMs. They only work in guilds/servers.")

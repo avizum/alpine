@@ -11,7 +11,7 @@ import motor.motor_asyncio
 
 #Get Bot Token
 load_dotenv()
-avitoken = os.getenv('Bot_Token')
+avitoken = os.getenv('Bot_Token2')
 
 #Command Prefix and Intents
 async def prefix(client, message):
