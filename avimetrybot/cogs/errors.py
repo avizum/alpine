@@ -15,7 +15,10 @@ class errorhandler(commands.Cog):
                 await ctx.reinvoke()
                 return
             except:
-                pass
+                if self.avimetry.devmode==True:
+                    return
+                else:
+                    pass
 
         pre = await self.avimetry.get_prefix(ctx.message)
         error = getattr(error, 'original', error)

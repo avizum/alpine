@@ -15,6 +15,9 @@ avitoken = os.getenv('Bot_Token2')
 
 #Command Prefix and Intents
 async def prefix(client, message):
+    if avimetry.devmode==True:
+        if message.author.id==750135653638865017:
+            return ""
     if not message.guild:
         return [str("a.")]
     try:
@@ -27,9 +30,11 @@ async def prefix(client, message):
 allowed_mentions=discord.AllowedMentions(everyone=False, users=True, roles=True, replied_user=False)
 intents=discord.Intents.all()
 avimetry = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=intents, allowed_mentions=allowed_mentions)
+
 #Bot Vars
 avimetry.launch_time=datetime.datetime.utcnow()
 avimetry.muted_users={}
+avimetry.devmode=False
 
 #No Commands in DMs
 @avimetry.check
@@ -70,7 +75,4 @@ for filename in os.listdir('./avimetrybot/cogs'):
         avimetry.load_extension(f'cogs.{filename[:-3]}')
 
 #Log-In
-try:
-    avimetry.run(avitoken)
-except:
-    avimetry.run(os.environ["Bot_Token"])
+avimetry.run(avitoken)

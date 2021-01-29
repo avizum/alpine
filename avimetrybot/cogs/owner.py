@@ -64,8 +64,9 @@ class cogs(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def print(self, ctx):
-        self.avimetry.loop.run_in_executor(None, print("Hello World!"))
+    async def devmode(self, ctx, toggle:bool):
+        await ctx.send(f"dev mode is now {toggle}")
+        self.avimetry.devmode=toggle
 
 def setup(avimetry):
     avimetry.add_cog(cogs(avimetry))

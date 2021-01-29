@@ -177,13 +177,14 @@ class botinfo(commands.Cog, name="bot utilities"):
         await message.edit(content="", embed=pingembed)
     
 #Source Command
+    """As per licence, the source must be stated."""
     @commands.command(brief="Sends the bot's source")
     async def source(self, ctx):
         source_embed=discord.Embed(title=f"{self.avimetry.user.name}'s source code", timestamp=datetime.datetime.utcnow())
         if self.avimetry.user.id!=756257170521063444:
-            source_embed.description="The owner of this bot is not the creator of this bot. It is run off of this [source code](https://github.com/jbkn/avimetry 'Hello there from avi#0005')."
+            source_embed.description="This bot is made by [avi/jbkn](https://discord.com/users/750135653638865017). It is run off of this [source code](https://github.com/jbkn/avimetry)."
         else:
-            source_embed.description="Here is my [source code](https://github.com/jbkn/avimetry)."
+            source_embed.description="Here is my [source code](https://github.com/jbkn/avimetry) made by [avi](https://discord.com/users/750135653638865017)."
         await ctx.send(embed=source_embed)
 
 def setup(avimetry):
