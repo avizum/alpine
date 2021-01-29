@@ -177,7 +177,7 @@ class botinfo(commands.Cog, name="bot utilities"):
         await message.edit(content="", embed=pingembed)
     
 #Source Command
-    """As per licence, the source must be stated."""
+#Removing or modifying this command is not allowed as stated in the license. If you do use this code, you have to make your bot's source public.
     @commands.command(brief="Sends the bot's source")
     async def source(self, ctx):
         source_embed=discord.Embed(title=f"{self.avimetry.user.name}'s source code", timestamp=datetime.datetime.utcnow())

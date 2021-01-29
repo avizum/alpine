@@ -3,10 +3,19 @@ import os
 import datetime
 from discord.ext import commands
 
+def is_avi():
+    def predicate(ctx):
+        if ctx.author.id==750135653638865017:
+            return True
+        else:
+            raise commands.NotOwner("You are not avi noob")
+    return commands.check(predicate)
+    
 class cogs(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
-      
+    
+
 #Load Command
     @commands.command(brief="Loads a module if it was disabled.")
     @commands.is_owner()
@@ -63,7 +72,7 @@ class cogs(commands.Cog):
         await ctx.send(embed=embed, delete_after=10)
 
     @commands.command()
-    @commands.is_owner()
+    @is_avi()
     async def devmode(self, ctx, toggle:bool):
         await ctx.send(f"dev mode is now {toggle}")
         self.avimetry.devmode=toggle
