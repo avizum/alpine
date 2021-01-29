@@ -131,9 +131,11 @@ class fun(commands.Cog):
             if str(reaction.emoji) == "\U0001F36A":
                 end=time.perf_counter()
                 gettime=(end-start)*1000
-                cookie_embed.set_field_at(0, name="Good job!", value=f"{user.mention} got the cookie in **{round(gettime)}ms**")
+                total_second=f"**{round(gettime)}ms**"
+                if gettime>1000:
+                    gettime=gettime/1000
+                    total_second=f"**{gettime:.2f}s**"
+                cookie_embed.set_field_at(0, name="Good job!", value=f"{user.mention} got the cookie in **{total_second}**")
                 await cd_cookie.edit(embed=cookie_embed)
-                await asyncio.sleep(5)
-                await cd_cookie.clear_reactions()
 def setup(avimetry):
     avimetry.add_cog(fun(avimetry))
