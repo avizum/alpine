@@ -16,7 +16,7 @@ avitoken = os.getenv('Bot_Token2')
 #Command Prefix and Intents
 async def prefix(client, message):
     if avimetry.devmode==True:
-        if message.author.id==750135653638865017:
+        if message.author.id in avimetry.owner_ids:
             return ""
     if not message.guild:
         return [str("a.")]
