@@ -108,13 +108,13 @@ class fun(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.guild)
     async def cookie(self, ctx):
         cookie_embed=discord.Embed()
-        cookie_embed.add_field(name="Get the cookie!", value="Who can get the cookie the fastest? Get ready!")
+        cookie_embed.add_field(name="Get the cookie!", value="Who has the fastest reaction time? Get ready to grab the cookie!")
         cd_cookie=await ctx.send(embed=cookie_embed)
         await asyncio.sleep(2)
         cookie_embed.set_field_at(0, name="Get Ready", value=f"Be ready to get the cookie")
         await cd_cookie.edit(embed=cookie_embed)
         await asyncio.sleep(random.randint(1,11))
-        cookie_embed.set_field_at(0, name="Go!", value="Get the cookie now!")
+        cookie_embed.set_field_at(0, name="NOW!", value="Get the cookie now!")
         await cd_cookie.edit(embed=cookie_embed)
         await cd_cookie.add_reaction("\U0001F36A")
         start=time.perf_counter()
@@ -131,8 +131,9 @@ class fun(commands.Cog):
             if str(reaction.emoji) == "\U0001F36A":
                 end=time.perf_counter()
                 gettime=(end-start)*1000
-                cookie_embed.set_field_at(0, name="Game over!", value=f"{user.mention} got the cookie in `{round(gettime)}ms`")
+                cookie_embed.set_field_at(0, name="Good job!", value=f"{user.mention} got the cookie in **{round(gettime)}ms**")
                 await cd_cookie.edit(embed=cookie_embed)
+                await asyncio.sleep(2)
                 await cd_cookie.clear_reactions()
 def setup(avimetry):
     avimetry.add_cog(fun(avimetry))

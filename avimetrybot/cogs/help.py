@@ -95,6 +95,7 @@ class Help(commands.Cog):
              command_attrs=dict(
                 hidden=True,
                 aliases=['h', 'halp', 'helps','cmds', 'commands', 'cmd'],
+                brief="Why do you need help with the help command? Oh well, Here it is anyways",
                 usage="[command] or [module]"
              )
         )

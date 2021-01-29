@@ -62,5 +62,10 @@ class cogs(commands.Cog):
                     embed.add_field(name=f"<:noTick:777096756865269760> {filename}", value=f"Reload was not successful: {e}", inline=True)
         await ctx.send(embed=embed, delete_after=10)
 
+    @commands.command()
+    @commands.is_owner()
+    async def print(self, ctx):
+        self.avimetry.loop.run_in_executor(None, print("Hello World!"))
+
 def setup(avimetry):
     avimetry.add_cog(cogs(avimetry))
