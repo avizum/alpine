@@ -12,13 +12,11 @@ class errorhandler(commands.Cog):
     async def on_command_error(self, ctx, error):
         if ctx.author.id in self.avimetry.owner_ids:
             try:
-                await ctx.reinvoke()
-                return
-            except:
                 if self.avimetry.devmode==True:
+                    await ctx.reinvoke()
                     return
-                else:
-                    pass
+            except:    
+                pass
 
         pre = await self.avimetry.get_prefix(ctx.message)
         error = getattr(error, 'original', error)

@@ -157,9 +157,9 @@ class fun(commands.Cog):
             cntdown -=1
         await asyncio.sleep(1)
         cookie_embed.set_field_at(0, name="Go!", value="Get the cookie now!")
-        start=time.perf_counter()
         await cd_cookie.edit(embed=cookie_embed)
         await cd_cookie.add_reaction("\U0001F36A")
+        start=time.perf_counter()
         def check(reaction, user):
             return str(reaction.emoji) in "\U0001F36A" and user != self.avimetry.user
         try:
