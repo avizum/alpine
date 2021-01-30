@@ -104,12 +104,13 @@ class fun(commands.Cog):
         await ctx.send(embed=a)
     
     @commands.group(aliases=["\U0001F36A", "kookie", "cookies"], invoke_without_command=True)
-    @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
-    @commands.cooldown(1, 30, commands.BucketType.guild)
+    
     async def cookie(self, ctx):
         await ctx.send_help("cookie")
 
     @cookie.command(brief="Get the cookie as fast as you can with out a countdown timer.")
+    @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
+    @commands.cooldown(1, 30, commands.BucketType.guild)
     async def hard(self, ctx):
         cookie_embed=discord.Embed()
         cookie_embed.add_field(name="Get the cookie!", value="Who has the fastest reaction time? Get ready to grab the cookie!")
@@ -143,6 +144,8 @@ class fun(commands.Cog):
                 await cd_cookie.edit(embed=cookie_embed)
 
     @cookie.command(brief="Get the cookie as fast as you can with a three second timer.")
+    @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
+    @commands.cooldown(1, 30, commands.BucketType.guild)
     async def easy(self, ctx):
         cntdown=3
         cookie_embed=discord.Embed()

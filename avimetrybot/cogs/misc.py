@@ -1,12 +1,9 @@
 import discord
+from discord import Webhook, AsyncWebhookAdapter
 import time
 from discord.ext import commands
-import asyncio
-import random
 import json
 import datetime
-import subprocess
-import os
 import requests
 import aiohttp
 
@@ -14,7 +11,8 @@ class miscellaneous(commands.Cog):
     
     def __init__(self, avimetry):
         self.avimetry = avimetry
-        
+    
+
 #CoViD-19 Stats
     @commands.command()
     async def covid(self, ctx, country):
@@ -96,16 +94,14 @@ class miscellaneous(commands.Cog):
         ie.set_thumbnail(url=member.avatar_url)
         ie.add_field(name="Server Permissions", value="wip")
 
-    @commands.command()
-    async def guess(self, ctx, number: int):
-        """ Guess a random number from 1 to 6. """
-        # explained in a previous example, this gives you
-        # a random number from 1-6
-        value = random.randint(1, 6)
-        # with your new helper function, you can add a
-        # green check mark if the guess was correct,
-        # or a red cross mark if it wasnt
-        await ctx.tick(number == value)
+    @commands.command(brief="Make a qr code ")
+    async def qr(self, ctx, content):
+        qr_embed=discord.Embed()
+        qr_embed.add_field(name="QR code", value="Here is your qr code")
+        qr_embed.set_image(url=f"https://api.qrserver.com/v1/create-qr-code/?data={content}&size=250x250")
+        await ctx.send(embed=qr_embed)
+
+        
 def setup(avimetry):
     avimetry.add_cog(miscellaneous(avimetry))
 
