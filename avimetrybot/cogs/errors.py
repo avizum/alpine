@@ -20,27 +20,21 @@ class errorhandler(commands.Cog):
             else:
                 pass
         
-
         pre = await self.avimetry.get_prefix(ctx.message)
         error = getattr(error, 'original', error)
     
         if isinstance(error, commands.CommandNotFound):
-            a = discord.Embed(color=discord.Color.red())
-            a.add_field(name="<:noTick:777096756865269760> Invalid Command", value=f"{error}. \n ")
-            a.set_footer(text=f"Use '{pre}help' if you need help.")
-            await ctx.send(embed=a, delete_after=10)
+            return
         
         elif isinstance(error, commands.BotMissingPermissions):
             mp = error.missing_perms
             missing_perms = " ".join([str(elem) for elem in mp])
-            bnp=discord.Embed(color=discord.Color.red())
-            bnp.add_field(name="<:noTick:777096756865269760> No Permission", value=f"I do not have permissions to do that. \nRequired Permission(s): `{missing_perms}`", inline=False)
+            bnp=discord.Embed(title="Give me permissions", description=f"Hey, I do not have the required permisisons to do that. Here are the permissions that I need:\n`{missing_perms}`",color=discord.Color.red())
             await ctx.send(embed=bnp, delete_after=10)
         
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.message.delete()
-            cd=discord.Embed(color=discord.Color.red())
-            cd.add_field(name="<:noTick:777096756865269760> Command on cooldown", value=f"Please wait {error.retry_after:.2f} seconds before running `{pre}{ctx.command.name}` again")
+            cd=discord.Embed(title="Slow down", description=f"Hey, **{ctx.command.name}** has a cooldown. Please wait `{round(error.retry_after)}` seconds.", color=discord.Color.red())
             await ctx.send(embed=cd, delete_after=10) 
         
         elif isinstance(error, commands.MissingPermissions):
@@ -48,8 +42,7 @@ class errorhandler(commands.Cog):
             mp = error.missing_perms
             missing_perms = " ".join([str(elem) for elem in mp])
             missing_perms.replace("_", " ")
-            np=discord.Embed(color=discord.Color.red())
-            np.add_field(name="<:noTick:777096756865269760> No Permission", value=f"You do not have permissions to use the`{pre}{ctx.command.name}`command. \nRequired Permission(s): `{missing_perms}`", inline=False)
+            np=discord.Embed(title="Missing permissions", description=f"You do not have permissions to use {ctx.command.name}. Here are the permissions that you need:\n`{missing_perms}`", color=discord.Color.red())
             await ctx.send(embed=np, delete_after=10)
 
         elif isinstance(error, commands.MissingRequiredArgument):

@@ -15,7 +15,7 @@ class miscellaneous(commands.Cog):
 
 #CoViD-19 Stats
     @commands.command()
-    async def covid(self, ctx, country):
+    async def covid(self, ctx, *, country):
         pre = await self.avimetry.get_prefix(ctx.message)
         try:
             c = requests.get(f'https://coronavirus-19-api.herokuapp.com/countries/{country}')

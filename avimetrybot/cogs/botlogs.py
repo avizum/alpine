@@ -2,159 +2,51 @@ import discord
 from discord.ext import commands
 import random
 import datetime
-import json
 
 class botlogs(commands.Cog, name="bot logs"):
 
     def __init__(self, avimetry):
         self.avimetry = avimetry
-    '''
-#Message Logger
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.guild is None:
+    
+    @commands.Cog.listener("on_message_delete")
+    async def message_delete(self, message:discord.Message):
+        if message.author==self.avimetry.user:
             return
-        with open("./avimetrybot/files/bot-logs.json", "r") as f:
-            msglogger = json.load(f)
-            if str(message.guild.id) in msglogger:
-                if msglogger[str(message.guild.id)] == 0:
-                    return
-                elif msglogger[str(message.guild.id)] == 1:
-                    with open("./avimetrybot/files/prefixes.json", "r") as f:
-                        prefixes = json.load(f)
-                    pre = prefixes[str(message.guild.id)]
-                    if message.guild is None:
-                        return
-                    if message.author == self.avimetry.user:
-                        return
-                    if message.content == '<@!756257170521063444>':
-                        a = discord.Embed(title=f"{self.avimetry.user.name} Info", description=f"Hey, my prefix for **{message.guild.name}** is `{pre}` \nIf you need help, use `{pre}help`")
-                        await message.reply(embed=a)
-                    elif message.author.bot:
-                        return
-                    elif message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
-                        return
-                    elif message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='counting'):
-                        return
-                    elif message.content.startswith(pre):
-                        return
-                    elif message.attachments:
-                        channel = discord.utils.get(self.avimetry.get_all_channels(),  name='chat-logs')
-                        mcontent=message.attachments[0].url
-                        embed=discord.Embed(title=f"Image from {message.author}, Server {message.guild}", timestamp=datetime.datetime.utcnow())
-                        embed.set_image(url=f'{mcontent}')
-                        await channel.send(embed=embed)
-                    elif message.content:
-                        channel = discord.utils.get(self.avimetry.get_all_channels(),  name='chat-logs')
-                        mcontent=message.content
-                        embed=discord.Embed(title=f"Message from {message.author}", description=f"<#{message.channel.id}>\n`{mcontent}`",timestamp=datetime.datetime.utcnow())
-                        await channel.send(embed=embed) 
-                else:
-                    msglogger[str(message.guild.id)] = 0
-                    with open("./avimetrybot/files/bot-logs.json", "w") as f:
-                        json.dump(msglogger, f, indent=4)
-                                            
-#Message Edit
-    @commands.Cog.listener()
-    async def on_message_edit(self, message_before, message_after):
-        if message_after.guild is None and message_after.guild is None:
-            return
-        channel = discord.utils.get(self.avimetry.get_all_channels(), name='bot-logs')
-        with open("./avimetrybot/files/prefixes.json", "r") as f:
-            prefixes = json.load(f)
-        pre = prefixes[str(message_after.guild.id)]
-        if message_before.author == self.avimetry.user:
-            return
-        elif message_before.content.startswith(pre):
-            return
-        elif message_after.content.startswith(pre):
-            return
-        elif message_before.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
-            return 
-        elif message_before.channel == discord.utils.get(self.avimetry.get_all_channels(), name='counting'):
-            return
-        elif message_before.author.bot:
-            return
-        elif message_before.attachments:
-             return
-        else:
-            try:
-                editembed=discord.Embed(title='Message Edit', description=f'A message from {message_before.author.mention} was edited. Information is below.')
-                editembed.add_field(name='Original Message:', value=f'`{message_before.content}`', inline=False)
-                editembed.add_field(name='Edited Message:', value=f'`{message_after.content}`', inline=False)
-                await channel.send(embed=editembed)
-            except discord.HTTPException:
-                editembed2=discord.Embed(title='Message Edit', description=f'A message from {message_before.author.mention} was edited. Information is below.')
-                editembed2.add_field(name='Original Message Error:', value="Message is too long", inline=False)
-                editembed2.add_field(name='Edited Message Error:', value="Message is too long", inline=False)
-                await channel.send(embed=editembed2)
+        embed=discord.Embed(title="Message_Delete",timestamp=datetime.datetime.utcnow())
+        embed.add_field(name="Deleted content", value=f">>> {message.content}")
+        if not message.content:
+            embed.add_field(name="Deleted content", value="The message that was deleted was an image or an embed. Due to Discord's API limitations, they can not be logged. Sorry.")
 
-#Message Delete
-    @commands.Cog.listener()
-    async def on_message_delete(self, message):
-        if message.guild is None:
-            return
-        channel = discord.utils.get(self.avimetry.get_all_channels(), name='bot-logs')
-        with open("./avimetrybot/files/prefixes.json", "r") as f:
-            prefixes = json.load(f)
-        pre = prefixes[str(message.guild.id)]
-        if message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='verify'):
-            return
-        elif message.channel == discord.utils.get(self.avimetry.get_all_channels(), name='counting'):
-            return
-        elif message.author.bot:
-            return
-        elif message.author == self.avimetry.user:
-            return
-        elif message.content.startswith(pre):
-            return
-        elif message.attachments:
-            pdelembed=discord.Embed(title='Message Delete', description=f'An image from {message.author.mention} was deleted. Information is below.')
-            pdelembed.add_field(name='Message Delete', value=f'An attachment from {message.author.mention} was deleted. However, deleted messages can not be logged.', inline=False)
-            await channel.send(embed=pdelembed)
-        else:
-            try:
-                delembed=discord.Embed(title='Message Delete', description=f'A message from {message.author.mention} was deleted. The deleted message is below.')
-                delembed.add_field(name='Deleted Message:', value=f'`{message.content}`', inline=False)
-                await channel.send(embed=delembed)
-            except discord.HTTPException:
-                delembed2=discord.Embed(title='Message Delete', description=f'A message from {message.author.mention} was deleted.')
-                delembed2.add_field(name='Deleted Message Error:', value=f'Message is too long!', inline=False)
-                await channel.send(embed=delembed2)
-                
-#Bulk delete
-    @commands.Cog.listener()
-    async def on_bulk_message_delete(self, messages):
-        channel = discord.utils.get(self.avimetry.get_all_channels(), name='bot-logs')
-        purgeembed=discord.Embed(title='Message Purge', description=f'Bulk delete detected. Information is below.')
-        purgeembed.add_field(name='Affected messages:', value=f"Channel: {messages.channel} \n Amount: {len(messages)} messages")
-        await channel.send(embed=purgeembed)
+        if message.guild.me.guild_permissions.view_audit_log is True:
+            deleted_by=(await message.guild.audit_logs(limit=1).flatten())[0]
+            if deleted_by.action==discord.AuditLogAction.message_delete:
+                if deleted_by.target==message.author:
+                    embed.set_footer(text=f"Deleted by {deleted_by.user}", icon_url=deleted_by.user.avatar_url)
 
-#Toggle Command
-    @commands.group(invoke_without_command=True)
-    @commands.has_permissions(administrator=True)
-    async def logs(self, ctx):
-        a = discord.Embed()
-        a.add_field(name="Options", value="chatlogs, botlogs")
-        await ctx.send(embed=a)
-    @logs.command()
-    async def chatlogs(self, ctx, toggle : str):
-        with open("./avimetrybot/files/bot-logs.json", "r") as f:
-            msglogger = json.load(f)
-        if toggle == "true":
-            a = discord.Embed()
-            a.add_field(name="Chat Logs", value="Chat Logs set to `true`")
-            await ctx.send(embed=a)
-            msglogger[str(ctx.guild.id)] = 1
-            with open("./avimetrybot/files/bot-logs.json", "w") as f:
-                json.dump(msglogger, f, indent=4)
-        if toggle == "false":
-            msglogger[str(ctx.guild.id)] = 0
-            with open("./avimetrybot/files/bot-logs.json", "w") as f:
-               json.dump(msglogger, f, indent=4)
-            b = discord.Embed()
-            b.add_field(name="Chat Logs", value="Chat Logs set to `true`")
-            await ctx.send(embed = b)
-    '''
+            embed.add_field(name="Information", value=f"Message Author: {message.author.mention},\nDeleted from {message.channel.mention} in {message.guild.name}", inline=False)
+        channel=self.avimetry.get_channel(800576101339758592)
+        await channel.send(embed=embed)
+
+    @commands.Cog.listener("on_message_edit")
+    async def message_edit(self, before, after):
+        if before.author==self.avimetry.user:
+            return
+        if before.content==after.content:
+            return
+        if len(before.content)>1024:
+            bef_con=f"{str(before.content[:1017])}..."
+        else:
+            bef_con=before.content
+        if len(after.content)>1024:
+            aft_con=f"{str(after.content[0:1017])}..."
+        else:
+            aft_con=after.content
+        embed=discord.Embed(title="Message_Edit", timestamp=datetime.datetime.utcnow())
+        embed.add_field(name="Message Before", value=f">>> {bef_con}", inline=False)
+        embed.add_field(name="Message After", value=f">>> {aft_con}", inline=False)
+        embed.add_field(name="Information", value=f"Message Author: {before.author.mention}\nEdited in {before.channel.mention} in {before.guild.name}")
+        channel=self.avimetry.get_channel(800576101339758592)
+        await channel.send(embed=embed)
+    
 def setup(avimetry):
     avimetry.add_cog(botlogs(avimetry))

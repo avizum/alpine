@@ -22,11 +22,11 @@ async def prefix(client, message):
         return [str("a.")]
     try:
         data=await avimetry.config.find(message.guild.id)
-        if not data or "prefix" not in data:
+        if not data or "prefixs" not in data:
             await avimetry.config.upsert({"_id": message.guild.id, "prefix": "a."})
-        return data["prefix"]
+        return data["prefixs"]
     except:
-        return "a."
+        return "aa."
 allowed_mentions=discord.AllowedMentions(everyone=False, users=True, roles=True, replied_user=False)
 intents=discord.Intents.all()
 avimetry = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=intents, allowed_mentions=allowed_mentions)
