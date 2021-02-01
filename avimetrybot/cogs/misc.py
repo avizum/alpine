@@ -6,6 +6,7 @@ import json
 import datetime
 import requests
 import aiohttp
+import unicodedata
 
 class miscellaneous(commands.Cog):
     
@@ -100,6 +101,18 @@ class miscellaneous(commands.Cog):
         qr_embed.add_field(name="QR code", value="Here is your qr code")
         qr_embed.set_image(url=f"https://api.qrserver.com/v1/create-qr-code/?data={content}&size=250x250")
         await ctx.send(embed=qr_embed)
+
+    @commands.command()
+    async def charinfo(self, ctx, *, characters: str):
+        def to_string(c):
+            digit = f'{ord(c):x}'
+            name = unicodedata.name(c, 'Name not found.')
+            return f'`\\U{digit:>08}`: {name} - {c}\n[More Info](<http://www.fileformat.info/info/unicode/char/{digit}>)'
+        msg = '\n'.join(map(to_string, characters))
+        if len(msg) > 2000:
+            return await ctx.send('Message too long. Sorry!')
+        embed=discord.Embed(title=f"Character Information - {characters}", description=msg, timestamp=datetime.datetime.utcnow())
+        await ctx.send(embed=embed)
 
         
 def setup(avimetry):

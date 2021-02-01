@@ -102,5 +102,6 @@ class Help(commands.Cog):
 
     def cog_unload(self):
         self.avimetry.help_command = self.HCne
+    
 def setup(avimetry):
     avimetry.add_cog(Help(avimetry))
