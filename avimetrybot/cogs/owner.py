@@ -6,7 +6,9 @@ from discord.ext import commands
 class cogs(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
-    
+    def cog_unload(self):
+        self.avimetry.load_extension("cogs.owner")
+        print("asd")
 
 #Load Command
     @commands.command(brief="Loads a module if it was disabled.")
