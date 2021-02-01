@@ -137,7 +137,7 @@ class fun(commands.Cog):
         cookie_embed=discord.Embed()
         cookie_embed.add_field(name="Get the cookie!", value="Who has the fastest reaction time? Get ready to grab the cookie!")
         cd_cookie=await ctx.send(embed=cookie_embed)
-        await asyncio.sleep(2)
+        await asyncio.sleep(5)
         cookie_embed.set_field_at(0, name="Ready Up!", value=f"Get ready to get the cookie!")
         await cd_cookie.edit(embed=cookie_embed)
         await asyncio.sleep(random.randint(1,11))
@@ -176,7 +176,7 @@ class fun(commands.Cog):
         # pylint: disable=unused-variable
         for i in range(3):
         # pylint: enable=unused-variable
-            await asyncio.sleep(1)
+            await asyncio.sleep(5)
             cookie_embed.set_field_at(0, name="Get Ready", value=f"Get the cookie in {cntdown}")
             await cd_cookie.edit(embed=cookie_embed)
             cntdown -=1
