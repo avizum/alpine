@@ -103,21 +103,39 @@ class botinfo(commands.Cog, name="bot utilities"):
         await self.avimetry.config.upsert({"_id": ctx.guild.id, "prefix": new_prefix})
         cp=discord.Embed()
         cp.add_field(name="<:yesTick:777096731438874634> Set Prefix", value=f"The prefix for **{ctx.guild.name}** is now `{new_prefix}`")
-        await ctx.send(embed=cp)      
+        await ctx.send(embed=cp)   
+    @config.group(invoke_without_command=True, brief="Configure logging")
+    @commands.has_permissions(administrator=True)
+    async def logging(self, ctx):
+        await ctx.send_help("config logging")   
+    @logging.command(name="channel", brief="Configure logging channel")
+    @commands.has_permissions(administrator=True)
+    async def _channel(self, ctx, channel:discord.TextChannel):
+        await self.avimetry.logs.upsert({"_id": ctx.guild.id, "logging_channel": channel.id})
+        await ctx.send(f"Set logging channel to {channel}")
+    @logging.command(brief="Configure delete logging")
+    @commands.has_permissions(administrator=True)
+    async def delete(self, ctx, toggle:bool):
+        await self.avimetry.logs.upsert({"_id": ctx.guild.id, "delete_log": toggle})
+        await ctx.send(f"Set on_message_delete logs to {toggle}")
+    @logging.command(brief="Configure edit logging")
+    @commands.has_permissions(administrator=True)
+    async def edit(self, ctx, toggle:bool):
+        await self.avimetry.logs.upsert({"_id": ctx.guild.id, "edit_log": toggle})
+        await ctx.send(f"Set on_message_edit logs to {toggle}")
+
 #Config Verification Gate Command
     @config.group(brief="Verification gate configuration for this server", aliases=["vgate", "verificationg", "vg"], invoke_without_command=True)
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def verificationgate(self, ctx):
         await ctx.send_help("config verificationgate")
-
     @verificationgate.command(brief="Toggle the verification gate")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def toggle(self, ctx, bool: bool):
         await self.avimetry.config.upsert({"_id":ctx.guild.id, "verification_gate":bool})
         await ctx.send(f"Verification Gate is now {bool}")
-
     @verificationgate.command(brief="Set the role to give when a member finishes verification.")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
@@ -130,14 +148,12 @@ class botinfo(commands.Cog, name="bot utilities"):
     @commands.bot_has_permissions(administrator=True)
     async def counting(self, ctx):
         await ctx.send_help("config counting")
-#Counting Set Count Command
     @counting.command(brief="Set the count in the counting channel")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def setcount(self, ctx, count:int):
         await self.avimetry.config.upsert({"_id": ctx.guild.id, "current_count":count})
         await ctx.send(f"Set the count to {count}")
-#Counting Set Channel Command
     @counting.command(brief="Set the channel for counting")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)

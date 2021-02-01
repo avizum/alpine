@@ -60,6 +60,7 @@ async def on_ready():
     avimetry.db=avimetry.mongo['avimetry']
     avimetry.config=MongoDB(avimetry.db, 'new')
     avimetry.mutes=MongoDB(avimetry.db, 'mutes')
+    avimetry.logs=MongoDB(avimetry.db, 'logging')
     
     current_mutes=await avimetry.mutes.get_all()
     for mute in current_mutes:
