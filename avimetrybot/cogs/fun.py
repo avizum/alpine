@@ -171,7 +171,7 @@ class fun(commands.Cog):
     async def easy(self, ctx):
         cntdown=3
         cookie_embed=discord.Embed()
-        cookie_embed.add_field(name="Get the cookie!", value="Who can get the cookie the fastest? Get ready!")
+        cookie_embed.add_field(name="Get the cookie!", value="Who has the fastest reaction time? Get ready!")
         cd_cookie=await ctx.send(embed=cookie_embed)
         # pylint: disable=unused-variable
         for i in range(3):
