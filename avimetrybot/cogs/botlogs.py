@@ -26,7 +26,7 @@ class botlogs(commands.Cog, name="bot logs"):
         if message.content:
             embed.add_field(name="Deleted content", value=f">>> {message.content}")
         if not message.content:
-            embed.add_field(name="Deleted content", value="The message that was deleted was an image or an embed. Due to Discord's API limitations, they can not be logged. Sorry.")
+            embed.add_field(name="Deleted content", value="Due to Discord's API limitations, embeds and images can not be logged. Sorry.")
 
         if message.guild.me.guild_permissions.view_audit_log is True:
             deleted_by=(await message.guild.audit_logs(limit=1).flatten())[0]

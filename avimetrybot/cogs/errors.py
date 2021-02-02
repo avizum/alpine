@@ -34,7 +34,7 @@ class errorhandler(commands.Cog):
         
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.message.delete()
-            cd=discord.Embed(title="Slow down", description=f"Hey, **{ctx.command.name}** has a cooldown. Please wait `{round(error.retry_after)}` seconds.", color=discord.Color.red())
+            cd=discord.Embed(title="Slow down", description=f"Hey, **{ctx.command.name}** has a cooldown. Please wait `{round(error.retry_after)}` seconds before using it again.", color=discord.Color.red())
             await ctx.send(embed=cd, delete_after=10) 
         
         elif isinstance(error, commands.MissingPermissions):
@@ -48,8 +48,7 @@ class errorhandler(commands.Cog):
         elif isinstance(error, commands.MissingRequiredArgument):
             pre = await self.avimetry.get_prefix(ctx.message)
             ctx.command.reset_cooldown(ctx)
-            a = discord.Embed(color=discord.Color.red())
-            a.add_field(name="<:noTick:777096756865269760> Missing required argument(s)", value=f'Here are the missing argument(s): "{error.param.name}"')
+            a = discord.Embed(title="Invalid command syntax", description=f"You invoked this command incorrectly, Here is the correct syntax\n{ctx.command.signature}.",color=discord.Color.red())
             a.set_footer(text=f"Use '{pre}help' if you need help.")
             await ctx.send(embed=a, delete_after=10)
 
@@ -57,8 +56,7 @@ class errorhandler(commands.Cog):
             await ctx.send("This command is disabled. The command will be enabled when the command is done.")
 
         elif isinstance(error, commands.NotOwner):
-            no=discord.Embed(color=discord.Color.red())
-            no.add_field(name="<:noTick:777096756865269760> No Permission", value=f"You are not a bot owner, so you can't use `{pre}{ctx.command.name}`.", inline=False)
+            no=discord.Embed(title="Missing Permissions", description="Only owners can run this command.",color=discord.Color.red())
             await ctx.send(embed=no, delete_after=10)
 
         elif isinstance(error, commands.BadArgument):

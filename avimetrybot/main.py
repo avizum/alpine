@@ -26,7 +26,7 @@ async def prefix(client, message):
             await avimetry.config.upsert({"_id": message.guild.id, "prefix": "a."})
         return data["prefiix"]
     except:
-        return "a"
+        return "b"
 allowed_mentions=discord.AllowedMentions(everyone=False, users=True, roles=True, replied_user=False)
 intents=discord.Intents.all()
 avimetry = commands.Bot(command_prefix = prefix, case_insensitive=True, intents=intents, allowed_mentions=allowed_mentions)
@@ -77,3 +77,5 @@ for filename in os.listdir('./avimetrybot/cogs'):
 
 #Log-In
 avimetry.run(avitoken)
+
+os.system("python3 avimetrybot/main.py")

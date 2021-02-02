@@ -2,29 +2,6 @@ import discord
 from discord.ext import commands
 import re
 
-class Role(commands.Converter):
-    async def convert(self, ctx, argument):
-        found = None
-
-        if re.fullmatch("<@&[0-9]{15,}>", argument) is not None:
-            found = ctx.guild.get_role(int(argument[3:-1]))
-
-        if argument.isnumeric():
-            if re.fullmatch("[0-9]{15,}", argument) is not None:
-                found = ctx.guild.get_role(int(argument))
-
-        for role in ctx.guild.roles:
-            if found is not None:
-                break
-            if role.name.lower().startswith(argument.lower()):
-                found = role
-            else:
-                continue
-
-        if found is None:
-            raise commands.BadArgument("Could not find that role.")
-        return found
-
 class management(commands.Cog, name="member management"):
     def __init__(self, avimetry):
         self.avimetry=avimetry
@@ -67,6 +44,7 @@ class management(commands.Cog, name="member management"):
             return
 #Update Member Count Command
     @commands.command(aliases=["updatemc", "umembercount"], brief="Updates the member count if the count gets out of sync.")
+    @commands.has_permissions(administrator=True)
     async def refreshcount(self, ctx):
         channel = self.avimetry.get_channel(783961111060938782)
         await channel.edit(name=f"Total Members: {channel.guild.member_count}")
@@ -98,14 +76,14 @@ class management(commands.Cog, name="member management"):
     async def role(self, ctx):
         await ctx.send_help("role")
     @role.command(brief="Give a role to a member.")
-    async def add(self, ctx, member:discord.Member, role:Role):
+    async def add(self, ctx, member:discord.Member, role:discord.Role):
         await member.add_roles(role)
         ra = discord.Embed()
         ra.add_field(name="<:yesTick:777096731438874634> Role Add", value=f"Added {role.mention} to {member.mention}.")
         await ctx.send(embed=ra)
 
     @role.command(brief="Remove a role from a member.")
-    async def remove(self, ctx, member:discord.Member, role:Role):
+    async def remove(self, ctx, member:discord.Member, role:discord.Role):
         await member.remove_roles(role)
         rr = discord.Embed()
         rr.add_field(name="<:yesTick:777096731438874634> Role Remove", value=f"Removed {role.mention} from {member.mention}")

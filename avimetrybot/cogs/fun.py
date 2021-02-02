@@ -105,31 +105,7 @@ class fun(commands.Cog):
     
     @commands.group(aliases=["\U0001F36A", "kookie", "cookies"], invoke_without_command=True)
     async def cookie(self, ctx):
-        cookie_menu=discord.Embed(title="Pick a difficulty", description="1️⃣ Cookie Easy\n\n2️⃣ Cookie Hard")
-        cookies=await ctx.send(embed=cookie_menu)
-        reactions=["1️⃣","2️⃣"]
-        for reaction in reactions:
-            await cookies.add_reaction(reaction)
-        def check(reaction, user):
-            return str(reaction.emoji) in ['1️⃣', '2️⃣'] and user != self.avimetry.user and user==ctx.author
-        try:
-            # pylint: disable=unused-variable
-            reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=10)
-        except asyncio.TimeoutError:
-            to=discord.Embed()
-            to.add_field(name=f"You took too long!", value="Timed Out.")
-            await cookies.edit(embed=to)
-            await cookies.clear_reactions()
-        else:
-            if str(reaction.emoji) == '1️⃣':
-                await cookies.delete()
-                cmd = self.avimetry.get_command("cookie easy")
-                await cmd(ctx)
-            if str(reaction.emoji) == '2️⃣':
-                await cookies.delete()
-                cmd = self.avimetry.get_command("cookie hard")
-                await cmd(ctx)
-
+        await ctx.send_help("cookie")
     @cookie.command(brief="Get the cookie as fast as you can with out a countdown timer.")
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     @commands.cooldown(1, 30, commands.BucketType.guild)

@@ -8,3 +8,4 @@ avimetrybot/files/bot-logs.json
 avimetrybot/.env
 nohup.out
 .DS_Store
+discord.log
