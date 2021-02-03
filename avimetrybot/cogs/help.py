@@ -8,7 +8,7 @@ class HCEmbed(commands.HelpCommand):
         return 'Use {0}{1} [command] or [module] for more info on a command or module.'.format(self.clean_prefix, self.invoked_with)
     
     def bnote(self):
-        return ">>> ```[] <--- Optional Argument\n<> <--- Requred Argument```"
+        return ">>> `<> = required argument\n[] = optional argument`"
 
     def gcommand_signature(self, command):
         return '{0.qualified_name} {0.signature}'.format(command)
@@ -18,16 +18,13 @@ class HCEmbed(commands.HelpCommand):
 
 
     async def send_bot_help(self, mapping):
-        embed = discord.Embed(title='Help Menu', description=f"The prefix for **{self.get_destination().guild.name}** is `{self.clean_prefix}`\n{self.bnote()}")
-        description = self.context.bot.description
-        if description:
-            embed.description = description
+        embed = discord.Embed(title='Help Menu', description=f"{self.context.bot.description}\n\nThe prefix for **{self.get_destination().guild.name}** is `{self.clean_prefix}`\n{self.bnote()}")
         for cog, commands in mapping.items():
             name = 'No Category' if cog is None else cog.qualified_name.title()
             filtered = await self.filter_commands(commands, sort=True)
             if filtered:
                 value=f"`{self.clean_prefix}{self.invoked_with} {name.lower()}`"
-                embed.add_field(name=name, value=f"{value}", inline=False)
+                embed.add_field(name=name, value=value, inline=False)
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
    
@@ -40,7 +37,7 @@ class HCEmbed(commands.HelpCommand):
             usage=command.short_doc
             if not usage:
                 usage="No Description"
-            embed.add_field(name=self.gcommand_signature(command), value=f"`{usage}`", inline=False)
+            embed.add_field(name=f"{self.clean_prefix}{self.gcommand_signature(command)}", value=f"`{usage}`", inline=False)
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
 
@@ -50,7 +47,7 @@ class HCEmbed(commands.HelpCommand):
             usage=group.short_doc
             if not usage:
                 usage="No Description"
-            embed.add_field(name=self.gcommand_signature(group), value=f"`{usage}`")
+            embed.add_field(name=f"{self.clean_prefix}{self.gcommand_signature(group)}", value=f"`{usage}`")
 
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
@@ -58,7 +55,7 @@ class HCEmbed(commands.HelpCommand):
                 usage=command.short_doc
                 if not usage:
                     usage="No Description"
-                embed.add_field(name=self.gcommand_signature(command), value=f"`{usage}`", inline=False)
+                embed.add_field(name=f"{self.clean_prefix}{self.gcommand_signature(command)}", value=f"`{usage}`", inline=False)
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
 
@@ -67,7 +64,7 @@ class HCEmbed(commands.HelpCommand):
         usage=command.short_doc
         if not usage:
             usage="No Description"
-        embed.add_field(name=self.gcommand_signature(command), value=f"`{usage}`", inline=False)
+        embed.add_field(name=f"{self.clean_prefix}{self.gcommand_signature(command)}", value=f"`{usage}`", inline=False)
         alias = command.aliases
         if alias:
             embed.add_field(name="Aliases", value=f'`{", ".join(alias)}`', inline=False)

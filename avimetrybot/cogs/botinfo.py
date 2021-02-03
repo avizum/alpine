@@ -11,34 +11,12 @@ import aiohttp
 class botinfo(commands.Cog, name="bot utilities"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
-        # pylint: disable=no-member
-        self.status_task.start()
-        # pylint: disable=no-member
-    def cog_unload(self):
-        self.status_task.cancel()
-
-#Loop Presence
-    @tasks.loop(seconds=1)
-    async def status_task(self):
-        await self.avimetry.change_presence(activity=discord.Game('Need Help? | a.help'))
-        await asyncio.sleep(60)
-        await self.avimetry.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name='for commands'))
-        await asyncio.sleep(60)
-        await self.avimetry.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="'a.'"))
-        await asyncio.sleep(60)
-        await self.avimetry.change_presence(activity=discord.Game('discord.gg/zpj46np'))
-        await asyncio.sleep(60)
-        await self.avimetry.change_presence(activity=discord.Activity(type=discord.ActivityType.competing, name='ROBLOX'))
-        await asyncio.sleep(60)
-    @status_task.before_loop
-    async def before_status_task(self):
-        await self.avimetry.wait_until_ready()
 #On Ready
     @commands.Cog.listener()
     async def on_ready(self):
         timenow=datetime.datetime.now().strftime("%I:%M %p")
         print('------\n'
-              'Succesfully logged in as\n'
+              'Succesfully logged in. Bot Info Below:\n'
               f'Username: {self.avimetry.user.name}\n'
               f'Bot ID: {self.avimetry.user.id}\n'
               f'Login Time: {datetime.date.today()} at {timenow}\n'
@@ -95,7 +73,7 @@ class botinfo(commands.Cog, name="bot utilities"):
     @commands.bot_has_permissions(administrator=True)
     async def config(self, ctx):
           await ctx.send_help("config")
-#Config Prefix Commnad
+    #Config Prefix Commnad
     @config.command(brief="Change the prefix of this server")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
@@ -123,8 +101,7 @@ class botinfo(commands.Cog, name="bot utilities"):
     async def edit(self, ctx, toggle:bool):
         await self.avimetry.logs.upsert({"_id": ctx.guild.id, "edit_log": toggle})
         await ctx.send(f"Set on_message_edit logs to {toggle}")
-
-#Config Verification Gate Command
+    #Config Verification Gate Command
     @config.group(brief="Verification gate configuration for this server", aliases=["vgate", "verificationg", "vg"], invoke_without_command=True)
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
@@ -142,7 +119,7 @@ class botinfo(commands.Cog, name="bot utilities"):
     async def role(self, ctx, role:discord.Role):
         await self.avimetry.config.upsert({"_id":ctx.guild.id, "gate_role":role.id})
         await ctx.send(f"The verification gate role is set to {role}")
-#Config Counting Command
+    #Config Counting Command
     @config.group(invoke_without_command=True, brief="Configure counting settings")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
@@ -160,14 +137,14 @@ class botinfo(commands.Cog, name="bot utilities"):
     async def channel(self, ctx, channel:discord.TextChannel):
         await self.avimetry.config.upsert({"_id": ctx.guild.id, "counting_channel":channel.id})
         await ctx.send(f"Set the counting channel to {channel}")
-#Bot Info Command
+    #Bot Info Command
     @commands.command()
     async def info(self, ctx):
         info=discord.Embed()
         info.add_field(name=f"{self.avimetry.user.name} Information", value=f"Discord Py Version: {discord.__version__}\nPython Version: 3.9\nGuilds: {len(self.avimetry.guilds)}\nMembers: {len(self.avimetry.users)}\nBot Invite link: [here](https://discord.com/oauth2/authorize?client_id={self.avimetry.user.id}&scope=bot&permissions=2147483647)", inline=False)
         info.add_field(name="Bot Status", value=f"Ping: `{round(self.avimetry.latency * 1000)}ms`")
         await ctx.send(embed=info)      
-#Uptime Command
+    #Uptime Command
     @commands.command(brief="Get the bot's uptime")
     async def uptime(self, ctx):
         delta_uptime = datetime.datetime.utcnow() - self.avimetry.launch_time
@@ -176,7 +153,7 @@ class botinfo(commands.Cog, name="bot utilities"):
         days, hours = divmod(hours, 24)
         ue = discord.Embed(title="Current Uptime", description=f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds")
         await ctx.send(embed=ue)
-#Ping Command
+    #Ping Command
     @commands.command(brief="Gets the bot's ping.")
     async def ping(self, ctx):
         start = time.perf_counter()
@@ -189,7 +166,7 @@ class botinfo(commands.Cog, name="bot utilities"):
         await asyncio.sleep(.5)
         await message.edit(content="", embed=pingembed)
 #Source Command
-#Removing or modifying this command is not allowed as stated in the license. If you do use this code, you have to make your bot's source public.
+    #Removing or modifying this command is not allowed as stated in the license. If you do use this code, you have to make your bot's source public.
     @commands.command(brief="Sends the bot's source")
     async def source(self, ctx):
         source_embed=discord.Embed(title=f"{self.avimetry.user.name}'s source code", timestamp=datetime.datetime.utcnow())
@@ -201,7 +178,7 @@ class botinfo(commands.Cog, name="bot utilities"):
 #Invite Command
     @commands.group(invoke_without_command=True)
     async def invite(self, ctx):
-        invite_embed=discord.Embed(title=f"{self.avimetry.user.name} Invite", description="Invite me to your server! Here is the [invite link](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=8)")
+        invite_embed=discord.Embed(title=f"{self.avimetry.user.name} Invite", description="Invite me to your server! Here are the invite links.\n•Invite with [all permissions](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)\n•Invite with [administrator permissions](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=8)\n•Invite with [no permissions](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=8)")
         invite_embed.set_thumbnail(url=self.avimetry.user.avatar_url)
         await ctx.send(embed=invite_embed)
     @invite.command()
@@ -210,7 +187,7 @@ class botinfo(commands.Cog, name="bot utilities"):
         bot_invite.set_thumbnail(url=bot.avatar_url)
         if bot.bot:
             bot_invite.title=f"{bot.name} Invite"
-            bot_invite.description=f"Invite {bot.name} to your server! Here is the [invite link](https://discord.com/oauth2/authorize?client_id={bot.id}&scope=bot&permissions=8)"
+            bot_invite.description=f"Invite {bot.name} to your server! Here are the invite links.\n•Invite with [all permissions](https://discord.com/oauth2/authorize?client_id={bot.id}&scope=bot&permissions=2147483647)\n•Invite with [administrator permissions](https://discord.com/oauth2/authorize?client_id={bot.id}&scope=bot&permissions=8)\n•Invite with [no permissions](https://discord.com/oauth2/authorize?client_id={bot.id}&scope=bot&permissions=8)"
         else:
             bot_invite.title=f"{bot.name} Invite"
             bot_invite.description=f"That is not a bot. Make sure you mention a bot."

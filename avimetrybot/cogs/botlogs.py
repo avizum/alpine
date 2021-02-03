@@ -14,7 +14,11 @@ class botlogs(commands.Cog, name="bot logs"):
 
     @commands.Cog.listener("on_message_delete")
     async def message_delete(self, message:discord.Message):
+        if message.guild is None:
+            return
         delete_log=await self.get_logs(message.guild.id)
+        if delete_log is None:
+            return
         try:
             if (delete_log["delete_log"])==False:
                 return
@@ -42,7 +46,13 @@ class botlogs(commands.Cog, name="bot logs"):
 
     @commands.Cog.listener("on_message_edit")
     async def message_edit(self, before, after):
+        if before.guild is None and after.guild is None:
+            return
+        else:
+            pass
         edit_log=await self.get_logs(before.guild.id)
+        if edit_log is None:
+            return
         try:
             if (edit_log["edit_log"])==False:
                 return

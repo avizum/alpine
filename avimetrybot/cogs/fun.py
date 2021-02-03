@@ -181,7 +181,6 @@ class fun(commands.Cog):
                     total_second=f"**{gettime:.2f}s**"
                 cookie_embed.set_field_at(0, name="Good job!", value=f"{user.mention} got the cookie in **{total_second}**")
                 await cd_cookie.edit(embed=cookie_embed)
-
-                
+          
 def setup(avimetry):
     avimetry.add_cog(fun(avimetry))

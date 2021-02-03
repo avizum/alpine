@@ -64,13 +64,6 @@ class errorhandler(commands.Cog):
             ba.add_field(name="<:noTick:777096756865269760> Bad argument", value=error)
             await ctx.send(embed=ba, delete_after=10)
         
-        elif isinstance(error, commands.BotMissingPermissions):
-            mp = error.missing_perms
-            missing_perms = " ".join([str(elem) for elem in mp])
-            bm = discord.Embed(color=discord.Color.red())
-            bm.add_field(name="<:noTick:777096756865269760> I have no permission", value=f"I do not have permission to do that, Please give me these permission(s) `{missing_perms}`")
-            await ctx.send(embed=bm, delete_after=10)
-
         elif isinstance(error, commands.TooManyArguments):
             await ctx.send(f"{error}")
 
