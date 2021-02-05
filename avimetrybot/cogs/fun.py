@@ -7,10 +7,11 @@ import typing
 import re
 import datetime
 
+aldmnts=discord.AllowedMentions(everyone=False, users=False, roles=False, replied_user=False)
 class fun(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
-        
+
 #Magic 8 Ball
     @commands.command(aliases=['8ball', '8b'], brief="Ask a question to the magic eight ball, and you will recieve an answer")
     @commands.cooldown(1, 5, commands.BucketType.member)
@@ -63,14 +64,14 @@ class fun(commands.Cog):
     @commands.command(brief="You can make me say whatever you please!", usage="<message>")
     @commands.cooldown(1, 120, commands.BucketType.member)
     async def say(self, ctx, *, botsay):
-        await ctx.send(f'{botsay}')
+        await ctx.send(f'{botsay}', allowed_mentions=aldmnts)
 
 #Delete Say Command
     @commands.command(brief="You can make me say whatever you please, but I delete your message so it looks like I sent it!", usage="<message>")
     @commands.cooldown(1, 120, commands.BucketType.member)
     async def dsay(self, ctx, *, dbotsay):
         await ctx.message.delete()
-        await ctx.send(f'{dbotsay}')
+        await ctx.send(f'{dbotsay}', allowed_mentions=aldmnts)
 
 #Skin Command
     @commands.command(brief="Remove the skin off of people that you don't like.")

@@ -20,7 +20,6 @@ class cogs(commands.Cog):
                 if filename.endswith('.py'):
                     try:
                         self.avimetry.load_extension(f'cogs.{filename[:-3]}')
-                        embed.add_field(name=f"<:yesTick:777096731438874634> {filename}", value="Load was successful", inline=True)
                     except Exception as e:
                         embed.add_field(name=f"<:noTick:777096756865269760> {filename}", value=f"Load was not successful: {e}", inline=True)
             await ctx.send(embed=embed, delete_after=10)
@@ -45,7 +44,6 @@ class cogs(commands.Cog):
                 if filename.endswith('.py'):
                     try:
                         self.avimetry.unload_extension(f'cogs.{filename[:-3]}')
-                        embed.add_field(name=f"<:yesTick:777096731438874634> {filename}", value="Unload was successful", inline=True)
                     except Exception as e:
                         embed.add_field(name=f"<:noTick:777096756865269760> {filename}", value=f"Unload was not successful: {e}", inline=True)
             await ctx.send(embed=embed, delete_after=10)
@@ -70,7 +68,6 @@ class cogs(commands.Cog):
                 if filename.endswith('.py'):
                     try:
                         self.avimetry.reload_extension(f'cogs.{filename[:-3]}')
-                        embed.add_field(name=f"<:yesTick:777096731438874634> {filename}", value="Reload was successful", inline=True)
                     except Exception as e:
                         embed.add_field(name=f"<:noTick:777096756865269760> {filename}", value=f"Reload was not successful: {e}", inline=True)
             await ctx.send(embed=embed, delete_after=10)
@@ -84,19 +81,6 @@ class cogs(commands.Cog):
             noreload=discord.Embed()
             noreload.add_field(name="<:noTick:777096756865269760> Not Loaded", value=reload_error)
             await ctx.send(embed=noreload, delete_after=10)
-
-    @commands.command(brief="Reload all modules")
-    @commands.is_owner()
-    async def greload(self, ctx):
-        embed=discord.Embed(title="Reloaded Modules", timestamp=datetime.datetime.utcnow())
-        for filename in os.listdir('./avimetrybot/cogs'):
-            if filename.endswith('.py'):
-                try:
-                    self.avimetry.reload_extension(f'cogs.{filename[:-3]}')
-                    embed.add_field(name=f"<:yesTick:777096731438874634> {filename}", value="Reload was successful", inline=True)
-                except Exception as e:
-                    embed.add_field(name=f"<:noTick:777096756865269760> {filename}", value=f"Reload was not successful: {e}", inline=True)
-        await ctx.send(embed=embed, delete_after=10)
 
     @commands.command()
     @commands.is_owner()

@@ -1,8 +1,27 @@
 import discord
 from discord.ext import commands, tasks
 import datetime
+import os
+import pathlib
+from difflib import get_close_matches
 
 class HCEmbed(commands.HelpCommand):
+
+    def get_files(self):
+        total = 0
+        file_amount = 0
+        ENV = "env"
+        for path, _, files in os.walk("."):
+            for name in files:
+                file_dir = str(pathlib.PurePath(path, name))
+                if not name.endswith(".py") or ENV in file_dir:
+                    continue
+                file_amount += 1
+                with open(file_dir, "r", encoding="utf-8") as file:
+                    for line in file:
+                        if not line.strip().startswith("#") or not line.strip():
+                            total += 1
+        return f"is a bot that is spread out across **{file_amount}** python files, with a total of **{total}** lines of code."
 
     def gending_note(self):
         return 'Use {0}{1} [command] or [module] for more info on a command or module.'.format(self.clean_prefix, self.invoked_with)
@@ -18,7 +37,7 @@ class HCEmbed(commands.HelpCommand):
 
 
     async def send_bot_help(self, mapping):
-        embed = discord.Embed(title='Help Menu', description=f"{self.context.bot.description}\n\nThe prefix for **{self.get_destination().guild.name}** is `{self.clean_prefix}`\n{self.bnote()}")
+        embed = discord.Embed(title='Help Menu', description=f"{self.context.bot.user.name} {self.get_files()}\n\nThe prefix for **{self.get_destination().guild.name}** is `{self.clean_prefix}`\n{self.bnote()}")
         for cog, commands in mapping.items():
             name = 'No Category' if cog is None else cog.qualified_name.title()
             filtered = await self.filter_commands(commands, sort=True)
@@ -73,16 +92,20 @@ class HCEmbed(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
     
     async def command_not_found(self, string):
-        embed=discord.Embed(title="Help Menu")
-        embed.add_field(name=f"Command/Module does not exist", value='"{0}" is not a command/module.\nMake sure you spelled it correctly.'.format(string))
+        embed=discord.Embed(title="Command Not Found")
+        lol='\n'.join(get_close_matches(string, [i.name for i in self.context.bot.commands]))
+        if lol:
+            embed.description=f'"{string}" is not a command/module. Did you mean...\n`{lol}`'
+        if not lol:
+            embed.description=f'"{string}" is not a command/module and I couln\'t find any similar commands.'
         embed.set_footer(text=self.gending_note())
-        await self.get_destination().send(embed=embed, delete_after=10)
+        await self.get_destination().send(embed=embed)
     
     async def subcommand_not_found(self, command, string):
         embed=discord.Embed(title="Help Menu")
         embed.add_field(name=f"Subcommand does not exist", value='"{0}" is not a subcommand of "{1}".'.format(string, command))
         embed.set_footer(text=self.gending_note())
-        await self.get_destination().send(embed=embed, delete_after=10)
+        await self.get_destination().send(embed=embed)
 
 class Help(commands.Cog):
     def __init__(self, avimetry):

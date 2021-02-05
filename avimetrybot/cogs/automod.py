@@ -8,7 +8,7 @@ import datetime
 class automod(commands.Cog, name="auto moderation"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
-        
+'''
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author == self.avimetry.user:
@@ -35,6 +35,6 @@ class automod(commands.Cog, name="auto moderation"):
             if words in message_after.content.lower():
                 await message_after.delete()
                 await message_after.channel.send(f"{message_after.author.mention}, don't edit your message to say that word!", delete_after=3)
-
+'''
 def setup(avimetry):
     avimetry.add_cog(automod(avimetry)) #40

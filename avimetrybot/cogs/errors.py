@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 import datetime
 import traceback, sys, os
+from difflib import get_close_matches
+import re
 
 class errorhandler(commands.Cog):
     def __init__(self, avimetry):
@@ -24,8 +26,17 @@ class errorhandler(commands.Cog):
         error = getattr(error, 'original', error)
     
         if isinstance(error, commands.CommandNotFound):
-            return
-        
+            not_found_embed=discord.Embed(title="Invalid Command", color=discord.Color.red())
+            prefix=len(await self.avimetry.get_prefix(ctx))
+            not_found=ctx.message.content[prefix:]
+            lol='\n'.join(get_close_matches(not_found, [i.name for i in ctx.bot.commands]))
+            if not lol:
+                not_found_embed.description=f'I couldn\'t find any similar commands to "{not_found}".'
+                not_found_embed.set_footer(text=f"Use {pre}help to see the whole list of commands")
+            if lol:
+                not_found_embed.description=f'I wasn\'t able to find a command called "{not_found}" . Did you mean...\n`{lol}`'
+                not_found_embed.set_footer(text=f"Not what you meant? Use {pre}help to see the whole list of commands.")
+            await ctx.send(embed=not_found_embed)
         elif isinstance(error, commands.BotMissingPermissions):
             mp = error.missing_perms
             missing_perms = " ".join([str(elem) for elem in mp])

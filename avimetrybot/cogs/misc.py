@@ -6,12 +6,13 @@ import json
 import datetime
 import aiohttp
 import unicodedata
+import sr_api
+import asyncio
 
 class miscellaneous(commands.Cog):
     
     def __init__(self, avimetry):
         self.avimetry = avimetry
-    
 #CoViD-19 Stats
     @commands.command()
     async def covid(self, ctx, *, country):
@@ -112,6 +113,7 @@ class miscellaneous(commands.Cog):
             return await ctx.send('Message too long. Sorry!')
         embed=discord.Embed(title=f"Character Information - {characters}", description=msg, timestamp=datetime.datetime.utcnow())
         await ctx.send(embed=embed)
+
         
 def setup(avimetry):
     avimetry.add_cog(miscellaneous(avimetry))
