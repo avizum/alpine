@@ -35,9 +35,12 @@ class HCEmbed(commands.HelpCommand):
     async def send_error_message(self, command):
         return
 
+    def get_destination(self):
+        return self.context
+
 
     async def send_bot_help(self, mapping):
-        embed = discord.Embed(title='Help Menu', description=f"{self.context.bot.user.name} {self.get_files()}\n\nThe prefix for **{self.get_destination().guild.name}** is `{self.clean_prefix}`\n{self.bnote()}")
+        embed = discord.Embed(title='Help Menu', description=f"{self.context.bot.user.name} {self.get_files()}\n\nThe prefix for **{self.get_destination().guild.name}** is `{self.clean_prefix}`")
         for cog, commands in mapping.items():
             name = 'No Category' if cog is None else cog.qualified_name.title()
             filtered = await self.filter_commands(commands, sort=True)

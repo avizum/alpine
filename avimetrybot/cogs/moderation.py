@@ -27,9 +27,7 @@ class moderation(commands.Cog):
     
     def __init__(self, avimetry):
         self.avimetry = avimetry
-        # pylint: disable=no-member
         self.check_mutes.start()
-        # pylint: disable=unused-variable
         def cog_unload(self):
             self.check_mutes.cancel()
 #Unmute Loop
@@ -37,7 +35,6 @@ class moderation(commands.Cog):
     async def check_mutes(self):
         currentTime = datetime.datetime.now()
         mutes = deepcopy(self.avimetry.muted_users)
-        # pylint: disable=unused-variable
         for key, value in mutes.items():
             if value['muteDuration'] is None:
                 continue
@@ -61,7 +58,7 @@ class moderation(commands.Cog):
                     try:
                         await self.avimetry.mutes.delete(member.id)
                         await self.avimetry.muted_users.pop(member.id)
-                    except:
+                    except discord.Forbidden:
                         return
                 await self.avimetry.mutes.delete(member.id)
                 try:
@@ -71,20 +68,18 @@ class moderation(commands.Cog):
     
     @check_mutes.before_loop
     async def before_check_mutes(self):
-        # pylint: disable=unused-variable
         await self.avimetry.wait_until_ready()
 
 #Clean Command    
     @commands.command(brief="Cleans bot messages", usage="[amount]")
     @commands.has_permissions(manage_messages=True)
-    @commands.bot_has_permissions(manage_messages=True)
     async def clean(self, ctx, limit=100):
         await ctx.message.delete()
         def avimetrybot(m):
             c1=m.author==self.avimetry.user
             return c1
         try:
-            d1 = await ctx.channel.purge(limit=limit, check=avimetrybot)
+            d1 = await ctx.channel.purge(limit=limit, check=avimetrybot, bulk=False)
         except discord.Forbidden:
             d1 = await ctx.channel.purge(limit=limit, check=avimetrybot, bulk=False)
         cm = await ctx.send("Cleaning...")
@@ -125,7 +120,6 @@ class moderation(commands.Cog):
             def check(reaction, user):
                 return str(reaction.emoji) in "<:noTick:777096756865269760>" and user != self.avimetry.user and user==ctx.author
             try:
-                # pylint: disable = unused-variable
                 reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=60)
             except asyncio.TimeoutError:
                 pe.set_footer(text="Menu has timed out")

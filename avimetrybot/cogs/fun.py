@@ -7,7 +7,6 @@ import typing
 import re
 import datetime
 
-aldmnts=discord.AllowedMentions(everyone=False, users=False, roles=False, replied_user=False)
 class fun(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
@@ -64,14 +63,14 @@ class fun(commands.Cog):
     @commands.command(brief="You can make me say whatever you please!", usage="<message>")
     @commands.cooldown(1, 120, commands.BucketType.member)
     async def say(self, ctx, *, botsay):
-        await ctx.send(f'{botsay}', allowed_mentions=aldmnts)
+        await ctx.send(f'{botsay}')
 
 #Delete Say Command
     @commands.command(brief="You can make me say whatever you please, but I delete your message so it looks like I sent it!", usage="<message>")
     @commands.cooldown(1, 120, commands.BucketType.member)
     async def dsay(self, ctx, *, dbotsay):
         await ctx.message.delete()
-        await ctx.send(f'{dbotsay}', allowed_mentions=aldmnts)
+        await ctx.send(f'{dbotsay}')
 
 #Skin Command
     @commands.command(brief="Remove the skin off of people that you don't like.")
@@ -125,7 +124,6 @@ class fun(commands.Cog):
         def check(reaction, user):
             return str(reaction.emoji) in "\U0001F36A" and user != self.avimetry.user
         try:
-            # pylint: disable = unused-variable
             reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=10)
         except asyncio.TimeoutError:
             cookie_embed.set_field_at(0, name="Game over!", value=f"Nobody got the cookie :(")
@@ -151,9 +149,7 @@ class fun(commands.Cog):
         cookie_embed.add_field(name="Get the cookie!", value="Who has the fastest reaction time? Get ready!")
         cd_cookie=await ctx.send(embed=cookie_embed)
         await asyncio.sleep(5)
-        # pylint: disable=unused-variable
-        for i in range(3):
-        # pylint: enable=unused-variable
+        while cntdown>0:
             await asyncio.sleep(1)
             cookie_embed.set_field_at(0, name="Get Ready", value=f"Get the cookie in {cntdown}")
             await cd_cookie.edit(embed=cookie_embed)
@@ -166,7 +162,6 @@ class fun(commands.Cog):
         def check(reaction, user):
             return str(reaction.emoji) in "\U0001F36A" and user != self.avimetry.user
         try:
-            # pylint: disable = unused-variable
             reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=10)
         except asyncio.TimeoutError:
             cookie_embed.set_field_at(0, name="Game over!", value=f"Nobody got the cookie :(")

@@ -1,4 +1,3 @@
-# pylint: disable=unused-variable
 import discord
 import os
 import datetime
@@ -14,6 +13,9 @@ import aiozaneapi
 import sr_api
 import aiohttp
 import sys
+import contextlib
+from pathlib import Path
+from utils.context import AvimetryContext
 
 class Silence:
     def write(self, msg):
@@ -31,11 +33,11 @@ async def prefix(avimetrybot, message):
     except:
         return "a."
 
-allowed_mentions=discord.AllowedMentions(everyone=True, users=True, roles=True, replied_user=True)
+allowed_mentions=discord.AllowedMentions(everyone=False, users=True, roles=True, replied_user=True)
 intents=discord.Intents.all()
 activity=discord.Game('avimetry() | a.help')
 
-class avimetrybot(commands.Bot):
+class AvimetryBot(commands.Bot):
     def __init__(self):
         intents=discord.Intents.all()
         super().__init__(
@@ -90,14 +92,18 @@ class avimetrybot(commands.Bot):
             if filename.endswith('.py'):
                 self.load_extension(f'cogs.{filename[:-3]}')
 
+    async def get_context(self, message, *, cls=AvimetryContext):
+        return await super().get_context(message, cls=cls)
+
     async def close(self):
-        sys.stderr = Silence()
-        print("\nGoodbye!\n------")
+        with contextlib.suppress(Exception):
+            sys.stderr=Silence()
+            await super().close()
+        
         
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
         if after.author.id in self.owner_ids:
             await self.process_commands(after)
-
 
 class MongoDB:
     def __init__(self, connection, document_name):

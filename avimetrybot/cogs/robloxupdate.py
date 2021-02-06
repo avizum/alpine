@@ -10,11 +10,9 @@ from datetime import date
 
 class robloxupdate(commands.Cog, name="roblox update"):
     def __init__(self, avimetry):
-         # pylint: disable=no-member
         self.avimetry = avimetry
         self.update_check.start()
     def cog_unload(self):
-        # pylint: disable=no-member
         self.update_check.cancel()
 
 
@@ -32,7 +30,6 @@ class robloxupdate(commands.Cog, name="roblox update"):
             embed.set_footer(text="If you want to get pinged when ROBLOX updates, use the command 'a.updateping'.")
             await channel.send('<@&783946910364073985>', embed=embed)
     @update_check.before_loop
-    # pylint: disable=no-member
     async def before_status_task(self):
         await self.avimetry.wait_until_ready()
 

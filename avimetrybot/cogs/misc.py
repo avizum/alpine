@@ -83,17 +83,24 @@ class miscellaneous(commands.Cog):
     async def uinfo(self, ctx, *, member : discord.Member):
         userroles = list()
         jnr = ", "
+
+        userroles.append("@everyone")
         for roles in member.roles:
-            userroles.append(roles.name)
-        ie = discord.Embed(title="User Informaion", description=f'User Information for {member.mention}:\n'
+            userroles.append(roles.mention)
+            if ctx.guild.default_role.mention in userroles:
+                userroles.remove(ctx.guild.default_role.mention)
+        
+
+        ie = discord.Embed(title="User Information", description=f'User Information for {member.mention}:\n'
                                                           f'**Full Name:** {member.name}#{member.discriminator}\n'
                                                           f'**User ID:** {member.id}\n'
                                                           f'**Nickname:** {member.nick}\n' 
-                                                          f'**Server Join Date:** {member.joined_at}\n'
-                                                          f'**User Creation Date:** {member.created_at}\n' 
+                                                          f'**Server Join Date:** {member.joined_at.strftime("%m/%d/%Y at %I:%M %p (UTC)")}\n'
+                                                          f'**User Creation Date:** {member.created_at.strftime("%m/%d/%Y at %I:%M %p (UTC)")}\n' 
                                                           f'**Roles** [{len(userroles)}] {jnr.join(userroles)}', timestamp=datetime.datetime.utcnow())
         ie.set_thumbnail(url=member.avatar_url)
         ie.add_field(name="Server Permissions", value="wip")
+        await ctx.send(embed=ie)
 
     @commands.command(brief="Make a qr code ")
     async def qr(self, ctx, *, content):

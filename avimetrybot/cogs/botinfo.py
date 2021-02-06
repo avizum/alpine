@@ -44,7 +44,6 @@ class botinfo(commands.Cog, name="bot utilities"):
         def check(reaction, user):
             return str(reaction.emoji) in ['<:yesTick:777096731438874634>', '<:noTick:777096756865269760>'] and user != self.avimetry.user and user==ctx.author
         try:
-            # pylint: disable=unused-variable
             reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=60)
         except asyncio.TimeoutError:
             to=discord.Embed()
