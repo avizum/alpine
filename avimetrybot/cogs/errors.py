@@ -24,7 +24,16 @@ class errorhandler(commands.Cog):
         
         pre = await self.avimetry.get_prefix(ctx.message)
         error = getattr(error, 'original', error)
-    
+        try:
+            command_name=ctx.command.name
+        except Exception:
+            pass
+        '''
+        if not ctx.invoked_with==None:
+            command_name=ctx.command.name
+        else:
+            command_name=f"{ctx.command.parent.name} {ctx.command.name}"
+        '''
         if isinstance(error, commands.CommandNotFound):
             not_found_embed=discord.Embed(title="Invalid Command", color=discord.Color.red())
             prefix=len(await self.avimetry.get_prefix(ctx))
@@ -45,25 +54,25 @@ class errorhandler(commands.Cog):
             await ctx.send(embed=bnp)
         
         elif isinstance(error, commands.CommandOnCooldown):
-            cd=discord.Embed(title="Slow down", description=f"Hey, **{ctx.command.name}** has a cooldown. Please wait `{round(error.retry_after)}` seconds before using it again.", color=discord.Color.red())
+            cd=discord.Embed(title="Slow down", description=f"Hey, **{command_name}** has a cooldown. Please wait `{round(error.retry_after)}` seconds before using it again.", color=discord.Color.red())
             await ctx.send(embed=cd) 
         
         elif isinstance(error, commands.MissingPermissions):
             mp = error.missing_perms
             missing_perms = " ".join([str(elem) for elem in mp])
             missing_perms.replace("_", " ")
-            np=discord.Embed(title="Missing permissions", description=f"You do not have permissions to use {ctx.command.name}. Here are the permissions that you need:\n`{missing_perms}`", color=discord.Color.red())
+            np=discord.Embed(title="Missing permissions", description=f"You do not have permissions to use {command_name}. Here are the permissions that you need:\n`{missing_perms}`", color=discord.Color.red())
             await ctx.send(embed=np)
 
         elif isinstance(error, commands.MissingRequiredArgument):
             pre = await self.avimetry.get_prefix(ctx.message)
             ctx.command.reset_cooldown(ctx)
-            a = discord.Embed(title="Invalid command syntax", description=f"You invoked this command incorrectly, Here is the correct syntax\n`{pre}{ctx.command.name}{ctx.command.signature}`.",color=discord.Color.red())
+            a = discord.Embed(title="Invalid command syntax", description=f"You invoked this command incorrectly, Here is the correct syntax\n`{pre}{command_name} {ctx.command.signature}`.",color=discord.Color.red())
             a.set_footer(text=f"Use '{pre}help' if you need help.")
             await ctx.send(embed=a)
 
         elif isinstance(error, commands.DisabledCommand):
-            await ctx.send("This command is disabled. The command will be enabled when the command is done.")
+            await ctx.send("This command is not open yet.")
 
         elif isinstance(error, commands.NotOwner):
             no=discord.Embed(title="Missing Permissions", description="Only owners can run this command.",color=discord.Color.red())
@@ -84,7 +93,7 @@ class errorhandler(commands.Cog):
         
         elif isinstance(error, commands.MaxConcurrencyReached):
             max_uses=discord.Embed(color=discord.Color.red())
-            max_uses.add_field(name="<:noTick:777096756865269760> Limited Command", value=f"Sorry, `{ctx.command.name}` has limited usage. Please try again later.")
+            max_uses.add_field(name="<:noTick:777096756865269760> Limited Command", value=f"Sorry, `{command_name}` has limited usage. Please try again later.")
             await ctx.send(embed=max_uses)
         else:
             long_exception = ''.join(traceback.format_exception(type(error), error, error.__traceback__))

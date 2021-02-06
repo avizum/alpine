@@ -79,7 +79,7 @@ class moderation(commands.Cog):
             c1=m.author==self.avimetry.user
             return c1
         try:
-            d1 = await ctx.channel.purge(limit=limit, check=avimetrybot, bulk=False)
+            d1 = await ctx.channel.purge(limit=limit, check=avimetrybot, bulk=True)
         except discord.Forbidden:
             d1 = await ctx.channel.purge(limit=limit, check=avimetrybot, bulk=False)
         cm = await ctx.send("Cleaning...")

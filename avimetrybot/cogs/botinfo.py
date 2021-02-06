@@ -156,7 +156,7 @@ class botinfo(commands.Cog, name="bot utilities"):
     @commands.command(brief="Gets the bot's ping.")
     async def ping(self, ctx):
         start = time.perf_counter()
-        message = await ctx.send("Pinging...")
+        message = await ctx.send_raw("Pinging...")
         end = time.perf_counter()
         duration = (end - start) * 1000
         pingembed=discord.Embed(title="🏓 Pong!")

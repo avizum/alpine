@@ -1,4 +1,4 @@
-from utils.utility import AvimetryBot
+from important import AvimetryBot
 from dotenv import load_dotenv
 import os
 

@@ -103,16 +103,17 @@ class fun(commands.Cog):
         a = discord.Embed(description=f'{ctx.author.mention} hit their face.')
         await ctx.send(embed=a)
     
-    @commands.group(aliases=["\U0001F36A", "kookie", "cookies"], invoke_without_command=True)
-    async def cookie(self, ctx):
-        await ctx.send_help("cookie")
-    @cookie.command(brief="Get the cookie as fast as you can with out a countdown timer.")
+    @commands.group(aliases=["\U0001F36A", "kookie", "cookies"])
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     @commands.cooldown(1, 30, commands.BucketType.guild)
+    async def cookie(self, ctx):
+        if ctx.invoked_subcommand==None:
+            await ctx.send_help("cookie")
+    @cookie.command(brief="Get the cookie as fast as you can with out a countdown timer.")
     async def hard(self, ctx):
         cookie_embed=discord.Embed()
         cookie_embed.add_field(name="Get the cookie!", value="Who has the fastest reaction time? Get ready to grab the cookie!")
-        cd_cookie=await ctx.send(embed=cookie_embed)
+        cd_cookie=await ctx.send_raw(embed=cookie_embed)
         await asyncio.sleep(5)
         cookie_embed.set_field_at(0, name="Ready Up!", value=f"Get ready to get the cookie!")
         await cd_cookie.edit(embed=cookie_embed)
@@ -141,13 +142,11 @@ class fun(commands.Cog):
                 await cd_cookie.edit(embed=cookie_embed)
 
     @cookie.command(brief="Get the cookie as fast as you can with a three second timer.")
-    @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
-    @commands.cooldown(1, 30, commands.BucketType.guild)
     async def easy(self, ctx):
         cntdown=3
         cookie_embed=discord.Embed()
         cookie_embed.add_field(name="Get the cookie!", value="Who has the fastest reaction time? Get ready!")
-        cd_cookie=await ctx.send(embed=cookie_embed)
+        cd_cookie=await ctx.send_raw(embed=cookie_embed)
         await asyncio.sleep(5)
         while cntdown>0:
             await asyncio.sleep(1)

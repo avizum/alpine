@@ -8,6 +8,7 @@ import aiohttp
 import unicodedata
 import sr_api
 import asyncio
+import random
 
 class miscellaneous(commands.Cog):
     
@@ -121,6 +122,12 @@ class miscellaneous(commands.Cog):
         embed=discord.Embed(title=f"Character Information - {characters}", description=msg, timestamp=datetime.datetime.utcnow())
         await ctx.send(embed=embed)
 
-        
+    @commands.command()
+    async def randommember(self, ctx):
+        member=list()
+        for test in ctx.guild.members:
+            member.append(test.mention)
+        await ctx.embed(title="Random Member", description=random.choice(member))
+
 def setup(avimetry):
     avimetry.add_cog(miscellaneous(avimetry))

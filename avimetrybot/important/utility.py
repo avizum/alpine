@@ -1,3 +1,4 @@
+from important import AvimetryContext
 import discord
 import os
 import datetime
@@ -9,13 +10,14 @@ import collections
 import logging
 import motor.motor_asyncio
 import pathlib
-import aiozaneapi
 import sr_api
 import aiohttp
 import sys
 import contextlib
+import aiozaneapi
 from pathlib import Path
-from utils.context import AvimetryContext
+from important.mongo import MongoDB
+
 
 class Silence:
     def write(self, msg):
@@ -41,7 +43,7 @@ class AvimetryBot(commands.Bot):
     def __init__(self):
         intents=discord.Intents.all()
         super().__init__(
-            command_prefix=prefix,
+            command_prefix="ab",
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,
@@ -52,8 +54,10 @@ class AvimetryBot(commands.Bot):
         self.launch_time=datetime.datetime.utcnow()
         self.muted_users={}
         self.devmode=False
-        self.zane=aiozaneapi.Client(os.getenv('Zane_Token'))
+        self.zanetoken=(os.getenv("Zane_Token"))
         self.sr=sr_api.Client()
+        self.zaneapi=aiozaneapi.Client(os.getenv("Zane_Token"))
+
 
         @self.check
         async def globally_block_dms(ctx):
@@ -104,84 +108,3 @@ class AvimetryBot(commands.Bot):
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
         if after.author.id in self.owner_ids:
             await self.process_commands(after)
-
-class MongoDB:
-    def __init__(self, connection, document_name):
-        self.db = connection[document_name]
-        self.logger = logging.getLogger(__name__)
-
-    async def update(self, dict):
-        await self.update_by_id(dict)
-
-    async def get_by_id(self, id):
-        return await self.find_by_id(id)
-
-    async def find(self, id):
-        return await self.find_by_id(id)
-
-    async def delete(self, id):
-        await self.delete_by_id(id)
-
-    async def find_by_id(self, id):
-        return await self.db.find_one({"_id": id})
-
-    async def delete_by_id(self, id):
-        if not await self.find_by_id(id):
-            return
-
-        await self.db.delete_many({"_id": id})
-
-    async def insert(self, dict):
-        if not isinstance(dict, collections.abc.Mapping):
-            raise TypeError("Expected a dictionary.")
-        if not dict["_id"]:
-            raise KeyError("_id not couldn't be found in given dictionary.")
-        await self.db.insert_one(dict)
-    async def upsert(self, dict):
-        if await self.__get_raw(dict["_id"]) != None:
-            await self.update_by_id(dict)
-        else:
-            await self.db.insert_one(dict)
-
-    async def update_by_id(self, dict):
-        if not isinstance(dict, collections.abc.Mapping):
-            raise TypeError("Expected a dictionary.")
-
-        # Always use your own _id
-        if not dict["_id"]:
-            raise KeyError("_id not couldn't be found in given dictionary.")
-
-        if not await self.find_by_id(dict["_id"]):
-            return
-
-        id = dict["_id"]
-        dict.pop("_id")
-        await self.db.update_one({"_id": id}, {"$set": dict})
-
-    async def unset(self, dict):
-        if not isinstance(dict, collections.abc.Mapping):
-            raise TypeError("Expected a dictionary.")
-        if not dict["_id"]:
-            raise KeyError("_id not couldn't be found in given dictionary.")
-
-        if not await self.find_by_id(dict["_id"]):
-            return
-
-        id = dict["_id"]
-        dict.pop("_id")
-        await self.db.update_one({"_id": id}, {"$unset": dict})
-
-    async def increment(self, id, amount, field):
-        if not await self.find_by_id(id):
-            return
-
-        await self.db.update_one({"_id": id}, {"$inc": {field: amount}})
-
-    async def get_all(self):
-        data = []
-        async for document in self.db.find({}):
-            data.append(document)
-        return data
-
-    async def __get_raw(self, id):
-        return await self.db.find_one({"_id": id})
