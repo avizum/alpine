@@ -66,7 +66,10 @@ class errorhandler(commands.Cog):
 
         elif isinstance(error, commands.MissingRequiredArgument):
             pre = await self.avimetry.get_prefix(ctx.message)
-            ctx.command.reset_cooldown(ctx)
+            try:
+                ctx.command.reset_cooldown(ctx)
+            except Exception:
+                pass
             a = discord.Embed(title="Invalid command syntax", description=f"You invoked this command incorrectly, Here is the correct syntax\n`{pre}{command_name} {ctx.command.signature}`.",color=discord.Color.red())
             a.set_footer(text=f"Use '{pre}help' if you need help.")
             await ctx.send(embed=a)

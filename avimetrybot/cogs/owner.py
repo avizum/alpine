@@ -22,17 +22,17 @@ class cogs(commands.Cog):
                         self.avimetry.load_extension(f'cogs.{filename[:-3]}')
                     except Exception as e:
                         embed.add_field(name=f"<:noTick:777096756865269760> {filename}", value=f"Load was not successful: {e}", inline=True)
-            await ctx.send(embed=embed, delete_after=10)
+            await ctx.send(embed=embed)
             return
         try:
             self.avimetry.load_extension(f"cogs.{extension}")
             loadsuc=discord.Embed()
             loadsuc.add_field(name="<:yesTick:777096731438874634> Module Enabled", value=f"The **{extension}** module has been enabled.", inline=False)
-            await ctx.send(embed=loadsuc, delete_after=10)
+            await ctx.send(embed=loadsuc)
         except Exception as load_error:
             noload=discord.Embed()
             noload.add_field(name="<:noTick:777096756865269760> Module was not loaded", value=load_error, inline=False)
-            await ctx.send(embed=noload, delete_after=10)
+            await ctx.send(embed=noload)
 
 #Unload Command
     @commands.command(brief="Unloads a module if it is being abused.")
@@ -46,41 +46,33 @@ class cogs(commands.Cog):
                         self.avimetry.unload_extension(f'cogs.{filename[:-3]}')
                     except Exception as e:
                         embed.add_field(name=f"<:noTick:777096756865269760> {filename}", value=f"Unload was not successful: {e}", inline=True)
-            await ctx.send(embed=embed, delete_after=10)
+            await ctx.send(embed=embed)
             return
         try:    
             self.avimetry.unload_extension(f'cogs.{extension}')
             unloadsuc=discord.Embed()
             unloadsuc.add_field(name="<:yesTick:777096731438874634> Module Disabled", value=f"The **{extension}** module has been disabled.", inline=False)
-            await ctx.send (embed=unloadsuc, delete_after=10)
+            await ctx.send (embed=unloadsuc)
         except Exception as unload_error:
             unloudno=discord.Embed()
             unloudno.add_field(name="<:noTick:777096756865269760> Module not unloaded", value=unload_error)
-            await ctx.send(embed=unloudno, delete_after=10)
+            await ctx.send(embed=unloudno)
 
 #Reload Command
     @commands.command(brief="Reloads a module if it is not working.", usage="[extension]")
     @commands.is_owner()
     async def reload(self, ctx, extension=None):
         if extension==None:
-            embed=discord.Embed(title="Reloaded Modules", timestamp=datetime.datetime.utcnow())
+            embed=discord.Embed(title="Reload Modules", description="Reloaded all Modules sucessfully.", timestamp=datetime.datetime.utcnow())
             for filename in os.listdir('./avimetrybot/cogs'):
                 if filename.endswith('.py'):
                     try:
                         self.avimetry.reload_extension(f'cogs.{filename[:-3]}')
                     except Exception as e:
+                        embed.description="Reloaded all Modules sucessfully except the one(s) listed below:"
                         embed.add_field(name=f"<:noTick:777096756865269760> {filename}", value=f"Reload was not successful: {e}", inline=True)
-            await ctx.send(embed=embed, delete_after=10)
+            await ctx.send(embed=embed)
             return
-        try:
-            self.avimetry.reload_extension(f'cogs.{extension}')
-            reloadsuc=discord.Embed()
-            reloadsuc.add_field(name="<:yesTick:777096731438874634> Module Reloaded", value=f"The **{extension}** module has been reloaded.", inline=False)
-            await ctx.send (embed=reloadsuc)
-        except Exception as reload_error:
-            noreload=discord.Embed()
-            noreload.add_field(name="<:noTick:777096756865269760> Not Loaded", value=reload_error)
-            await ctx.send(embed=noreload, delete_after=10)
 
     @commands.command()
     @commands.is_owner()

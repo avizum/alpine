@@ -108,6 +108,7 @@ class fun(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.guild)
     async def cookie(self, ctx):
         if ctx.invoked_subcommand==None:
+            await ctx.reset_cooldown(ctx)
             await ctx.send_help("cookie")
     @cookie.command(brief="Get the cookie as fast as you can with out a countdown timer.")
     async def hard(self, ctx):

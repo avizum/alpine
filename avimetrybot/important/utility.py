@@ -35,7 +35,7 @@ async def prefix(avimetrybot, message):
     except:
         return "a."
 
-allowed_mentions=discord.AllowedMentions(everyone=False, users=True, roles=True, replied_user=True)
+allowed_mentions=discord.AllowedMentions(everyone=False, users=True, roles=True, replied_user=False)
 intents=discord.Intents.all()
 activity=discord.Game('avimetry() | a.help')
 
