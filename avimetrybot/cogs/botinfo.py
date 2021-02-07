@@ -170,9 +170,9 @@ class botinfo(commands.Cog, name="bot utilities"):
     async def source(self, ctx):
         source_embed=discord.Embed(title=f"{self.avimetry.user.name}'s source code", timestamp=datetime.datetime.utcnow())
         if self.avimetry.user.id!=756257170521063444:
-            source_embed.description="This bot is made by [avi/jbkn](https://discord.com/users/750135653638865017). It is run off of this [source code](https://github.com/jbkn/avimetry)."
+            source_embed.description="This bot is made by [avi/jbkn](https://discord.com/users/750135653638865017). It is run off of this [source code](https://github.com/jbkn/avimetry).\nKeep the license in mind"
         else:
-            source_embed.description="Here is my [source code](https://github.com/jbkn/avimetry) made by [avi](https://discord.com/users/750135653638865017)."
+            source_embed.description="Here is my [source code](https://github.com/jbkn/avimetry) made by [avi](https://discord.com/users/750135653638865017).\nMake sure you follow the license."
         await ctx.send(embed=source_embed)
 #Invite Command
     @commands.group(invoke_without_command=True)
