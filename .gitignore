@@ -9,3 +9,4 @@ avimetrybot/.env
 nohup.out
 .DS_Store
 discord.log
+*__pycache__
