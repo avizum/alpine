@@ -19,7 +19,10 @@ Otherwise, Here is how you can run your own version of avimetry. If you do run o
 Bot_Token="put your discord bot token here"
 
 DB_Token="put your mongodb token here"
+
+Zane_Token="put your zaneapi token here"
 ```
+
 2. Run the bot on your computer or online. I will not be helping you with that. You're on your own there. 
 
 3. Success!
