@@ -4,6 +4,7 @@ import datetime
 import traceback, sys, os
 from difflib import get_close_matches
 import re
+import prettify_exceptions
 
 class errorhandler(commands.Cog):
     def __init__(self, avimetry):
@@ -99,16 +100,18 @@ class errorhandler(commands.Cog):
             max_uses.add_field(name="<:noTick:777096756865269760> Limited Command", value=f"Sorry, `{command_name}` has limited usage. Please try again later.")
             await ctx.send(embed=max_uses)
         else:
-            long_exception = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
+            prettify_exceptions.DefaultFormatter().theme['_ansi_enabled'] = False
+            long_exception = ''.join(prettify_exceptions.DefaultFormatter().format_exception(type(error), error, error.__traceback__))
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
             ee = discord.Embed(color=discord.Color.red())
             short_exception=''.join(traceback.format_exception_only(type(error), error))
-            ee.add_field(name="<:noTick:777096756865269760> Unknown Error", value=f"Uh oh, an error has occured! Do not worry, the error has been recorded.\n\n`{short_exception}`")
+            myst_exception=await self.avimetry.myst.post(long_exception, syntax="python")
+            ee.add_field(name="<:noTick:777096756865269760> Unknown Error", value=f"Uh oh, an error has occured! Do not worry, the error has been recorded.\n\n`{short_exception}`\nFor more info, see the [full exception]({str(myst_exception)})")
             try:
                 await ctx.send(embed=ee)
                 chanel = self.avimetry.get_channel(797362270593613854)
-                ff = discord.Embed(title=f"{self.avimetry.user.name} Error", description=f"```{long_exception}```")
+                ff = discord.Embed(title=f"{self.avimetry.user.name} Error", description=f"```{str(myst_exception)}```")
                 await chanel.send(embed=ff)
             except:
                 return

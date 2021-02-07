@@ -129,5 +129,9 @@ class miscellaneous(commands.Cog):
             member.append(test.mention)
         await ctx.embed(title="Random Member", description=random.choice(member))
 
+    @commands.command()
+    async def fjakldfjads(self, ctx):
+        await ctx.sned("ns")
+
 def setup(avimetry):
     avimetry.add_cog(miscellaneous(avimetry))

@@ -17,6 +17,7 @@ import contextlib
 import aiozaneapi
 from pathlib import Path
 from important.mongo import MongoDB
+import mystbin
 
 
 class Silence:
@@ -43,7 +44,7 @@ class AvimetryBot(commands.Bot):
     def __init__(self):
         intents=discord.Intents.all()
         super().__init__(
-            command_prefix=prefix,
+            command_prefix="beta ",
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,
@@ -57,6 +58,7 @@ class AvimetryBot(commands.Bot):
         self.zanetoken=(os.getenv("Zane_Token"))
         self.sr=sr_api.Client()
         self.zaneapi=aiozaneapi.Client(os.getenv("Zane_Token"))
+        self.myst=mystbin.Client()
 
 
         @self.check
