@@ -44,7 +44,7 @@ class AvimetryBot(commands.Bot):
     def __init__(self):
         intents=discord.Intents.all()
         super().__init__(
-            command_prefix=prefix,
+            command_prefix="ab.",
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,
@@ -65,20 +65,9 @@ class AvimetryBot(commands.Bot):
             if not ctx.guild:
                 raise commands.NoPrivateMessage("Commands do not work in dm channels.")
             return True
-
-        @tasks.loop(seconds=1)
-        async def load_important():
-            important=('jishaku', 'owner')
-            for load in important:
-                cog="cogs." if load !="jishaku" else ""
-                try:
-                    self.load_extension(f"{cog}{important}")
-                except:
-                    pass
         
         @self.event
         async def on_ready():
-            load_important.start()
             self.mongo = motor.motor_asyncio.AsyncIOMotorClient(os.getenv('DB_Token'))
             self.db=self.mongo['avimetry']
             self.config=MongoDB(self.db, 'new')
@@ -92,7 +81,7 @@ class AvimetryBot(commands.Bot):
         os.environ["JISHAKU_HIDE"] = "True"
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
-        self.load_extension('jishaku')
+        #self.load_extension('jishaku')
         for filename in os.listdir('./avimetrybot/cogs'):
             if filename.endswith('.py'):
                 self.load_extension(f'cogs.{filename[:-3]}')

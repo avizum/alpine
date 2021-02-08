@@ -246,12 +246,26 @@ class moderation(commands.Cog):
     @commands.command(brief="Unbans a member from the server.", usage="<member_id> [reason]")
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def unban(self, ctx, member_id, *, reason="No reason was provided"):
-        some_member=commands.MemberConverter().convert(ctx, member_id)
-        await ctx.guild.unban(some_member)
-        unbanenmbed=discord.Embed()
-        unbanenmbed.add_field(name="<:yesTick:777096731438874634> Unban Member", value="Unbanned <@{member_id}> ({member_id}) from **{ctx.guild.name}**.", inline=False)
-        await ctx.send(embed=unbanenmbed)
+    async def unban(self, ctx, member, *, reason="No reason was provided"):
+        try:
+            some_member=discord.Object(id=member)
+            await ctx.guild.unban(some_member)
+            unbanenmbed=discord.Embed()
+            unbanenmbed.add_field(name="<:yesTick:777096731438874634> Unban Member", value="Unbanned <@{member}> ({member}) from **{ctx.guild.name}**.", inline=False)
+            await ctx.send(embed=unbanenmbed)
+        except:
+            banned_users = await ctx.guild.bans()
+            member_name, member_discriminator = member.split('#')
+            for ban_entry in banned_users:
+                user = ban_entry.user
+            if (user.name, user.discriminator) == (member_name, member_discriminator):
+                await ctx.guild.unban(user)
+                unbanenmbed=discord.Embed()
+                unbanenmbed.add_field(name="<:yesTick:777096731438874634> Unban Member", value=f"Unbanned **{member}** from **{ctx.guild.name}**.", inline=False)
+                await ctx.send(embed=unbanenmbed)
+        else:
+            await ctx.send("Unban failed")
+
 
 #Slowmode Command
     @commands.command(brief="Sets the slowmode in the current channel.")

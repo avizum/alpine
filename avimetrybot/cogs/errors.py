@@ -38,8 +38,10 @@ class errorhandler(commands.Cog):
         if isinstance(error, commands.CommandNotFound):
             not_found_embed=discord.Embed(title="Invalid Command", color=discord.Color.red())
             prefix=len(await self.avimetry.get_prefix(ctx))
-            content=ctx.message.content
-            not_found=content[prefix:content.rfind(" ")]
+            content=ctx.message.clean_content
+            no_prefix=content[prefix:]
+            not_found=no_prefix.split(' ')[0]
+
             lol='\n'.join(get_close_matches(not_found, [i.name for i in ctx.bot.commands]))
             if not lol:
                 not_found_embed.description=f'I couldn\'t find any similar commands to "{not_found}".'
