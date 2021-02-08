@@ -140,7 +140,7 @@ class botinfo(commands.Cog, name="bot utilities"):
     #Bot Info Command
     @commands.command()
     async def about(self, ctx):
-        cool=await self.avimetry.config.find(message.guild.id)
+        cool=await self.avimetry.config.find(ctx.guild.id)
         embed=discord.Embed(title="Info about Avimetry")
         embed.add_field(name="Developer", value="avi#4927")
         embed.add_field(name="Ping", value=f"`{round(self.avimetry.latency * 1000)}ms`")
