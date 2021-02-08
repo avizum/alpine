@@ -44,7 +44,7 @@ class AvimetryBot(commands.Bot):
     def __init__(self):
         intents=discord.Intents.all()
         super().__init__(
-            command_prefix="beta ",
+            command_prefix=prefix,
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,
@@ -59,7 +59,6 @@ class AvimetryBot(commands.Bot):
         self.sr=sr_api.Client()
         self.zaneapi=aiozaneapi.Client(os.getenv("Zane_Token"))
         self.myst=mystbin.Client()
-
 
         @self.check
         async def globally_block_dms(ctx):
