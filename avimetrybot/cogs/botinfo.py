@@ -140,6 +140,7 @@ class botinfo(commands.Cog, name="bot utilities"):
     #Bot Info Command
     @commands.command()
     async def about(self, ctx):
+        cool=await self.avimetry.config.find(message.guild.id)
         embed=discord.Embed(title="Info about Avimetry")
         embed.add_field(name="Developer", value="avi#4927")
         embed.add_field(name="Ping", value=f"`{round(self.avimetry.latency * 1000)}ms`")
@@ -148,6 +149,8 @@ class botinfo(commands.Cog, name="bot utilities"):
         embed.add_field(name="CPU Usage", value=f"{psutil.cpu_percent(interval=None)}%")
         embed.add_field(name="RAM Usage", value=f"{psutil.virtual_memory().percent}%")
         embed.add_field(name="Bot Invite", value="[here](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)")
+        embed.add_field(name="Commands", value=len(self.avimetry.commands))
+        embed.add_field(name="Prefix for this server", value=cool["prefix"])
         embed.set_thumbnail(url=ctx.me.avatar_url)
         await ctx.send(embed=embed)
     #Uptime Command
