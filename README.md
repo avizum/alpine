@@ -1,24 +1,25 @@
 # AvimetryBot()
 
-Made by [avi](https://discord.com/users/750135653638865017)
+A multipurpose bot written in Python by [avi](https://discord.com/users/750135653638865017)
 
-In the commit history, the tokens you see are old and outdated. You can try using them but they will not work
+**Bot Invite**
+Invite avimetry with this [link](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)
 
-# Running the bot
-I would rather you invite my bot to your server with this [link](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647) because you will need to set up mongodb for for the database. If you know how to do that then follow below
+**Commands to get you started**
 
-Otherwise, Here is how you can run your own version of avimetry. If you do run or use the source code, You must open source your bot too, according to the licence.
+  `a.config prefix`
+Sets the Prefix of the server
+  `a.help`
+Shows the help menu
+  `a.about`
+Shows the bot information
 
-**Hosting the Bot**
-1. Make a `.env` file in the `avimetrybot` folder. Add your database token (I used MongoDB) and your bot token there. Please follow the format below.
-```
-Bot_Token="put your discord bot token here"
+**Help Command**
+In the help command, you can see all the commands. If you need help reading the command signature, here they are.
 
-DB_Token="put your mongodb token here"
+[] <-- This means that the argument does is not required so you do not have to put anything there
+<> <-- This means the argument is required and the command will not continue unless you enter the argument
+[...] <-- This means you can put more than one argument.
 
-Zane_Token="put your zaneapi token here"
-```
-
-2. Run the bot on your computer or online. I will not be helping you with that. You're on your own there. 
-
-3. Success!
+**Running the bot**
+Please do not run your own instance of this bot. I'm not going to stop you from running this bot but it is difficult to do so.
