@@ -1,3 +1,3 @@
 from .context import *
-from .utility import *
+from .avimetrybot import *
 from .mongo import *

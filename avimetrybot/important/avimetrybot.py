@@ -19,19 +19,19 @@ from pathlib import Path
 from important.mongo import MongoDB
 import mystbin
 
-
-class Silence:
-    def write(self, msg):
-        pass
-
 async def prefix(avimetrybot, message):
     if not message.guild:
         return "a."
     try:
         data=await avimetrybot.config.find(message.guild.id)
+        if message.content.lower().startswith(data["prefix"]):
+            try:
+                lower=message.content[:len(data["prefix"])]
+                return lower
+            except Exception:
+                return data["prefix"]
         if not data or "prefix" not in data:
-            await avimetrybot.config.upsert({"_id": message.guild.id, "prefix": "a."})
-            await message.channel.send("No prefix found for this server, so I set it as **a.**")
+            return "a."
         return data["prefix"]
     except:
         return "a."
@@ -102,7 +102,8 @@ class AvimetryBot(commands.Bot):
 
     async def close(self):
         with contextlib.suppress(Exception):
-            sys.stderr=Silence()
+            await self.mongo.close()
+            print('\nClosing Connection to Discord.')
             await super().close()
         
         

@@ -38,7 +38,8 @@ class errorhandler(commands.Cog):
         if isinstance(error, commands.CommandNotFound):
             not_found_embed=discord.Embed(title="Invalid Command", color=discord.Color.red())
             prefix=len(await self.avimetry.get_prefix(ctx))
-            not_found=ctx.message.content[prefix:]
+            content=ctx.message.content
+            not_found=content[prefix:content.rfind(" ")]
             lol='\n'.join(get_close_matches(not_found, [i.name for i in ctx.bot.commands]))
             if not lol:
                 not_found_embed.description=f'I couldn\'t find any similar commands to "{not_found}".'
@@ -97,7 +98,7 @@ class errorhandler(commands.Cog):
         
         elif isinstance(error, commands.MaxConcurrencyReached):
             max_uses=discord.Embed(color=discord.Color.red())
-            max_uses.add_field(name="<:noTick:777096756865269760> Limited Command", value=f"Sorry, `{command_name}` has limited usage. Please try again later.")
+            max_uses.add_field(name="<:noTick:777096756865269760> Max Concurrency Reached", value=f"Sorry, `{command_name}` is at it's max concurrency. Please try again later.")
             await ctx.send(embed=max_uses)
         else:
             ctx.command.reset_cooldown(ctx)
@@ -108,7 +109,8 @@ class errorhandler(commands.Cog):
             ee = discord.Embed(color=discord.Color.red())
             short_exception=''.join(traceback.format_exception_only(type(error), error))
             myst_exception=await self.avimetry.myst.post(long_exception, syntax="python")
-            ee.add_field(name="<:noTick:777096756865269760> Unknown Error", value=f"Uh oh, an error has occured! Do not worry, the error has been recorded.\n\n`{short_exception}`\nFor more info, see the [full exception]({str(myst_exception)})")
+            ee.title="Avimetry Error" 
+            ee.description=f"Uh oh, an error has occured! Do not worry, the error has been recorded.\n\n`Command {ctx.command.name} raised an exception: {short_exception}`\n\n For more info, see the [full exception]({str(myst_exception)})"
             try:
                 await ctx.send(embed=ee)
                 chanel = self.avimetry.get_channel(797362270593613854)
