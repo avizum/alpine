@@ -58,7 +58,7 @@ class HCEmbed(commands.HelpCommand):
         for command in filtered:
             usage=command.short_doc
             if not usage:
-                usage="No Description"
+                usage="No description provided, now go try doing it yourself"
             embed.add_field(name=f"{self.clean_prefix}{self.gcommand_signature(command)}", value=f"`{usage}`", inline=False)
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
@@ -68,7 +68,7 @@ class HCEmbed(commands.HelpCommand):
         if group.short_doc:
             usage=group.short_doc
             if not usage:
-                usage="No Description"
+                usage="No description provided, now go try doing it yourself"
             embed.add_field(name=f"{self.clean_prefix}{self.gcommand_signature(group)}", value=f"`{usage}`")
 
         if isinstance(group, commands.Group):
@@ -76,7 +76,7 @@ class HCEmbed(commands.HelpCommand):
             for command in filtered:
                 usage=command.short_doc
                 if not usage:
-                    usage="No Description"
+                    usage="No description provided, now go try doing it yourself"
                 embed.add_field(name=f"{self.clean_prefix}{self.gcommand_signature(command)}", value=f"`{usage}`", inline=False)
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
@@ -85,7 +85,7 @@ class HCEmbed(commands.HelpCommand):
         embed=discord.Embed(title="Command: {0.qualified_name}".format(command), description=self.bnote())
         usage=command.short_doc
         if not usage:
-            usage="No Description"
+            usage="No description provided, now go try doing it yourself"
         embed.add_field(name=f"{self.clean_prefix}{self.gcommand_signature(command)}", value=f"`{usage}`", inline=False)
         alias = command.aliases
         if alias:

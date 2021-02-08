@@ -60,7 +60,8 @@ class miscellaneous(commands.Cog):
     async def poll(self, ctx, question, *options: str):
         if len(options)<2:
             raise commands.BadArgument("You need to have at least two options in the poll.")
-            
+        if len(options)>10:
+            raise commands.BadArgument("You can only have ten options in a poll")
         await ctx.message.delete()
         if len(options) == 2 and options[0] == 'Yes' and options[1] == 'No':
             reactions = ['<:yesTick:777096731438874634>', '<:noTick:777096756865269760>']
@@ -78,20 +79,25 @@ class miscellaneous(commands.Cog):
             await react_message.add_reaction(reaction)
         embed.set_footer(text=f"Poll from: {str(ctx.author)}\nPoll ID: {react_message.id}")
         await react_message.edit(embed=embed)
-        
+#
+    @commands.command(brief="Pick one of your options")
+    @commands.cooldown(1, 60, commands.BucketType.member)
+    async def pick(self, ctx, *options: str):
+        if len(options)<2:
+            raise commands.BadArgument("You need to have at least two options.")
+        if len(options)>10:
+            raise commands.BadArgument("You can only have ten options.")
+        await ctx.send(f"I picked: '{random.choice(options)}'")
 #Info Command
     @commands.command(brief="Gets a member's information")
     async def uinfo(self, ctx, *, member : discord.Member):
         userroles = list()
         jnr = ", "
-
         userroles.append("@everyone")
         for roles in member.roles:
             userroles.append(roles.mention)
             if ctx.guild.default_role.mention in userroles:
                 userroles.remove(ctx.guild.default_role.mention)
-        
-
         ie = discord.Embed(title="User Information", description=f'User Information for {member.mention}:\n'
                                                           f'**Full Name:** {member.name}#{member.discriminator}\n'
                                                           f'**User ID:** {member.id}\n'
@@ -121,17 +127,6 @@ class miscellaneous(commands.Cog):
             return await ctx.send('Message too long. Sorry!')
         embed=discord.Embed(title=f"Character Information - {characters}", description=msg, timestamp=datetime.datetime.utcnow())
         await ctx.send(embed=embed)
-
-    @commands.command()
-    async def randommember(self, ctx):
-        member=list()
-        for test in ctx.guild.members:
-            member.append(test.mention)
-        await ctx.embed(title="Random Member", description=random.choice(member))
-
-    @commands.command()
-    async def fjakldfjads(self, ctx):
-        await ctx.sned("ns")
 
 def setup(avimetry):
     avimetry.add_cog(miscellaneous(avimetry))

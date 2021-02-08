@@ -100,6 +100,7 @@ class errorhandler(commands.Cog):
             max_uses.add_field(name="<:noTick:777096756865269760> Limited Command", value=f"Sorry, `{command_name}` has limited usage. Please try again later.")
             await ctx.send(embed=max_uses)
         else:
+            ctx.command.reset_cooldown(ctx)
             prettify_exceptions.DefaultFormatter().theme['_ansi_enabled'] = False
             long_exception = ''.join(prettify_exceptions.DefaultFormatter().format_exception(type(error), error, error.__traceback__))
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)

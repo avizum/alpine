@@ -7,6 +7,7 @@ import time
 import pymongo
 from discord.ext import commands, tasks
 import aiohttp
+import psutil
 
 class botinfo(commands.Cog, name="bot utilities"):
     def __init__(self, avimetry):
@@ -138,11 +139,17 @@ class botinfo(commands.Cog, name="bot utilities"):
         await ctx.send(f"Set the counting channel to {channel}")
     #Bot Info Command
     @commands.command()
-    async def info(self, ctx):
-        info=discord.Embed()
-        info.add_field(name=f"{self.avimetry.user.name} Information", value=f"Discord Py Version: {discord.__version__}\nPython Version: 3.9\nGuilds: {len(self.avimetry.guilds)}\nMembers: {len(self.avimetry.users)}\nBot Invite link: [here](https://discord.com/oauth2/authorize?client_id={self.avimetry.user.id}&scope=bot&permissions=2147483647)", inline=False)
-        info.add_field(name="Bot Status", value=f"Ping: `{round(self.avimetry.latency * 1000)}ms`")
-        await ctx.send(embed=info)      
+    async def about(self, ctx):
+        embed=discord.Embed(title="Info about Avimetry")
+        embed.add_field(name="Developer", value="avi#4927")
+        embed.add_field(name="Ping", value=f"`{round(self.avimetry.latency * 1000)}ms`")
+        embed.add_field(name="Guild Count", value=f"{len(self.avimetry.guilds)} Guilds")
+        embed.add_field(name="User Count", value=f"{len(self.avimetry.users)} Users")
+        embed.add_field(name="CPU Usage", value=f"{psutil.cpu_percent(interval=None)}%")
+        embed.add_field(name="RAM Usage", value=f"{psutil.virtual_memory().percent}%")
+        embed.add_field(name="Bot Invite", value="[here](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)")
+        embed.set_thumbnail(url=ctx.me.avatar_url)
+        await ctx.send(embed=embed)
     #Uptime Command
     @commands.command(brief="Get the bot's uptime")
     async def uptime(self, ctx):
