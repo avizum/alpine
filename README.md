@@ -3,13 +3,11 @@
 
 A multipurpose bot written in Python by [avi](https://discord.com/users/750135653638865017)
 
-**Bot Invite**
-
+### Bot Invite
 Invite avimetry with this [link](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)
 
 
-**Commands to get you started**
-
+#### Commands to get you started**
   * `a.config prefix`
 Sets the Prefix of the server
 
@@ -19,8 +17,7 @@ Shows the help menu
   * `a.about`
 Shows the bot information
 
-**Help Command**
-
+#### Help Command
 In the help command, you can see all the commands. If you need help reading the command signature, here they are.
 
 [argument] <-- This means that the argument does is not required so you do not have to put anything there
