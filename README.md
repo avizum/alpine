@@ -7,7 +7,7 @@ A multipurpose bot written in Python by [avi](https://discord.com/users/75013565
 Invite avimetry with this [link](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)
 
 
-#### Commands to get you started**
+#### Commands to get you started
   * `a.config prefix`
 Sets the Prefix of the server
 
