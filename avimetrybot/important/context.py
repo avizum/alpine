@@ -9,12 +9,8 @@ class AvimetryContext(commands.Context):
         return await super().send(*args, **kwargs)
 
     async def send(self, content=None, **kwargs):
-        if self.command=="jishaku":
-            print("noob")
-            return await super().send(content, **kwargs)
         try:
             return await self.reply(content, **kwargs, mention_author=False)
-
         except:
             return await super().send(content, **kwargs)
 

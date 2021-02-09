@@ -104,8 +104,8 @@ class fun(commands.Cog):
         await ctx.send(embed=a)
     
     @commands.group(aliases=["\U0001F36A", "kookie", "cookies"])
-    @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
-    @commands.cooldown(1, 30, commands.BucketType.guild)
+    #@commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
+    @commands.cooldown(1, 30, commands.BucketType.member)
     async def cookie(self, ctx):
         if ctx.invoked_subcommand==None:
             ctx.command.reset_cooldown(ctx)
@@ -124,7 +124,7 @@ class fun(commands.Cog):
         await cd_cookie.add_reaction("\U0001F36A")
         start=time.perf_counter()
         def check(reaction, user):
-            return str(reaction.emoji) in "\U0001F36A" and user != self.avimetry.user
+            return reaction.message.id==cd_cookie.id and str(reaction.emoji) in "\U0001F36A" and user != self.avimetry.user 
         try:
             reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=10)
         except asyncio.TimeoutError:
@@ -140,7 +140,7 @@ class fun(commands.Cog):
                     gettime=gettime/1000
                     total_second=f"**{gettime:.2f}s**"
                 cookie_embed.set_field_at(0, name="Good job!", value=f"{user.mention} got the cookie in **{total_second}**")
-                await cd_cookie.edit(embed=cookie_embed)
+                return await cd_cookie.edit(embed=cookie_embed)
 
     @cookie.command(brief="Get the cookie as fast as you can with a three second timer.")
     async def easy(self, ctx):
@@ -160,7 +160,7 @@ class fun(commands.Cog):
         await cd_cookie.add_reaction("\U0001F36A")
         start=time.perf_counter()
         def check(reaction, user):
-            return str(reaction.emoji) in "\U0001F36A" and user != self.avimetry.user
+            return reaction.message.id==cd_cookie.id and str(reaction.emoji) in "\U0001F36A" and user != self.avimetry.user 
         try:
             reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=10)
         except asyncio.TimeoutError:
@@ -177,6 +177,8 @@ class fun(commands.Cog):
                     total_second=f"**{gettime:.2f}s**"
                 cookie_embed.set_field_at(0, name="Good job!", value=f"{user.mention} got the cookie in **{total_second}**")
                 await cd_cookie.edit(embed=cookie_embed)
+
+    
           
 def setup(avimetry):
     avimetry.add_cog(fun(avimetry))

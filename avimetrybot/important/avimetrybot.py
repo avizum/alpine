@@ -25,8 +25,6 @@ async def prefix(avimetrybot, message):
     if not message.guild:
         return "a."
     try:
-        if platform.system!="Linux":
-            return "ab."
         data=await avimetrybot.config.find(message.guild.id)
         if message.content.lower().startswith(data["prefix"]):
             try:

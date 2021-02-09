@@ -7,13 +7,15 @@ import asyncio
 import os
 from dotenv import load_dotenv
 from datetime import date
-
+# pylint: disable=no-member
 class robloxupdate(commands.Cog, name="roblox update"):
     def __init__(self, avimetry):
         # pylint: disable=no-member
         self.avimetry = avimetry
         self.update_check.start()
+        # pylint: enable=no-member
     def cog_unload(self):
+        # pylint: disable=no-member
         self.update_check.cancel()
         # pylint: enable=no-member
 
