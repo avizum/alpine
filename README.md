@@ -22,7 +22,7 @@ In the help command, you can see all the commands. If you need help reading the 
 
 `[argument]` <-- This means that the argument does is not required so you do not have to put anything there
 
-\`<argument>` <-- This means the argument is required and the command will not continue unless you enter the argument
+`<argument>` <-- This means the argument is required and the command will not continue unless you enter the argument
 							 
 `[argument...]` <-- This means you can put more than one argument.
 
