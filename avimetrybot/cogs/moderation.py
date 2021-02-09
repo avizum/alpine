@@ -24,17 +24,19 @@ class TimeConverter(commands.Converter):
         return round(time)
         
 class moderation(commands.Cog):
-    
+    # pylint: disable=no-member,unused-variable
     def __init__(self, avimetry):
         self.avimetry = avimetry
         self.check_mutes.start()
         def cog_unload(self):
             self.check_mutes.cancel()
+    # pylint: enable=no-member,unused-variable
 #Unmute Loop
     @tasks.loop(minutes=1)
     async def check_mutes(self):
         currentTime = datetime.datetime.now()
         mutes = deepcopy(self.avimetry.muted_users)
+        # pylint: disable=unused-variable
         for key, value in mutes.items():
             if value['muteDuration'] is None:
                 continue
@@ -65,7 +67,7 @@ class moderation(commands.Cog):
                     self.avimetry.muted_users.pop(member.id)
                 except KeyError:
                     pass
-    
+                    # pylint: enable=unused-variable
     @check_mutes.before_loop
     async def before_check_mutes(self):
         await self.avimetry.wait_until_ready()
@@ -120,6 +122,7 @@ class moderation(commands.Cog):
             def check(reaction, user):
                 return str(reaction.emoji) in "<:noTick:777096756865269760>" and user != self.avimetry.user and user==ctx.author
             try:
+                # pylint: disable=unused-variable
                 reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=60)
             except asyncio.TimeoutError:
                 pe.set_footer(text="Menu has timed out")
@@ -127,7 +130,7 @@ class moderation(commands.Cog):
             else:
                 if str(reaction.emoji) == '<:noTick:777096756865269760>':
                     await purge_results.delete()
-
+                # pylint: enable=unused-variable
     @purge.command()	
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)

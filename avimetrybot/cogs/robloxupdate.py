@@ -10,10 +10,12 @@ from datetime import date
 
 class robloxupdate(commands.Cog, name="roblox update"):
     def __init__(self, avimetry):
+        # pylint: disable=no-member
         self.avimetry = avimetry
         self.update_check.start()
     def cog_unload(self):
         self.update_check.cancel()
+        # pylint: enable=no-member
 
 
     @tasks.loop(seconds=50)

@@ -8,7 +8,7 @@ import datetime
 class automod(commands.Cog, name="auto moderation"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
-        
+
 '''
     @commands.Cog.listener()
     async def on_message(self, message):

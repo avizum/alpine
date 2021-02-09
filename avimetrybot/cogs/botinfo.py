@@ -45,12 +45,14 @@ class botinfo(commands.Cog, name="bot utilities"):
         def check(reaction, user):
             return str(reaction.emoji) in ['<:yesTick:777096731438874634>', '<:noTick:777096756865269760>'] and user != self.avimetry.user and user==ctx.author
         try:
+            # pylint: disable=unused-variable
             reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=60)
         except asyncio.TimeoutError:
             to=discord.Embed()
             to.add_field(name=f"{self.avimetry.user.name} shutdown", value="Timed Out.")
             await rr.edit(embed=to)
             await rr.clear_reactions()
+
         else:
             if str(reaction.emoji) == '<:yesTick:777096731438874634>':
                 rre=discord.Embed()
@@ -67,6 +69,7 @@ class botinfo(commands.Cog, name="bot utilities"):
                 await rr.clear_reactions()
                 await asyncio.sleep(5)
                 await rr.delete()
+            # pylint: enable=unused-variable
 #Config Command
     @commands.group(invoke_without_command=True, brief="The base config command, use this configure settings")
     @commands.has_permissions(administrator=True)

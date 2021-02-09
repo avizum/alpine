@@ -18,11 +18,15 @@ import aiozaneapi
 from pathlib import Path
 from important.mongo import MongoDB
 import mystbin
+import platform
+
 
 async def prefix(avimetrybot, message):
     if not message.guild:
         return "a."
     try:
+        if platform.system!="Linux":
+            return "ab."
         data=await avimetrybot.config.find(message.guild.id)
         if message.content.lower().startswith(data["prefix"]):
             try:
@@ -59,7 +63,7 @@ class AvimetryBot(commands.Bot):
         self.sr=sr_api.Client()
         self.zaneapi=aiozaneapi.Client(os.getenv("Zane_Token"))
         self.myst=mystbin.Client()
-
+        # pylint: disable=unused-variable
         @self.check
         async def globally_block_dms(ctx):
             if not ctx.guild:
@@ -77,7 +81,7 @@ class AvimetryBot(commands.Bot):
             current_mutes=await self.mutes.get_all()
             for mute in current_mutes:
                 self.muted_users[mute["_id"]] = mute
-        
+        # pylint: enable=unused-variable
         os.environ["JISHAKU_HIDE"] = "True"
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 

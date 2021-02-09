@@ -2,7 +2,8 @@ import discord
 import os
 import datetime
 from discord.ext import commands
-
+import subprocess 
+import asyncio
 class cogs(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
@@ -61,24 +62,36 @@ class cogs(commands.Cog):
 #Reload Command
     @commands.command(brief="Reloads a module if it is not working.", usage="[extension]")
     @commands.is_owner()
-    async def reload(self, ctx, extension=None):
-        if extension==None:
-            embed=discord.Embed(title="Reload Modules", description="Reloaded all Modules sucessfully.", timestamp=datetime.datetime.utcnow())
-            for filename in os.listdir('./avimetrybot/cogs'):
-                if filename.endswith('.py'):
-                    try:
-                        self.avimetry.reload_extension(f'cogs.{filename[:-3]}')
-                    except Exception as e:
-                        embed.description="Reloaded all Modules sucessfully except the one(s) listed below:"
-                        embed.add_field(name=f"<:noTick:777096756865269760> {filename}", value=f"Reload was not successful: {e}", inline=True)
-            await ctx.send(embed=embed)
-            return
+    async def reload(self, ctx):
+        embed=discord.Embed(title="Reload Modules", description="Reloaded all Modules sucessfully.", timestamp=datetime.datetime.utcnow())
+        for filename in os.listdir('./avimetrybot/cogs'):
+            if filename.endswith('.py'):
+                try:
+                    self.avimetry.reload_extension(f'cogs.{filename[:-3]}')
+                except Exception as e:
+                    embed.description="Reloaded all Modules sucessfully except the one(s) listed below:"
+                    embed.add_field(name=f"<:noTick:777096756865269760> {filename}", value=f"Reload was not successful: {e}", inline=True)
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.is_owner()
     async def devmode(self, ctx, toggle:bool):
         await ctx.send(f"dev mode is now {toggle}")
         self.avimetry.devmode=toggle
+
+    @commands.command(brief="Pulls from GitHub and then reloads all modules")
+    @commands.is_owner()
+    async def sync(self, ctx):
+        sync_embed=discord.Embed(title="Syncing with GitHub", description="Please Wait...")
+        edit_sync=await ctx.send_raw(embed=sync_embed)
+        await asyncio.sleep(2)
+        output=[]
+        output.append(f'`{subprocess.getoutput("git pull")}`')
+        sync_embed.description="\n".join(output)
+        sync_embed.timestamp=datetime.datetime.utcnow()
+        sync_embed.title="Synced With GitHub"
+        await edit_sync.edit(embed=sync_embed)
+
 
 def setup(avimetry):
     avimetry.add_cog(cogs(avimetry))

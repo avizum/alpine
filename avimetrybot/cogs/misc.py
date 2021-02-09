@@ -14,6 +14,7 @@ class miscellaneous(commands.Cog):
     
     def __init__(self, avimetry):
         self.avimetry = avimetry
+        
 #CoViD-19 Stats
     @commands.command()
     async def covid(self, ctx, *, country):
@@ -79,7 +80,8 @@ class miscellaneous(commands.Cog):
             await react_message.add_reaction(reaction)
         embed.set_footer(text=f"Poll from: {str(ctx.author)}\nPoll ID: {react_message.id}")
         await react_message.edit(embed=embed)
-#
+
+#Pick Command
     @commands.command(brief="Pick one of your options")
     @commands.cooldown(1, 60, commands.BucketType.member)
     async def pick(self, ctx, *options: str):
@@ -88,6 +90,7 @@ class miscellaneous(commands.Cog):
         if len(options)>10:
             raise commands.BadArgument("You can only have ten options.")
         await ctx.send(f"I picked: '{random.choice(options)}'")
+
 #Info Command
     @commands.command(brief="Gets a member's information")
     async def uinfo(self, ctx, *, member : discord.Member):
@@ -109,6 +112,7 @@ class miscellaneous(commands.Cog):
         ie.add_field(name="Server Permissions", value="wip")
         await ctx.send(embed=ie)
 
+#QR code command
     @commands.command(brief="Make a qr code ")
     async def qr(self, ctx, *, content):
         qr_embed=discord.Embed()
@@ -116,6 +120,7 @@ class miscellaneous(commands.Cog):
         qr_embed.set_image(url=f"https://api.qrserver.com/v1/create-qr-code/?data={content}&size=250x250")
         await ctx.send(embed=qr_embed)
 
+#Charinfo command -@Danny#0007
     @commands.command()
     async def charinfo(self, ctx, *, characters: str):
         def to_string(c):
