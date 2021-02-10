@@ -2,24 +2,17 @@ from important import AvimetryContext
 import discord
 import os
 import datetime
-import pymongo
-from pymongo import MongoClient
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
-import collections
 import logging
 import motor.motor_asyncio
 import pathlib
 import sr_api
 import aiohttp
-import sys
-import contextlib
 import aiozaneapi
 from pathlib import Path
 from important.mongo import MongoDB
 import mystbin
-import platform
-
 
 async def prefix(avimetrybot, message):
     if not message.guild:
@@ -92,10 +85,12 @@ class AvimetryBot(commands.Bot):
         return await super().get_context(message, cls=cls)
 
     async def close(self):
-        with contextlib.suppress(Exception):
-            await self.mongo.close()
-            print('\nClosing Connection to Discord.')
-            await super().close()
+        self.mongo.close()
+        await self.sr.close()
+        await self.zaneapi.close()
+        await self.myst.close()
+        print('\nClosing Connection to Discord.')
+        await super().close()
         
         
     async def on_message_edit(self, before: discord.Message, after: discord.Message):

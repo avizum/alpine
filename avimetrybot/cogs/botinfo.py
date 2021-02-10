@@ -168,13 +168,18 @@ class botinfo(commands.Cog, name="bot utilities"):
     #Ping Command
     @commands.command(brief="Gets the bot's ping.")
     async def ping(self, ctx):
-        start = time.perf_counter()
+        sdb_ping=time.perf_counter()
+        await self.avimetry.config.find({"_id":ctx.guild.id})
+        edb_ping=time.perf_counter()
+        smsg_ping = time.perf_counter()
         message = await ctx.send_raw("Pinging...")
-        end = time.perf_counter()
-        duration = (end - start) * 1000
+        emsg_ping = time.perf_counter()
+        msg_ping = (emsg_ping - smsg_ping) * 1000
+        db_ping=(edb_ping-sdb_ping) * 1000
         pingembed=discord.Embed(title="🏓 Pong!")
         pingembed.add_field(name="Bot's Ping", value=f"`{round(self.avimetry.latency * 1000)}ms`")
-        pingembed.add_field(name="Message Ping", value=f'`{round(duration)}ms`')
+        pingembed.add_field(name="Message Ping", value=f'`{round(msg_ping)}ms`')
+        pingembed.add_field(name="Database Ping", value=f"`{round(db_ping)}ms`")
         await asyncio.sleep(.5)
         await message.edit(content="", embed=pingembed)
 #Source Command
