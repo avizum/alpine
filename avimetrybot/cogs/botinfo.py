@@ -61,7 +61,7 @@ class botinfo(commands.Cog, name="bot utilities"):
                 await rr.clear_reactions()
                 await asyncio.sleep(5)
                 await rr.delete()
-                await self.avimetry.logout()
+                await self.avimetry.close()
             if str(reaction.emoji) == '<:noTick:777096756865269760>':
                 rre2=discord.Embed()
                 rre2.add_field(name=f"{self.avimetry.user.name} shutdown", value="Shut down has been cancelled.")

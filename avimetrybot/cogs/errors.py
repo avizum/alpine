@@ -99,7 +99,7 @@ class errorhandler(commands.Cog):
             short_exception=''.join(traceback.format_exception_only(type(error), error))
             myst_exception=await self.avimetry.myst.post(long_exception, syntax="python")
             ee.title="Avimetry Error" 
-            ee.description=f"Uh oh, an error has occured! Do not worry, the error has been recorded.\n\n`Command {ctx.command.name} raised an exception: {short_exception}`\n\n For more info, see the [full exception]({str(myst_exception)})"
+            ee.description=f"Uh oh, an error has occured! Do not worry, the error has been recorded.\n\n`Command {ctx.command.name} raised an exception: {short_exception}`\n For more info, see the [full exception]({str(myst_exception)})"
             try:
                 await ctx.send(embed=ee)
                 chanel = self.avimetry.get_channel(797362270593613854)

@@ -1,4 +1,4 @@
-from important import AvimetryContext
+from utils import AvimetryContext
 import discord
 import os
 import datetime
@@ -11,7 +11,7 @@ import sr_api
 import aiohttp
 import aiozaneapi
 from pathlib import Path
-from important.mongo import MongoDB
+from utils.mongo import MongoDB
 import mystbin
 
 async def prefix(avimetrybot, message):

@@ -62,16 +62,29 @@ class cogs(commands.Cog):
 #Reload Command
     @commands.command(brief="Reloads a module if it is not working.", usage="[extension]")
     @commands.is_owner()
-    async def reload(self, ctx):
-        embed=discord.Embed(title="Reload Modules", description="Reloaded all Modules sucessfully.", timestamp=datetime.datetime.utcnow())
-        for filename in os.listdir('./avimetrybot/cogs'):
-            if filename.endswith('.py'):
-                try:
-                    self.avimetry.reload_extension(f'cogs.{filename[:-3]}')
-                except Exception as e:
-                    embed.description="Reloaded all Modules sucessfully except the one(s) listed below:"
-                    embed.add_field(name=f"<:noTick:777096756865269760> {filename}", value=f"Reload was not successful: {e}", inline=True)
-        await ctx.send(embed=embed)
+    async def reload(self, ctx, module):
+        if module=="~":
+            embed=discord.Embed(title="Reload Modules", description=f"Reloaded all modules sucessfully.", timestamp=datetime.datetime.utcnow())
+            for filename in os.listdir('./avimetrybot/cogs'):
+                if filename.endswith('.py'):
+                    try:
+                        self.avimetry.reload_extension(f'cogs.{filename[:-3]}')
+                        print(f"loaded {filename}")
+                    except Exception as e:
+                        embed.description="Reloaded all Modules sucessfully except the one(s) listed below:"
+                        embed.add_field(name=f"<:noTick:777096756865269760> {filename}", value=f"Reload was not successful: {e}", inline=True)
+            return await ctx.send(embed=embed)
+        try:
+            self.avimetry.reload_extension(f"cogs.{module}")
+            reload_finish=discord.Embed()
+            reload_finish.add_field(name="<:yesTick:777096731438874634> Module Disabled", value=f"The **{module}** module has been disabled.", inline=False)
+            await ctx.send (embed=reload_finish)
+        except Exception as reload_error:
+            reload_fail=discord.Embed()
+            reload_fail.add_field(name="<:noTick:777096756865269760> Module not unloaded", value=reload_error)
+            await ctx.send(embed=reload_fail)
+        
+
 
     @commands.command()
     @commands.is_owner()
