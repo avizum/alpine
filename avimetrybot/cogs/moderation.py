@@ -7,23 +7,11 @@ import time
 import asyncio
 import re
 import datetime
-
-time_regex = re.compile(r"(?:(\d{1,5})(h|s|m|d))+?")
-time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400}
-
-class TimeConverter(commands.Converter):
-    async def convert(self, ctx, argument):
-        args=argument.lower()
-        matches=re.findall(time_regex, args)
-        time=0
-        for key, value in matches:
-            try:
-                time+=time_dict[value]*float(key)
-            except KeyError:
-                raise(commands.BadArgument(f"{key} is not a number!"))
-        return round(time)
+import typing
+# pylint: disable=import-error
+from utils.converters import TimeConverter
         
-class moderation(commands.Cog):
+class Moderation(commands.Cog):
     # pylint: disable=no-member,unused-variable
     def __init__(self, avimetry):
         self.avimetry = avimetry
@@ -78,8 +66,7 @@ class moderation(commands.Cog):
     async def clean(self, ctx, limit=100):
         await ctx.message.delete()
         def avimetrybot(m):
-            c1=m.author==self.avimetry.user
-            return c1
+            return m.author==self.avimetry.user
         try:
             d1 = await ctx.channel.purge(limit=limit, check=avimetrybot, bulk=True)
         except discord.Forbidden:
@@ -141,15 +128,6 @@ class moderation(commands.Cog):
         await ctx.channel.purge(limit = amount, check = pmatch)	
         purgematch=discord.Embed()	
         purgematch.add_field(name="<:yesTick:777096731438874634> Purge Match", value=f"Purged {amount} messages containing {text}.")
-    @purge.command()
-    @commands.has_permissions(manage_messages=True)
-    @commands.bot_has_permissions(manage_messages=True)
-    async def startswith(self, ctx, text:str, amount:int):
-        await ctx.message.delete()
-        def check(m):
-            return m.content.startswith(text)
-        purge_amount=await ctx.channel.purge(limit=amount, check=check)
-        await ctx.send(f"Deleted {len(purge_amount)} messages that start with '{text}'")
 
 #Lock Channel Command
     @commands.command(brief="Locks the mentioned channel.", usage="<channel> [reason]",timestamp=datetime.datetime.utcnow())
@@ -284,7 +262,7 @@ class moderation(commands.Cog):
     @commands.command(brief="Mutes a member.")
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def mute(self, ctx, member : discord.Member, time: TimeConverter=None):
+    async def mute(self, ctx, member : discord.Member, *, time: TimeConverter=None):
         role = discord.utils.get(ctx.guild.roles, name="Muted")
         if not role:
             no_muted_role=discord.Embed()
@@ -373,4 +351,4 @@ class moderation(commands.Cog):
         await ctx.send(f"Unmuted {member.display_name}")
     
 def setup(avimetry):
-    avimetry.add_cog(moderation(avimetry))
+    avimetry.add_cog(Moderation(avimetry))

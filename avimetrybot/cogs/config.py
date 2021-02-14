@@ -12,7 +12,7 @@ handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w'
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-class serverprefix(commands.Cog, name="server prefix"):
+class GuildJoin(commands.Cog, name="server prefix"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
@@ -27,4 +27,4 @@ class serverprefix(commands.Cog, name="server prefix"):
     
 
 def setup(avimetry):
-    avimetry.add_cog(serverprefix(avimetry))
+    avimetry.add_cog(GuildJoin(avimetry))

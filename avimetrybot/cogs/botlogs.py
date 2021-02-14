@@ -3,7 +3,7 @@ from discord.ext import commands
 import random
 import datetime
 
-class botlogs(commands.Cog, name="bot logs"):
+class BotLogs(commands.Cog, name="bot logs"):
 
     def __init__(self, avimetry):
         self.avimetry = avimetry
@@ -79,6 +79,11 @@ class botlogs(commands.Cog, name="bot logs"):
         channel=self.avimetry.get_channel(send_channel)
         await channel.send(embed=embed)
     
+    @commands.Cog.listener("on_command")
+    async def on_command(self, ctx):
+        print(f"{ctx.command.name} completion")
+        self.avimetry.commands_ran=+1
+    
 
 def setup(avimetry):
-    avimetry.add_cog(botlogs(avimetry))
+    avimetry.add_cog(BotLogs(avimetry))

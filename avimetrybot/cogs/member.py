@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import re
 
-class management(commands.Cog, name="member management"):
+class MemberManagement(commands.Cog, name="member management"):
     def __init__(self, avimetry):
         self.avimetry=avimetry
 
@@ -128,4 +128,4 @@ class management(commands.Cog, name="member management"):
         await ctx.send(embed=nickembed)
 
 def setup(avimetry):
-    avimetry.add_cog(management(avimetry))
+    avimetry.add_cog(MemberManagement(avimetry))

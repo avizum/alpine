@@ -4,7 +4,7 @@ import random
 import time
 import asyncio
 
-class counting(commands.Cog):
+class Counting(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
@@ -48,4 +48,4 @@ class counting(commands.Cog):
                 return
 
 def setup(avimetry):
-    avimetry.add_cog(counting(avimetry))
+    avimetry.add_cog(Counting(avimetry))

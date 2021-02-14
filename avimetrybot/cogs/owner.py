@@ -4,7 +4,8 @@ import datetime
 from discord.ext import commands
 import subprocess 
 import asyncio
-class cogs(commands.Cog):
+
+class Owner(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
     def cog_unload(self):
@@ -105,6 +106,44 @@ class cogs(commands.Cog):
         sync_embed.title="Synced With GitHub"
         await edit_sync.edit(embed=sync_embed)
 
+    #Shutdown Command
+    @commands.command(brief="Shutdown the bot")
+    @commands.is_owner()
+    async def shutdown(self, ctx):
+        sm = discord.Embed()
+        sm.add_field(name=f"{self.avimetry.user.name} shutdown", value="Are you sure you want to shut down?")
+        rr=await ctx.send(embed=sm)
+        reactions = ['<:yesTick:777096731438874634>', '<:noTick:777096756865269760>']
+        for reaction in reactions:
+            await rr.add_reaction(reaction)
+        def check(reaction, user):
+            return str(reaction.emoji) in ['<:yesTick:777096731438874634>', '<:noTick:777096756865269760>'] and user != self.avimetry.user and user==ctx.author
+        try:
+            # pylint: disable=unused-variable
+            reaction, user = await self.avimetry.wait_for('reaction_add', check=check, timeout=60)
+        except asyncio.TimeoutError:
+            to=discord.Embed()
+            to.add_field(name=f"{self.avimetry.user.name} shutdown", value="Timed Out.")
+            await rr.edit(embed=to)
+            await rr.clear_reactions()
+
+        else:
+            if str(reaction.emoji) == '<:yesTick:777096731438874634>':
+                rre=discord.Embed()
+                rre.add_field(name=f"{self.avimetry.user.name} shutdown", value="Shutting down...")
+                await rr.edit(embed=rre)
+                await rr.clear_reactions()
+                await asyncio.sleep(5)
+                await rr.delete()
+                await self.avimetry.close()
+            if str(reaction.emoji) == '<:noTick:777096756865269760>':
+                rre2=discord.Embed()
+                rre2.add_field(name=f"{self.avimetry.user.name} shutdown", value="Shut down has been cancelled.")
+                await rr.edit(embed=rre2)
+                await rr.clear_reactions()
+                await asyncio.sleep(5)
+                await rr.delete()
+            # pylint: enable=unused-variable
 
 def setup(avimetry):
-    avimetry.add_cog(cogs(avimetry))
+    avimetry.add_cog(Owner(avimetry))

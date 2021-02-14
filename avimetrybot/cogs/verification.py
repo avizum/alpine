@@ -4,8 +4,8 @@ import string
 import random
 import json
 import asyncio
-#event = @commands.Cog.listener
-class verification(commands.Cog):
+
+class Verification(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
@@ -148,4 +148,4 @@ class verification(commands.Cog):
         await ctx.send(f"{member} was manually verified")
 
 def setup(avimetry):
-    avimetry.add_cog(verification(avimetry))
+    avimetry.add_cog(Verification(avimetry))

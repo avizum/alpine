@@ -4,38 +4,29 @@ import random
 import asyncio
 import json
 import datetime
+import re
 
-class automod(commands.Cog, name="auto moderation"):
+regex_token=re.compile(r'[a-zA-Z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27}')
+
+class AutoMod(commands.Cog, name="auto moderation"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
-'''
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author == self.avimetry.user:
             return
-        if message.author.bot:
-            return
-        with open("./avimetrybot/files/badword.json", "r") as f:
-            blacklist = json.load(f)
-
-        for words in blacklist:
-            if words in message.content.lower():
-                await message.delete()
-                await message.channel.send(f"{message.author.mention}, don't say that word!", delete_after=3)
-                
-    @commands.Cog.listener()
-    async def on_message_edit(self, message_before, message_after):
-        if message_before.author == self.avimetry.user:
-            return
         
-        with open("./avimetrybot/files/badword.json", "r") as f:
-            blacklist = json.load(f)
+        bot_token=[token for token in regex_token.findall(message.content)]
+        if message.guild==336642139381301249:
+            return
+        if bot_token:
+            try: 
+                await message.delete()
+            except:
+                return
+            await message.channel.send("I found tokens in your message and I deleted your message. Next time do not send your token here.")
+            
 
-        for words in blacklist:
-            if words in message_after.content.lower():
-                await message_after.delete()
-                await message_after.channel.send(f"{message_after.author.mention}, don't edit your message to say that word!", delete_after=3)
-'''
 def setup(avimetry):
-    avimetry.add_cog(automod(avimetry)) #40
+    avimetry.add_cog(AutoMod(avimetry)) #40

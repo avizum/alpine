@@ -9,8 +9,11 @@ import unicodedata
 import sr_api
 import asyncio
 import random
+import humanize
+import pytz
+import typing
 
-class miscellaneous(commands.Cog):
+class Miscellaneous(commands.Cog):
     
     def __init__(self, avimetry):
         self.avimetry = avimetry
@@ -101,15 +104,15 @@ class miscellaneous(commands.Cog):
             userroles.append(roles.mention)
             if ctx.guild.default_role.mention in userroles:
                 userroles.remove(ctx.guild.default_role.mention)
-        ie = discord.Embed(title="User Information", description=f'User Information for {member.mention}:\n'
-                                                          f'**Full Name:** {member.name}#{member.discriminator}\n'
-                                                          f'**User ID:** {member.id}\n'
-                                                          f'**Nickname:** {member.nick}\n' 
-                                                          f'**Server Join Date:** {member.joined_at.strftime("%m/%d/%Y at %I:%M %p (UTC)")}\n'
-                                                          f'**User Creation Date:** {member.created_at.strftime("%m/%d/%Y at %I:%M %p (UTC)")}\n' 
-                                                          f'**Roles** [{len(userroles)}] {jnr.join(userroles)}', timestamp=datetime.datetime.utcnow())
+        ie = discord.Embed(title="User Information", timestamp=datetime.datetime.utcnow())
+        ie.add_field(name="User Name", value=str(member))
+        ie.add_field(name="User ID", value=member.id)
+        ie.add_field(name="Nickname", value=member.nick)
+        ie.add_field(name="Join Date", value=f"{humanize.naturaldate(member.joined_at)} ({humanize.naturaltime(member.joined_at)})")
+        ie.add_field(name="Creation Date", value=f"{humanize.naturaldate(member.created_at)} ({humanize.naturaltime(member.created_at)})")
+        ie.add_field(name=f"Roles [{len(userroles)}]", value=f"{jnr.join(userroles)}")
         ie.set_thumbnail(url=member.avatar_url)
-        ie.add_field(name="Server Permissions", value="wip")
+        
         await ctx.send(embed=ie)
 
 #QR code command
@@ -120,18 +123,37 @@ class miscellaneous(commands.Cog):
         qr_embed.set_image(url=f"https://api.qrserver.com/v1/create-qr-code/?data={content}&size=250x250")
         await ctx.send(embed=qr_embed)
 
-#Charinfo command -@Danny#0007
-    @commands.command()
-    async def charinfo(self, ctx, *, characters: str):
-        def to_string(c):
-            digit = f'{ord(c):x}'
-            name = unicodedata.name(c, 'Name not found.')
-            return f'`\\U{digit:>08}`: {name} - {c}\n[More Info](<http://www.fileformat.info/info/unicode/char/{digit}>)'
-        msg = '\n'.join(map(to_string, characters))
-        if len(msg) > 2000:
-            return await ctx.send('Message too long. Sorry!')
-        embed=discord.Embed(title=f"Character Information - {characters}", description=msg, timestamp=datetime.datetime.utcnow())
-        await ctx.send(embed=embed)
+#Time command
+    @commands.group(brief="Gets the time for a member", invoke_without_command=True)
+    async def time(self, ctx, *, member:discord.Member=None):
+        if member==None:
+            member=ctx.author
+        data=await self.avimetry.time_zones.find(member.id)
+        try:
+            timezone=data[str('time_zone')]
+        except KeyError:
+            return await ctx.send("That user does not have a time zone set.")
+        timezone=pytz.timezone(timezone)
+        time=datetime.datetime.now(timezone)
+        format_time=time.strftime("%A, %B %d at %I:%M %p")
+        time_embed=discord.Embed(description=format_time)
+        time_embed.set_author(name=f"Time for {member.display_name}", icon_url=member.avatar_url)
+        if member.display_name.endswith("s"):
+            member_name=f"{member.display_name}'"
+        else:
+            member_name=f"{member.display_name}'s"
+        time_embed.set_footer(text=f"{member_name} timezone: {timezone}")
+        await ctx.send(embed=time_embed)
+    
+    @time.command(brief="Sets your timezone")
+    async def set(self, ctx, *, timezone):
+        try:
+            timezones=pytz.timezone(timezone)
+        except KeyError:
+            raise commands.BadArgument("That is not a valid time zone. [Here](https://gist.github.com/Soheab/3bec6dd6c1e90962ef46b8545823820d) are the valid time zones.")
+        await self.avimetry.time_zones.upsert({"_id":ctx.author.id, "time_zone": str(timezones)})
+        await ctx.send(f"Set timezone to {timezones}")
+
 
 def setup(avimetry):
-    avimetry.add_cog(miscellaneous(avimetry))
+    avimetry.add_cog(Miscellaneous(avimetry))

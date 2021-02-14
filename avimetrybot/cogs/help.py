@@ -5,7 +5,7 @@ import os
 import pathlib
 from difflib import get_close_matches
 
-class HCEmbed(commands.HelpCommand):
+class HelpEmbeded(commands.HelpCommand):
 
     def get_files(self):
         total = 0
@@ -32,12 +32,14 @@ class HCEmbed(commands.HelpCommand):
     def gcommand_signature(self, command):
         return '{0.qualified_name} {0.signature}'.format(command)
 
-    async def send_error_message(self, command):
-        return
+    async def send_error_message(self, error):
+
+        embed=discord.Embed(title="Help Menu", description=error, color=discord.Color.red())
+        embed.set_footer(text=self.gending_note())
+        await self.get_destination().send(embed=embed)
 
     def get_destination(self):
         return self.context
-
 
     async def send_bot_help(self, mapping):
         embed = discord.Embed(title='Help Menu', description=f"{self.context.bot.user.name} {self.get_files()}\n\nThe prefix for **{self.get_destination().guild.name}** is `{self.clean_prefix}`")
@@ -90,31 +92,24 @@ class HCEmbed(commands.HelpCommand):
         alias = command.aliases
         if alias:
             embed.add_field(name="Aliases", value=f'`{", ".join(alias)}`', inline=False)
-
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
     
     async def command_not_found(self, string):
-        embed=discord.Embed(title="Command Not Found")
         lol='\n'.join(get_close_matches(string, [i.name for i in self.context.bot.commands]))
         if lol:
-            embed.description=f'"{string}" is not a command/module. Did you mean...\n`{lol}`'
+            return f'"{string}" is not a command/module. Did you mean...\n`{lol}`'
         if not lol:
-            embed.description=f'"{string}" is not a command/module and I couln\'t find any similar commands.'
-        embed.set_footer(text=self.gending_note())
-        await self.get_destination().send(embed=embed)
-    
+            return f'"{string}" is not a command/module and I couln\'t find any similar commands.'
+        
     async def subcommand_not_found(self, command, string):
-        embed=discord.Embed(title="Help Menu")
-        embed.add_field(name=f"Subcommand does not exist", value='"{0}" is not a subcommand of "{1}".'.format(string, command))
-        embed.set_footer(text=self.gending_note())
-        await self.get_destination().send(embed=embed)
+        return '"{0}" is not a subcommand of "{1}".'.format(string, command)
 
 class Help(commands.Cog):
     def __init__(self, avimetry):
         self.HCne = avimetry.help_command
         self.avimetry = avimetry
-        self.avimetry.help_command = HCEmbed(
+        self.avimetry.help_command = HelpEmbeded(
              command_attrs=dict(
                 hidden=True,
                 aliases=['h', 'halp', 'helps','cmds', 'commands', 'cmd'],

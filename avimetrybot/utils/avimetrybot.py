@@ -13,6 +13,7 @@ import aiozaneapi
 from pathlib import Path
 from utils.mongo import MongoDB
 import mystbin
+import time
 
 async def prefix(avimetrybot, message):
     if not message.guild:
@@ -31,7 +32,7 @@ async def prefix(avimetrybot, message):
     except:
         return "a."
 
-allowed_mentions=discord.AllowedMentions(everyone=False, users=True, roles=True, replied_user=False)
+allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=True, replied_user=False)
 intents=discord.Intents.all()
 activity=discord.Game('avimetry() | a.help')
 
@@ -54,11 +55,23 @@ class AvimetryBot(commands.Bot):
         self.sr=sr_api.Client()
         self.zaneapi=aiozaneapi.Client(os.getenv("Zane_Token"))
         self.myst=mystbin.Client()
+        self.commands_ran=0
+        self.session=aiohttp.ClientSession()
+        self.cog_cooldown=commands.CooldownMapping.from_cooldown(2, 10, commands.BucketType.member)
+    
         # pylint: disable=unused-variable
         @self.check
         async def globally_block_dms(ctx):
             if not ctx.guild:
                 raise commands.NoPrivateMessage("Commands do not work in dm channels.")
+            return True
+        
+        @self.check
+        async def cooldown_check(ctx):
+            bucket = self.cog_cooldown.get_bucket(ctx.message)
+            cooldown_time = bucket.update_rate_limit()
+            if cooldown_time:
+                raise commands.CommandOnCooldown(bucket, cooldown_time)
             return True
         
         @self.event
@@ -68,6 +81,7 @@ class AvimetryBot(commands.Bot):
             self.config=MongoDB(self.db, 'new')
             self.mutes=MongoDB(self.db, 'mutes')
             self.logs=MongoDB(self.db, 'logging')
+            self.time_zones=MongoDB(self.db, 'timezones')
             
             current_mutes=await self.mutes.get_all()
             for mute in current_mutes:
@@ -84,14 +98,26 @@ class AvimetryBot(commands.Bot):
     async def get_context(self, message, *, cls=AvimetryContext):
         return await super().get_context(message, cls=cls)
 
+    async def api_latency(self, ctx):
+        start=time.perf_counter()
+        await ctx.trigger_typing()
+        end=time.perf_counter()
+        return round((end-start)*1000)
+
+    async def database_latency(self, ctx):
+        start=time.perf_counter()
+        await self.config.find({"_id":ctx.guild.id})
+        end=time.perf_counter()
+        return round((end-start)*1000)
+
     async def close(self):
         self.mongo.close()
         await self.sr.close()
         await self.zaneapi.close()
         await self.myst.close()
+        await self.session.close()
         print('\nClosing Connection to Discord.')
         await super().close()
-        
         
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
         if after.author.id in self.owner_ids:

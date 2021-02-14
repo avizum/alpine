@@ -5,9 +5,9 @@ import asyncio
 from jishaku.features.baseclass import Feature
 from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 
-class CustomDebugCog(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
+class JishakuCog(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     pass
 
 
 def setup(avimetry: commands.Bot):
-    avimetry.add_cog(CustomDebugCog(bot=avimetry))
+    avimetry.add_cog(JishakuCog(bot=avimetry))

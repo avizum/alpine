@@ -7,7 +7,7 @@ import typing
 import re
 import datetime
 
-class fun(commands.Cog):
+class Fun(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
@@ -71,6 +71,13 @@ class fun(commands.Cog):
     async def dsay(self, ctx, *, dbotsay):
         await ctx.message.delete()
         await ctx.send(f'{dbotsay}')
+    
+#Embed Builder Command
+    @commands.command(brief="Build an embed with json")
+    @commands.cooldown(1, 30, commands.BucketType.member)
+    async def embed(self, ctx, *, embed):
+        embed=discord.Embed().from_dict(embed)
+        await ctx.send(embed=embed)
 
 #Skin Command
     @commands.command(brief="Remove the skin off of people that you don't like.")
@@ -181,4 +188,4 @@ class fun(commands.Cog):
     
           
 def setup(avimetry):
-    avimetry.add_cog(fun(avimetry))
+    avimetry.add_cog(Fun(avimetry))
