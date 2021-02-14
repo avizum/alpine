@@ -66,14 +66,6 @@ class AvimetryBot(commands.Bot):
                 raise commands.NoPrivateMessage("Commands do not work in dm channels.")
             return True
         
-        @self.check
-        async def cooldown_check(ctx):
-            bucket = self.cog_cooldown.get_bucket(ctx.message)
-            cooldown_time = bucket.update_rate_limit()
-            if cooldown_time:
-                raise commands.CommandOnCooldown(bucket, cooldown_time)
-            return True
-        
         @self.event
         async def on_ready():
             self.mongo = motor.motor_asyncio.AsyncIOMotorClient(os.getenv('DB_Token'))

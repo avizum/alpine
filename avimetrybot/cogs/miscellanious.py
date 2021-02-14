@@ -96,21 +96,25 @@ class Miscellaneous(commands.Cog):
 
 #Info Command
     @commands.command(brief="Gets a member's information")
-    async def uinfo(self, ctx, *, member : discord.Member):
+    async def uinfo(self, ctx, *, member : discord.Member=None):
+        if member==None:
+            member=ctx.author
         userroles = list()
         jnr = ", "
-        userroles.append("@everyone")
         for roles in member.roles:
             userroles.append(roles.mention)
             if ctx.guild.default_role.mention in userroles:
                 userroles.remove(ctx.guild.default_role.mention)
-        ie = discord.Embed(title="User Information", timestamp=datetime.datetime.utcnow())
+        ie = discord.Embed(title="User Information", timestamp=datetime.datetime.utcnow(), color=member.color)
         ie.add_field(name="User Name", value=str(member))
         ie.add_field(name="User ID", value=member.id)
         ie.add_field(name="Nickname", value=member.nick)
-        ie.add_field(name="Join Date", value=f"{humanize.naturaldate(member.joined_at)} ({humanize.naturaltime(member.joined_at)})")
-        ie.add_field(name="Creation Date", value=f"{humanize.naturaldate(member.created_at)} ({humanize.naturaltime(member.created_at)})")
-        ie.add_field(name=f"Roles [{len(userroles)}]", value=f"{jnr.join(userroles)}")
+        ie.add_field(name="Join Date", value=f"{humanize.naturaldate(member.joined_at)} ({humanize.naturaltime(member.joined_at)})", inline=False)
+        ie.add_field(name="Creation Date", value=f"{humanize.naturaldate(member.created_at)} ({humanize.naturaltime(member.created_at)})", inline=False)
+        ie.add_field(name="Top Role", value=member.top_role.mention, inline=False)
+        ie.add_field(name=f"Roles [{len(userroles)}]", value=f"{jnr.join(userroles)}", inline=False)
+
+        
         ie.set_thumbnail(url=member.avatar_url)
         
         await ctx.send(embed=ie)
@@ -154,6 +158,17 @@ class Miscellaneous(commands.Cog):
         await self.avimetry.time_zones.upsert({"_id":ctx.author.id, "time_zone": str(timezones)})
         await ctx.send(f"Set timezone to {timezones}")
 
+    @commands.command(brief="Get the jump link for the channel that you mention")
+    async def firstmessage(self, ctx, *, channel:discord.TextChannel=None):
+        if channel==None:
+            channel=ctx.channel
+        messages=await channel.history(limit=1, oldest_first=True).flatten()
+        if len(messages[0].content)>100:
+            mg_cnt=messages[0].content[:100]
+            pass
+        mg_cnt=messages[0].content
+        embed_message=discord.Embed(title=f"First Message of #{channel.name}", description=f"Here is the message link. [jump]({messages[0].jump_url})\n\n>>> {mg_cnt}")
+        await ctx.send(embed=embed_message)
 
 def setup(avimetry):
     avimetry.add_cog(Miscellaneous(avimetry))
