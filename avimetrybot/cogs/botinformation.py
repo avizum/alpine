@@ -13,17 +13,7 @@ import humanize
 class BotInfo(commands.Cog, name="bot utilities"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
-#On Ready
-    @commands.Cog.listener()
-    async def on_ready(self):
-        timenow=datetime.datetime.now().strftime("%I:%M %p")
-        print('------\n'
-              'Succesfully logged in. Bot Info Below:\n'
-              f'Username: {self.avimetry.user.name}\n'
-              f'Bot ID: {self.avimetry.user.id}\n'
-              f'Login Time: {datetime.date.today()} at {timenow}\n'
-              '------'
-        )
+
 #Mention prefix
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -162,6 +152,11 @@ class BotInfo(commands.Cog, name="bot utilities"):
             bot_invite.title=f"{bot.name} Invite"
             bot_invite.description=f"That is not a bot. Make sure you mention a bot."
         await ctx.send(embed=bot_invite)
+
+    @commands.command()
+    async def leave(self, ctx):
+        await ctx.send("bye bye!")
+        await ctx.guild.leave()
 
 def setup(avimetry):
     avimetry.add_cog(BotInfo((avimetry)))

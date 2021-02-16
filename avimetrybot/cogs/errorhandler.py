@@ -32,7 +32,7 @@ class ErrorHandler(commands.Cog):
             lol='\n'.join(get_close_matches(not_found, [i.name for i in ctx.bot.commands]))
             if not lol:
                 return
-            not_found_embed.description=f'I wasn\'t able to find a command called "{not_found}" . Did you mean...\n`{lol}`'
+            not_found_embed.description=f'I wasn\'t able to find a command called "{not_found}". Did you mean...\n`{lol}`'
             not_found_embed.set_footer(text=f"Not what you meant? Use {pre}help to see the whole list of commands.")
             await ctx.send(embed=not_found_embed)
         

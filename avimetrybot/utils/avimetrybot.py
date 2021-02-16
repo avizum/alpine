@@ -58,7 +58,6 @@ class AvimetryBot(commands.Bot):
         self.commands_ran=0
         self.session=aiohttp.ClientSession()
         self.cog_cooldown=commands.CooldownMapping.from_cooldown(2, 10, commands.BucketType.member)
-    
         # pylint: disable=unused-variable
         @self.check
         async def globally_block_dms(ctx):
@@ -78,6 +77,13 @@ class AvimetryBot(commands.Bot):
             current_mutes=await self.mutes.get_all()
             for mute in current_mutes:
                 self.muted_users[mute["_id"]] = mute
+            timenow=datetime.datetime.now().strftime("%I:%M %p")
+            print('------\n'
+            'Succesfully logged in. Bot Info Below:\n'
+            f'Username: {self.user.name}\n'
+            f'Bot ID: {self.user.id}\n'
+            f'Login Time: {datetime.date.today()} at {timenow}\n'
+            '------')
         # pylint: enable=unused-variable
         os.environ["JISHAKU_HIDE"] = "True"
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"

@@ -63,14 +63,14 @@ class Fun(commands.Cog):
     @commands.command(brief="You can make me say whatever you please!", usage="<message>")
     @commands.cooldown(1, 120, commands.BucketType.member)
     async def say(self, ctx, *, botsay):
-        await ctx.send(f'{botsay}')
+        await ctx.send_raw(f'{botsay}')
 
 #Delete Say Command
     @commands.command(brief="You can make me say whatever you please, but I delete your message so it looks like I sent it!", usage="<message>")
     @commands.cooldown(1, 120, commands.BucketType.member)
     async def dsay(self, ctx, *, dbotsay):
         await ctx.message.delete()
-        await ctx.send(f'{dbotsay}')
+        await ctx.send_raw(f'{dbotsay}')
     
 #Embed Builder Command
     @commands.command(brief="Build an embed with json")
@@ -185,7 +185,12 @@ class Fun(commands.Cog):
                 cookie_embed.set_field_at(0, name="Good job!", value=f"{user.mention} got the cookie in **{total_second}**")
                 await cd_cookie.edit(embed=cookie_embed)
 
-    
+    @commands.command(hidden=True)
+    async def suicide(self, ctx):    
+        pre = await self.avimetry.get_prefix(ctx.message)
+        embed=discord.Embed(title="Invalid Command", description='I wasn\'t about to find a command called "suicide". Did you mean...\n`don\'t\ndo\nit`', color=discord.Color.red())
+        embed.set_footer(text=f"Not what you meant? Use {pre}help to see the whole list of commands.")
+        await ctx.send(embed=embed)
           
 def setup(avimetry):
     avimetry.add_cog(Fun(avimetry))

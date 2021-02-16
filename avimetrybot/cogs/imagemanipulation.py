@@ -12,7 +12,9 @@ import typing
 embed=discord.Embed()
 embed.set_footer(text="Powered by ZaneApi")
 regex_url=re.compile(r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})")
-
+# pylint: disable=unsubscriptable-object
+args=typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None] 
+# pylint: enable=unsubscriptable-object
 class Manipulation(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry=avimetry
@@ -35,9 +37,8 @@ class Manipulation(commands.Cog):
         return url
 
 #Magic Command
-    # pylint: disable=unsubscriptable-object
     @commands.command(usage="[url or member]", brief="Returns a gif of your image being scaled")
-    async def magic(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+    async def magic(self, ctx, url:args):
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             magic=await self.avimetry.zaneapi.magic(str(url))
@@ -47,7 +48,7 @@ class Manipulation(commands.Cog):
 
 #Floor Command
     @commands.command(usage="[url or member]", brief="Returns a gif of your image being bent into a floor")
-    async def floor(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+    async def floor(self, ctx, url:args):
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             floor=await self.avimetry.zaneapi.floor(str(url))
@@ -56,14 +57,14 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Retruns text of the provided image")
-    async def braille(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+    async def braille(self, ctx, url:args):
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             braille=await self.avimetry.zaneapi.braille(str(url))
             return await ctx.send(f"```{braille}```")
 
     @commands.command(usage="[url or member]", brief="Returns your image deepfried")
-    async def deepfry(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+    async def deepfry(self, ctx, url:args):
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             deepfry=await self.avimetry.zaneapi.deepfry(str(url))
@@ -72,7 +73,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Returns your image with black and white dots")
-    async def dots(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):    
+    async def dots(self, ctx, url:args):    
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             dots=await self.avimetry.zaneapi.dots(str(url))
@@ -81,7 +82,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Returns your image heavilly compressed and with low quality, just like jpeg")
-    async def jpeg(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+    async def jpeg(self, ctx, url:args):
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             jpeg=await self.avimetry.zaneapi.jpeg(str(url))
@@ -90,7 +91,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Returns a gif of all the pixels spreading out")
-    async def spread(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+    async def spread(self, ctx, url:args):
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             spread=await self.avimetry.zaneapi.spread(str(url))
@@ -99,7 +100,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Returns your image on a cube")
-    async def cube(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+    async def cube(self, ctx, url:args):
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             cube=await self.avimetry.zaneapi.cube(str(url))
@@ -108,7 +109,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Returns the pixels on your image")
-    async def sort(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+    async def sort(self, ctx, url:args):
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             sort=await self.avimetry.zaneapi.sort(str(url))
@@ -117,7 +118,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Returns up to 8 colors from your image")
-    async def palette(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+    async def palette(self, ctx, url:args):
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             palette=await self.avimetry.zaneapi.palette(str(url))
@@ -126,7 +127,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Returns an inverted version of your image")
-    async def invert(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+    async def invert(self, ctx, url:args):
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             invert=await self.avimetry.zaneapi.invert(str(url))
@@ -135,7 +136,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Returns a poserized version of your image")
-    async def posterize(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+    async def posterize(self, ctx, url:args):
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             posterize=await self.avimetry.zaneapi.posterize(str(url))
@@ -144,7 +145,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Returns your image as grayscale")
-    async def grayscale(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+    async def grayscale(self, ctx, url:args):
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             grayscale=await self.avimetry.zaneapi.grayscale(str(url))
@@ -153,7 +154,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Returns an your image scaled down then scaled back up")
-    async def pixelate(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+    async def pixelate(self, ctx, url:args):
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             pixelate=await self.avimetry.zaneapi.pixelate(str(url))
@@ -162,7 +163,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Returns a gif of your image being swirled")
-    async def swirl(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+    async def swirl(self, ctx, url:args):
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             swirl=await self.avimetry.zaneapi.swirl(str(url))
@@ -171,13 +172,12 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Returns your image with a sobel filter")
-    async def sobel(self, ctx, url:typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+    async def sobel(self, ctx, url:args):
         url=await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             sobel=await self.avimetry.zaneapi.sobel(str(url))
             file=discord.File(BytesIO(sobel.read()), filename="sobel.png")
             embed.set_image(url="attachment://sobel.png")
-            await ctx.send(file=file, embed=embed)
-    #pylint: disable=unsubscriptable-object        
+            await ctx.send(file=file, embed=embed)      
 def setup(avimetry):
     avimetry.add_cog(Manipulation(avimetry))

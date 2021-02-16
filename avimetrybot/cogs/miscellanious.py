@@ -96,27 +96,44 @@ class Miscellaneous(commands.Cog):
 
 #Info Command
     @commands.command(brief="Gets a member's information")
-    async def uinfo(self, ctx, *, member : discord.Member=None):
+    # pylint: disable=unsubscriptable-object
+    async def uinfo(self, ctx, *, member : typing.Union[discord.Member, discord.User]=None):
+    # pylint: enable=unsubscriptable-object
         if member==None:
             member=ctx.author
-        userroles = list()
-        jnr = ", "
-        for roles in member.roles:
-            userroles.append(roles.mention)
-            if ctx.guild.default_role.mention in userroles:
-                userroles.remove(ctx.guild.default_role.mention)
-        ie = discord.Embed(title="User Information", timestamp=datetime.datetime.utcnow(), color=member.color)
-        ie.add_field(name="User Name", value=str(member))
-        ie.add_field(name="User ID", value=member.id)
-        ie.add_field(name="Nickname", value=member.nick)
-        ie.add_field(name="Join Date", value=f"{humanize.naturaldate(member.joined_at)} ({humanize.naturaltime(member.joined_at)})", inline=False)
-        ie.add_field(name="Creation Date", value=f"{humanize.naturaldate(member.created_at)} ({humanize.naturaltime(member.created_at)})", inline=False)
-        ie.add_field(name="Top Role", value=member.top_role.mention, inline=False)
-        ie.add_field(name=f"Roles [{len(userroles)}]", value=f"{jnr.join(userroles)}", inline=False)
-
-        
-        ie.set_thumbnail(url=member.avatar_url)
-        
+        if isinstance(member, discord.User):
+            ie = discord.Embed(title="User Information", description="This user in not in this server",timestamp=datetime.datetime.utcnow(), color=member.color)
+            ie.add_field(name="User Name", value=str(member))
+            ie.add_field(name="User ID", value=member.id)
+            ie.add_field(name="Creation Date", value=f"{humanize.naturaldate(member.created_at)} ({humanize.naturaltime(member.created_at)})", inline=False)
+            ie.set_thumbnail(url=member.avatar_url)
+        else:
+            userroles = list()
+            jnr = ", "
+            for roles in member.roles:
+                userroles.append(roles.mention)
+                if ctx.guild.default_role.mention in userroles:
+                    userroles.remove(ctx.guild.default_role.mention)
+            ie = discord.Embed(title="User Information", timestamp=datetime.datetime.utcnow(), color=member.color)
+            ie.add_field(name="User Name", value=str(member))
+            ie.add_field(name="User ID", value=member.id)
+            ie.add_field(name="Nickname", value=member.nick)
+            ie.add_field(name="Join Date", value=f"{humanize.naturaldate(member.joined_at)} ({humanize.naturaltime(member.joined_at)})", inline=False)
+            ie.add_field(name="Creation Date", value=f"{humanize.naturaldate(member.created_at)} ({humanize.naturaltime(member.created_at)})", inline=False)
+            if member.raw_status=="online":
+                member_status="Online <:status_online:810683593193029642>"
+            elif member.raw_status=="offline":
+                member_status="Offline <:status_offline:810683581541515335>"
+            elif member.raw_status=="idle":
+                member_status="Idle <:status_idle:810683571269664798>"
+            elif member.raw_status=="dnd":
+                member_status="Do not Disturb <:status_dnd:810683560863989805>"
+            elif member.raw_status=="streaming":
+                member_status="Streaming <:status_streaming:810683604812169276>"
+            ie.add_field(name="Status", value=member_status)
+            ie.add_field(name="Top Role", value=member.top_role.mention, inline=False)
+            ie.add_field(name=f"Roles [{len(userroles)}]", value=f"{jnr.join(userroles)}", inline=False)
+            ie.set_thumbnail(url=member.avatar_url)
         await ctx.send(embed=ie)
 
 #QR code command
@@ -169,6 +186,10 @@ class Miscellaneous(commands.Cog):
         mg_cnt=messages[0].content
         embed_message=discord.Embed(title=f"First Message of #{channel.name}", description=f"Here is the message link. [jump]({messages[0].jump_url})\n\n>>> {mg_cnt}")
         await ctx.send(embed=embed_message)
+
+    @commands.command()
+    async def test(self, ctx):
+        await ctx("'fdkfj'")
 
 def setup(avimetry):
     avimetry.add_cog(Miscellaneous(avimetry))

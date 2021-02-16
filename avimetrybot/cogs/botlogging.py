@@ -82,7 +82,7 @@ class BotLogs(commands.Cog, name="bot logs"):
     @commands.Cog.listener("on_command")
     async def on_command(self, ctx):
         print(f"{ctx.command.name} completion")
-        self.avimetry.commands_ran=+1
+        self.avimetry.commands_ran+=1
     
 
 def setup(avimetry):

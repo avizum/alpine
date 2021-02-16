@@ -266,7 +266,7 @@ class Moderation(commands.Cog):
         role = discord.utils.get(ctx.guild.roles, name="Muted")
         if not role:
             no_muted_role=discord.Embed()
-            no_muted_role.add_field(name="<:noTick:777096756865269760> Mute Failed", value=f"Couldn't mute {member.mention} because there is no role named Muted.")
+            no_muted_role.add_field(name="<:noTick:777096756865269760> Mute Failed", value=f"Couldn't mute {member.mention} because there is no muted role.")
             await ctx.send(embed=no_muted_role)
             return
         try:
