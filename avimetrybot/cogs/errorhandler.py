@@ -25,6 +25,7 @@ class ErrorHandler(commands.Cog):
         
         pre = await self.avimetry.get_prefix(ctx.message)
         error = getattr(error, 'original', error)
+        name=ctx.command.qualified_name
 
         if isinstance(error, commands.CommandNotFound):
             not_found_embed=discord.Embed(title="Invalid Command", color=discord.Color.red())
@@ -37,23 +38,23 @@ class ErrorHandler(commands.Cog):
             await ctx.send(embed=not_found_embed)
         
         elif isinstance(error, commands.CommandOnCooldown):
-            cd=discord.Embed(title="Slow down", description=f"You are on cooldown. Try again in {humanize.naturaldelta(error.retry_after)}.", color=discord.Color.red())
+            cd=discord.Embed(title="Slow down", description=f"**{name}** is on cooldown. Try again in {humanize.naturaldelta(error.retry_after)}.", color=discord.Color.red())
             await ctx.send(embed=cd) 
 
         elif isinstance(error, commands.BotMissingPermissions):
             mp = error.missing_perms
             missing_perms = " ".join([str(elem) for elem in mp]).replace("_", " ").replace("guild", "server")
-            bnp=discord.Embed(title="Missing Permissions", description=f"I need the following permisisons to run this command:\n`{missing_perms}`",color=discord.Color.red())
+            bnp=discord.Embed(title="Missing Permissions", description=f"I need the following permisisons to run **{name}**:\n`{missing_perms}`",color=discord.Color.red())
             await ctx.send(embed=bnp)
         
         elif isinstance(error, commands.MissingPermissions):
             mp = error.missing_perms
             missing_perms = " ".join([str(elem) for elem in mp]).replace("_", " ").replace("guild", "server")
-            np=discord.Embed(title="Missing Permissions", description=f"You need the following permissions to run this command:\n`{missing_perms}`", color=discord.Color.red())
+            np=discord.Embed(title="Missing Permissions", description=f"You need the following permissions to run **{name}**:\n`{missing_perms}`", color=discord.Color.red())
             await ctx.send(embed=np)
         
         elif isinstance(error, commands.NotOwner):
-            no=discord.Embed(title="Missing Permissions", description="You need the following permissions to run this command:\n`bot owner`",color=discord.Color.red())
+            no=discord.Embed(title="Missing Permissions", description="You need the following permissions to run **{name}**:\n`bot owner`", color=discord.Color.red())
             await ctx.send(embed=no)
 
         elif isinstance(error, commands.MissingRequiredArgument):
@@ -61,7 +62,7 @@ class ErrorHandler(commands.Cog):
                 ctx.command.reset_cooldown(ctx)
             except Exception:
                 pass
-            a = discord.Embed(title="Missing Arguments", description=f"You forgot to put the `{error.param.name}` argument for this command.", color=discord.Color.red())
+            a = discord.Embed(title="Missing Arguments", description=f"You need to put the `{error.param.name}` parameter to run **{name}**", color=discord.Color.red())
             await ctx.send(embed=a)
 
         elif isinstance(error, commands.DisabledCommand):

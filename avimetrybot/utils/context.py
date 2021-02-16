@@ -4,11 +4,13 @@ import datetime
 from pathlib import Path
 
 class AvimetryContext(commands.Context):
-
     async def send_raw(self, *args, **kwargs):
         return await super().send(*args, **kwargs)
 
     async def send(self, content=None, embed: discord.Embed=None, *args, **kwargs):
+        if self.command.qualified_name in ["jishaku shell", "jishaku cat", "jishaku source", "jishaku rtt"]:
+            return await super().send(content=content)
+
         if content:
             embed=discord.Embed(description=content)
             content=None
@@ -21,6 +23,7 @@ class AvimetryContext(commands.Context):
                 embed.timestamp=datetime.datetime.utcnow()
             except:
                 pass
+
         try:
             return await self.reply(content, embed=embed, *args, **kwargs, mention_author=False)
         except:

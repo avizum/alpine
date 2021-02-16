@@ -7,6 +7,17 @@ import typing
 import re
 import datetime
 
+
+cog_cooldown=commands.CooldownMapping.from_cooldown(1.0, 30.0, commands.BucketType.member)
+def cog_check():
+    def predicate(ctx):
+        bucket=cog_cooldown.get_bucket(ctx.message)
+        update_bucket=bucket.update_rate_limit()
+        if update_bucket:
+            raise commands.CommandOnCooldown(bucket, update_bucket)
+        return True
+    return commands.check(predicate)
+
 class Fun(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry
@@ -110,14 +121,14 @@ class Fun(commands.Cog):
         a = discord.Embed(description=f'{ctx.author.mention} hit their face.')
         await ctx.send(embed=a)
     
-    @commands.group(aliases=["\U0001F36A", "kookie", "cookies"])
+    @commands.group(aliases=["\U0001F36A", "kookie", "cookies"], invoke_without_command=True)
     #@commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
-    @commands.cooldown(1, 30, commands.BucketType.member)
     async def cookie(self, ctx):
-        if ctx.invoked_subcommand==None:
-            ctx.command.reset_cooldown(ctx)
-            await ctx.send_help("cookie")
+        ctx.command.reset_cooldown(ctx)
+        await ctx.send_help("cookie")
+
     @cookie.command(brief="Get the cookie as fast as you can with out a countdown timer.")
+    @cog_check()
     async def hard(self, ctx):
         cookie_embed=discord.Embed()
         cookie_embed.add_field(name="Get the cookie!", value="Who has the fastest reaction time? Get ready to grab the cookie!")
@@ -150,6 +161,7 @@ class Fun(commands.Cog):
                 return await cd_cookie.edit(embed=cookie_embed)
 
     @cookie.command(brief="Get the cookie as fast as you can with a three second timer.")
+    @cog_check()
     async def easy(self, ctx):
         cntdown=3
         cookie_embed=discord.Embed()

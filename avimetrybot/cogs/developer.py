@@ -78,11 +78,11 @@ class Owner(commands.Cog):
         try:
             self.avimetry.reload_extension(f"cogs.{module}")
             reload_finish=discord.Embed()
-            reload_finish.add_field(name="<:yesTick:777096731438874634> Module Disabled", value=f"The **{module}** module has been disabled.", inline=False)
+            reload_finish.add_field(name="<:yesTick:777096731438874634> Module Reloaded", value=f"The **{module}** module has been reloaded.", inline=False)
             await ctx.send (embed=reload_finish)
         except Exception as reload_error:
             reload_fail=discord.Embed()
-            reload_fail.add_field(name="<:noTick:777096756865269760> Module not unloaded", value=reload_error)
+            reload_fail.add_field(name="<:noTick:777096756865269760> Module not reloaded", value=reload_error)
             await ctx.send(embed=reload_fail)
         
 

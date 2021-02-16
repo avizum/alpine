@@ -33,7 +33,6 @@ class HelpEmbeded(commands.HelpCommand):
         return '{0.qualified_name} {0.signature}'.format(command)
 
     async def send_error_message(self, error):
-
         embed=discord.Embed(title="Help Menu", description=error, color=discord.Color.red())
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)

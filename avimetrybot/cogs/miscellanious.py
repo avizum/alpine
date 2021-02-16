@@ -180,7 +180,7 @@ class Miscellaneous(commands.Cog):
         if channel==None:
             channel=ctx.channel
         messages=await channel.history(limit=1, oldest_first=True).flatten()
-        if len(messages[0].content)>100:
+        if len(messages[0].content)>100:  
             mg_cnt=messages[0].content[:100]
             pass
         mg_cnt=messages[0].content
