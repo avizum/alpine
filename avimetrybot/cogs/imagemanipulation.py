@@ -178,6 +178,29 @@ class Manipulation(commands.Cog):
             sobel=await self.avimetry.zaneapi.sobel(str(url))
             file=discord.File(BytesIO(sobel.read()), filename="sobel.png")
             embed.set_image(url="attachment://sobel.png")
-            await ctx.send(file=file, embed=embed)      
+            await ctx.send(file=file, embed=embed)     
+
+    @commands.command(brief="Convert emoji to url so you can download them")
+    async def emojiurl(self, ctx, emoji):
+        result=await urlify_emoji(emoji)
+        await ctx.send(result)
+
 def setup(avimetry):
     avimetry.add_cog(Manipulation(avimetry))
+
+
+'''todo
+        import io
+        floor=bot.sr.filter("triggered", str(ctx.author.avatar_url_as(format="png")))
+        file=discord.File(io.BytesIO(await floor.read()), filename="magic.gif")
+        await ctx.send(file=file)
+
+
+
+        import io
+        floor=bot.sr.youtube_comment(str(ctx.author.avatar_url_as(format="png")), ctx.author.name, "asd")
+        file=discord.File(io.BytesIO(await floor.read()), filename="magic.png")
+        await ctx.send(file=file)
+        
+'''
+

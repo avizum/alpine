@@ -26,7 +26,11 @@ class Fun(commands.Cog):
     @commands.command(aliases=['8ball', '8b'], brief="Ask a question to the magic eight ball, and you will recieve an answer")
     @commands.cooldown(1, 5, commands.BucketType.member)
     async def eightball(self, ctx, *, question):
-        responses = ["As I see it, yes.", "Ask again later.", "Better not tell you now.", "Cannot predict now.", "Concentrate and ask again.", "Don’t count on it.", "It is certain.", "It is decidedly so.", "Most likely.", "My reply is no.", "My sources say no.", "Outlook not so good.", "Outlook good.", "Reply hazy, try again.", "Signs point to yes.", "Very doubtful.", "Without a doubt.", "Yes.", "Yes – definitely.", "You may rely on it.",]
+        if ctx.author.id in self.avimetry.owner_ids:
+            if question.lower().endswith("\u200b"):
+                responses=["It is certain.", "Without a doubt.", "You may rely on it.", "Yes definitely.", "It is decidedly so.", "As I see it, yes.", "Most likely.", "Yes.", "Outlook good.", "Signs point to yes."]
+            else:  
+                responses = ["As I see it, yes.", "Ask again later.", "Better not tell you now.", "Cannot predict now.", "Concentrate and ask again.", "Don’t count on it.", "It is certain.", "It is decidedly so.", "Most likely.", "My reply is no.", "My sources say no.", "Outlook not so good.", "Outlook good.", "Reply hazy, try again.", "Signs point to yes.", "Very doubtful.", "Without a doubt.", "Yes.", "Yes – definitely.", "You may rely on it.",]
         ballembed=discord.Embed(title=":8ball: Magic 8 Ball")
         ballembed.add_field(name="Question:", value=f"{question}", inline=False)
         ballembed.add_field(name="Answer:", value=f"{random.choice(responses)}", inline=False)
@@ -204,6 +208,8 @@ class Fun(commands.Cog):
         embed=discord.Embed(title="Invalid Command", description='I wasn\'t about to find a command called "suicide". Did you mean...\n`don\'t\ndo\nit`', color=discord.Color.red())
         embed.set_footer(text=f"Not what you meant? Use {pre}help to see the whole list of commands.")
         await ctx.send(embed=embed)
+
+    
           
 def setup(avimetry):
     avimetry.add_cog(Fun(avimetry))

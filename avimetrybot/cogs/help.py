@@ -27,19 +27,18 @@ class HelpEmbeded(commands.HelpCommand):
         return 'Use {0}{1} [command] or [module] for more info on a command or module.'.format(self.clean_prefix, self.invoked_with)
     
     def bnote(self):
-        return ">>> `<argument> = required argument\n[argument] = optional argument\n[argument...] = accepts multiple arguments`"
+        return "<argument> = required argument\n[argument] = optional argument\n[argument...] = accepts multiple arguments"
 
     def gcommand_signature(self, command):
         parent = command.full_parent_name
         if len(command.aliases) > 0:
-            fmt = f'{command.name} | {" | ".join(command.aliases)}'
+            name_alias = f'{command.name} | {" | ".join(command.aliases)}'
             if parent:
-                fmt = f'{parent} {fmt}'
-            alias = fmt
+                name_alias = f'{parent} {name_alias}'
+            alias = name_alias
         else:
             alias = command.name if not parent else f'{parent} {command.name}'
         return f'{alias} {command.signature}'
-
 
     async def send_error_message(self, error):
         embed=discord.Embed(title="Help Menu", description=error, color=discord.Color.red())
@@ -50,18 +49,21 @@ class HelpEmbeded(commands.HelpCommand):
         return self.context
 
     async def send_bot_help(self, mapping):
-        embed = discord.Embed(title='Help Menu', description=f"{self.context.bot.user.name} {self.get_files()}\n\nThe prefix for **{self.get_destination().guild.name}** is `{self.clean_prefix}`")
+        embed = discord.Embed(title='Help Menu', description=f"{self.context.bot.user.name} {self.get_files()}\n\n```{self.bnote()}```\n Do not put the brackets with the command. It is not needed.\n\nThe prefix for **{self.get_destination().guild.name}** is `{self.clean_prefix}`")
+        modules_list=[]
         for cog, commands in mapping.items():
             name = 'No Category' if cog is None else cog.qualified_name.title()
             filtered = await self.filter_commands(commands, sort=True)
             if filtered:
-                value=f"`{self.clean_prefix}{self.invoked_with} {name.lower()}`"
-                embed.add_field(name=name, value=value, inline=False)
+                modules_list.append(f"-{name.title()}")
+        print(modules_list)
+        embed.add_field(name="Modules", value='{}'.format("\n".join(modules_list)), inline=True)
+        embed.add_field(name="Latest Updates", value=f"stuff")
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
    
     async def send_cog_help(self, cog):
-        embed = discord.Embed(title=f'{cog.qualified_name.title()} Commands', description=self.bnote())
+        embed = discord.Embed(title=f'{cog.qualified_name.title()} Commands', description=f"```{self.bnote()}```")
         if cog.description:
             embed.description = cog.description
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
@@ -74,7 +76,7 @@ class HelpEmbeded(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
 
     async def send_group_help(self, group):
-        embed = discord.Embed(title=f"Command Group: {group.qualified_name}", description=self.bnote())
+        embed = discord.Embed(title=f"Command Group: {group.qualified_name}", description=f"```{self.bnote()}```")
         if group.short_doc:
             usage=group.short_doc
             if not usage:
@@ -92,7 +94,7 @@ class HelpEmbeded(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
 
     async def send_command_help(self, command):
-        embed=discord.Embed(title="Command: {0.qualified_name}".format(command), description=self.bnote())
+        embed=discord.Embed(title="Command: {0.qualified_name}".format(command), description=f"```{self.bnote()}```")
         usage=command.short_doc
         if not usage:
             usage="No description provided, now go try doing it yourself"

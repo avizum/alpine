@@ -42,7 +42,7 @@ class AvimetryBot(commands.Bot):
     def __init__(self):
         intents=discord.Intents.all()
         super().__init__(
-            command_prefix=prefix,
+            command_prefix="ab.",
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,
@@ -52,7 +52,6 @@ class AvimetryBot(commands.Bot):
 
         self.launch_time=datetime.datetime.utcnow()
         self.muted_users={}
-        self.blacklisted_users={}
         self.devmode=False
         self.zanetoken=(os.getenv("Zane_Token"))
         self.sr=sr_api.Client()
@@ -84,10 +83,6 @@ class AvimetryBot(commands.Bot):
             self.mutes=MongoDB(self.db, 'mutes')
             self.logs=MongoDB(self.db, 'logging')
             self.bot_users=MongoDB(self.db, 'users')
-            
-            current_blacklist=await self.bot_users.get_all()
-            for blacklist in current_blacklist:
-                self.muted_users[blacklist["_id"]] = blacklist
             current_mutes=await self.mutes.get_all()
             for mute in current_mutes:
                 self.muted_users[mute["_id"]] = mute
