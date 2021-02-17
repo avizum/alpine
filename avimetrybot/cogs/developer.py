@@ -151,26 +151,5 @@ class Owner(commands.Cog):
         await ctx.send("Okay bye")
         await ctx.guild.leave()
 
-#Blacklist command
-    @commands.group(invoke_without_command=True)
-    @commands.is_owner()
-    async def blacklist(self, ctx, member: discord.Member):
-        await ctx.send(f"Blacklist status:")
-
-    @blacklist.command(name="add")
-    @commands.is_owner()
-    async def _add(self, ctx, member: discord.Member):
-        await ctx.send(f"{member.mention} is now blacklisted")
-        await self.avimetry.bot_users.upsert({"_id": member.id, "blacklisted": True})
-
-    @blacklist.command(name="remove")
-    @commands.is_owner()
-    async def _remove(self, ctx, member: discord.Member):
-        await ctx.send(f"{member.mention} is now unblacklisted")
-        await self.avimetry.bot_users.unset({"_id": member.id, "blacklisted": True})
-
-
-        
-
 def setup(avimetry):
     avimetry.add_cog(Owner(avimetry))
