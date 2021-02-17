@@ -4,6 +4,7 @@ import datetime
 from discord.ext import commands
 import subprocess 
 import asyncio
+import typing
 
 class Owner(commands.Cog):
     def __init__(self, avimetry):
@@ -126,7 +127,6 @@ class Owner(commands.Cog):
             to.add_field(name=f"{self.avimetry.user.name} shutdown", value="Timed Out.")
             await rr.edit(embed=to)
             await rr.clear_reactions()
-
         else:
             if str(reaction.emoji) == '<:yesTick:777096731438874634>':
                 rre=discord.Embed()
@@ -144,6 +144,33 @@ class Owner(commands.Cog):
                 await asyncio.sleep(5)
                 await rr.delete()
             # pylint: enable=unused-variable
+#Leave command
+    @commands.command()
+    @commands.is_owner()
+    async def leave(self, ctx):
+        await ctx.send("Okay bye")
+        await ctx.guild.leave()
+
+#Blacklist command
+    @commands.group(invoke_without_command=True)
+    @commands.is_owner()
+    async def blacklist(self, ctx, member: discord.Member):
+        await ctx.send(f"Blacklist status:")
+
+    @blacklist.command(name="add")
+    @commands.is_owner()
+    async def _add(self, ctx, member: discord.Member):
+        await ctx.send(f"{member.mention} is now blacklisted")
+        await self.avimetry.bot_users.upsert({"_id": member.id, "blacklisted": True})
+
+    @blacklist.command(name="remove")
+    @commands.is_owner()
+    async def _remove(self, ctx, member: discord.Member):
+        await ctx.send(f"{member.mention} is now unblacklisted")
+        await self.avimetry.bot_users.unset({"_id": member.id, "blacklisted": True})
+
+
+        
 
 def setup(avimetry):
     avimetry.add_cog(Owner(avimetry))

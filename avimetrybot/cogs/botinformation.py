@@ -153,10 +153,5 @@ class BotInfo(commands.Cog, name="bot utilities"):
             bot_invite.description=f"That is not a bot. Make sure you mention a bot."
         await ctx.send(embed=bot_invite)
 
-    @commands.command()
-    async def leave(self, ctx):
-        await ctx.send("bye bye!")
-        await ctx.guild.leave()
-
 def setup(avimetry):
     avimetry.add_cog(BotInfo((avimetry)))

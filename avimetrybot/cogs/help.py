@@ -27,10 +27,19 @@ class HelpEmbeded(commands.HelpCommand):
         return 'Use {0}{1} [command] or [module] for more info on a command or module.'.format(self.clean_prefix, self.invoked_with)
     
     def bnote(self):
-        return ">>> `<> = required argument\n[] = optional argument`"
+        return ">>> `<argument> = required argument\n[argument] = optional argument\n[argument...] = accepts multiple arguments`"
 
     def gcommand_signature(self, command):
-        return '{0.qualified_name} {0.signature}'.format(command)
+        parent = command.full_parent_name
+        if len(command.aliases) > 0:
+            fmt = f'{command.name} | {" | ".join(command.aliases)}'
+            if parent:
+                fmt = f'{parent} {fmt}'
+            alias = fmt
+        else:
+            alias = command.name if not parent else f'{parent} {command.name}'
+        return f'{alias} {command.signature}'
+
 
     async def send_error_message(self, error):
         embed=discord.Embed(title="Help Menu", description=error, color=discord.Color.red())
@@ -88,9 +97,6 @@ class HelpEmbeded(commands.HelpCommand):
         if not usage:
             usage="No description provided, now go try doing it yourself"
         embed.add_field(name=f"{self.clean_prefix}{self.gcommand_signature(command)}", value=f"`{usage}`", inline=False)
-        alias = command.aliases
-        if alias:
-            embed.add_field(name="Aliases", value=f'`{", ".join(alias)}`', inline=False)
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
     

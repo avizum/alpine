@@ -17,6 +17,7 @@ class AutoMod(commands.Cog, name="auto moderation"):
         if message.author == self.avimetry.user:
             return
         
+        
         bot_token=[token for token in regex_token.findall(message.content)]
         if message.guild==336642139381301249:
             return
@@ -26,7 +27,7 @@ class AutoMod(commands.Cog, name="auto moderation"):
             except:
                 return
             await message.channel.send("I found tokens in your message and I deleted your message. Next time do not send your token here.")
-            
+        
 
 def setup(avimetry):
     avimetry.add_cog(AutoMod(avimetry)) #40

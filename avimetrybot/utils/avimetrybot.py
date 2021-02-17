@@ -14,6 +14,8 @@ from pathlib import Path
 from utils.mongo import MongoDB
 import mystbin
 import time
+from utils.errors import Blacklisted
+import asyncio
 
 async def prefix(avimetrybot, message):
     if not message.guild:
@@ -65,18 +67,20 @@ class AvimetryBot(commands.Bot):
                 raise commands.NoPrivateMessage("Commands do not work in dm channels.")
             return True
         
+        @self.check
+        async def block(ctx):
+            find_blacklist=await self.bot_users.find(ctx.author.id)
+            try:
+                check=find_blacklist["blacklisted"]
+                if check==True:
+                    raise Blacklisted
+            except KeyError:
+                pass
+            return True
+        
+        
         @self.event
         async def on_ready():
-            self.mongo = motor.motor_asyncio.AsyncIOMotorClient(os.getenv('DB_Token'))
-            self.db=self.mongo['avimetry']
-            self.config=MongoDB(self.db, 'new')
-            self.mutes=MongoDB(self.db, 'mutes')
-            self.logs=MongoDB(self.db, 'logging')
-            self.time_zones=MongoDB(self.db, 'timezones')
-            
-            current_mutes=await self.mutes.get_all()
-            for mute in current_mutes:
-                self.muted_users[mute["_id"]] = mute
             timenow=datetime.datetime.now().strftime("%I:%M %p")
             print('------\n'
             'Succesfully logged in. Bot Info Below:\n'
@@ -84,6 +88,20 @@ class AvimetryBot(commands.Bot):
             f'Bot ID: {self.user.id}\n'
             f'Login Time: {datetime.date.today()} at {timenow}\n'
             '------')
+
+            await asyncio.sleep(5)
+            self.mongo = motor.motor_asyncio.AsyncIOMotorClient(os.getenv('DB_Token'))
+            self.db=self.mongo['avimetry']
+            self.config=MongoDB(self.db, 'new')
+            self.mutes=MongoDB(self.db, 'mutes')
+            self.logs=MongoDB(self.db, 'logging')
+            self.bot_users=MongoDB(self.db, 'users')
+            
+            current_mutes=await self.mutes.get_all()
+            for mute in current_mutes:
+                self.muted_users[mute["_id"]] = mute
+            
+
         # pylint: enable=unused-variable
         os.environ["JISHAKU_HIDE"] = "True"
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"

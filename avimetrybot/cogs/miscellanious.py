@@ -12,6 +12,8 @@ import random
 import humanize
 import pytz
 import typing
+# pylint: disable=import-error
+from utils.errors import TimeZoneError
 
 class Miscellaneous(commands.Cog):
     
@@ -149,7 +151,7 @@ class Miscellaneous(commands.Cog):
     async def time(self, ctx, *, member:discord.Member=None):
         if member==None:
             member=ctx.author
-        data=await self.avimetry.time_zones.find(member.id)
+        data=await self.avimetry.bot_users.find(member.id)
         try:
             timezone=data[str('time_zone')]
         except KeyError:
@@ -171,8 +173,8 @@ class Miscellaneous(commands.Cog):
         try:
             timezones=pytz.timezone(timezone)
         except KeyError:
-            raise commands.BadArgument("That is not a valid time zone. [Here](https://gist.github.com/Soheab/3bec6dd6c1e90962ef46b8545823820d) are the valid time zones.")
-        await self.avimetry.time_zones.upsert({"_id":ctx.author.id, "time_zone": str(timezones)})
+            raise TimeZoneError(timezone)
+        await self.avimetry.bot_users.upsert({"_id":ctx.author.id, "time_zone": str(timezones)})
         await ctx.send(f"Set timezone to {timezones}")
 
     @commands.command(brief="Get the jump link for the channel that you mention")
@@ -187,9 +189,9 @@ class Miscellaneous(commands.Cog):
         embed_message=discord.Embed(title=f"First Message of #{channel.name}", description=f"Here is the message link. [jump]({messages[0].jump_url})\n\n>>> {mg_cnt}")
         await ctx.send(embed=embed_message)
 
-    @commands.command()
+    @commands.command(aliases=["a","te","st","p","s","asd","asdf","xvs","sdk"])
     async def test(self, ctx):
-        await ctx("'fdkfj'")
+        await ctx.send("'fdkfj'")
 
 def setup(avimetry):
     avimetry.add_cog(Miscellaneous(avimetry))

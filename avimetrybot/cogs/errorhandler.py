@@ -6,6 +6,8 @@ from difflib import get_close_matches
 import re
 import prettify_exceptions
 import humanize
+# pylint: disable=import-error
+from utils.errors import Blacklisted
 
 class ErrorHandler(commands.Cog):
     def __init__(self, avimetry):
@@ -25,9 +27,16 @@ class ErrorHandler(commands.Cog):
         
         pre = await self.avimetry.get_prefix(ctx.message)
         error = getattr(error, 'original', error)
-        name=ctx.command.qualified_name
+        try:
+            name=ctx.command.qualified_name
+        except:
+            pass
 
-        if isinstance(error, commands.CommandNotFound):
+        if isinstance(error, Blacklisted):
+            blacklisted=discord.Embed(title="You are blacklisted", description=f"{ctx.author.mention}, you are blacklisted from this bot.\nIf you think this is a mistake, please contact avi#9490.", color=discord.Color.red())
+            await ctx.send(embed=blacklisted)
+
+        elif isinstance(error, commands.CommandNotFound):
             not_found_embed=discord.Embed(title="Invalid Command", color=discord.Color.red())
             not_found=ctx.invoked_with
             lol='\n'.join(get_close_matches(not_found, [i.name for i in ctx.bot.commands]))
@@ -36,6 +45,7 @@ class ErrorHandler(commands.Cog):
             not_found_embed.description=f'I wasn\'t able to find a command called "{not_found}". Did you mean...\n`{lol}`'
             not_found_embed.set_footer(text=f"Not what you meant? Use {pre}help to see the whole list of commands.")
             await ctx.send(embed=not_found_embed)
+        
         
         elif isinstance(error, commands.CommandOnCooldown):
             cd=discord.Embed(title="Slow down", description=f"**{name}** is on cooldown. Try again in {humanize.naturaldelta(error.retry_after)}.", color=discord.Color.red())

@@ -87,8 +87,9 @@ class Fun(commands.Cog):
     @commands.command(brief="Build an embed with json")
     @commands.cooldown(1, 30, commands.BucketType.member)
     async def embed(self, ctx, *, embed):
-        embed=discord.Embed().from_dict(embed)
-        await ctx.send(embed=embed)
+        embed=embed.to_dict()
+        dict_embed=discord.Embed.from_dict(embed)
+        await ctx.send_raw(embed=dict_embed)
 
 #Skin Command
     @commands.command(brief="Remove the skin off of people that you don't like.")
