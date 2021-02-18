@@ -19,20 +19,21 @@ import asyncio
 
 async def prefix(avimetrybot, message):
     if not message.guild:
-        return "a."
+        avimetry_prefix = "a."
     try:
         data=await avimetrybot.config.find(message.guild.id)
         if message.content.lower().startswith(data["prefix"]):
             try:
                 lower=message.content[:len(data["prefix"])]
-                return lower
+                avimetry_prefix = lower
             except Exception:
-                return data["prefix"]
+                avimetry_prefix = data["prefix"]
         if not data or "prefix" not in data:
-            return "a."
-        return data["prefix"]
+            avimetry_prefix = "a."
+        avimetry_prefix = data["prefix"]
     except:
-        return "a."
+        avimetry_prefix = "a."
+    return commands.when_mentioned_or(avimetry_prefix)(avimetrybot, message)
 
 allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=True, replied_user=False)
 intents=discord.Intents.all()
