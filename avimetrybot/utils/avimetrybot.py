@@ -16,6 +16,9 @@ import mystbin
 import time
 from utils.errors import Blacklisted
 import asyncio
+from akinator.async_aki import Akinator
+import akinator
+import asyncio
 
 async def prefix(avimetrybot, message):
     if not message.guild:
@@ -60,6 +63,7 @@ class AvimetryBot(commands.Bot):
         self.myst=mystbin.Client()
         self.commands_ran=0
         self.session=aiohttp.ClientSession()
+        self.akinator=Akinator()
         self.cog_cooldown=commands.CooldownMapping.from_cooldown(2, 10, commands.BucketType.member)
         # pylint: disable=unused-variable
 

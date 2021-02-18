@@ -6,6 +6,10 @@ import asyncio
 import typing
 import re
 import datetime
+from akinator.async_aki import Akinator
+import akinator
+import asyncio
+
 
 
 cog_cooldown=commands.CooldownMapping.from_cooldown(1.0, 30.0, commands.BucketType.member)
@@ -207,6 +211,48 @@ class Fun(commands.Cog):
         embed=discord.Embed(title="Invalid Command", description='I wasn\'t about to find a command called "suicide". Did you mean...\n`don\'t\ndo\nit`', color=discord.Color.red())
         embed.set_footer(text=f"Not what you meant? Use {pre}help to see the whole list of commands.")
         await ctx.send(embed=embed)
+
+    @commands.command(name="akinator")
+    async def akinator_game(self, ctx):
+        aki_mess=[]
+        q = await self.avimetry.akinator.start_game()
+
+        def check(m):
+            return m.author==ctx.author and m.channel == ctx.channel
+
+        while self.avimetry.akinator.progression <= 80:
+            mes=await ctx.send(q)
+            aki_mess.append(mes)
+            a = await self.avimetry.wait_for("message", timeout=60, check=check)
+            if a.content == "b":
+                try:
+                    q = await self.avimetry.akinator.back()
+                except akinator.CantGoBackAnyFurther:
+                    pass
+            else:
+                try:
+                    q = await self.avimetry.akinator.answer(a.content)
+                except:
+                    await a.add_reaction("<:noTick:777096756865269760>")
+        await self.avimetry.akinator.win()
+        
+        win=discord.Embed(title="Akinator", description=f"It's {self.avimetry.akinator.first_guess['name']} ({self.avimetry.akinator.first_guess['description']})! Was I correct?")
+        win.set_thumbnail(url=f"{self.avimetry.akinator.first_guess['absolute_picture_path']}")
+        await ctx.send(embed=win)
+        correct=await self.avimetry.wait_for("message", timeout=60, check=check)
+        if correct.content.lower() == "yes" or correct.content.lower() == "y":
+            await ctx.send("Nice")
+        else:
+            await ctx.send("Aww, maybe I'll do better next time")
+        
+        for message in aki_mess:
+            await message.delete()
+
+    @commands.command()
+    async def wait_for(self, ctx):
+        a=await self.avimetry.wait_for("message", timeout=10)
+        await ctx.send(a.content)
+
 
     
           
