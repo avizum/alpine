@@ -101,7 +101,7 @@ class Owner(commands.Cog):
         edit_sync=await ctx.send_raw(embed=sync_embed)
         await asyncio.sleep(2)
         output=[]
-        output.append(f'`{subprocess.getoutput("git pull")}`')
+        output.append(f'```{subprocess.getoutput("git pull")}```')
         sync_embed.description="\n".join(output)
         sync_embed.timestamp=datetime.datetime.utcnow()
         sync_embed.title="Synced With GitHub"
