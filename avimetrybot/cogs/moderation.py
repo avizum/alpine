@@ -64,17 +64,22 @@ class Moderation(commands.Cog):
     @commands.command(brief="Cleans bot messages", usage="[amount]")
     @commands.has_permissions(manage_messages=True)
     async def clean(self, ctx, limit=100):
-        await ctx.message.delete()
+        try:
+            await ctx.message.delete()
+        except:
+            pass
         def avimetrybot(m):
             return m.author==self.avimetry.user
         try:
-            d1 = await ctx.channel.purge(limit=limit, check=avimetrybot, bulk=True)
-        except discord.Forbidden:
-            d1 = await ctx.channel.purge(limit=limit, check=avimetrybot, bulk=False)
-        cm = await ctx.send("Cleaning...")
+            await ctx.channel.purge(limit=limit, check=avimetrybot, bulk=True)
+        except:
+            async for i in ctx.channel.history(limit=limit):
+                if i.author==self.avimetry.user:
+                    await i.delete()
         ce=discord.Embed()
-        ce.add_field(name="<:yesTick:777096731438874634> Clean Messages", value=f"Successfully deleted **{len(d1)}** messages")
-        await cm.edit(content="", embed=ce, delete_after=10)
+        ce.add_field(name="<:yesTick:777096731438874634> Clean Messages", value=f"Successfully Cleaned all messaages")
+        await ctx.send(embed=ce)
+
 
 #Purge Command
     @commands.group(invoke_without_command=True, brief="Delete a number of messages in the current channel.")

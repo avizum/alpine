@@ -42,7 +42,7 @@ class AvimetryBot(commands.Bot):
     def __init__(self):
         intents=discord.Intents.all()
         super().__init__(
-            command_prefix="ab.",
+            command_prefix=prefix,
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,
@@ -61,12 +61,13 @@ class AvimetryBot(commands.Bot):
         self.session=aiohttp.ClientSession()
         self.cog_cooldown=commands.CooldownMapping.from_cooldown(2, 10, commands.BucketType.member)
         # pylint: disable=unused-variable
+
         @self.check
         async def globally_block_dms(ctx):
             if not ctx.guild:
                 raise commands.NoPrivateMessage("Commands do not work in dm channels.")
             return True
-        
+ 
         @self.event
         async def on_ready():
             timenow=datetime.datetime.now().strftime("%I:%M %p")
@@ -87,7 +88,6 @@ class AvimetryBot(commands.Bot):
             for mute in current_mutes:
                 self.muted_users[mute["_id"]] = mute
             
-
         # pylint: enable=unused-variable
         os.environ["JISHAKU_HIDE"] = "True"
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
@@ -124,3 +124,8 @@ class AvimetryBot(commands.Bot):
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
         if after.author.id in self.owner_ids:
             await self.process_commands(after)
+
+    async def on_message(self, message):
+        if message.author==self.user:
+            return
+        await self.process_commands(message)

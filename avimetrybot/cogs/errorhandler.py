@@ -105,11 +105,11 @@ class ErrorHandler(commands.Cog):
             short_exception=''.join(traceback.format_exception_only(type(error), error))
             myst_exception=await self.avimetry.myst.post(long_exception, syntax="python")
             ee.title="Unknown Error" 
-            ee.description=f"Oh no, avi messed up again. The error was logged and will be fixed in the next ten years.\n\n`{short_exception}`"
+            ee.description=f"Oh no, avi messed up again. The error was logged and will be fixed in the next ten years.\n\n```{short_exception}```"
             try:
                 await ctx.send(embed=ee)
                 chanel = self.avimetry.get_channel(797362270593613854)
-                ff = discord.Embed(title=f"{self.avimetry.user.name} Error", description=f"`{short_exception}`\n{str(myst_exception)}")
+                ff = discord.Embed(title=f"{self.avimetry.user.name} Error", description=f"```{short_exception}``\n{str(myst_exception)}")
                 await chanel.send(embed=ff)
             except:
                 return
