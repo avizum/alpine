@@ -212,8 +212,9 @@ class Fun(commands.Cog):
         embed.set_footer(text=f"Not what you meant? Use {pre}help to see the whole list of commands.")
         await ctx.send(embed=embed)
 
-    @commands.command(name="akinator")
-    async def akinator_game(self, ctx):
+    @commands.command(name="=akinator")
+    async def _akinator(self, ctx):
+        await ctx.send("Starting game with `en` (default) settings.")
         aki_mess=[]
         q = await self.avimetry.akinator.start_game()
 
@@ -226,12 +227,17 @@ class Fun(commands.Cog):
             a = await self.avimetry.wait_for("message", timeout=60, check=check)
             if a.content == "b":
                 try:
+                    await a.delete()
                     q = await self.avimetry.akinator.back()
-                except akinator.CantGoBackAnyFurther:
+                except:
                     pass
             else:
                 try:
                     q = await self.avimetry.akinator.answer(a.content)
+                    try:
+                        await a.delete()
+                    except:
+                        pass
                 except:
                     await a.add_reaction("<:noTick:777096756865269760>")
         await self.avimetry.akinator.win()

@@ -25,7 +25,7 @@ class ErrorHandler(commands.Cog):
             else:
                 pass
         
-        pre = await self.avimetry.get_prefix(ctx.message)
+        pre = ctx.clean_prefix
         error = getattr(error, 'original', error)
 
         if hasattr(ctx.command, 'on_error'):

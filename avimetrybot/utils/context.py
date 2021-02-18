@@ -4,11 +4,20 @@ import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 import os
+import re
 
 load_dotenv()
 tokens=[os.getenv("Bot_Token"), os.getenv("Bot_Token"), os.getenv("DB_Token"), os.getenv("Zane_Token")]
 
 class AvimetryContext(commands.Context):
+
+    @property
+    def clean_prefix(self):
+        prefix = re.sub(f"<@!?{self.bot.user.id}>", f"@{self.me.display_name}", self.prefix)
+        if prefix.endswith("  "):
+            prefix = f"{prefix.strip()} "
+        return prefix
+
     async def send_raw(self, *args, **kwargs):
         return await super().send(*args, **kwargs)
 
@@ -46,3 +55,4 @@ class AvimetryContext(commands.Context):
         embed = discord.Embed(**kwargs, timestamp=datetime.datetime.utcnow())
         embed.set_footer(icon_url=str(self.author.avatar_url), text=f"Requested by {self.author}")
         await self.send(embed = embed)
+

@@ -104,7 +104,7 @@ class AvimetryBot(commands.Bot):
 
     async def get_context(self, message, *, cls=AvimetryContext):
         return await super().get_context(message, cls=cls)
-
+    
     async def api_latency(self, ctx):
         start=time.perf_counter()
         await ctx.trigger_typing()
