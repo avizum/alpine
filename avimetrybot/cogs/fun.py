@@ -212,47 +212,82 @@ class Fun(commands.Cog):
         embed.set_footer(text=f"Not what you meant? Use {pre}help to see the whole list of commands.")
         await ctx.send(embed=embed)
 
-    @commands.command(name="=akinator")
+    @commands.command(name="akinator", brief="Play a game of akinator. \n<:Yes:812133712967761951>: Yes\n<:No:812133712946528316>: No\n<:IDontKnow:812133713046405230>: I don't know\n<:Probably:812133712962519100>: Probably\n<:ProbablyNot:812133712665772113>: Probably Not")
     async def _akinator(self, ctx):
-        await ctx.send("Starting game with `en` (default) settings.")
-        aki_mess=[]
+        akinator_embed=discord.Embed(title="Akinator", description="Starting game with {settings}\n\nReact with the emojis below to answer.\nIf you need help, use {ctx.clean_prefix} to get help.")
+        initial_messsage = await ctx.send(embed=akinator_embed)
+        game_end_early=False
+        akinator_reactions=["<:Yes:812133712967761951>", "<:No:812133712946528316>", "<:IDontKnow:812133713046405230>", "<:Probably:812133712962519100>", "<:ProbablyNot:812133712665772113>"]
         q = await self.avimetry.akinator.start_game()
-
-        def check(m):
-            return m.author==ctx.author and m.channel == ctx.channel
+        for i in akinator_reactions:
+            await initial_messsage.add_reaction(i)
 
         while self.avimetry.akinator.progression <= 80:
-            mes=await ctx.send(q)
-            aki_mess.append(mes)
-            a = await self.avimetry.wait_for("message", timeout=60, check=check)
-            if a.content == "b":
+            akinator_embed.description=q
+            await initial_messsage.edit(embed=akinator_embed)
+            def check(reaction, user):
+                return str(reaction.emoji) in akinator_reactions and user==ctx.author and user != self.avimetry.user
+            try:
+                reaction, user = await self.avimetry.wait_for("reaction_add", check=check, timeout=10)
+            except asyncio.TimeoutError:
+                await initial_messsage.clear_reactions()
+                akinator_embed.description="Akinator session closed because you took too long to answer"
+                await initial_messsage.edit(embed=akinator_embed)
+                game_end_early=True
+                break
+            else:
+                if str(reaction.emoji) == "<:Yes:812133712967761951>":
+                    ans="yes"
+                    await initial_messsage.remove_reaction(reaction.emoji, user)
+                elif str(reaction.emoji) == "<:No:812133712946528316>":
+                    ans="no"
+                    await initial_messsage.remove_reaction(reaction.emoji, user)
+                elif str(reaction.emoji) == "<:IDontKnow:812133713046405230>":
+                    ans="idk"
+                    await initial_messsage.remove_reaction(reaction.emoji, user)
+                elif str(reaction.emoji) == "<:Probably:812133712962519100>":
+                    ans="probably"
+                    await initial_messsage.remove_reaction(reaction.emoji, user)
+                elif str(reaction.emoji) == "<:ProbablyNot:812133712665772113>":
+                    ans="probably not"
+                    await initial_messsage.remove_reaction(reaction.emoji, user)
+                else:
+                    print("asd")
+
+            if ans=="b":
                 try:
-                    await a.delete()
                     q = await self.avimetry.akinator.back()
-                except:
+                except akinator.CantGoBackAnyFurther:
                     pass
             else:
-                try:
-                    q = await self.avimetry.akinator.answer(a.content)
-                    try:
-                        await a.delete()
-                    except:
-                        pass
-                except:
-                    await a.add_reaction("<:noTick:777096756865269760>")
+                q = await self.avimetry.akinator.answer(ans)
+        await initial_messsage.clear_reactions()
+        if game_end_early==True:
+            return
         await self.avimetry.akinator.win()
         
-        win=discord.Embed(title="Akinator", description=f"It's {self.avimetry.akinator.first_guess['name']} ({self.avimetry.akinator.first_guess['description']})! Was I correct?")
-        win.set_thumbnail(url=f"{self.avimetry.akinator.first_guess['absolute_picture_path']}")
-        await ctx.send(embed=win)
-        correct=await self.avimetry.wait_for("message", timeout=60, check=check)
-        if correct.content.lower() == "yes" or correct.content.lower() == "y":
-            await ctx.send("Nice")
+        akinator_embed.description=f"I think it is {self.avimetry.akinator.first_guess['name']} ({self.avimetry.akinator.first_guess['description']})! Was I correct?"
+        akinator_embed.set_thumbnail(url=f"{self.avimetry.akinator.first_guess['absolute_picture_path']}")
+        await initial_messsage.edit(embed=akinator_embed)
+        reactions = ['<:yesTick:777096731438874634>', '<:noTick:777096756865269760>']
+        for reaction in reactions:
+            await initial_messsage.add_reaction(reaction)
+        def yes_no_check(reaction, user):
+            return str(reaction.emoji) in ['<:yesTick:777096731438874634>', '<:noTick:777096756865269760>'] and user != self.avimetry.user and user==ctx.author
+        try:
+            # pylint: disable=unused-variable
+            reaction, user = await self.avimetry.wait_for('reaction_add', check=yes_no_check, timeout=60)
+        except asyncio.TimeoutError:
+            await initial_messsage.clear_reactions()
         else:
-            await ctx.send("Aww, maybe I'll do better next time")
-        
-        for message in aki_mess:
-            await message.delete()
+            await initial_messsage.clear_reactions()
+            if str(reaction.emoji) == '<:yesTick:777096731438874634>':
+                akinator_embed.description=f"{akinator_embed.description}\n\n------\n\nYay!"
+                await initial_messsage.edit(embed=akinator_embed)
+            if str(reaction.emoji) == '<:noTick:777096756865269760>':
+                akinator_embed.description=f"{akinator_embed.description}\n\n------\n\nAww, maybe next time."
+                await initial_messsage.edit(embed=akinator_embed)
+            # pylint: enable=unused-variable
 
     @commands.command()
     async def wait_for(self, ctx):

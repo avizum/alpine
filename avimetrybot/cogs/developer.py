@@ -110,9 +110,9 @@ class Owner(commands.Cog):
     #Shutdown Command
     @commands.command(brief="Shutdown the bot")
     @commands.is_owner()
-    async def shutdown(self, ctx):
+    async def reboot(self, ctx):
         sm = discord.Embed()
-        sm.add_field(name=f"{self.avimetry.user.name} shutdown", value="Are you sure you want to shut down?")
+        sm.add_field(name=f"{self.avimetry.user.name} reboot", value="Are you sure you want to reboot? This may disrupt any on-going games.")
         rr=await ctx.send(embed=sm)
         reactions = ['<:yesTick:777096731438874634>', '<:noTick:777096756865269760>']
         for reaction in reactions:
