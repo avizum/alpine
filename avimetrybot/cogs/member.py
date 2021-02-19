@@ -2,11 +2,12 @@ import discord
 from discord.ext import commands
 import re
 
+
 class MemberManagement(commands.Cog, name="member management"):
     def __init__(self, avimetry):
-        self.avimetry=avimetry
+        self.avimetry = avimetry
 
-#Counter
+    # Counter
     @commands.Cog.listener()
     async def on_member_join(self, member):
         refchan = self.avimetry.get_channel(783961111060938782)
@@ -14,7 +15,7 @@ class MemberManagement(commands.Cog, name="member management"):
             if member.guild.id == refchan.guild.id:
                 channel = self.avimetry.get_channel(783961111060938782)
                 await channel.edit(name=f"Total Members: {member.guild.member_count}")
-            
+
                 channel2 = self.avimetry.get_channel(783960970472456232)
                 true_member_count = len([m for m in member.guild.members if not m.bot])
                 await channel2.edit(name=f"Members: {true_member_count}")
@@ -24,7 +25,7 @@ class MemberManagement(commands.Cog, name="member management"):
                 await channel3.edit(name=f"Bots: {true_bot_count}")
         except:
             return
-    
+
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         lrefchan = self.avimetry.get_channel(783961111060938782)
@@ -32,7 +33,7 @@ class MemberManagement(commands.Cog, name="member management"):
             if member.guild.id == lrefchan.guild.id:
                 channel = self.avimetry.get_channel(783961111060938782)
                 await channel.edit(name=f"Total Members: {member.guild.member_count}")
-                
+
                 channel2 = self.avimetry.get_channel(783960970472456232)
                 true_member_count = len([m for m in member.guild.members if not m.bot])
                 await channel2.edit(name=f"Members: {true_member_count}")
@@ -42,13 +43,17 @@ class MemberManagement(commands.Cog, name="member management"):
                 await channel3.edit(name=f"Bots: {true_bot_count}")
         except:
             return
-#Update Member Count Command
-    @commands.command(aliases=["updatemc", "umembercount"], brief="Updates the member count if the count gets out of sync.")
+
+    # Update Member Count Command
+    @commands.command(
+        aliases=["updatemc", "umembercount"],
+        brief="Updates the member count if the count gets out of sync.",
+    )
     @commands.has_permissions(administrator=True)
     async def refreshcount(self, ctx):
         channel = self.avimetry.get_channel(783961111060938782)
         await channel.edit(name=f"Total Members: {channel.guild.member_count}")
-        
+
         channel2 = self.avimetry.get_channel(783960970472456232)
         true_member_count = len([m for m in channel.guild.members if not m.bot])
         await channel2.edit(name=f"Members: {true_member_count}")
@@ -57,9 +62,11 @@ class MemberManagement(commands.Cog, name="member management"):
         true_bot_count = len([m for m in channel.guild.members if m.bot])
         await channel3.edit(name=f"Bots: {true_bot_count}")
         await ctx.send("Member Count Updated.")
-        
-#Member Count
-    @commands.command(aliases=["members", "mc"], brief="Gets the members of the server and shows you.")
+
+    # Member Count
+    @commands.command(
+        aliases=["members", "mc"], brief="Gets the members of the server and shows you."
+    )
     async def membercount(self, ctx):
         tmc = len([m for m in ctx.guild.members if not m.bot])
         tbc = len([m for m in ctx.guild.members if m.bot])
@@ -70,51 +77,62 @@ class MemberManagement(commands.Cog, name="member management"):
         mce.add_field(name="Total Members:", value=f"{amc} members", inline=False)
         await ctx.send(embed=mce)
 
-#Role Command
+    # Role Command
     @commands.group(invoke_without_command=True, brief="The command you just called")
     @commands.has_permissions(kick_members=True)
     async def role(self, ctx):
         await ctx.send_help("role")
+
     @role.command(brief="Give a role to a member.")
-    async def add(self, ctx, member:discord.Member, role:discord.Role):
+    async def add(self, ctx, member: discord.Member, role: discord.Role):
         await member.add_roles(role)
         ra = discord.Embed()
-        ra.add_field(name="<:yesTick:777096731438874634> Role Add", value=f"Added {role.mention} to {member.mention}.")
+        ra.add_field(
+            name="<:yesTick:777096731438874634> Role Add",
+            value=f"Added {role.mention} to {member.mention}.",
+        )
         await ctx.send(embed=ra)
 
     @role.command(brief="Remove a role from a member.")
-    async def remove(self, ctx, member:discord.Member, role:discord.Role):
+    async def remove(self, ctx, member: discord.Member, role: discord.Role):
         await member.remove_roles(role)
         rr = discord.Embed()
-        rr.add_field(name="<:yesTick:777096731438874634> Role Remove", value=f"Removed {role.mention} from {member.mention}")
-        await ctx.send(embed=rr) 
+        rr.add_field(
+            name="<:yesTick:777096731438874634> Role Remove",
+            value=f"Removed {role.mention} from {member.mention}",
+        )
+        await ctx.send(embed=rr)
 
-#CNick Command
+    # CNick Command
     @commands.command(brief="Changes a member's nickname.")
     @commands.has_permissions(kick_members=True)
-    async def cnick(self, ctx, member: discord.Member, *,nick):
-        oldnick=member.display_name
+    async def cnick(self, ctx, member: discord.Member, *, nick):
+        oldnick = member.display_name
         await member.edit(nick=nick)
-        newnick=member.display_name
-        nickembed=discord.Embed(title="<:yesTick:777096731438874634> Nickname Changed")
+        newnick = member.display_name
+        nickembed = discord.Embed(
+            title="<:yesTick:777096731438874634> Nickname Changed"
+        )
         nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
 
-#RNick Command
+    # RNick Command
     @commands.command(brief="Restores a member's nick name to their username.")
     @commands.has_permissions(kick_members=True)
     async def rnick(self, ctx, member: discord.Member):
-        nick=member.name
-        oldnick=member.display_name
+        nick = member.name
+        oldnick = member.display_name
         await member.edit(nick=nick)
-        newnick=member.display_name
-        nickembed=discord.Embed(title="<:yesTick:777096731438874634> Restored Nickname")
+        newnick = member.display_name
+        nickembed = discord.Embed(
+            title="<:yesTick:777096731438874634> Restored Nickname"
+        )
         nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
 
-#Self Nick
+    # Self Nick
     @commands.command(aliases=["snick"], brief="Changes your nick name")
     @commands.cooldown(1, 500, commands.BucketType.member)
     async def selfnick(self, ctx, *, nick):
@@ -122,10 +140,13 @@ class MemberManagement(commands.Cog, name="member management"):
         oldnick = ctx.author.display_name
         await ctx.author.edit(nick=nick)
         newnick = ctx.author.display_name
-        nickembed=discord.Embed(title="<:yesTick:777096731438874634> Nickname Changed")
+        nickembed = discord.Embed(
+            title="<:yesTick:777096731438874634> Nickname Changed"
+        )
         nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
+
 
 def setup(avimetry):
     avimetry.add_cog(MemberManagement(avimetry))

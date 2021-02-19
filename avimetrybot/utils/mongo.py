@@ -1,6 +1,7 @@
 import logging
 import collections
 
+
 class MongoDB:
     def __init__(self, connection, document_name):
         self.db = connection[document_name]
@@ -33,6 +34,7 @@ class MongoDB:
         if not dict["_id"]:
             raise KeyError("_id not couldn't be found in given dictionary.")
         await self.db.insert_one(dict)
+
     async def upsert(self, dict):
         if await self.__get_raw(dict["_id"]) != None:
             await self.update_by_id(dict)

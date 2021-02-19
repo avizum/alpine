@@ -7,13 +7,20 @@ import os
 import re
 
 load_dotenv()
-tokens=[os.getenv("Bot_Token"), os.getenv("Bot_Token"), os.getenv("DB_Token"), os.getenv("Zane_Token")]
+tokens = [
+    os.getenv("Bot_Token"),
+    os.getenv("Bot_Token"),
+    os.getenv("DB_Token"),
+    os.getenv("Zane_Token"),
+]
+
 
 class AvimetryContext(commands.Context):
-
     @property
     def clean_prefix(self):
-        prefix = re.sub(f"<@!?{self.bot.user.id}>", f"@{self.me.display_name}", self.prefix)
+        prefix = re.sub(
+            f"<@!?{self.bot.user.id}>", f"@{self.me.display_name}", self.prefix
+        )
         if prefix.endswith("  "):
             prefix = f"{prefix.strip()} "
         return prefix
@@ -21,38 +28,49 @@ class AvimetryContext(commands.Context):
     async def send_raw(self, *args, **kwargs):
         return await super().send(*args, **kwargs)
 
-    async def send(self, content=None, embed: discord.Embed=None, *args, **kwargs):
+    async def send(self, content=None, embed: discord.Embed = None, *args, **kwargs):
         try:
-            if self.command.qualified_name in ["jishaku shell", "jishaku cat", "jishaku source", "jishaku rtt"]:
+            if self.command.qualified_name in [
+                "jishaku shell",
+                "jishaku cat",
+                "jishaku source",
+                "jishaku rtt",
+            ]:
                 return await super().send(content=content)
         except:
             pass
         if content:
             for i in tokens:
                 if i in content:
-                    content=content.replace(i, "[Token Omitted]")
-            embed=discord.Embed(description=content)
-            content=None
+                    content = content.replace(i, "[Token Omitted]")
+            embed = discord.Embed(description=content)
+            content = None
         if discord.Embed:
             try:
                 if not embed.footer:
-                    embed.set_footer(icon_url=str(self.author.avatar_url), text=f"Invoked by {self.author}")
-                    embed.timestamp=datetime.datetime.utcnow()
+                    embed.set_footer(
+                        icon_url=str(self.author.avatar_url),
+                        text=f"Invoked by {self.author}",
+                    )
+                    embed.timestamp = datetime.datetime.utcnow()
                 if not embed.color:
-                    embed.color=self.author.color
-                    if self.author.color==discord.Color(0):
-                        embed.color=discord.Color(0x2F3136)
-                    
+                    embed.color = self.author.color
+                    if self.author.color == discord.Color(0):
+                        embed.color = discord.Color(0x2F3136)
+
             except:
                 pass
 
         try:
-            return await self.reply(content, embed=embed, *args, **kwargs, mention_author=False)
+            return await self.reply(
+                content, embed=embed, *args, **kwargs, mention_author=False
+            )
         except:
             return await super().send(content, embed=embed, *args, **kwargs)
 
     async def embed(self, *args, **kwargs):
         embed = discord.Embed(**kwargs, timestamp=datetime.datetime.utcnow())
-        embed.set_footer(icon_url=str(self.author.avatar_url), text=f"Requested by {self.author}")
-        await self.send(embed = embed)
-
+        embed.set_footer(
+            icon_url=str(self.author.avatar_url), text=f"Requested by {self.author}"
+        )
+        await self.send(embed=embed)
