@@ -1,12 +1,6 @@
 import discord
-import os
-import json
-import asyncio
 import datetime
-import time
-import pymongo
-from discord.ext import commands, tasks
-import aiohttp
+from discord.ext import commands
 import psutil
 import humanize
 

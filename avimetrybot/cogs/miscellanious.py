@@ -1,19 +1,11 @@
 import discord
-from discord import Webhook, AsyncWebhookAdapter
-import time
 from discord.ext import commands
-import json
 import datetime
 import aiohttp
-import unicodedata
-import sr_api
-import asyncio
 import random
 import humanize
 import pytz
 import typing
-
-# pylint: disable=import-error
 from utils.errors import TimeZoneError
 
 
@@ -64,7 +56,7 @@ class Miscellaneous(commands.Cog):
                         name="Tests Taken Per 1M:", value=testPerMil, inline=True
                     )
                     await ctx.send(embed=e)
-        except:
+        except Exception:
             a = discord.Embed()
             a.add_field(
                 name="<:noTick:777096756865269760> Invalid Country",
@@ -132,12 +124,10 @@ class Miscellaneous(commands.Cog):
 
     # Info Command
     @commands.command(brief="Gets a member's information")
-    # pylint: disable=unsubscriptable-object
     async def uinfo(
         self, ctx, *, member: typing.Union[discord.Member, discord.User] = None
     ):
-        # pylint: enable=unsubscriptable-object
-        if member == None:
+        if member is None:
             member = ctx.author
         if isinstance(member, discord.User):
             ie = discord.Embed(
@@ -212,7 +202,7 @@ class Miscellaneous(commands.Cog):
     # Time command
     @commands.group(brief="Gets the time for a member", invoke_without_command=True)
     async def time(self, ctx, *, member: discord.Member = None):
-        if member == None:
+        if member is None:
             member = ctx.author
         data = await self.avimetry.bot_users.find(member.id)
         try:
@@ -246,7 +236,7 @@ class Miscellaneous(commands.Cog):
 
     @commands.command(brief="Get the jump link for the channel that you mention")
     async def firstmessage(self, ctx, *, channel: discord.TextChannel = None):
-        if channel == None:
+        if channel is None:
             channel = ctx.channel
         messages = await channel.history(limit=1, oldest_first=True).flatten()
         if len(messages[0].content) > 100:

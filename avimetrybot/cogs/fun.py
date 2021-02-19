@@ -3,10 +3,6 @@ from discord.ext import commands
 import random
 import time
 import asyncio
-import typing
-import re
-import datetime
-from akinator.async_aki import Akinator
 import akinator
 import asyncio
 

@@ -1,9 +1,4 @@
-import discord
 from discord.ext import commands
-import random
-import asyncio
-import json
-import datetime
 import re
 
 regex_token = re.compile(r"[a-zA-Z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27}")
@@ -24,7 +19,7 @@ class AutoMod(commands.Cog, name="auto moderation"):
         if bot_token:
             try:
                 await message.delete()
-            except:
+            except Exception:
                 return
             await message.channel.send(
                 "I found tokens in your message and I deleted your message. Next time do not send your token here."

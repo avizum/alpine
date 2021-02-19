@@ -2,23 +2,15 @@ from utils import AvimetryContext
 import discord
 import os
 import datetime
-from discord.ext import commands, tasks
-from dotenv import load_dotenv
-import logging
+from discord.ext import commands
 import motor.motor_asyncio
-import pathlib
 import sr_api
 import aiohttp
 import aiozaneapi
-from pathlib import Path
 from utils.mongo import MongoDB
 import mystbin
 import time
-from utils.errors import Blacklisted
-import asyncio
 from akinator.async_aki import Akinator
-import akinator
-import asyncio
 
 
 async def prefix(avimetrybot, message):
@@ -72,7 +64,6 @@ class AvimetryBot(commands.Bot):
         self.cog_cooldown = commands.CooldownMapping.from_cooldown(
             2, 10, commands.BucketType.member
         )
-        # pylint: disable=unused-variable
 
         @self.check
         async def globally_block_dms(ctx):
@@ -102,7 +93,6 @@ class AvimetryBot(commands.Bot):
             for mute in current_mutes:
                 self.muted_users[mute["_id"]] = mute
 
-        # pylint: enable=unused-variable
         os.environ["JISHAKU_HIDE"] = "True"
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"

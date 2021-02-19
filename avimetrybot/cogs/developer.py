@@ -4,7 +4,6 @@ import datetime
 from discord.ext import commands
 import subprocess
 import asyncio
-import typing
 
 
 class Owner(commands.Cog):

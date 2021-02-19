@@ -1,9 +1,4 @@
-import discord
-import os
-import asyncio
-import json
-from discord.ext import commands, tasks
-from itertools import cycle
+from discord.ext import commands
 import logging
 
 logger = logging.getLogger("discord")

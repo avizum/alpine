@@ -1,12 +1,9 @@
 import discord
 from discord.ext import commands
-import aiozaneapi
-import aiohttp
 from io import BytesIO
 import io
 import re
 from twemoji_parser import emoji_to_url as urlify_emoji
-from PIL import Image
 import typing
 
 embed = discord.Embed()
@@ -14,9 +11,9 @@ embed.set_footer(text="Powered by ZaneApi")
 regex_url = re.compile(
     r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
 )
-# pylint: disable=unsubscriptable-object
 args = typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]
-# pylint: enable=unsubscriptable-object
+
+
 class Manipulation(commands.Cog):
     def __init__(self, avimetry):
         self.avimetry = avimetry

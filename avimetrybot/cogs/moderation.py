@@ -2,19 +2,12 @@ import discord
 from discord.ext import commands, tasks
 from copy import deepcopy
 from dateutil.relativedelta import relativedelta
-import random
-import time
 import asyncio
-import re
 import datetime
-import typing
-
-# pylint: disable=import-error
 from utils.converters import TimeConverter
 
 
 class Moderation(commands.Cog):
-    # pylint: disable=no-member,unused-variable
     def __init__(self, avimetry):
         self.avimetry = avimetry
         self.check_mutes.start()
@@ -22,13 +15,11 @@ class Moderation(commands.Cog):
         def cog_unload(self):
             self.check_mutes.cancel()
 
-    # pylint: enable=no-member,unused-variable
     # Unmute Loop
     @tasks.loop(minutes=1)
     async def check_mutes(self):
         currentTime = datetime.datetime.now()
         mutes = deepcopy(self.avimetry.muted_users)
-        # pylint: disable=unused-variable
         for key, value in mutes.items():
             if value["muteDuration"] is None:
                 continue
@@ -62,7 +53,6 @@ class Moderation(commands.Cog):
                     self.avimetry.muted_users.pop(member.id)
                 except KeyError:
                     pass
-                    # pylint: enable=unused-variable
 
     @check_mutes.before_loop
     async def before_check_mutes(self):
@@ -74,7 +64,7 @@ class Moderation(commands.Cog):
     async def clean(self, ctx, limit=100):
         try:
             await ctx.message.delete()
-        except:
+        except Exception:
             pass
 
         def avimetrybot(m):
@@ -82,14 +72,14 @@ class Moderation(commands.Cog):
 
         try:
             await ctx.channel.purge(limit=limit, check=avimetrybot, bulk=True)
-        except:
+        except Exception:
             async for i in ctx.channel.history(limit=limit):
                 if i.author == self.avimetry.user:
                     await i.delete()
         ce = discord.Embed()
         ce.add_field(
             name="<:yesTick:777096731438874634> Clean Messages",
-            value=f"Successfully Cleaned all messaages",
+            value="Successfully Cleaned all messaages",
         )
         await ctx.send(embed=ce)
 
@@ -128,7 +118,10 @@ class Moderation(commands.Cog):
             pe = discord.Embed()
             pe.add_field(
                 name="<:yesTick:777096731438874634> Purge Messages",
-                value=f"Here are the results of the purged messages:\n`{msg}`\n\n Total Messages Deleted:`{len(purge_amount)}`",
+                value=(
+                    f"Here are the results of the purged messages"
+                    f"\n`{msg}`\n\n Total Messages Deleted:`{len(purge_amount)}`"
+                ),
             )
             pe.set_footer(text="React with the emoji to delete this message")
             purge_results = await ctx.send(embed=pe)
@@ -142,7 +135,6 @@ class Moderation(commands.Cog):
                 )
 
             try:
-                # pylint: disable=unused-variable
                 reaction, user = await self.avimetry.wait_for(
                     "reaction_add", check=check, timeout=60
                 )
@@ -152,7 +144,6 @@ class Moderation(commands.Cog):
             else:
                 if str(reaction.emoji) == "<:noTick:777096756865269760>":
                     await purge_results.delete()
-                # pylint: enable=unused-variable
 
     @purge.command()
     @commands.has_permissions(manage_messages=True)
@@ -187,7 +178,8 @@ class Moderation(commands.Cog):
         lc = discord.Embed()
         lc.add_field(
             name=":lock: Channel has been locked.",
-            value=f"{ctx.author.mention} has locked down <#{channel.id}> with the reason of {reason}. Only Staff members can speak now.",
+            value=f"{ctx.author.mention} has locked down <#{channel.id}> with the reason of {reason}. \
+            Only Staff members can speak now.",
         )
         await channel.send(embed=lc)
 
@@ -208,7 +200,8 @@ class Moderation(commands.Cog):
         uc = discord.Embed()
         uc.add_field(
             name=":unlock: Channel has been unlocked.",
-            value=f"{ctx.author.mention} has unlocked <#{channel.id}> with the reason of {reason}. Everyone can speak now.",
+            value=f"{ctx.author.mention} has unlocked <#{channel.id}> with the reason of {reason}. \
+            Everyone can speak now.",
         )
         await channel.send(embed=uc)
 
@@ -341,7 +334,8 @@ class Moderation(commands.Cog):
                 banembed = discord.Embed()
                 banembed.add_field(
                     name="<:yesTick:777096731438874634> Ban Member",
-                    value=f"{member.mention} (`{member.id}`) has been banned from **{ctx.guild.name}**, but I could not DM them.",
+                    value=f"{member.mention} (`{member.id}`) has been banned from **{ctx.guild.name}**, \
+                        but I could not DM them.",
                     inline=False,
                 )
                 await ctx.send(embed=banembed)
@@ -363,7 +357,7 @@ class Moderation(commands.Cog):
                 inline=False,
             )
             await ctx.send(embed=unbanenmbed)
-        except:
+        except Exception:
             banned_users = await ctx.guild.bans()
             member_name, member_discriminator = member.split("#")
             for ban_entry in banned_users:

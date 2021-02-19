@@ -6,8 +6,6 @@ from difflib import get_close_matches
 import re
 import prettify_exceptions
 import humanize
-
-# pylint: disable=import-error
 from utils.errors import Blacklisted
 
 

@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-import re
 
 
 class MemberManagement(commands.Cog, name="member management"):

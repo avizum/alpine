@@ -1,8 +1,4 @@
-import discord
 from discord.ext import commands
-import random
-import time
-import asyncio
 
 
 class Counting(commands.Cog):
