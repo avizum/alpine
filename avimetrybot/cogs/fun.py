@@ -212,7 +212,7 @@ class Fun(commands.Cog):
         embed.set_footer(text=f"Not what you meant? Use {pre}help to see the whole list of commands.")
         await ctx.send(embed=embed)
 
-    @commands.command(name="akinators", brief="Play a game of akinator. \n<:Yes:812133712967761951>: Yes\n<:No:812133712946528316>: No\n<:IDontKnow:812133713046405230>: I don't know\n<:Probably:812133712962519100>: Probably\n<:ProbablyNot:812133712665772113>: Probably Not")
+    @commands.command(name="akinator", brief="Play a game of akinator. \n<:Yes:812133712967761951>: Yes\n<:No:812133712946528316>: No\n<:IDontKnow:812133713046405230>: I don't know\n<:Probably:812133712962519100>: Probably\n<:ProbablyNot:812133712665772113>: Probably Not")
     async def _akinator(self, ctx, mode=None, child=False):
         q = await self.avimetry.akinator.start_game(mode, child)
         akinator_embed=discord.Embed(title="Akinator", description=f"Starting akinator session.\n\nReact with the emojis below to answer.\nIf you need help, use {ctx.clean_prefix} to get help.")
