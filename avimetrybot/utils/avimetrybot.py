@@ -13,24 +13,24 @@ import time
 from akinator.async_aki import Akinator
 
 
-async def prefix(avimetrybot, message):
+async def prefix(avimetry, message):
     if not message.guild:
-        avimetry_prefix = "a."
+        return "a."
     try:
-        print(avimetrybot.owner_ids)
-        data = await avimetrybot.config.find(message.guild.id)
-        if message.content.lower().startswith(data["prefix"]):
+        data = await avimetry.config.find(message.guild.id)
+        if message.author.id in avimetry.owner_ids:
+            return ["dev ", data["prefix"]]
+        elif message.content.lower().startswith(data["prefix"]):
             try:
                 lower = message.content[: len(data["prefix"])]
-                avimetry_prefix = lower
+                return lower
             except Exception:
-                avimetry_prefix = data["prefix"]
-        if not data or "prefix" not in data:
-            avimetry_prefix = "a."
-        avimetry_prefix = data["prefix"]
+                return data["prefix"]
+        elif not data or "prefix" not in data:
+            return "a."
+        return data["prefix"]
     except Exception:
-        avimetry_prefix = "a."
-    return commands.when_mentioned_or(avimetry_prefix)(avimetrybot, message)
+        return "a."
 
 
 allowed_mentions = discord.AllowedMentions(
@@ -62,9 +62,7 @@ class AvimetryBot(commands.Bot):
         self.commands_ran = 0
         self.session = aiohttp.ClientSession()
         self.akinator = Akinator()
-        self.cog_cooldown = commands.CooldownMapping.from_cooldown(
-            2, 10, commands.BucketType.member
-        )
+        self.owner_ids = {750135653638865017, 547280209284562944}
 
         @self.check
         async def globally_block_dms(ctx):

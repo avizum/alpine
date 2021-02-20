@@ -18,21 +18,20 @@ class Verification(commands.Cog):
         global pre
         pre = prefixes["prefix"]
 
-        channel = discord.utils.get(
-            self.avimetry.get_all_channels(), name="joins-and-leaves"
-        )
+        if member.guild.id == (751490725555994716):
+            channel = discord.utils.get(member.guild.channels, name="joins-and-leaves")
+
         if channel.guild.id == member.guild.id:
-            jm = discord.Embed()
-            jm.add_field(
-                name="Member Joined",
-                value=(
-                    f"""
-                    Hey, {member.mention}, Welcome to {member.guild.name}!
-                    The server now has **{member.guild.member_count}** members.
-                    """
-                )
+            join_message = discord.Embed(
+                title="Member Joined",
+                description=(
+                    f"Hey **{str(member)}**, Welcome to **{member.guild.name}**!\n"
+                    f"This server now has a total of **{member.guild.member_count}** members."
+                ),
+                color=discord.Color.blurple()
             )
-            await channel.send(embed=jm)
+            await channel.send(embed=join_message)
+
         try:
             vergate = await self.avimetry.config.find(member.guild.id)
         except KeyError:
@@ -79,20 +78,22 @@ class Verification(commands.Cog):
     # Leave Message
     @commands.Cog.listener()
     async def on_member_remove(self, member):
+        if member.guild.id == (751490725555994716):
+            channel = discord.utils.get(member.guild.channels, name="joins-and-leaves")
+        if channel.guild.id == member.guild.id:
+            lm = discord.Embed(
+                title="Member Leave",
+                description=(
+                    f"Aww, **{str(member)}** has left **{member.guild.name}**.\n"
+                    f"This server now has a total of **{member.guild.member_count}** members."
+                ),
+                color=discord.Color.red()
+            )
+            await channel.send(embed=lm)
+
         dchnl = discord.utils.get(self.avimetry.get_all_channels(), name=f"{member.id}")
         if dchnl in member.guild.channels:
             await dchnl.delete(reason=f"{member.name} left during verification process")
-        else:
-            channel = discord.utils.get(
-                self.avimetry.get_all_channels(), name="joins-and-leaves"
-            )
-            if channel.guild.id == member.guild.id:
-                lm = discord.Embed()
-                lm.add_field(
-                    name="Member Left",
-                    value=f"Aww, {member.mention} has left {member.guild.name}. \nThe server now has **{member.guild.member_count}** members.",
-                )
-                await channel.send(embed=lm)
 
     # Verify Command
     @commands.group(brief="Verify now!", invoke_without_command=True, hidden=True)
@@ -166,10 +167,8 @@ class Verification(commands.Cog):
             except asyncio.TimeoutError:
                 if member.is_on_mobile():
                     await member.send(
-                        """
-                        <:noTick:777096756865269760> **Your Key has expired**
-                        Sorry, your key has expired. If you want to generate a new key, use the command `a.verify` to generate a new key.
-                        """
+                        "<:noTick:777096756865269760> **Your Key has expired**"
+                        "Sorry, your key has expired. If you want to generate a new key, use the command `a.verify` to generate a new key."
                     )
                 else:
                     timeup = discord.Embed()

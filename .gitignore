@@ -10,3 +10,4 @@ nohup.out
 .DS_Store
 discord.log
 *__pycache__
+.vscode

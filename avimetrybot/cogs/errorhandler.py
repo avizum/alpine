@@ -17,7 +17,7 @@ class ErrorHandler(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if ctx.author.id in self.avimetry.owner_ids:
-            if self.avimetry.devmode is True:
+            if ctx.prefix == "dev ":
                 try:
                     return await ctx.reinvoke()
                 except Exception:

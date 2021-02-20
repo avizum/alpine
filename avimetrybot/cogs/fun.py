@@ -324,19 +324,14 @@ class Fun(commands.Cog):
         akinator_embed = discord.Embed(
             title="Akinator",
             description=(
-                f"""
-                Starting akinator session.
-
-                React with the emojis below to answer.
-
-                <:Yes:812133712967761951>: Yes
-                <:No:812133712946528316>: No
-                <:IDontKnow:812133713046405230>: I don't know
-                <:Probably:812133712962519100>: Probably
-                <:ProbablyNot:812133712665772113>: Probably Not
-
-                If you need more help, use {ctx.clean_prefix}help akinator to get help.
-                """
+                "Starting akinator session.\n\
+                React with the emojis below to answer.\n\
+                <:Yes:812133712967761951>: Yes\n\
+                <:No:812133712946528316>: No\n\
+                <:IDontKnow:812133713046405230>: I don't know\n\
+                <:Probably:812133712962519100>: Probably\n\
+                <:ProbablyNot:812133712665772113>: Probably Not\n\
+                If you need more help, use {ctx.clean_prefix}help akinator to get help."
             ),
         )
         initial_messsage = await ctx.send(embed=akinator_embed)
