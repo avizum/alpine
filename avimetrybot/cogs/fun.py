@@ -319,6 +319,7 @@ class Fun(commands.Cog):
         aliases=["aki", "avinator"],
         brief="Play a game of akinator"
     )
+    @commands.cooldown(1, 60, commands.BucketType.member)
     async def _akinator(self, ctx, mode=None, child=False):
         q = await self.avimetry.akinator.start_game(mode, child)
         akinator_embed = discord.Embed(
@@ -433,13 +434,6 @@ class Fun(commands.Cog):
                     f"{akinator_embed.description}\n\n------\n\nAww, maybe next time."
                 )
                 await initial_messsage.edit(embed=akinator_embed)
-
-    @_akinator.error
-    async def aki_error(self, ctx, error):
-        if isinstance(error, akinator.exceptions.InvalidLanguageError):
-            return
-        else:
-            raise error
 
     @commands.command()
     async def wait_for(self, ctx):
