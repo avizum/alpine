@@ -4,7 +4,6 @@ import random
 import time
 import asyncio
 import akinator
-import asyncio
 
 
 cog_cooldown = commands.CooldownMapping.from_cooldown(
@@ -207,7 +206,7 @@ class Fun(commands.Cog):
         cd_cookie = await ctx.send_raw(embed=cookie_embed)
         await asyncio.sleep(5)
         cookie_embed.set_field_at(
-            0, name="Ready Up!", value=f"Get ready to get the cookie!"
+            0, name="Ready Up!", value="Get ready to get the cookie!"
         )
         await cd_cookie.edit(embed=cookie_embed)
         await asyncio.sleep(random.randint(1, 11))
@@ -218,9 +217,7 @@ class Fun(commands.Cog):
 
         def check(reaction, user):
             return (
-                reaction.message.id == cd_cookie.id
-                and str(reaction.emoji) in "\U0001F36A"
-                and user != self.avimetry.user
+                reaction.message.id == cd_cookie.id and str(reaction.emoji) in "\U0001F36A" and user != self.avimetry.user
             )
 
         try:
@@ -229,7 +226,7 @@ class Fun(commands.Cog):
             )
         except asyncio.TimeoutError:
             cookie_embed.set_field_at(
-                0, name="Game over!", value=f"Nobody got the cookie :("
+                0, name="Game over!", value="Nobody got the cookie :("
             )
             await cd_cookie.edit(embed=cookie_embed)
             await cd_cookie.clear_reactions()
@@ -276,9 +273,7 @@ class Fun(commands.Cog):
 
         def check(reaction, user):
             return (
-                reaction.message.id == cd_cookie.id
-                and str(reaction.emoji) in "\U0001F36A"
-                and user != self.avimetry.user
+                reaction.message.id == cd_cookie.id and str(reaction.emoji) in "\U0001F36A" and user != self.avimetry.user
             )
 
         try:
@@ -287,7 +282,7 @@ class Fun(commands.Cog):
             )
         except asyncio.TimeoutError:
             cookie_embed.set_field_at(
-                0, name="Game over!", value=f"Nobody got the cookie :("
+                0, name="Game over!", value="Nobody got the cookie :("
             )
             await cd_cookie.edit(embed=cookie_embed)
             await cd_cookie.clear_reactions()
@@ -321,13 +316,28 @@ class Fun(commands.Cog):
 
     @commands.command(
         name="akinator",
-        brief="Play a game of akinator. \n<:Yes:812133712967761951>: Yes\n<:No:812133712946528316>: No\n<:IDontKnow:812133713046405230>: I don't know\n<:Probably:812133712962519100>: Probably\n<:ProbablyNot:812133712665772113>: Probably Not",
+        aliases=["aki", "avinator"],
+        brief="Play a game of akinator"
     )
     async def _akinator(self, ctx, mode=None, child=False):
         q = await self.avimetry.akinator.start_game(mode, child)
         akinator_embed = discord.Embed(
             title="Akinator",
-            description=f"Starting akinator session.\n\nReact with the emojis below to answer.\nIf you need help, use {ctx.clean_prefix} to get help.",
+            description=(
+                f"""
+                Starting akinator session.
+
+                React with the emojis below to answer.
+
+                <:Yes:812133712967761951>: Yes
+                <:No:812133712946528316>: No
+                <:IDontKnow:812133713046405230>: I don't know
+                <:Probably:812133712962519100>: Probably
+                <:ProbablyNot:812133712665772113>: Probably Not
+
+                If you need more help, use {ctx.clean_prefix}help akinator to get help.
+                """
+            ),
         )
         initial_messsage = await ctx.send(embed=akinator_embed)
         game_end_early = False
@@ -339,9 +349,9 @@ class Fun(commands.Cog):
             "<:ProbablyNot:812133712665772113>",
             "◀️",
         ]
-        await asyncio.sleep(2)
         for i in akinator_reactions:
             await initial_messsage.add_reaction(i)
+        await asyncio.sleep(5)
 
         while self.avimetry.akinator.progression <= 80:
             akinator_embed.description = q
@@ -349,9 +359,7 @@ class Fun(commands.Cog):
 
             def check(reaction, user):
                 return (
-                    str(reaction.emoji) in akinator_reactions
-                    and user == ctx.author
-                    and user != self.avimetry.user
+                    str(reaction.emoji) in akinator_reactions and user == ctx.author and user != self.avimetry.user
                 )
 
             try:
@@ -394,7 +402,7 @@ class Fun(commands.Cog):
             else:
                 q = await self.avimetry.akinator.answer(ans)
         await initial_messsage.clear_reactions()
-        if game_end_early == True:
+        if game_end_early is True:
             return
         await self.avimetry.akinator.win()
 
@@ -409,14 +417,10 @@ class Fun(commands.Cog):
 
         def yes_no_check(reaction, user):
             return (
-                str(reaction.emoji)
-                in ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"]
-                and user != self.avimetry.user
-                and user == ctx.author
+                str(reaction.emoji) in ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"] and user != self.avimetry.user and user == ctx.author
             )
 
         try:
-            # pylint: disable=unused-variable
             reaction, user = await self.avimetry.wait_for(
                 "reaction_add", check=yes_no_check, timeout=60
             )
@@ -434,12 +438,11 @@ class Fun(commands.Cog):
                     f"{akinator_embed.description}\n\n------\n\nAww, maybe next time."
                 )
                 await initial_messsage.edit(embed=akinator_embed)
-            # pylint: enable=unused-variable
 
     @_akinator.error
     async def aki_error(self, ctx, error):
         if isinstance(error, akinator.exceptions.InvalidLanguageError):
-            print("a")
+            return
         else:
             raise error
 

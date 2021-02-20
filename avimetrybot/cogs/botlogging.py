@@ -19,7 +19,7 @@ class BotLogs(commands.Cog, name="bot logs"):
         if delete_log is None:
             return
         try:
-            if (delete_log["delete_log"]) == False:
+            if (delete_log["delete_log"]) is False:
                 return
         except KeyError:
             return
@@ -65,7 +65,7 @@ class BotLogs(commands.Cog, name="bot logs"):
         if edit_log is None:
             return
         try:
-            if (edit_log["edit_log"]) == False:
+            if (edit_log["edit_log"]) is False:
                 return
         except KeyError:
             return
@@ -97,7 +97,6 @@ class BotLogs(commands.Cog, name="bot logs"):
 
     @commands.Cog.listener("on_command")
     async def on_command(self, ctx):
-        print(f"{ctx.command.name} completion")
         self.avimetry.commands_ran += 1
 
 

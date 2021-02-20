@@ -129,9 +129,7 @@ class Moderation(commands.Cog):
 
             def check(reaction, user):
                 return (
-                    str(reaction.emoji) in "<:noTick:777096756865269760>"
-                    and user != self.avimetry.user
-                    and user == ctx.author
+                    str(reaction.emoji) in "<:noTick:777096756865269760>" and user != self.avimetry.user and user == ctx.author
                 )
 
             try:

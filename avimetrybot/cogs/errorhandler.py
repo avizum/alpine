@@ -1,9 +1,9 @@
 import discord
 from discord.ext import commands
 import datetime
-import traceback, sys, os
+import traceback
+import sys
 from difflib import get_close_matches
-import re
 import prettify_exceptions
 import humanize
 from utils.errors import Blacklisted
@@ -17,11 +17,11 @@ class ErrorHandler(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if ctx.author.id in self.avimetry.owner_ids:
-            if self.avimetry.devmode == True:
+            if self.avimetry.devmode is True:
                 try:
                     return await ctx.reinvoke()
-                except:
-                    return print(f"Could not reinvoke {ctx.command.name}")
+                except Exception:
+                    return
             else:
                 pass
 
@@ -134,7 +134,7 @@ class ErrorHandler(commands.Cog):
             max_uses = discord.Embed(color=discord.Color.red())
             max_uses.add_field(
                 name="<:noTick:777096756865269760> Max Concurrency Reached",
-                value=f"Sorry, is at it's max concurrency. Please try again later.",
+                value="Sorry, is at it's max concurrency. Please try again later.",
             )
             await ctx.send(embed=max_uses)
         else:
@@ -170,7 +170,7 @@ class ErrorHandler(commands.Cog):
                     description=f"```{short_exception}``\n{str(myst_exception)}",
                 )
                 await chanel.send(embed=ff)
-            except:
+            except Exception:
                 return
 
 

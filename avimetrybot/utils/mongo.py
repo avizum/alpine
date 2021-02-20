@@ -36,7 +36,7 @@ class MongoDB:
         await self.db.insert_one(dict)
 
     async def upsert(self, dict):
-        if await self.__get_raw(dict["_id"]) != None:
+        if await self.__get_raw(dict["_id"]) is not None:
             await self.update_by_id(dict)
         else:
             await self.db.insert_one(dict)

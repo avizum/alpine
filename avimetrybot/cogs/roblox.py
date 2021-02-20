@@ -1,16 +1,11 @@
 import requests
 import discord
-from discord.ext import commands, tasks
-import random
-import time
 import asyncio
-import os
-from dotenv import load_dotenv
-from datetime import date
+from discord.ext import commands, tasks
 
 
 class RobloxUpdate(commands.Cog, name="roblox update"):
-    def __init__(self, avimetry)
+    def __init__(self, avimetry):
         self.avimetry = avimetry
         self.update_check.start()
 

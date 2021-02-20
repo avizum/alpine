@@ -12,13 +12,12 @@ class Owner(commands.Cog):
 
     def cog_unload(self):
         self.avimetry.load_extension("cogs.owner")
-        print("asd")
 
     # Load Command
     @commands.command(brief="Loads a module if it was disabled.")
     @commands.is_owner()
     async def load(self, ctx, extension=None):
-        if extension == None:
+        if extension is None:
             embed = discord.Embed(
                 title="Load Modules", timestamp=datetime.datetime.utcnow()
             )
@@ -56,7 +55,7 @@ class Owner(commands.Cog):
     @commands.command(brief="Unloads a module if it is being abused.")
     @commands.is_owner()
     async def unload(self, ctx, extension=None):
-        if extension == None:
+        if extension is None:
             embed = discord.Embed(
                 title="Unload Modules", timestamp=datetime.datetime.utcnow()
             )
@@ -98,14 +97,13 @@ class Owner(commands.Cog):
         if module == "~":
             embed = discord.Embed(
                 title="Reload Modules",
-                description=f"Reloaded all modules sucessfully.",
+                description="Reloaded all modules sucessfully.",
                 timestamp=datetime.datetime.utcnow(),
             )
             for filename in os.listdir("./avimetrybot/cogs"):
                 if filename.endswith(".py"):
                     try:
                         self.avimetry.reload_extension(f"cogs.{filename[:-3]}")
-                        print(f"loaded {filename}")
                     except Exception as e:
                         embed.description = "Reloaded all Modules sucessfully except the one(s) listed below:"
                         embed.add_field(
@@ -168,10 +166,7 @@ class Owner(commands.Cog):
 
         def check(reaction, user):
             return (
-                str(reaction.emoji)
-                in ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"]
-                and user != self.avimetry.user
-                and user == ctx.author
+                str(reaction.emoji) in ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"] and user != self.avimetry.user and user == ctx.author
             )
 
         try:
@@ -181,14 +176,14 @@ class Owner(commands.Cog):
             )
         except asyncio.TimeoutError:
             to = discord.Embed()
-            to.add_field(name=f"{self.avimetry.user.name} shutdown", value="Timed Out.")
+            to.add_field(name=f"{self.avimetry.user.name} rebooting", value="Timed Out.")
             await rr.edit(embed=to)
             await rr.clear_reactions()
         else:
             if str(reaction.emoji) == "<:yesTick:777096731438874634>":
                 rre = discord.Embed()
                 rre.add_field(
-                    name=f"{self.avimetry.user.name} shutdown", value="Shutting down..."
+                    name=f"{self.avimetry.user.name} rebooting", value="rebooting..."
                 )
                 await rr.edit(embed=rre)
                 await rr.clear_reactions()
@@ -198,8 +193,8 @@ class Owner(commands.Cog):
             if str(reaction.emoji) == "<:noTick:777096756865269760>":
                 rre2 = discord.Embed()
                 rre2.add_field(
-                    name=f"{self.avimetry.user.name} shutdown",
-                    value="Shut down has been cancelled.",
+                    name=f"{self.avimetry.user.name} rebooting",
+                    value="reboot has been cancelled.",
                 )
                 await rr.edit(embed=rre2)
                 await rr.clear_reactions()
@@ -213,6 +208,12 @@ class Owner(commands.Cog):
     async def leave(self, ctx):
         await ctx.send("Okay bye")
         await ctx.guild.leave()
+
+    @commands.command()
+    @commands.is_owner()
+    async def dev(self, ctx, command, *args):
+        exec = self.avimetry.get_command(command)
+        await exec(ctx, *args)
 
 
 def setup(avimetry):

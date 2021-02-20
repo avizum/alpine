@@ -19,7 +19,7 @@ class Manipulation(commands.Cog):
         self.avimetry = avimetry
 
     async def member_convert(self, ctx, url):
-        if url == None:
+        if url is None:
             url = ctx.author.avatar_url_as(format="png")
 
         elif isinstance(url, discord.Member):
@@ -228,5 +228,4 @@ def setup(avimetry):
         floor=bot.sr.youtube_comment(str(ctx.author.avatar_url_as(format="png")), ctx.author.name, "asd")
         file=discord.File(io.BytesIO(await floor.read()), filename="magic.png")
         await ctx.send(file=file)
-        
 """

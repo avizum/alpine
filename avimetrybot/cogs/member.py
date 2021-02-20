@@ -22,7 +22,7 @@ class MemberManagement(commands.Cog, name="member management"):
                 channel3 = self.avimetry.get_channel(783961050814611476)
                 true_bot_count = len([m for m in member.guild.members if m.bot])
                 await channel3.edit(name=f"Bots: {true_bot_count}")
-        except:
+        except Exception:
             return
 
     @commands.Cog.listener()
@@ -40,7 +40,7 @@ class MemberManagement(commands.Cog, name="member management"):
                 channel3 = self.avimetry.get_channel(783961050814611476)
                 true_bot_count = len([m for m in member.guild.members if m.bot])
                 await channel3.edit(name=f"Bots: {true_bot_count}")
-        except:
+        except Exception:
             return
 
     # Update Member Count Command

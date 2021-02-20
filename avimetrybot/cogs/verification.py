@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import string
 import random
-import json
 import asyncio
 
 
@@ -26,16 +25,21 @@ class Verification(commands.Cog):
             jm = discord.Embed()
             jm.add_field(
                 name="Member Joined",
-                value=f"Hey, {member.mention}, Welcome to {member.guild.name}! \nThe server now has **{member.guild.member_count}** members.",
+                value=(
+                    f"""
+                    Hey, {member.mention}, Welcome to {member.guild.name}!
+                    The server now has **{member.guild.member_count}** members.
+                    """
+                )
             )
             await channel.send(embed=jm)
         try:
             vergate = await self.avimetry.config.find(member.guild.id)
         except KeyError:
             return
-        if vergate["verification_gate"] == False:
+        if vergate["verification_gate"] is False:
             return
-        elif vergate["verification_gate"] == True:
+        elif vergate["verification_gate"] is True:
             name = "New Members"
             category = discord.utils.get(member.guild.categories, name=name)
             overwrites = {
@@ -125,7 +129,7 @@ class Verification(commands.Cog):
                     keyforbidden = discord.Embed()
                     keyforbidden.add_field(
                         name="Please turn on your DMs and run the `verify` command again.",
-                        value=f"User Settings > Privacy & Safety > Allow direct messages from server members",
+                        value="User Settings > Privacy & Safety > Allow direct messages from server members",
                     )
                     await ctx.send(embed=keyforbidden)
                     return
@@ -141,7 +145,7 @@ class Verification(commands.Cog):
                     keyforbidden = discord.Embed()
                     keyforbidden.add_field(
                         name="Please turn on your DMs and run the `verify` command again.",
-                        value=f"User Settings > Privacy & Safety > Allow direct messages from server members",
+                        value="User Settings > Privacy & Safety > Allow direct messages from server members",
                     )
                     await ctx.send(embed=keyforbidden)
                     return
@@ -162,7 +166,10 @@ class Verification(commands.Cog):
             except asyncio.TimeoutError:
                 if member.is_on_mobile():
                     await member.send(
-                        "<:noTick:777096756865269760> **Your Key has expired**\nSorry, your key has expired. If you want to generate a new key, use the command `a.verify` to generate a new key."
+                        """
+                        <:noTick:777096756865269760> **Your Key has expired**
+                        Sorry, your key has expired. If you want to generate a new key, use the command `a.verify` to generate a new key.
+                        """
                     )
                 else:
                     timeup = discord.Embed()
@@ -187,9 +194,9 @@ class Verification(commands.Cog):
                 )
                 try:
                     await cnl.delete(reason=f"{member.name} finished verification")
-                except:
+                except Exception:
                     await ctx.send(
-                        "Channel Delete failed, please contact a server staff member to delete this channel "
+                        "Channel Delete failed, please contact a server staff member to delete this channel"
                     )
 
     @verify.command(hidden=True)

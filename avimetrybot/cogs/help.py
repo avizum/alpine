@@ -57,16 +57,15 @@ class HelpEmbeded(commands.HelpCommand):
             description=f"{self.context.bot.user.name} {self.get_files()}\n\n```{self.bnote()}```\n Do not put the brackets with the command. It is not needed.\n\nThe prefix for **{self.get_destination().guild.name}** is `{self.clean_prefix}`",
         )
         modules_list = []
-        for cog, commands in mapping.items():
+        for cog, command in mapping.items():
             name = "No Category" if cog is None else cog.qualified_name.title()
-            filtered = await self.filter_commands(commands, sort=True)
+            filtered = await self.filter_commands(command, sort=True)
             if filtered:
                 modules_list.append(f"-{name.title()}")
-        print(modules_list)
         embed.add_field(
             name="Modules", value="{}".format("\n".join(modules_list)), inline=True
         )
-        embed.add_field(name="Latest Updates", value=f"stuff")
+        embed.add_field(name="Latest Updates", value="stuff")
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
 

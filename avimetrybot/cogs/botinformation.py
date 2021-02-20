@@ -132,7 +132,8 @@ class BotInfo(commands.Cog, name="bot utilities"):
         embed.add_field(name="RAM Usage", value=f"{psutil.virtual_memory().percent}%")
         embed.add_field(
             name="Bot Invite",
-            value="[here](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)",
+            value="[here](https://discord.com/oauth2/authorize?client_id=\
+                756257170521063444&scope=bot&permissions=2147483647)",
         )
         embed.add_field(name="Commands", value=len(self.avimetry.commands))
         embed.add_field(name="Commands ran", value=self.avimetry.commands_ran)
@@ -179,7 +180,8 @@ class BotInfo(commands.Cog, name="bot utilities"):
             timestamp=datetime.datetime.utcnow(),
         )
         if self.avimetry.user.id != 756257170521063444:
-            source_embed.description = "This bot is made by [avi/jbkn](https://discord.com/users/750135653638865017). It is run off of this [source code](https://github.com/jbkn/avimetry).\nKeep the license in mind"
+            source_embed.description = "This bot is made by [avi/jbkn](https://discord.com/users/750135653638865017). \
+                It is run off of this [source code](https://github.com/jbkn/avimetry).\nKeep the license in mind"
         else:
             source_embed.description = "Here is my [source code](https://github.com/jbkn/avimetry) made by [avi](https://discord.com/users/750135653638865017).\nMake sure you follow the license."
         await ctx.send(embed=source_embed)
@@ -189,7 +191,14 @@ class BotInfo(commands.Cog, name="bot utilities"):
     async def invite(self, ctx):
         invite_embed = discord.Embed(
             title=f"{self.avimetry.user.name} Invite",
-            description="Invite me to your server! Here are the invite links.\n•Invite with [all permissions](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)\n•Invite with [administrator permissions](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=8)\n•Invite with [no permissions](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=8)",
+            description=(
+                """
+                Invite me to your server! Here are the invite links.
+                •Invite with [all permissions](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)
+                •Invite with [administrator permissions](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=8)
+                •Invite with [no permissions](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=8)
+                """
+            ),
         )
         invite_embed.set_thumbnail(url=self.avimetry.user.avatar_url)
         await ctx.send(embed=invite_embed)
@@ -200,10 +209,16 @@ class BotInfo(commands.Cog, name="bot utilities"):
         bot_invite.set_thumbnail(url=bot.avatar_url)
         if bot.bot:
             bot_invite.title = f"{bot.name} Invite"
-            bot_invite.description = f"Invite {bot.name} to your server! Here are the invite links.\n•Invite with [all permissions](https://discord.com/oauth2/authorize?client_id={bot.id}&scope=bot&permissions=2147483647)\n•Invite with [administrator permissions](https://discord.com/oauth2/authorize?client_id={bot.id}&scope=bot&permissions=8)\n•Invite with [no permissions](https://discord.com/oauth2/authorize?client_id={bot.id}&scope=bot&permissions=8)"
+            bot_invite.description = (
+                f"""
+                Invite {bot.name} to your server! Here are the invite links.
+                •Invite with [all permissions](https://discord.com/oauth2/authorize?client_id={bot.id}&scope=bot&permissions=2147483647)
+                •Invite with [administrator permissions](https://discord.com/oauth2/authorize?client_id={bot.id}&scope=bot&permissions=8)
+                •Invite with [no permissions](https://discord.com/oauth2/authorize?client_id={bot.id}&scope=bot&permissions=8)"""
+            )
         else:
             bot_invite.title = f"{bot.name} Invite"
-            bot_invite.description = f"That is not a bot. Make sure you mention a bot."
+            bot_invite.description = "That is not a bot. Make sure you mention a bot."
         await ctx.send(embed=bot_invite)
 
 

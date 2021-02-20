@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 import datetime
-from pathlib import Path
 from dotenv import load_dotenv
 import os
 import re
@@ -37,7 +36,7 @@ class AvimetryContext(commands.Context):
                 "jishaku rtt",
             ]:
                 return await super().send(content=content)
-        except:
+        except Exception:
             pass
         if content:
             for i in tokens:
@@ -58,14 +57,14 @@ class AvimetryContext(commands.Context):
                     if self.author.color == discord.Color(0):
                         embed.color = discord.Color(0x2F3136)
 
-            except:
+            except Exception:
                 pass
 
         try:
             return await self.reply(
                 content, embed=embed, *args, **kwargs, mention_author=False
             )
-        except:
+        except Exception:
             return await super().send(content, embed=embed, *args, **kwargs)
 
     async def embed(self, *args, **kwargs):

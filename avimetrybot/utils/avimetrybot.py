@@ -17,6 +17,7 @@ async def prefix(avimetrybot, message):
     if not message.guild:
         avimetry_prefix = "a."
     try:
+        print(avimetrybot.owner_ids)
         data = await avimetrybot.config.find(message.guild.id)
         if message.content.lower().startswith(data["prefix"]):
             try:
@@ -27,7 +28,7 @@ async def prefix(avimetrybot, message):
         if not data or "prefix" not in data:
             avimetry_prefix = "a."
         avimetry_prefix = data["prefix"]
-    except:
+    except Exception:
         avimetry_prefix = "a."
     return commands.when_mentioned_or(avimetry_prefix)(avimetrybot, message)
 
