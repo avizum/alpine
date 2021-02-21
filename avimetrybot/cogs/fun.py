@@ -142,7 +142,7 @@ class Fun(commands.Cog):
     @commands.command(brief="Build an embed with json")
     @commands.cooldown(1, 30, commands.BucketType.member)
     async def embed(self, ctx, *, embed):
-        embed = embed.to_dict()
+        embed = discord.utils.to_json(embed)
         dict_embed = discord.Embed.from_dict(embed)
         await ctx.send_raw(embed=dict_embed)
 
@@ -317,22 +317,24 @@ class Fun(commands.Cog):
     @commands.command(
         name="akinator",
         aliases=["aki", "avinator"],
-        brief="Play a game of akinator"
+        brief="Play a game of akinator\nhttps://gist.github.com/jbkn/8a5b9887d49a1d2740d0b6ad0176dbdb"
     )
     @commands.cooldown(1, 60, commands.BucketType.member)
     async def _akinator(self, ctx, mode=None, child=False):
-        q = await self.avimetry.akinator.start_game(mode, child)
+        async with ctx.channel.typing():
+            q = await self.avimetry.akinator.start_game(mode, child)
         akinator_embed = discord.Embed(
             title="Akinator",
             description=(
-                "Starting akinator session.\n\
+                f"Starting akinator session.\n\
                 React with the emojis below to answer.\n\
                 <:Yes:812133712967761951>: Yes\n\
                 <:No:812133712946528316>: No\n\
                 <:IDontKnow:812133713046405230>: I don't know\n\
                 <:Probably:812133712962519100>: Probably\n\
                 <:ProbablyNot:812133712665772113>: Probably Not\n\
-                If you need more help, use {ctx.clean_prefix}help akinator to get help."
+                ◀️: Go back\n\
+                If you need more help, use `{ctx.clean_prefix}help akinator` to get help."
             ),
         )
         initial_messsage = await ctx.send(embed=akinator_embed)
@@ -434,11 +436,6 @@ class Fun(commands.Cog):
                     f"{akinator_embed.description}\n\n------\n\nAww, maybe next time."
                 )
                 await initial_messsage.edit(embed=akinator_embed)
-
-    @commands.command()
-    async def wait_for(self, ctx):
-        a = await self.avimetry.wait_for("message", timeout=10)
-        await ctx.send(a.content)
 
 
 def setup(avimetry):

@@ -1,40 +1,39 @@
-from utils import AvimetryContext
 import discord
 import os
 import datetime
-from discord.ext import commands
 import motor.motor_asyncio
 import sr_api
 import aiohttp
 import aiozaneapi
-from utils.mongo import MongoDB
 import mystbin
 import time
+import re
+from utils import AvimetryContext
+from discord.ext import commands
+from utils.mongo import MongoDB
 from akinator.async_aki import Akinator
+
+DEFAULT_PREFIXES = ['A.', 'a.']
+OWNER_IDS = {750135653638865017, 547280209284562944}
+BOT_ID = 756257170521063444
 
 
 async def prefix(avimetry, message):
-    if not message.guild:
-        return "a."
-    try:
-        data = await avimetry.config.find(message.guild.id)
-        if message.author.id in avimetry.owner_ids:
-            return ["dev ", data["prefix"]]
-        elif message.content.lower().startswith(data["prefix"]):
-            try:
-                lower = message.content[: len(data["prefix"])]
-                return lower
-            except Exception:
-                return data["prefix"]
-        elif not data or "prefix" not in data:
-            return "a."
-        return data["prefix"]
-    except Exception:
-        return "a."
-
+    get_prefix = await avimetry.config.find(message.guild.id)
+    if not message.guild or "prefix" not in get_prefix:
+        command_prefix = DEFAULT_PREFIXES
+    else:
+        command_prefix = get_prefix["prefix"]
+        if command_prefix is None:
+            command_prefix = DEFAULT_PREFIXES
+    match = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
+    if match:
+        return match.group(1)
+    return commands.when_mentioned(avimetry, message)
 
 allowed_mentions = discord.AllowedMentions(
-    everyone=False, users=False, roles=True, replied_user=False
+    everyone=False, users=False,
+    roles=True, replied_user=False
 )
 intents = discord.Intents.all()
 activity = discord.Game("avimetry() | a.help")
@@ -62,7 +61,8 @@ class AvimetryBot(commands.Bot):
         self.commands_ran = 0
         self.session = aiohttp.ClientSession()
         self.akinator = Akinator()
-        self.owner_ids = {750135653638865017, 547280209284562944}
+        self.owner_ids = OWNER_IDS
+        self.bot_id = BOT_ID
 
         @self.check
         async def globally_block_dms(ctx):
@@ -126,9 +126,5 @@ class AvimetryBot(commands.Bot):
 
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
         if after.author.id in self.owner_ids:
-            await self.process_commands(after)
-
-    async def on_message(self, message):
-        if message.author == self.user:
-            return
-        await self.process_commands(message)
+            if before.content == after.content:
+                await self.process_commands(after)
