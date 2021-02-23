@@ -28,7 +28,7 @@ class ErrorHandler(commands.Cog):
         pre = ctx.clean_prefix
         error = getattr(error, "original", error)
 
-        if hasattr(ctx.command, "on_error"):
+        if hasattr(ctx.command, 'on_error'):
             return
 
         if isinstance(error, Blacklisted):
