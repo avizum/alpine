@@ -15,10 +15,13 @@ from akinator.async_aki import Akinator
 
 DEFAULT_PREFIXES = ['A.', 'a.']
 OWNER_IDS = {750135653638865017, 547280209284562944}
-BOT_ID = 756257170521063444
+PUBLIC_BOT_ID = 756257170521063444
+BETA_BOT_ID = 787046145884291072
 
 
 async def prefix(avimetry, message):
+    if avimetry.user.id == BETA_BOT_ID:
+        return "ab."
     get_prefix = await avimetry.config.find(message.guild.id)
     if not message.guild or "prefix" not in get_prefix:
         command_prefix = DEFAULT_PREFIXES
@@ -63,7 +66,7 @@ class AvimetryBot(commands.Bot):
         self.session = aiohttp.ClientSession()
         self.akinator = Akinator()
         self.owner_ids = OWNER_IDS
-        self.bot_id = BOT_ID
+        self.bot_id = PUBLIC_BOT_ID
 
         @self.check
         async def globally_block_dms(ctx):

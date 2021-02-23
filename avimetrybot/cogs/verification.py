@@ -13,6 +13,17 @@ class Verification(commands.Cog):
     # Verification Gate
     @commands.Cog.listener()
     async def on_member_join(self, member):
+        if self.avimetry.muted_users[member.id]:
+            muted_role = discord.utils.get(member.guild.roles, name="Muted")
+            await member.add_roles(muted_role)
+            try:
+                await asyncio.sleep(1)
+                channel = discord.utils.get(
+                    member.guild.channels, name=f"{member.name.lower()}-verification"
+                )
+                await channel.send("hah you thought you were smart")
+            except Exception:
+                pass
         if member.bot:
             return
         prefixes = await self.avimetry.config.find(member.guild.id)

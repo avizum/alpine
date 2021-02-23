@@ -4,6 +4,7 @@ from copy import deepcopy
 from dateutil.relativedelta import relativedelta
 import asyncio
 import datetime
+import humanize
 from utils.converters import TimeConverter
 
 
@@ -376,12 +377,14 @@ class Moderation(commands.Cog):
     @commands.command(brief="Sets the slowmode in the current channel.")
     @commands.has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def slowmode(self, ctx, seconds: int):
+    async def slowmode(self, ctx, *, seconds: TimeConverter = None):
+        if seconds > 21600:
+            raise commands.BadArgument("Amount should be less than or equal to 6 hours")
         await ctx.channel.edit(slowmode_delay=seconds)
         smembed = discord.Embed()
         smembed.add_field(
             name="<:yesTick:777096731438874634> Set Slowmode",
-            value=f"Slowmode delay is now set to {seconds} seconds.",
+            value=f"Slowmode delay is now set to {humanize.precisedelta(seconds)}.",
         )
         await ctx.send(embed=smembed)
 
@@ -390,6 +393,10 @@ class Moderation(commands.Cog):
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
     async def mute(self, ctx, member: discord.Member, *, time: TimeConverter = None):
+        if time < 300:
+            return await ctx.send("The minumum mute time is 5 minutes.")
+        elif time > 604800:
+            return await ctx.send("The maximum mute time is 7 days.")
         role = discord.utils.get(ctx.guild.roles, name="Muted")
         if not role:
             no_muted_role = discord.Embed()
