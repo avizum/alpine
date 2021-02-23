@@ -148,6 +148,17 @@ class Owner(commands.Cog):
         sync_embed.description = "\n".join(output)
         sync_embed.timestamp = datetime.datetime.utcnow()
         sync_embed.title = "Synced With GitHub"
+        mod_list = []
+        for filename in os.listdir("./avimetrybot/cogs"):
+            if filename.endswith(".py"):
+                try:
+                    self.avimetry.reload_extension(f"cogs.{filename[:-3]}")
+                except Exception as e:
+                    mod_list.append(f"**{filename}**\n{e}")
+        error_value = "\n".join(mod_list)
+        if mod_list is None:
+            error_value = "\u200b"
+        sync_embed.add_field(name="Reloaded all modules except the ones listed below.", value=error_value)
         await edit_sync.edit(embed=sync_embed)
 
     # Shutdown Command

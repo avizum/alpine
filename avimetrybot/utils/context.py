@@ -34,6 +34,8 @@ class AvimetryContext(commands.Context):
                 "jishaku cat",
                 "jishaku source",
                 "jishaku rtt",
+                "jishaku pip",
+                "jishaku git"
             ]:
                 return await super().send(content=content)
         except Exception:

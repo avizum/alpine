@@ -26,6 +26,7 @@ async def prefix(avimetry, message):
         command_prefix = get_prefix["prefix"]
         if command_prefix is None:
             command_prefix = DEFAULT_PREFIXES
+    command_prefix = re.escape(command_prefix)
     match = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
     if match:
         return match.group(1)
@@ -36,14 +37,14 @@ allowed_mentions = discord.AllowedMentions(
     roles=True, replied_user=False
 )
 intents = discord.Intents.all()
-activity = discord.Game("avimetry() | a.help")
+activity = discord.Game("Avimetry | a.help")
 
 
 class AvimetryBot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.all()
         super().__init__(
-            command_prefix="a.",
+            command_prefix=prefix,
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,
@@ -126,5 +127,5 @@ class AvimetryBot(commands.Bot):
 
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
         if after.author.id in self.owner_ids:
-            if before.content == after.content:
+            if before.content != after.content:
                 await self.process_commands(after)

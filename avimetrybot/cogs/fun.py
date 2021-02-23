@@ -320,7 +320,7 @@ class Fun(commands.Cog):
         brief="Play a game of akinator\nhttps://gist.github.com/jbkn/8a5b9887d49a1d2740d0b6ad0176dbdb"
     )
     @commands.cooldown(1, 60, commands.BucketType.member)
-    async def _akinator(self, ctx, mode=None, child=False):
+    async def fun_akinator(self, ctx, mode, child=False):
         async with ctx.channel.typing():
             q = await self.avimetry.akinator.start_game(mode, child)
         akinator_embed = discord.Embed(

@@ -24,6 +24,7 @@ class BotInfo(commands.Cog, name="bot utilities"):
     @commands.group(
         invoke_without_command=True,
         brief="The base config command, use this configure settings",
+        aliases=["settings", "configuration"]
     )
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
@@ -68,18 +69,17 @@ class BotInfo(commands.Cog, name="bot utilities"):
         await self.avimetry.logs.upsert({"_id": ctx.guild.id, "edit_log": toggle})
         await ctx.send(f"Set on_message_edit logs to {toggle}")
 
-    # Config Verification Gate Command
+    # Config Verification Command
     @config.group(
-        brief="Verification gate configuration for this server",
-        aliases=["vgate", "verificationg", "vg"],
+        brief="Verify system configuration for this server",
         invoke_without_command=True,
     )
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
-    async def verificationgate(self, ctx):
-        await ctx.send_help("config verificationgate")
+    async def verify(self, ctx):
+        await ctx.send_help("config verify")
 
-    @verificationgate.command(brief="Toggle the verification gate")
+    @verify.command(brief="Toggle the verification gate")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def toggle(self, ctx, bool: bool):
@@ -88,14 +88,14 @@ class BotInfo(commands.Cog, name="bot utilities"):
         )
         await ctx.send(f"Verification Gate is now {bool}")
 
-    @verificationgate.command(
+    @verify.command(
         brief="Set the role to give when a member finishes verification."
     )
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def role(self, ctx, role: discord.Role):
         await self.avimetry.config.upsert({"_id": ctx.guild.id, "gate_role": role.id})
-        await ctx.send(f"The verification gate role is set to {role}")
+        await ctx.send(f"The verify role is set to {role}")
 
     # Config Counting Command
     @config.group(invoke_without_command=True, brief="Configure counting settings")

@@ -61,12 +61,18 @@ class HelpEmbeded(commands.HelpCommand):
             name = "No Category" if cog is None else cog.qualified_name.title()
             filtered = await self.filter_commands(command, sort=True)
             if filtered:
-                modules_list.append(f"-{name.title()}")
+                modules_list.append(f"{name} ({len(command)})")
         embed.add_field(
             name="Modules", value="{}".format("\n".join(modules_list)), inline=True
         )
-        embed.add_field(name="Latest Updates", value="stuff")
-        embed.set_footer(text=self.gending_note())
+        embed.add_field(
+            name="Credits",
+            value=(
+                "**ZaneAPI**\n"
+                "**Some Random API**"
+            )
+        )
+        embed.set_footer(text=f"Use {self.clean_prefix}{self.invoked_with} [module] to get info on a module.")
         await self.get_destination().send(embed=embed)
 
     async def send_cog_help(self, cog):
@@ -153,7 +159,7 @@ class Help(commands.Cog):
         self.avimetry.help_command = HelpEmbeded(
             command_attrs=dict(
                 hidden=True,
-                aliases=["h", "halp", "helps", "cmds", "commands", "cmd"],
+                aliases=["halp", "helps", "cmds", "commands", "cmd"],
                 brief="Why do you need help with the help command? Oh well, Here it is anyways",
                 usage="[command] or [module]",
             )

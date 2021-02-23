@@ -249,10 +249,6 @@ class Miscellaneous(commands.Cog):
         )
         await ctx.send(embed=embed_message)
 
-    @commands.command(aliases=["a", "te", "st", "p", "s", "asd", "asdf", "xvs", "sdk"])
-    async def test(self, ctx):
-        await ctx.send("'fdkfj'")
-
 
 def setup(avimetry):
     avimetry.add_cog(Miscellaneous(avimetry))

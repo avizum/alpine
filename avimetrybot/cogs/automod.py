@@ -13,6 +13,14 @@ class AutoMod(commands.Cog, name="auto moderation"):
         if message.author == self.avimetry.user:
             return
 
+        if message.guild.id == 751490725555994716:
+            if message.content.lower() == "bonk":
+                guild = await self.avimetry.fetch_guild(760382234908688385)
+                for i in guild.emojis:
+                    if i.name == "bonk":
+                        await message.add_reaction(i)
+                        return
+
         bot_token = [token for token in regex_token.findall(message.content)]
         if message.guild == 336642139381301249:
             return

@@ -21,6 +21,8 @@ class Verification(commands.Cog):
 
         if member.guild.id == (751490725555994716):
             channel = discord.utils.get(member.guild.channels, name="joins-and-leaves")
+            root = member.guild.get_role(813535792655892481)
+            await member.add_roles(root)
 
             if channel.guild.id == member.guild.id:
                 join_message = discord.Embed(
@@ -51,14 +53,14 @@ class Verification(commands.Cog):
                 ),
             }
             await member.guild.create_text_channel(
-                f"{member.name}-verification",
+                f"{member.name.lower()}-verification",
                 category=category,
                 reason=f"Started Verification for {member.name}",
                 overwrites=overwrites,
             )
 
             channel = discord.utils.get(
-                self.avimetry.get_all_channels(), name=f"{member.name}-verification"
+                member.guild.channels, name=f"{member.name.lower()}-verification"
             )
             x = discord.Embed(
                 title=f"Welcome to **{member.guild.name}**!",
@@ -92,7 +94,7 @@ class Verification(commands.Cog):
                 )
                 await channel.send(embed=lm)
 
-        dchnl = discord.utils.get(self.avimetry.get_all_channels(), name=f"{member.name}-verification")
+        dchnl = discord.utils.get(self.avimetry.get_all_channels(), name=f"{member.name.lower()}-verification")
         if dchnl in member.guild.channels:
             await dchnl.delete(reason=f"{member.name} left during verification process")
 
@@ -105,15 +107,14 @@ class Verification(commands.Cog):
             role = get_role["gate_role"]
         except KeyError:
             await ctx.send(
-                "The verification role has not been set. Please DM/contact staff in your server to fix this."
+                "Verification has not been set up yet. You can enable it using the config command."
             )
             return
         roleid = ctx.guild.get_role(role)
 
-        await ctx.message.delete()
         channel = discord.utils.get(
             ctx.guild.channels,
-            name=f"{member.name}-verification"
+            name=f"{member.name.lower()}-verification"
         )
         if not channel:
             fver = discord.Embed(
@@ -189,7 +190,7 @@ class Verification(commands.Cog):
                 await member.add_roles(roleid)
                 await asyncio.sleep(2)
                 cnl = discord.utils.get(
-                    self.avimetry.get_all_channels(), name=f"{member.name}-verification"
+                    self.avimetry.get_all_channels(), name=f"{member.name.lower()}-verification"
                 )
                 try:
                     await cnl.delete(reason=f"{member.name} finished verification")

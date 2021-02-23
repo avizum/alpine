@@ -7,7 +7,6 @@ from twemoji_parser import emoji_to_url as urlify_emoji
 import typing
 
 embed = discord.Embed()
-embed.set_footer(text="Powered by ZaneApi")
 regex_url = re.compile(
     r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
 )
@@ -67,7 +66,7 @@ class Manipulation(commands.Cog):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             braille = await self.avimetry.zaneapi.braille(str(url))
-            return await ctx.send(f"```{braille}```")
+            return await ctx.send_raw(f"```{braille}```")
 
     @commands.command(usage="[url or member]", brief="Returns your image deepfried")
     async def deepfry(self, ctx, url: args):
@@ -204,6 +203,14 @@ class Manipulation(commands.Cog):
             sobel = await self.avimetry.zaneapi.sobel(str(url))
             file = discord.File(BytesIO(sobel.read()), filename="sobel.png")
             embed.set_image(url="attachment://sobel.png")
+            await ctx.send(file=file, embed=embed)
+
+    @commands.command()
+    async def animal(self, ctx, animal):
+        async with ctx.channel.typing():
+            e = await self.avimetry.sr.get_image(animal)
+            file = discord.File(BytesIO(await e.read()), filename="animal.png")
+            embed.set_image(url="attachment://animal.png")
             await ctx.send(file=file, embed=embed)
 
     @commands.command(brief="Convert emoji to url so you can download them")
