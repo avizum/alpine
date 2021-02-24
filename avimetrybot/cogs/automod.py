@@ -4,7 +4,7 @@ import re
 regex_token = re.compile(r"[a-zA-Z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27}")
 
 
-class AutoMod(commands.Cog, name="auto moderation"):
+class AutoMod(commands.Cog, name="Auto Moderation"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 

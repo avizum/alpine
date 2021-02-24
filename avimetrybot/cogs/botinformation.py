@@ -5,7 +5,7 @@ import psutil
 import humanize
 
 
-class BotInfo(commands.Cog, name="bot utilities"):
+class BotInfo(commands.Cog, name="Bot Utilities"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 

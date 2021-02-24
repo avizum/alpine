@@ -24,7 +24,7 @@ class Verification(commands.Cog):
                 channel = discord.utils.get(
                     member.guild.channels, name=f"{member.name.lower()}-verification"
                 )
-                await channel.send("hah you thought you were smart")
+                await channel.send("Member automuted")
             except Exception:
                 pass
         if member.bot:

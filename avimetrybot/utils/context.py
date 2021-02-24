@@ -31,15 +31,15 @@ class AvimetryContext(commands.Context):
         try:
             if self.command.name == "jishaku":
                 pass
-            if "jishaku" in self.command.qualified_name:
-                return await super().send(content=content)
+            elif "jishaku" in self.command.qualified_name:
+                return await self.reply(content=content)
 
         except Exception:
             pass
         if content:
             for i in tokens:
                 if i in content:
-                    content = content.replace(i, "[Token Omitted]")
+                    content = content.replace(i, "[insert-token-here]")
             embed = discord.Embed(description=content)
             content = None
         if discord.Embed:
@@ -64,6 +64,9 @@ class AvimetryContext(commands.Context):
             )
         except Exception:
             return await super().send(content, embed=embed, *args, **kwargs)
+
+    def new_method(self):
+        pass
 
     async def embed(self, *args, **kwargs):
         embed = discord.Embed(**kwargs, timestamp=datetime.datetime.utcnow())
