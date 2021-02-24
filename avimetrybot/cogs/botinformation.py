@@ -37,10 +37,9 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
     @commands.bot_has_permissions(administrator=True)
     async def prefix(self, ctx, new_prefix):
         await self.avimetry.config.upsert({"_id": ctx.guild.id, "prefix": new_prefix})
-        cp = discord.Embed()
-        cp.add_field(
-            name="<:yesTick:777096731438874634> Set Prefix",
-            value=f"The prefix for **{ctx.guild.name}** is now `{new_prefix}`",
+        cp = discord.Embed(
+            title="Set Prefix",
+            description=f"The prefix for **{ctx.guild.name}** is now `{new_prefix}`"
         )
         await ctx.send(embed=cp)
 
@@ -132,8 +131,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
         embed.add_field(name="RAM Usage", value=f"{psutil.virtual_memory().percent}%")
         embed.add_field(
             name="Bot Invite",
-            value="[here](https://discord.com/oauth2/authorize?client_id=\
-                756257170521063444&scope=bot&permissions=2147483647)",
+            value="[here](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)",
         )
         embed.add_field(name="Commands", value=len(self.avimetry.commands))
         embed.add_field(name="Commands ran", value=self.avimetry.commands_ran)
