@@ -40,7 +40,7 @@ allowed_mentions = discord.AllowedMentions(
     roles=True, replied_user=False
 )
 intents = discord.Intents.all()
-activity = discord.Game("big_noob_bot | bn.help")
+activity = discord.Game("Avimetry | @Avimetry help")
 
 
 class AvimetryBot(commands.Bot):
