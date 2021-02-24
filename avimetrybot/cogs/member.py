@@ -135,8 +135,9 @@ class MemberManagement(commands.Cog, name="member management"):
     @commands.command(aliases=["snick"], brief="Changes your nick name")
     @commands.cooldown(1, 500, commands.BucketType.member)
     async def selfnick(self, ctx, *, nick):
-        nick = ctx.author.name
         oldnick = ctx.author.display_name
+        if "avi" in nick:
+            return await ctx.send("NO")
         await ctx.author.edit(nick=nick)
         newnick = ctx.author.display_name
         nickembed = discord.Embed(
