@@ -29,15 +29,11 @@ class AvimetryContext(commands.Context):
 
     async def send(self, content=None, embed: discord.Embed = None, *args, **kwargs):
         try:
-            if self.command.qualified_name in [
-                "jishaku shell",
-                "jishaku cat",
-                "jishaku source",
-                "jishaku rtt",
-                "jishaku pip",
-                "jishaku git"
-            ]:
+            if self.command.name == "jishaku":
+                pass
+            if "jishaku" in self.command.qualified_name:
                 return await super().send(content=content)
+
         except Exception:
             pass
         if content:
