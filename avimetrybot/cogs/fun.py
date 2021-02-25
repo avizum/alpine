@@ -31,7 +31,7 @@ class Fun(commands.Cog):
         aliases=["8ball", "8b"],
         brief="Ask a question to the magic eight ball, and you will recieve an answer",
     )
-    @commands.cooldown(1, 5, commands.BucketType.member)
+    @commands.cooldown(5, 15, commands.BucketType.member)
     async def eightball(self, ctx, *, question):
         responses = [
             "As I see it, yes.",

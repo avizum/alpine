@@ -33,7 +33,6 @@ class AvimetryContext(commands.Context):
                 pass
             elif "jishaku" in self.command.qualified_name:
                 return await self.reply(content=content)
-
         except Exception:
             pass
         if content:

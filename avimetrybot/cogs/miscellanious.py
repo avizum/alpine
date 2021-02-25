@@ -249,6 +249,11 @@ class Miscellaneous(commands.Cog):
         )
         await ctx.send(embed=embed_message)
 
+    @commands.command()
+    @commands.bot_has_permissions(manage_messages=True)
+    @commands.has_permissions(administrator=True, kick_members=True, ban_members=True)
+    async def testingcommand(self, ctx):
+        await ctx.send("esea")
 
 def setup(avimetry):
     avimetry.add_cog(Miscellaneous(avimetry))

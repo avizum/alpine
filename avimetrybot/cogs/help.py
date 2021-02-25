@@ -3,6 +3,8 @@ from discord.ext import commands
 import os
 import pathlib
 from difflib import get_close_matches
+import traceback
+import humanize
 
 
 class HelpEmbeded(commands.HelpCommand):
@@ -21,6 +23,47 @@ class HelpEmbeded(commands.HelpCommand):
                         if not line.strip().startswith("#") or not line.strip():
                             total += 1
         return f"is a bot that is spread out across **{file_amount}** python files, with a total of **{total}** lines of code."
+
+    def get_bot_perms(self, command):
+        user_perms = []
+        try:
+            check = command.checks[1]
+            check(1)
+        except Exception as e:
+            frames = [*traceback.walk_tb(e.__traceback__)] 
+            last_trace = frames[-1]
+            frame = last_trace[0] 
+            try:
+                for i in frame.f_locals['perms']:
+                    user_perms.append(i)
+                return "\n".join(user_perms)
+            except KeyError:
+                return None
+    
+    def get_user_perms(self, command):
+        user_perms = []
+        try:
+            check = command.checks[0]
+            check(0)
+        except Exception as e:
+            frames = [*traceback.walk_tb(e.__traceback__)] 
+            last_trace = frames[-1]
+            frame = last_trace[0] 
+            try:
+                for i in frame.f_locals['perms']:
+                    user_perms.append(i)
+                return "\n".join(user_perms)
+            except KeyError:
+                return None
+    
+    def get_cooldown(self, command):
+        try:
+            rate = command._buckets._cooldown.rate
+            per = humanize.precisedelta(command._buckets._cooldown.per)
+            return f"{per} every {rate} times"
+        except Exception:
+            return None
+
 
     def gending_note(self):
         return "Use {0}{1} [command] or [module] for more info on a command or module.".format(
@@ -126,15 +169,36 @@ class HelpEmbeded(commands.HelpCommand):
     async def send_command_help(self, command):
         embed = discord.Embed(
             title="Command: {0.qualified_name}".format(command),
-            description=f"```{self.bnote()}```",
+        )
+        embed.add_field(
+            name="Command Usage",
+            value=f"```{self.clean_prefix}{command.name} {command.signature}```"
+        )
+        embed.add_field(
+            name="Command Aliases",
+            value=", ".join(command.aliases) or None,
+            inline=False
         )
         usage = command.short_doc
         if not usage:
             usage = "No description provided, now go try doing it yourself"
         embed.add_field(
-            name=f"{self.clean_prefix}{self.gcommand_signature(command)}",
-            value=f"`{usage}`",
-            inline=False,
+            name=f"Description",
+            value=usage,
+            inline=True,
+        )
+        
+        embed.add_field(
+            name="Required Permissions",
+            value=(
+                f"Bot Permissions: `{self.get_bot_perms(command)}`"
+                f"User Permissions: `{self.get_user_perms(command)}`"
+            ),
+            inline=False
+        )
+        embed.add_field(
+            name="Cooldown",
+            value=self.get_cooldown(command)
         )
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
