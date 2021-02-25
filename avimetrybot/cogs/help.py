@@ -191,7 +191,7 @@ class HelpEmbeded(commands.HelpCommand):
         embed.add_field(
             name="Required Permissions",
             value=(
-                f"Bot Permissions: `{self.get_bot_perms(command)}`"
+                f"Bot Permissions: `{self.get_bot_perms(command)}`\n"
                 f"User Permissions: `{self.get_user_perms(command)}`"
             ),
             inline=False
