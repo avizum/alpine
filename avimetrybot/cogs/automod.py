@@ -14,7 +14,7 @@ class AutoMod(commands.Cog, name="Auto Moderation"):
             return
 
         if message.guild.id == 751490725555994716:
-            if message.content.lower() == "bonk":
+            if "bonk" in message.content.lower():
                 guild = await self.avimetry.fetch_guild(760382234908688385)
                 for i in guild.emojis:
                     if i.name == "bonk":

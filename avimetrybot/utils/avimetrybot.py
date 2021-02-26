@@ -12,6 +12,7 @@ from utils import AvimetryContext
 from discord.ext import commands
 from utils.mongo import MongoDB
 from akinator.async_aki import Akinator
+from config import tokens
 
 DEFAULT_PREFIXES = ['A.', 'a.']
 OWNER_IDS = {750135653638865017, 547280209284562944}
@@ -58,9 +59,8 @@ class AvimetryBot(commands.Bot):
         self.launch_time = datetime.datetime.utcnow()
         self.muted_users = {}
         self.devmode = False
-        self.zanetoken = os.getenv("Zane_Token")
         self.sr = sr_api.Client()
-        self.zaneapi = aiozaneapi.Client(os.getenv("Zane_Token"))
+        self.zaneapi = aiozaneapi.Client(tokens["ZaneAPI"])
         self.myst = mystbin.Client()
         self.commands_ran = 0
         self.session = aiohttp.ClientSession()
@@ -86,7 +86,7 @@ class AvimetryBot(commands.Bot):
                 "------"
             )
 
-            self.mongo = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DB_Token"))
+            self.mongo = motor.motor_asyncio.AsyncIOMotorClient(tokens["MongoDB"])
             self.db = self.mongo["avimetry"]
             self.config = MongoDB(self.db, "new")
             self.mutes = MongoDB(self.db, "mutes")

@@ -11,3 +11,4 @@ nohup.out
 discord.log
 *__pycache__
 .vscode
+avimetrybot/config.py
