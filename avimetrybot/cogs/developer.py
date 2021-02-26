@@ -156,7 +156,7 @@ class Owner(commands.Cog):
                 except Exception as e:
                     mod_list.append(f"**{filename}**\n{e}")
         error_value = "\n".join(mod_list)
-        sync_embed.add_field(name="Reloaded all modules except the ones listed below.", value=error_value or "\u200b")
+        sync_embed.add_field(name="Reloaded all modules except the ones listed below.", value=error_value or "No errors detected.")
         await edit_sync.edit(embed=sync_embed)
 
     # Shutdown Command
