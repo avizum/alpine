@@ -4,6 +4,7 @@ import random
 import time
 import asyncio
 import akinator
+import json
 
 
 cog_cooldown = commands.CooldownMapping.from_cooldown(
@@ -140,14 +141,6 @@ class Fun(commands.Cog):
     async def dsay(self, ctx, *, dbotsay):
         await ctx.message.delete()
         await ctx.send_raw(f"{dbotsay}")
-
-    # Embed Builder Command
-    @commands.command(brief="Build an embed with json")
-    @commands.cooldown(1, 30, commands.BucketType.member)
-    async def embed(self, ctx, *, embed):
-        embed = discord.utils.to_json(embed)
-        dict_embed = discord.Embed.from_dict(embed)
-        await ctx.send_raw(embed=dict_embed)
 
     # Skin Command
     @commands.command(brief="Remove the skin off of people that you don't like.")
@@ -351,6 +344,7 @@ class Fun(commands.Cog):
         for i in akinator_reactions:
             await initial_messsage.add_reaction(i)
         await asyncio.sleep(5)
+        akinator_embed.set_thumbnail(url="https://i.imgur.com/c1KE1Ky.png")
 
         while self.avimetry.akinator.progression <= 80:
             akinator_embed.description = q
@@ -369,7 +363,8 @@ class Fun(commands.Cog):
                 await initial_messsage.clear_reactions()
                 akinator_embed.description = (
                     "Akinator session closed because you took too long to answer."
-                )
+                    )
+                akinator_embed.set_thumbnail(url="https://i.imgur.com/ODhExsH.png")
                 await initial_messsage.edit(embed=akinator_embed)
                 game_end_early = True
                 break

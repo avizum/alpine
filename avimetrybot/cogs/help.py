@@ -97,7 +97,11 @@ class HelpEmbeded(commands.HelpCommand):
     async def send_bot_help(self, mapping):
         embed = discord.Embed(
             title="Help Menu",
-            description=f"{self.context.bot.user.name} {self.get_files()}\n\n```{self.bnote()}```\n Do not put the brackets with the command. It is not needed.\n\nThe prefix for **{self.get_destination().guild.name}** is `{self.clean_prefix}`",
+            description=(
+                f"{self.context.bot.user.name} {self.get_files()}\n\n```{self.bnote()}```\n" 
+                "Do not put the brackets with the command. It is not needed.\n\n"
+                f"The prefix for **{self.get_destination().guild.name}** is `{self.clean_prefix}` or `{self.context.bot.user.display_name}`"
+            ),
         )
         modules_list = []
         for cog, command in mapping.items():
