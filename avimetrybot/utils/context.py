@@ -1,17 +1,8 @@
 import discord
 from discord.ext import commands
 import datetime
-from dotenv import load_dotenv
-import os
 import re
-
-load_dotenv()
-tokens = [
-    os.getenv("Bot_Token"),
-    os.getenv("Bot_Token"),
-    os.getenv("DB_Token"),
-    os.getenv("Zane_Token"),
-]
+from config import tokens
 
 
 class AvimetryContext(commands.Context):
@@ -28,19 +19,11 @@ class AvimetryContext(commands.Context):
         return await super().send(*args, **kwargs)
 
     async def send(self, content=None, embed: discord.Embed = None, *args, **kwargs):
-        try:
-            if self.command.name == "jishaku":
-                pass
-            elif "jishaku" in self.command.qualified_name:
-                return await self.reply(content=content)
-        except Exception:
-            pass
         if content:
-            for i in tokens:
-                if i in content:
-                    content = content.replace(i, "[insert-token-here]")
+            for key, token in tokens.items():
+                if token in content:
+                    content = content.replace(token, f"Removed token from message: `{key}`")
             embed = discord.Embed(description=content)
-            content = None
         if discord.Embed:
             try:
                 if not embed.footer:
@@ -53,10 +36,16 @@ class AvimetryContext(commands.Context):
                     embed.color = self.author.color
                     if self.author.color == discord.Color(0):
                         embed.color = discord.Color(0x2F3136)
-
             except Exception:
                 pass
-
+        try:
+            if self.command.name== "jishaku":
+                content=""
+                pass
+            elif "jishaku" in self.command.qualified_name:
+                return await self.reply(content=content)
+        except Exception:
+            pass
         try:
             return await self.reply(
                 content, embed=embed, *args, **kwargs, mention_author=False
