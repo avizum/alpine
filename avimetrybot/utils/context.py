@@ -64,9 +64,6 @@ class AvimetryContext(commands.Context):
         except Exception:
             return await super().send(content, embed=embed, *args, **kwargs)
 
-    def new_method(self):
-        pass
-
     async def embed(self, *args, **kwargs):
         embed = discord.Embed(**kwargs, timestamp=datetime.datetime.utcnow())
         embed.set_footer(

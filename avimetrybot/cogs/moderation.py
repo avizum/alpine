@@ -8,7 +8,17 @@ import humanize
 from utils.converters import TimeConverter
 
 
+def check(m):
+    def predicate(ctx):
+        if ctx.author==m:
+            print('a')
+        return predicate
+
+
 class Moderation(commands.Cog):
+    """
+    Moderation commands
+    """
     def __init__(self, avimetry):
         self.avimetry = avimetry
         self.check_mutes.start()

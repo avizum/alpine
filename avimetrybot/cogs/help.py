@@ -111,58 +111,72 @@ class HelpEmbeded(commands.HelpCommand):
         embed.add_field(
             name="Credits",
             value=(
-                "**ZaneAPI**\n"
-                "**Some Random API**"
+                "ZaneAPI\n"
+                "Some Random API"
             )
         )
+        embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
         embed.set_footer(text=f"Use {self.clean_prefix}{self.invoked_with} [module] to get info on a module.")
         await self.get_destination().send(embed=embed)
 
     async def send_cog_help(self, cog):
         embed = discord.Embed(
             title=f"{cog.qualified_name.title()} Commands",
-            description=f"```{self.bnote()}```",
+            description=cog.description or "No module description",
         )
         if cog.description:
             embed.description = cog.description
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
+        command_list = []
         for command in filtered:
-            usage = command.short_doc
-            if not usage:
-                usage = "No description provided, now go try doing it yourself"
-            embed.add_field(
-                name=f"{self.clean_prefix}{self.gcommand_signature(command)}",
-                value=f"`{usage}`",
-                inline=False,
-            )
+            command_list.append(command.name)
+        embed.add_field(
+            name=f"Commands in {cog.qualified_name.title()}",
+            value=f"\n".join(command_list),
+            inline=False,
+        )
+        embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
 
     async def send_group_help(self, group):
         embed = discord.Embed(
-            title=f"Command Group: {group.qualified_name}",
-            description=f"```{self.bnote()}```",
+            title=f"Commands in group {group.qualified_name.title()}",
+            description=f"{group.short_doc}",
         )
-        if group.short_doc:
-            usage = group.short_doc
-            if not usage:
-                usage = "No description provided, now go try doing it yourself"
-            embed.add_field(
-                name=f"{self.clean_prefix}{self.gcommand_signature(group)}",
-                value=f"`{usage}`",
-            )
+        embed.add_field(
+            name=f"Base command usage",
+            value=f"`{self.clean_prefix}{group.qualified_name}`"
+        )
+        embed.add_field(
+            name="Command Aliases",
+            value=", ".join(group.aliases) or None,
+            inline=False
+        )
+        embed.add_field(
+            name="Required Permissions",
+            value=(
+                f"Bot Permissions: `{self.get_bot_perms(group)}`\n"
+                f"User Permissions: `{self.get_user_perms(group)}`"
+            ),
+            inline=False
+        )
+        embed.add_field(
+            name="Cooldown",
+            value=self.get_cooldown(group)
+        )
 
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
+            group_commands = []
             for command in filtered:
-                usage = command.short_doc
-                if not usage:
-                    usage = "No description provided, now go try doing it yourself"
-                embed.add_field(
-                    name=f"{self.clean_prefix}{self.gcommand_signature(command)}",
-                    value=f"`{usage}`",
-                    inline=False,
-                )
+                group_commands.append(command.name)
+            embed.add_field(
+                name=f"Subcommands for {group.qualified_name}",
+                value=f"\n".join(group_commands),
+                inline=False,
+            )
+        embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
 
@@ -170,9 +184,10 @@ class HelpEmbeded(commands.HelpCommand):
         embed = discord.Embed(
             title="Command: {0.qualified_name}".format(command),
         )
+
         embed.add_field(
             name="Command Usage",
-            value=f"```{self.clean_prefix}{command.name} {command.signature}```"
+            value=f"`{self.clean_prefix}{command.name} {command.signature}`"
         )
         embed.add_field(
             name="Command Aliases",
@@ -200,6 +215,7 @@ class HelpEmbeded(commands.HelpCommand):
             name="Cooldown",
             value=self.get_cooldown(command)
         )
+        embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
 

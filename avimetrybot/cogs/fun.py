@@ -23,13 +23,16 @@ def cog_check():
 
 
 class Fun(commands.Cog):
+    """
+    Fun commands for you and your friends to use.
+    """
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
     # Magic 8 Ball
     @commands.command(
         aliases=["8ball", "8b"],
-        brief="Ask a question to the magic eight ball, and you will recieve an answer",
+        brief="Ask the 8ball something",
     )
     @commands.cooldown(5, 15, commands.BucketType.member)
     async def eightball(self, ctx, *, question):
@@ -196,7 +199,6 @@ class Fun(commands.Cog):
     @cookie.command(
         brief="Get the cookie as fast as you can with out a countdown timer."
     )
-    @cog_check()
     async def hard(self, ctx):
         cookie_embed = discord.Embed()
         cookie_embed.add_field(
@@ -248,7 +250,6 @@ class Fun(commands.Cog):
     @cookie.command(
         brief="Get the cookie as fast as you can with a three second timer."
     )
-    @cog_check()
     async def easy(self, ctx):
         cntdown = 3
         cookie_embed = discord.Embed()
