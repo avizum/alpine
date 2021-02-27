@@ -21,8 +21,8 @@ BETA_BOT_ID = 787046145884291072
 
 
 async def prefix(avimetry, message):
-    if avimetry.user.id == BETA_BOT_ID:
-        return "ab."
+    if avimetry.devmode is True:
+        command_prefix = ""
     get_prefix = await avimetry.config.find(message.guild.id)
     if not message.guild or "prefix" not in get_prefix:
         command_prefix = DEFAULT_PREFIXES
@@ -55,18 +55,38 @@ class AvimetryBot(commands.Bot):
             intents=intents,
         )
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
+        self.owner_ids = OWNER_IDS
+        self.bot_id = PUBLIC_BOT_ID
 
+        # Bot Variables
         self.launch_time = datetime.datetime.utcnow()
         self.muted_users = {}
+        self.commands_ran = 0
         self.devmode = False
+        self.emoji_dictionary = {
+            "NoTick": '<:noTick:777096756865269760>',
+            "YesTick": '<:yesTick:777096731438874634>',
+            "StatusOnline": '<:status_online:810683593193029642>',
+            "StatusIdle": '<:status_idle:810683571269664798>',
+            "StatusDND": '<:status_dnd:810683560863989805>',
+            "StatusOffline": '<:status_offline:810683581541515335',
+            "StatusStreaming": '<:status_streaming:810683604812169276>'
+        }
+
+        # API Variables
         self.sr = sr_api.Client()
         self.zaneapi = aiozaneapi.Client(tokens["ZaneAPI"])
         self.myst = mystbin.Client()
-        self.commands_ran = 0
         self.session = aiohttp.ClientSession()
         self.akinator = Akinator()
-        self.owner_ids = OWNER_IDS
-        self.bot_id = PUBLIC_BOT_ID
+
+        # Database
+        self.mongo = motor.motor_asyncio.AsyncIOMotorClient(tokens["MongoDB"])
+        self.db = self.mongo["avimetry"]
+        self.config = MongoDB(self.db, "new")
+        self.mutes = MongoDB(self.db, "mutes")
+        self.logs = MongoDB(self.db, "logging")
+        self.bot_users = MongoDB(self.db, "users")
 
         @self.check
         async def globally_block_dms(ctx):
@@ -86,12 +106,6 @@ class AvimetryBot(commands.Bot):
                 "------"
             )
 
-            self.mongo = motor.motor_asyncio.AsyncIOMotorClient(tokens["MongoDB"])
-            self.db = self.mongo["avimetry"]
-            self.config = MongoDB(self.db, "new")
-            self.mutes = MongoDB(self.db, "mutes")
-            self.logs = MongoDB(self.db, "logging")
-            self.bot_users = MongoDB(self.db, "users")
             current_mutes = await self.mutes.get_all()
             for mute in current_mutes:
                 self.muted_users[mute["_id"]] = mute
@@ -99,7 +113,6 @@ class AvimetryBot(commands.Bot):
         os.environ["JISHAKU_HIDE"] = "True"
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
-        # self.load_extension('jishaku')
         for filename in os.listdir("./avimetrybot/cogs"):
             if filename.endswith(".py"):
                 self.load_extension(f"cogs.{filename[:-3]}")

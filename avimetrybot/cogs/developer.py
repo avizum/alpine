@@ -13,8 +13,16 @@ class Owner(commands.Cog):
     def cog_unload(self):
         self.avimetry.load_extension("cogs.owner")
 
+    @commands.group(
+        invoke_without_command=True,
+        hidden=True
+    )
+    @commands.is_owner()
+    async def dev(self, ctx):
+        await ctx.send_help("dev")
+
     # Load Command
-    @commands.command(brief="Loads a module if it was disabled.")
+    @dev.command(brief="Loads a module if it was disabled.")
     @commands.is_owner()
     async def load(self, ctx, extension=None):
         if extension is None:
@@ -52,7 +60,7 @@ class Owner(commands.Cog):
             await ctx.send(embed=noload)
 
     # Unload Command
-    @commands.command(brief="Unloads a module if it is being abused.")
+    @dev.command(brief="Unloads a module if it is being abused.")
     @commands.is_owner()
     async def unload(self, ctx, extension=None):
         if extension is None:
@@ -89,7 +97,7 @@ class Owner(commands.Cog):
             await ctx.send(embed=unloudno)
 
     # Reload Command
-    @commands.command(
+    @dev.command(
         brief="Reloads a module if it is not working.", usage="[extension]"
     )
     @commands.is_owner()
@@ -129,13 +137,13 @@ class Owner(commands.Cog):
             )
             await ctx.send(embed=reload_fail)
 
-    @commands.command()
+    @dev.command()
     @commands.is_owner()
-    async def devmode(self, ctx, toggle: bool):
-        await ctx.send(f"dev mode is now {toggle}")
+    async def prefixless(self, ctx, toggle: bool):
+        await ctx.message.add_reaction(self.avimetry.emoji_dictionary["YesTick"])
         self.avimetry.devmode = toggle
 
-    @commands.command(brief="Pulls from GitHub and then reloads all modules")
+    @dev.command(brief="Pulls from GitHub and then reloads all modules")
     @commands.is_owner()
     async def sync(self, ctx):
         sync_embed = discord.Embed(
@@ -159,8 +167,8 @@ class Owner(commands.Cog):
         sync_embed.add_field(name="Reloaded all modules except the ones listed below.", value=error_value or "No errors detected.")
         await edit_sync.edit(embed=sync_embed)
 
-    # Shutdown Command
-    @commands.command(brief="Reboot the bot")
+    # Reboot Command
+    @dev.command(brief="Reboot the bot")
     @commands.is_owner()
     async def reboot(self, ctx):
         sm = discord.Embed()
@@ -212,18 +220,11 @@ class Owner(commands.Cog):
             # pylint: enable=unused-variable
 
     # Leave command
-    @commands.command()
+    @dev.command()
     @commands.is_owner()
     async def leave(self, ctx):
         await ctx.send("Okay bye")
         await ctx.guild.leave()
-
-    @commands.command()
-    @commands.is_owner()
-    async def dev(self, ctx, command, *args):
-        exec = self.avimetry.get_command(command)
-        await exec(ctx, *args)
-
 
 def setup(avimetry):
     avimetry.add_cog(Owner(avimetry))

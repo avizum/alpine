@@ -352,7 +352,7 @@ class Fun(commands.Cog):
 
             def check(reaction, user):
                 return (
-                    str(reaction.emoji) in akinator_reactions and user == ctx.author and user != self.avimetry.user
+                    reaction.message.id == initial_messsage.id and str(reaction.emoji) in akinator_reactions and user == ctx.author and user != self.avimetry.user
                 )
 
             try:
@@ -411,7 +411,7 @@ class Fun(commands.Cog):
 
         def yes_no_check(reaction, user):
             return (
-                str(reaction.emoji) in ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"] and user != self.avimetry.user and user == ctx.author
+                reaction.message.id == initial_messsage.id and str(reaction.emoji) in ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"] and user != self.avimetry.user and user == ctx.author
             )
 
         try:
