@@ -311,12 +311,10 @@ class Fun(commands.Cog):
     @commands.command(
         name="akinator",
         aliases=["aki", "avinator"],
-        brief="Play a game of akinator\nhttps://gist.github.com/jbkn/8a5b9887d49a1d2740d0b6ad0176dbdb"
+        brief="Play a game of akinator. [Here](https://gist.github.com/jbkn/8a5b9887d49a1d2740d0b6ad0176dbdb \"Akinator modes and reaction meanings\") is the list of valid modes. If you don't put anything, then it will default to `en` and `child=True`"
     )
     @commands.cooldown(1, 60, commands.BucketType.member)
-    async def fun_akinator(self, ctx, mode, child=False):
-        async with ctx.channel.typing():
-            q = await self.avimetry.akinator.start_game(mode, child)
+    async def fun_akinator(self, ctx, mode="en", child=True):
         akinator_embed = discord.Embed(
             title="Akinator",
             description=(
@@ -331,7 +329,9 @@ class Fun(commands.Cog):
                 If you need more help, use `{ctx.clean_prefix}help akinator` to get help."
             ),
         )
-        initial_messsage = await ctx.send(embed=akinator_embed)
+        async with ctx.channel.typing():
+            initial_messsage = await ctx.send(embed=akinator_embed)
+            q = await self.avimetry.akinator.start_game(mode, child)
         game_end_early = False
         akinator_reactions = [
             "<:Yes:812133712967761951>",

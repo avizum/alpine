@@ -45,10 +45,11 @@ activity = discord.Game("Avimetry | @Avimetry help")
 
 
 class AvimetryBot(commands.Bot):
-    def __init__(self):
+    def __init__(self, **kwargs):
         intents = discord.Intents.all()
         super().__init__(
-            command_prefix=prefix,
+            **kwargs,
+            command_prefix="ab.",
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,
