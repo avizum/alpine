@@ -10,7 +10,7 @@ from utils.converters import TimeConverter
 
 def check(m):
     def predicate(ctx):
-        if ctx.author==m:
+        if ctx.author == m:
             print('a')
         return predicate
 

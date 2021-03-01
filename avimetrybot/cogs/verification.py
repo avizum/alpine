@@ -220,7 +220,7 @@ class Verification(commands.Cog):
             role = get_role["gate_role"]
         except KeyError:
             await ctx.send(
-                "The verification role has not been set. Use the config commaand to set it up."
+                "The verification role has not been set. Use the config command to set it up."
             )
             return
         roleid = ctx.guild.get_role(role)

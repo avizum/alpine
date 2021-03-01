@@ -102,10 +102,12 @@ class MemberManagement(commands.Cog, name="member management"):
         )
         await ctx.send(embed=rr)
 
-    # CNick Command
+    # Nick Command
     @commands.command(brief="Changes a member's nickname.")
     @commands.has_permissions(kick_members=True)
-    async def cnick(self, ctx, member: discord.Member, *, nick):
+    async def nick(self, ctx, member: discord.Member, *, nick=None):
+        if nick is None:
+            await member.edit(nick=member.name)
         oldnick = member.display_name
         await member.edit(nick=nick)
         newnick = member.display_name
@@ -116,28 +118,15 @@ class MemberManagement(commands.Cog, name="member management"):
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
 
-    # RNick Command
-    @commands.command(brief="Restores a member's nick name to their username.")
-    @commands.has_permissions(kick_members=True)
-    async def rnick(self, ctx, member: discord.Member):
-        nick = member.name
-        oldnick = member.display_name
-        await member.edit(nick=nick)
-        newnick = member.display_name
-        nickembed = discord.Embed(
-            title="<:yesTick:777096731438874634> Restored Nickname"
-        )
-        nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
-        nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
-        await ctx.send(embed=nickembed)
-
     # Self Nick
     @commands.command(aliases=["snick"], brief="Changes your nick name")
+    @commands.bot_has_permissions(manage_nicknames=True)
     @commands.cooldown(1, 600, commands.BucketType.member)
     async def selfnick(self, ctx, *, nick):
         oldnick = ctx.author.display_name
-        if "avi" in nick.lower():
-            return await ctx.send("You can not have your nickname as avi")
+        if ctx.guild.id == 751490725555994716:
+            if "avi" in nick.lower():
+                return await ctx.send("You can not have your nickname as avi")
         await ctx.author.edit(nick=nick)
         newnick = ctx.author.display_name
         nickembed = discord.Embed(

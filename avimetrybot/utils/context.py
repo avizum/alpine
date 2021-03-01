@@ -24,6 +24,15 @@ class AvimetryContext(commands.Context):
                 if token in content:
                     content = content.replace(token, f"Removed token from message: `{key}`")
             embed = discord.Embed(description=content)
+            try:
+                if self.command.name == "jishaku":
+                    content = None
+                elif "jishaku" in self.command.qualified_name:
+                    return await self.reply(content=content)
+                else:
+                    content = None
+            except Exception:
+                pass
         if discord.Embed:
             try:
                 if not embed.footer:
@@ -38,14 +47,6 @@ class AvimetryContext(commands.Context):
                         embed.color = discord.Color(0x2F3136)
             except Exception:
                 pass
-        try:
-            if self.command.name== "jishaku":
-                content=""
-                pass
-            elif "jishaku" in self.command.qualified_name:
-                return await self.reply(content=content)
-        except Exception:
-            pass
         try:
             return await self.reply(
                 content, embed=embed, *args, **kwargs, mention_author=False

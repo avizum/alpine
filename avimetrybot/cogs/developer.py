@@ -4,7 +4,6 @@ import datetime
 from discord.ext import commands
 import subprocess
 import asyncio
-from roblox_py import Client
 
 
 class Owner(commands.Cog):

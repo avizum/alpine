@@ -49,7 +49,7 @@ class AvimetryBot(commands.Bot):
         intents = discord.Intents.all()
         super().__init__(
             **kwargs,
-            command_prefix=prefix,
+            command_prefix="ab.",
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,

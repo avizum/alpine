@@ -24,46 +24,48 @@ class HelpEmbeded(commands.HelpCommand):
                             total += 1
         return f"is a bot that is spread out across **{file_amount}** python files, with a total of **{total}** lines of code."
 
-    def get_bot_perms(self, command):
+    async def get_bot_perms(self, command):
         user_perms = []
         try:
             check = command.checks[1]
-            check(1)
+            await check(1)
         except Exception as e:
-            frames = [*traceback.walk_tb(e.__traceback__)] 
+            frames = [*traceback.walk_tb(e.__traceback__)]
             last_trace = frames[-1]
-            frame = last_trace[0] 
+            frame = last_trace[0]
             try:
                 for i in frame.f_locals['perms']:
                     user_perms.append(i)
                 return "\n".join(user_perms)
             except KeyError:
                 return None
-    
-    def get_user_perms(self, command):
+
+    async def get_user_perms(self, command):
         user_perms = []
         try:
             check = command.checks[0]
-            check(0)
+            await check(0)
         except Exception as e:
-            frames = [*traceback.walk_tb(e.__traceback__)] 
+            frames = [*traceback.walk_tb(e.__traceback__)]
             last_trace = frames[-1]
-            frame = last_trace[0] 
+            frame = last_trace[0]
             try:
                 for i in frame.f_locals['perms']:
                     user_perms.append(i)
                 return "\n".join(user_perms)
             except KeyError:
                 return None
-    
+
     def get_cooldown(self, command):
         try:
             rate = command._buckets._cooldown.rate
             per = humanize.precisedelta(command._buckets._cooldown.per)
-            return f"{per} every {rate} times"
+            time = "time"
+            if rate > 1:
+                time = "times"
+            return f"{per} every {rate} {time}"
         except Exception:
             return None
-
 
     def gending_note(self):
         return "Use {0}{1} [command] or [module] for more info on a command or module.".format(
@@ -95,12 +97,17 @@ class HelpEmbeded(commands.HelpCommand):
         return self.context
 
     async def send_bot_help(self, mapping):
+        det_prefix = self.clean_prefix
+        if det_prefix == f"@{self.context.bot.user.display_name} ":
+            det_prefix = f"`@{self.context.bot.user.display_name} `"
+        else:
+            det_prefix = f"`{self.clean_prefix}` or `@{self.context.bot.user.display_name} `"
         embed = discord.Embed(
             title="Help Menu",
             description=(
-                f"{self.context.bot.user.name} {self.get_files()}\n\n```{self.bnote()}```\n" 
+                f"{self.context.bot.user.name} {self.get_files()}\n\n```{self.bnote()}```\n"
                 "Do not put the brackets with the command. It is not needed.\n\n"
-                f"The prefix for **{self.get_destination().guild.name}** is `{self.clean_prefix}` or `{self.context.bot.user.display_name}`"
+                f"The prefix for **{self.get_destination().guild.name}** is {det_prefix}"
             ),
         )
         modules_list = []
@@ -136,7 +143,7 @@ class HelpEmbeded(commands.HelpCommand):
             command_list.append(command.name)
         embed.add_field(
             name=f"Commands in {cog.qualified_name.title()}",
-            value=f"\n".join(command_list),
+            value="\n".join(command_list),
             inline=False,
         )
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
@@ -149,7 +156,7 @@ class HelpEmbeded(commands.HelpCommand):
             description=f"{group.short_doc}",
         )
         embed.add_field(
-            name=f"Base command usage",
+            name="Base command usage",
             value=f"`{self.clean_prefix}{group.qualified_name}`"
         )
         embed.add_field(
@@ -160,8 +167,8 @@ class HelpEmbeded(commands.HelpCommand):
         embed.add_field(
             name="Required Permissions",
             value=(
-                f"Bot Permissions: `{self.get_bot_perms(group)}`\n"
-                f"User Permissions: `{self.get_user_perms(group)}`"
+                f"Bot Permissions: `{await self.get_bot_perms(group)}`\n"
+                f"User Permissions: `{await self.get_user_perms(group)}`"
             ),
             inline=False
         )
@@ -177,7 +184,7 @@ class HelpEmbeded(commands.HelpCommand):
                 group_commands.append(command.name)
             embed.add_field(
                 name=f"Subcommands for {group.qualified_name}",
-                value=f"\n".join(group_commands),
+                value="\n".join(group_commands) or None,
                 inline=False,
             )
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
@@ -202,16 +209,16 @@ class HelpEmbeded(commands.HelpCommand):
         if not usage:
             usage = "No description provided, now go try doing it yourself"
         embed.add_field(
-            name=f"Description",
+            name="Description",
             value=usage,
             inline=True,
         )
-        
+
         embed.add_field(
             name="Required Permissions",
             value=(
-                f"Bot Permissions: `{self.get_bot_perms(command)}`\n"
-                f"User Permissions: `{self.get_user_perms(command)}`"
+                f"Bot Permissions: `{await self.get_bot_perms(command)}`\n"
+                f"User Permissions: `{await self.get_user_perms(command)}`"
             ),
             inline=False
         )

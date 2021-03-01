@@ -146,7 +146,6 @@ class Miscellaneous(commands.Cog):
             ie.set_thumbnail(url=member.avatar_url)
         else:
             userroles = list()
-            jnr = ", "
             for roles in member.roles:
                 userroles.append(roles.mention)
                 if ctx.guild.default_role.mention in userroles:
@@ -183,7 +182,7 @@ class Miscellaneous(commands.Cog):
             ie.add_field(name="Top Role", value=member.top_role.mention, inline=False)
             ie.add_field(
                 name=f"Roles [{len(userroles)}]",
-                value=f"{jnr.join(userroles)}",
+                value=", ".join(userroles),
                 inline=False,
             )
             ie.set_thumbnail(url=member.avatar_url)
@@ -254,6 +253,7 @@ class Miscellaneous(commands.Cog):
     @commands.has_permissions(administrator=True, kick_members=True, ban_members=True)
     async def testingcommand(self, ctx):
         await ctx.send("esea")
+
 
 def setup(avimetry):
     avimetry.add_cog(Miscellaneous(avimetry))

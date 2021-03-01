@@ -4,7 +4,7 @@ import random
 import time
 import asyncio
 import akinator
-import json
+from akinator.async_aki import Akinator
 
 
 cog_cooldown = commands.CooldownMapping.from_cooldown(
@@ -314,7 +314,9 @@ class Fun(commands.Cog):
         brief="Play a game of akinator. [Here](https://gist.github.com/jbkn/8a5b9887d49a1d2740d0b6ad0176dbdb \"Akinator modes and reaction meanings\") is the list of valid modes. If you don't put anything, then it will default to `en` and `child=True`"
     )
     @commands.cooldown(1, 60, commands.BucketType.member)
+    @commands.max_concurrency(1, commands.BucketType.channel)
     async def fun_akinator(self, ctx, mode="en", child=True):
+        aki_client = Akinator()
         akinator_embed = discord.Embed(
             title="Akinator",
             description=(
@@ -325,13 +327,13 @@ class Fun(commands.Cog):
                 <:IDontKnow:812133713046405230>: I don't know\n\
                 <:Probably:812133712962519100>: Probably\n\
                 <:ProbablyNot:812133712665772113>: Probably Not\n\
-                ◀️: Go back\n\
+                <:Back:815854941083664454>: Go back\n\
                 If you need more help, use `{ctx.clean_prefix}help akinator` to get help."
             ),
         )
         async with ctx.channel.typing():
             initial_messsage = await ctx.send(embed=akinator_embed)
-            q = await self.avimetry.akinator.start_game(mode, child)
+            q = await aki_client.start_game(mode, child)
         game_end_early = False
         akinator_reactions = [
             "<:Yes:812133712967761951>",
@@ -339,14 +341,15 @@ class Fun(commands.Cog):
             "<:IDontKnow:812133713046405230>",
             "<:Probably:812133712962519100>",
             "<:ProbablyNot:812133712665772113>",
-            "◀️",
+            "<:Back:815854941083664454>",
+            "<:Stop:815859174667452426>"
         ]
         for i in akinator_reactions:
             await initial_messsage.add_reaction(i)
         await asyncio.sleep(5)
         akinator_embed.set_thumbnail(url="https://i.imgur.com/c1KE1Ky.png")
 
-        while self.avimetry.akinator.progression <= 80:
+        while aki_client.progression <= 80:
             akinator_embed.description = q
             await initial_messsage.edit(embed=akinator_embed)
 
@@ -363,7 +366,7 @@ class Fun(commands.Cog):
                 await initial_messsage.clear_reactions()
                 akinator_embed.description = (
                     "Akinator session closed because you took too long to answer."
-                    )
+                )
                 akinator_embed.set_thumbnail(url="https://i.imgur.com/ODhExsH.png")
                 await initial_messsage.edit(embed=akinator_embed)
                 game_end_early = True
@@ -372,37 +375,38 @@ class Fun(commands.Cog):
                 await initial_messsage.remove_reaction(reaction.emoji, user)
                 if str(reaction.emoji) == "<:Yes:812133712967761951>":
                     ans = "yes"
-
                 elif str(reaction.emoji) == "<:No:812133712946528316>":
                     ans = "no"
-
                 elif str(reaction.emoji) == "<:IDontKnow:812133713046405230>":
                     ans = "idk"
-
                 elif str(reaction.emoji) == "<:Probably:812133712962519100>":
                     ans = "probably"
-
                 elif str(reaction.emoji) == "<:ProbablyNot:812133712665772113>":
                     ans = "probably not"
-
-                elif str(reaction.emoji) == "◀️":
+                elif str(reaction.emoji) == "<:Back:815854941083664454>":
                     ans = "back"
+                elif str(reaction.emoji) == "<:Stop:815859174667452426>":
+                    game_end_early = True
+                    akinator_embed.description = "Akinator session stopped."
+                    await initial_messsage.edit(embed=akinator_embed)
+                    await initial_messsage.clear_reactions()
+                    break
 
             if ans == "back":
                 try:
-                    q = await self.avimetry.akinator.back()
+                    q = await aki_client.back()
                 except akinator.CantGoBackAnyFurther:
                     pass
             else:
-                q = await self.avimetry.akinator.answer(ans)
+                q = await aki_client.answer(ans)
         await initial_messsage.clear_reactions()
         if game_end_early is True:
             return
-        await self.avimetry.akinator.win()
+        await aki_client.win()
 
-        akinator_embed.description = f"I think it is {self.avimetry.akinator.first_guess['name']} ({self.avimetry.akinator.first_guess['description']})! Was I correct?"
+        akinator_embed.description = f"I think it is {aki_client.first_guess['name']} ({aki_client.first_guess['description']})! Was I correct?"
         akinator_embed.set_thumbnail(
-            url=f"{self.avimetry.akinator.first_guess['absolute_picture_path']}"
+            url=f"{aki_client.first_guess['absolute_picture_path']}"
         )
         await initial_messsage.edit(embed=akinator_embed)
         reactions = ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"]
@@ -413,7 +417,6 @@ class Fun(commands.Cog):
             return (
                 reaction.message.id == initial_messsage.id and str(reaction.emoji) in ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"] and user != self.avimetry.user and user == ctx.author
             )
-
         try:
             reaction, user = await self.avimetry.wait_for(
                 "reaction_add", check=yes_no_check, timeout=60
