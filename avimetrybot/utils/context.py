@@ -22,7 +22,7 @@ class AvimetryContext(commands.Context):
         if content:
             for key, token in tokens.items():
                 if token in content:
-                    content = content.replace(token, f"Removed token from message: `{key}`")
+                    content = content.replace(token, f"[{key} omitted]")
             embed = discord.Embed(description=content)
             try:
                 if self.command.name == "jishaku":

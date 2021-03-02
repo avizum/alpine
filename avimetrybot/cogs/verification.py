@@ -22,7 +22,7 @@ class Verification(commands.Cog):
             try:
                 await asyncio.sleep(1)
                 channel = discord.utils.get(
-                    member.guild.channels, name=f"{member.name.lower()}-verification"
+                    member.guild.channels, name=f"{member.name.lower().replace(' ' '-')}-verification",
                 )
                 await channel.send("Member automuted")
             except Exception:
@@ -67,14 +67,14 @@ class Verification(commands.Cog):
                 ),
             }
             await member.guild.create_text_channel(
-                f"{member.name.lower()}-verification",
+                f"{member.name.lower().replace(' ' '-')}-verification",
                 category=category,
                 reason=f"Started Verification for {member.name}",
                 overwrites=overwrites,
             )
 
             channel = discord.utils.get(
-                member.guild.channels, name=f"{member.name.lower()}-verification"
+                member.guild.channels, name=f"{member.name.lower().replace(' ' '-')}-verification",
             )
             x = discord.Embed(
                 title=f"Welcome to **{member.guild.name}**!",
@@ -128,7 +128,7 @@ class Verification(commands.Cog):
 
         channel = discord.utils.get(
             ctx.guild.channels,
-            name=f"{member.name.lower()}-verification"
+            name=f"{member.name.lower().replace(' ' '-')}-verification",
         )
         if not channel:
             fver = discord.Embed(
@@ -204,7 +204,7 @@ class Verification(commands.Cog):
                 await member.add_roles(roleid)
                 await asyncio.sleep(2)
                 cnl = discord.utils.get(
-                    self.avimetry.get_all_channels(), name=f"{member.name.lower()}-verification"
+                    self.avimetry.get_all_channels(), name=f"{member.name.lower().replace(' ' '-')}-verification",
                 )
                 try:
                     await cnl.delete(reason=f"{member.name} finished verification")
