@@ -24,15 +24,15 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
     @commands.group(
         invoke_without_command=True,
         brief="The base config command, use this configure settings",
-        aliases=["settings", "configuration"]
+        aliases=["config", "configuration"]
     )
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
-    async def config(self, ctx):
+    async def settings(self, ctx):
         await ctx.send_help("config")
 
     # Config Prefix Commnad
-    @config.command(brief="Change the prefix of this server")
+    @settings.command(brief="Change the prefix of this server")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def prefix(self, ctx, new_prefix):
@@ -43,7 +43,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
         )
         await ctx.send(embed=cp)
 
-    @config.group(invoke_without_command=True, brief="Configure logging")
+    @settings.group(invoke_without_command=True, brief="Configure logging")
     @commands.has_permissions(administrator=True)
     async def logging(self, ctx):
         await ctx.send_help("config logging")
@@ -69,7 +69,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
         await ctx.send(f"Set on_message_edit logs to {toggle}")
 
     # Config Verification Command
-    @config.group(
+    @settings.group(
         brief="Verify system configuration for this server",
         invoke_without_command=True,
     )
@@ -97,7 +97,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
         await ctx.send(f"The verify role is set to {role}")
 
     # Config Counting Command
-    @config.group(invoke_without_command=True, brief="Configure counting settings")
+    @settings.group(invoke_without_command=True, brief="Configure counting settings")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     async def counting(self, ctx):

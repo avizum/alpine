@@ -9,7 +9,10 @@ import typing
 from utils.errors import TimeZoneError
 
 
-class Miscellaneous(commands.Cog):
+class Meta(commands.Cog):
+    """
+    Commands that do not lie in any category.
+    """
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
@@ -256,4 +259,4 @@ class Miscellaneous(commands.Cog):
 
 
 def setup(avimetry):
-    avimetry.add_cog(Miscellaneous(avimetry))
+    avimetry.add_cog(Meta(avimetry))

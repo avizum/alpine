@@ -7,6 +7,12 @@ class MongoDB:
         self.db = connection[document_name]
         self.logger = logging.getLogger(__name__)
 
+    async def update_one(self, id, amount, field):
+        if not await self.find_by_id(id):
+            return
+
+        await self.db.update_one({"_id": id}, {"$set": {field: amount}})
+
     async def update(self, dict):
         await self.update_by_id(dict)
 

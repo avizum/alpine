@@ -6,7 +6,6 @@ import asyncio
 import akinator
 from akinator.async_aki import Akinator
 
-
 cog_cooldown = commands.CooldownMapping.from_cooldown(
     1.0, 30.0, commands.BucketType.member
 )
@@ -435,6 +434,13 @@ class Fun(commands.Cog):
                     f"{akinator_embed.description}\n\n------\n\nAww, maybe next time."
                 )
                 await initial_messsage.edit(embed=akinator_embed)
+
+    @commands.command()
+    async def ship(self, ctx, person1: discord.Member, person2: discord.Member):
+        if person1.id or person2.id == 750135653638865017:
+            return await ctx.send("You can not ship him. He is forever alone.")
+        percent = random.randint(0, 100)
+        await ctx.send(f"{person1} + {person2} = {percent}%")
 
 
 def setup(avimetry):
