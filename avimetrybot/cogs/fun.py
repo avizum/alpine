@@ -437,8 +437,10 @@ class Fun(commands.Cog):
 
     @commands.command()
     async def ship(self, ctx, person1: discord.Member, person2: discord.Member):
-        if person1.id or person2.id == 750135653638865017:
+        if person1.id == 750135653638865017 or person2.id == 750135653638865017:
             return await ctx.send("You can not ship him. He is forever alone.")
+        elif person1 == person2:
+            return await ctx.send(f"{person1} is 100% compatible with him/herself")
         percent = random.randint(0, 100)
         await ctx.send(f"{person1} + {person2} = {percent}%")
 
