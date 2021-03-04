@@ -224,7 +224,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
         request_channel = self.avimetry.get_channel(817093957322407956)
         req_send = discord.Embed(
             title=f"Request from {str(ctx.author)}",
-            descrtiption=f"```{request}```"
+            description=f"```{request}```"
         )
         await request_channel.send(embed=req_send)
         req_embed = discord.Embed(
