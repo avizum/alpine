@@ -10,17 +10,13 @@ handler.setFormatter(
 logger.addHandler(handler)
 
 
-class GuildJoin(commands.Cog, name="server prefix"):
+class GuildJoin(commands.Cog, name="Auto Setup"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         await self.avimetry.config.upsert({"_id": guild.id, "prefix": "a."})
-
-    @commands.Cog.listener()
-    async def on_guild_remove(self, guild):
-        await self.avimetry.config.unset({"_id": guild})
 
 
 def setup(avimetry):
