@@ -222,13 +222,17 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
     @commands.command()
     async def request(self, ctx, *, request):
         request_channel = self.avimetry.get_channel(817093957322407956)
-        request_channel.send(request)
+        req_send = discord.Embed(
+            title=f"Request from {str(ctx.author)}",
+            descrtiption=f"```{request}```"
+        )
+        await request_channel.send(embed=req_send)
         req_embed = discord.Embed(
             title="Request sent",
             description="Thank you for your request! You will see if your request is added."
         )
         req_embed.add_field(
-            name="Your \"useful\"request",
+            name="Your \"useful\" request",
             value=f"```{request}```"
         )
         await ctx.send(embed=req_embed)
