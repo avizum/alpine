@@ -220,6 +220,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
         await ctx.send(embed=bot_invite)
 
     @commands.command()
+    @commands.cooldown(1, 300, commands.BucketType.user)
     async def request(self, ctx, *, request):
         request_channel = self.avimetry.get_channel(817093957322407956)
         req_send = discord.Embed(
