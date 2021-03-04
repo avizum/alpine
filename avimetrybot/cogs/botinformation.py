@@ -219,7 +219,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
             bot_invite.description = "That is not a bot. Make sure you mention a bot."
         await ctx.send(embed=bot_invite)
 
-    @commands.command()
+    @commands.command(brief="Request a feature to be added to the bot.")
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def request(self, ctx, *, request):
         request_channel = self.avimetry.get_channel(817093957322407956)
@@ -230,7 +230,10 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
         await request_channel.send(embed=req_send)
         req_embed = discord.Embed(
             title="Request sent",
-            description="Thank you for your request! You will see if your request is added."
+            description=(
+                "Thank you for your request! Join the [support] server to see if your request has been approved.\n"
+                "Please note that spam requests will get you permanently blacklisted from this bot."
+                )
         )
         req_embed.add_field(
             name="Your \"useful\" request",
