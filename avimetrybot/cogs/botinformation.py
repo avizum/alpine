@@ -226,7 +226,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
         req_embed = discord.Embed(
             title="Request sent",
             description="Thank you for your request! You will see if your request is added."
-        ),
+        )
         req_embed.add_field(
             name="Your \"useful\"request",
             value=f"```{request}```"
