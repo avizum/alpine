@@ -181,8 +181,9 @@ class Fun(commands.Cog):
     @commands.check(cog_check)
     # @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     async def cookie(self, ctx):
-        ctx.command.reset_cooldown(ctx)
-        await ctx.send_help("cookie")
+        if ctx.invoked_subcommand is None:
+            ctx.command.reset_cooldown(ctx)
+            await ctx.send_help("cookie")
 
     @cookie.command(
         brief="Get the cookie as fast as you can with out a countdown timer."
