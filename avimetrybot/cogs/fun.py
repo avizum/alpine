@@ -63,7 +63,7 @@ class Fun(commands.Cog):
     @commands.command(
         aliases=["murder"], brief="Kill some people. Make sure you don't get caught!"
     )
-    @commands.cooldown(5, 30, commands.BucketType.member)
+    @commands.cooldown(2, 30, commands.BucketType.member)
     async def kill(self, ctx, member: discord.Member):
         await ctx.message.delete()
         if member == self.avimetry.user or member.bot:
@@ -83,10 +83,10 @@ class Fun(commands.Cog):
                     f"{ctx.author} died while summoning a demon to kill {member}",
                     f"{ctx.author} was caught by the police because he was mumbling his plans to to kill {member}",
                     f"{ctx.author} hired a hitman to kill {member}."
-                    f"{ctx.author} shot and killed {member} then reloaded the gun, only to shoot himself in the face."
+                    f"{ctx.author} shot and killed {member} then reloaded the gun, only to shoot himself in the face.",
                     f"{ctx.author} chopped {member}'s head off with a guillotine",
-                    f"{ctx.author} sniped {member} at the store."
-                    f"{ctx.author} tried poisoned {member} but {ctx.author} forgot to wear a mask so he fainted"
+                    f"{ctx.author} sniped {member} at the store.",
+                    f"{ctx.author} tried poisoned {member} but {ctx.author} forgot to wear a mask so they fainted",
                 ]
                 await ctx.send(f"{random.choice(kill_response)}")
 
