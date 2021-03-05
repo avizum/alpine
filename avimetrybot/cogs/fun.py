@@ -76,17 +76,19 @@ class Fun(commands.Cog):
                     "you to the hospital. On the way to the hospital, your friend crashed the car. They both died."
                 )
             else:
+                author = ctx.author.mention
+                member = member.mention
                 kill_response = [
-                    f"{ctx.author} killed {member}.",
-                    f"{ctx.author} murdered {member} with a machine gun.",
-                    f"{ctx.author} accidentally shot themselves in the face while trying to load the gun",
-                    f"{ctx.author} died while summoning a demon to kill {member}",
-                    f"{ctx.author} was caught by the police because he was mumbling his plans to to kill {member}",
-                    f"{ctx.author} hired a hitman to kill {member}."
-                    f"{ctx.author} shot and killed {member} then reloaded the gun, only to shoot himself in the face.",
-                    f"{ctx.author} chopped {member}'s head off with a guillotine",
-                    f"{ctx.author} sniped {member} at the store.",
-                    f"{ctx.author} tried poisoned {member} but {ctx.author} forgot to wear a mask so they fainted",
+                    f"{author} killed {member}.",
+                    f"{author} murdered {member} with a machine gun.",
+                    f"{author} accidentally shot themselves in the face while trying to load the gun",
+                    f"{author} died while summoning a demon to kill {member}",
+                    f"{author} was caught by the police because he was mumbling his plans to to kill {member}",
+                    f"{author} hired a hitman to kill {member}."
+                    f"{author} shot and killed {member} then reloaded the gun, only to shoot himself in the face.",
+                    f"{author} chopped {member}'s head off with a guillotine",
+                    f"{author} sniped {member} at the store.",
+                    f"{author} tried poisoned {member} but {author} forgot to wear a mask so they fainted",
                 ]
                 await ctx.send(f"{random.choice(kill_response)}")
 
