@@ -149,7 +149,7 @@ class Owner(commands.Cog):
         sync_embed = discord.Embed(
             title="Syncing with GitHub", description="Please Wait..."
         )
-        edit_sync = await ctx.send_raw(embed=sync_embed)
+        edit_sync = await ctx.send(embed=sync_embed)
         await asyncio.sleep(2)
         output = []
         output.append(f'```{subprocess.getoutput("git pull")}```')
