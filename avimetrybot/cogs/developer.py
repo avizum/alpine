@@ -227,6 +227,7 @@ class Owner(commands.Cog):
         await ctx.guild.leave()
 
     @dev.command()
+    @commands.is_owner()
     async def blacklist(self, ctx, *, user: discord.Member):
         data = {
             "_id": user.id,
@@ -237,6 +238,7 @@ class Owner(commands.Cog):
         await ctx.send(f"Blacklisted {str(user)}")
 
     @dev.command()
+    @commands.is_owner()
     async def unblacklist(self, ctx, *, user: discord.Member):
         await self.avimetry.mutes.delete(user.id)
         self.avimetry.blacklisted_users.pop(user.id)
