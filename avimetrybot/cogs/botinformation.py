@@ -178,7 +178,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
             timestamp=datetime.datetime.utcnow(),
         )
         if self.avimetry.user.id != 756257170521063444:
-            source_embed.description = "This bot is made by [avi/jbkn](https://discord.com/users/750135653638865017). \
+            source_embed.description = "This bot is made by [avi](https://discord.com/users/750135653638865017). \
                 It is run off of this [source code](https://github.com/jbkn/avimetry).\nKeep the license in mind"
         else:
             source_embed.description = "Here is my [source code](https://github.com/jbkn/avimetry) made by [avi](https://discord.com/users/750135653638865017).\nMake sure you follow the license."
@@ -233,7 +233,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
             description=(
                 "Thank you for your request! Join the [support] server to see if your request has been approved.\n"
                 "Please note that spam requests will get you permanently blacklisted from this bot."
-                )
+            )
         )
         req_embed.add_field(
             name="Your \"useful\" request",

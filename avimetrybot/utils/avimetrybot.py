@@ -9,6 +9,7 @@ import mystbin
 import time
 import re
 from utils import AvimetryContext
+from .errors import Blacklisted
 from discord.ext import commands
 from utils.mongo import MongoDB
 from akinator.async_aki import Akinator
@@ -49,7 +50,7 @@ class AvimetryBot(commands.Bot):
         intents = discord.Intents.all()
         super().__init__(
             **kwargs,
-            command_prefix=prefix,
+            command_prefix="ab.",
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,
@@ -62,6 +63,7 @@ class AvimetryBot(commands.Bot):
         # Bot Variables
         self.launch_time = datetime.datetime.utcnow()
         self.muted_users = {}
+        self.blacklisted_users = {}
         self.commands_ran = 0
         self.devmode = False
         self.emoji_dictionary = {
@@ -88,11 +90,18 @@ class AvimetryBot(commands.Bot):
         self.mutes = MongoDB(self.db, "mutes")
         self.logs = MongoDB(self.db, "logging")
         self.bot_users = MongoDB(self.db, "users")
+        self.blacklist = MongoDB(self.db, "blacklisted")
 
         @self.check
         async def globally_block_dms(ctx):
             if not ctx.guild:
                 raise commands.NoPrivateMessage("Commands do not work in dm channels.")
+            return True
+
+        @self.check
+        async def is_blacklisted(ctx):
+            if ctx.author.id in self.blacklisted_users:
+                raise Blacklisted("You are blacklisted you noob.")
             return True
 
         @self.event
@@ -110,6 +119,10 @@ class AvimetryBot(commands.Bot):
             current_mutes = await self.mutes.get_all()
             for mute in current_mutes:
                 self.muted_users[mute["_id"]] = mute
+
+            current_blacklisted = await self.blacklist.get_all()
+            for blacklist in current_blacklisted:
+                self.blacklisted_users[blacklist["_id"]] = blacklist
 
         os.environ["JISHAKU_HIDE"] = "True"
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
