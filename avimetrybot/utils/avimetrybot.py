@@ -50,7 +50,7 @@ class AvimetryBot(commands.Bot):
         intents = discord.Intents.all()
         super().__init__(
             **kwargs,
-            command_prefix="ab.",
+            command_prefix=prefix,
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,
@@ -101,7 +101,7 @@ class AvimetryBot(commands.Bot):
         @self.check
         async def is_blacklisted(ctx):
             if ctx.author.id in self.blacklisted_users:
-                raise Blacklisted("You are blacklisted you noob.")
+                raise Blacklisted()
             return True
 
         @self.event

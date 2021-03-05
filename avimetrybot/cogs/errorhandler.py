@@ -34,12 +34,14 @@ class ErrorHandler(commands.Cog):
         if isinstance(error, Blacklisted):
             blacklisted = discord.Embed(
                 title="You are blacklisted",
-                description=f"{ctx.author.mention}, you are blacklisted from this bot.\nIf you think this is a mistake, please contact.",
+                description=f"{ctx.author.mention}, you are blacklisted from this bot.\nIf you think this is a mistake, please join the non existant support server.",
                 color=discord.Color.red(),
             )
             await ctx.send(embed=blacklisted)
 
         elif isinstance(error, commands.CommandNotFound):
+            if ctx.author.id in self.avimetry.blacklisted_users:
+                return
             not_found_embed = discord.Embed(
                 title="Invalid Command", color=discord.Color.red()
             )
