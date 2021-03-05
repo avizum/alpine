@@ -131,7 +131,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
         embed.add_field(name="RAM Usage", value=f"{psutil.virtual_memory().percent}%")
         embed.add_field(
             name="Bot Invite",
-            value="[here](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)",
+            value=f"[here](f{discord.utils.oauth_url(self.avimetry.user.id, discord.Permissions(2147483647))})",
         )
         embed.add_field(name="Commands", value=len(self.avimetry.commands))
         embed.add_field(name="Commands ran", value=self.avimetry.commands_ran)

@@ -5,6 +5,7 @@ import time
 import asyncio
 import akinator
 from akinator.async_aki import Akinator
+import typing
 
 
 class Fun(commands.Cog):
@@ -22,7 +23,7 @@ class Fun(commands.Cog):
             raise commands.CommandOnCooldown(bucket, retry_after)
         return True
 
-    # Magic 8 Ball
+# Magic 8 Ball
     @commands.command(
         aliases=["8ball", "8b"],
         brief="Ask the 8ball something",
@@ -30,40 +31,25 @@ class Fun(commands.Cog):
     @commands.cooldown(5, 15, commands.BucketType.member)
     async def eightball(self, ctx, *, question):
         responses = [
-            "As I see it, yes.",
-            "Ask again later.",
-            "Better not tell you now.",
-            "Cannot predict now.",
-            "Concentrate and ask again.",
-            "Don’t count on it.",
-            "It is certain.",
-            "It is decidedly so.",
-            "Most likely.",
-            "My reply is no.",
-            "My sources say no.",
-            "Outlook not so good.",
-            "Outlook good.",
-            "Reply hazy, try again.",
-            "Signs point to yes.",
-            "Very doubtful.",
-            "Without a doubt.",
-            "Yes.",
-            "Yes – definitely.",
-            "You may rely on it.",
+            "As I see it, yes.", "Ask again later.",
+            "Better not tell you now.", "Cannot predict now.",
+            "Concentrate and ask again.", "Don’t count on it.",
+            "It is certain.", "It is decidedly so.",
+            "Most likely.", "My reply is no.",
+            "My sources say no.", "Outlook not so good.",
+            "Outlook good.", "Reply hazy, try again.",
+            "Signs point to yes.", "Very doubtful.",
+            "Without a doubt.", "Yes.",
+            "Yes – definitely.", "You may rely on it.",
         ]
         if ctx.author.id in self.avimetry.owner_ids:
             if question.lower().endswith("\u200b"):
                 responses = [
-                    "It is certain.",
-                    "Without a doubt.",
-                    "You may rely on it.",
-                    "Yes definitely.",
-                    "It is decidedly so.",
-                    "As I see it, yes.",
-                    "Most likely.",
-                    "Yes.",
-                    "Outlook good.",
-                    "Signs point to yes.",
+                    "It is certain.", "Without a doubt.",
+                    "You may rely on it.", "Yes definitely.",
+                    "It is decidedly so.", "As I see it, yes.",
+                    "Most likely.", "Yes.",
+                    "Outlook good.", "Signs point to yes.",
                 ]
         ballembed = discord.Embed(title=":8ball: Magic 8 Ball")
         ballembed.add_field(name="Question:", value=f"{question}", inline=False)
@@ -72,7 +58,7 @@ class Fun(commands.Cog):
         )
         await ctx.send(embed=ballembed)
 
-    # Random Number
+# Random Number
     @commands.command(brief="Pick a random number from 1 to 100", usage="[amount]")
     async def random(self, ctx, amount: int = 100):
         x = random.randint(1, amount)
@@ -80,7 +66,7 @@ class Fun(commands.Cog):
         e.add_field(name="Random Number", value=f"The number is {x}")
         await ctx.send(embed=e)
 
-    # Kill Command
+# Kill Command
     @commands.command(
         aliases=["murder"], brief="Kill some people. Make sure you don't get caught!"
     )
@@ -93,20 +79,25 @@ class Fun(commands.Cog):
         else:
             if member == ctx.author:
                 await ctx.send(
-                    f"{ctx.author.mention} tried to kill themself, but your friend caught you and decided to bring you to the hospital. On the way to the hospital, your friend crashed the car. They both died."
+                    f"{ctx.author.mention} tried to kill themself, but your friend caught you and decided to bring "
+                    "you to the hospital. On the way to the hospital, your friend crashed the car. They both died."
                 )
             else:
                 kill_response = [
-                    f"**{ctx.author.display_name}** went to go kill **{member.display_name}** but when loading the gun, **{ctx.author.display_name}** shot themself in the head. **{ctx.author.display_name}** died.",
-                    f"**{ctx.author.display_name}** tried to kill **{member.display_name}** but then he remembered that **{member.display_name}** owes them money and decides to kill **{member.display_name}** later.",
-                    f"**{ctx.author.display_name}** shot and killed **{member.display_name}**",
-                    f"**{ctx.author.display_name}** tried to kill **{member.display_name}** by pushing them down the stairs. **{member.display_name}** called the police and the police shot and killed **{ctx.author.display_name}**.",
-                    f"**{ctx.author.display_name}** tried to kill **{member.display_name}** by pushing them down the stairs. **{member.display_name}** died.",
-                    f"**{ctx.author.display_name}** went to go kill **{member.display_name}** by summoning a demon, but the demon killed them both!",
+                    f"{ctx.author} killed {member}.",
+                    f"{ctx.author} murdered {member} with a machine gun.",
+                    f"{ctx.author} accidentally shot themselves in the face while trying to load the gun",
+                    f"{ctx.author} died while summoning a demon to kill {member}",
+                    f"{ctx.author} was caught by the police because he was mumbling his plans to to kill {member}",
+                    f"{ctx.author} hired a hitman to kill {member}."
+                    f"{ctx.author} shot and killed {member} then reloaded the gun, only to shoot himself in the face."
+                    f"{ctx.author} chopped {member}'s head off with a guillotine",
+                    f"{ctx.author} sniped {member} at the store."
+                    f"{ctx.author} tried poisoned {member} but {ctx.author} forgot to wear a mask so he fainted"
                 ]
                 await ctx.send(f"{random.choice(kill_response)}")
 
-    # Revive Command
+# Revive Command
     @commands.command(brief="Bring people back to life.")
     @commands.cooldown(5, 30, commands.BucketType.member)
     async def revive(self, ctx, member: discord.Member):
@@ -116,7 +107,7 @@ class Fun(commands.Cog):
         else:
             await ctx.send(f"{ctx.author.mention} revived {member.mention}")
 
-    # Say Command
+# Say Command
     @commands.command(
         brief="You can make me say whatever you please!", usage="<message>"
     )
@@ -124,7 +115,7 @@ class Fun(commands.Cog):
     async def say(self, ctx, *, botsay):
         await ctx.send_raw(f"{botsay}")
 
-    # Delete Say Command
+# Delete Say Command
     @commands.command(
         brief="You can make me say whatever you please, but I delete your message so it looks like I sent it!",
         usage="<message>",
@@ -134,7 +125,7 @@ class Fun(commands.Cog):
         await ctx.message.delete()
         await ctx.send_raw(f"{dbotsay}")
 
-    # Skin Command
+# Skin Command
     @commands.command(brief="Remove the skin off of people that you don't like.")
     async def skin(self, ctx, member: discord.Member):
         await ctx.message.delete()
@@ -145,6 +136,7 @@ class Fun(commands.Cog):
             e = discord.Embed(description=f"{member.mention} was skinned.")
             await ctx.send(embed=e)
 
+# Self destruct command
     @commands.command(aliases=["sd"], brief="Self destruct? Who put that button there?")
     async def selfdestruct(self, ctx):
         a = discord.Embed(
@@ -152,6 +144,7 @@ class Fun(commands.Cog):
         )
         await ctx.send(embed=a)
 
+# Dropckick command
     @commands.command(brief="Drop kicks someone")
     async def dropkick(self, ctx, *, mention: discord.Member):
         if mention == ctx.author:
@@ -165,7 +158,7 @@ class Fun(commands.Cog):
             )
             await ctx.send(embed=b)
 
-    # Face Palm Command
+# Face Palm Command
     @commands.command(
         aliases=["fp", "facep", "fpalm"], brief="Hit yourself on the face!"
     )
@@ -173,6 +166,7 @@ class Fun(commands.Cog):
         a = discord.Embed(description=f"{ctx.author.mention} hit their face.")
         await ctx.send(embed=a)
 
+# Cookie Command
     @commands.command(
         brief="Get the cookie as fast as you can with out a countdown timer."
     )
@@ -189,7 +183,15 @@ class Fun(commands.Cog):
             0, name="Ready Up!", value="Get ready to get the cookie!"
         )
         await cd_cookie.edit(embed=cookie_embed)
-        await asyncio.sleep(random.randint(1, 11))
+        cntdown = (random.randint(1, 8))
+        while cntdown > 0:
+            await asyncio.sleep(1)
+            cookie_embed.set_field_at(
+                0, name="Get Ready", value=f"Get the cookie in {cntdown}"
+            )
+            await cd_cookie.edit(embed=cookie_embed)
+            cntdown -= 1
+        await asyncio.sleep(1)
         cookie_embed.set_field_at(0, name="NOW!", value="Get the cookie now!")
         await cd_cookie.edit(embed=cookie_embed)
         await cd_cookie.add_reaction("\U0001F36A")
@@ -197,7 +199,9 @@ class Fun(commands.Cog):
 
         def check(reaction, user):
             return (
-                reaction.message.id == cd_cookie.id and str(reaction.emoji) in "\U0001F36A" and user != self.avimetry.user
+                reaction.message.id == cd_cookie.id and
+                str(reaction.emoji) in "\U0001F36A" and
+                user != self.avimetry.user
             )
 
         try:
@@ -225,6 +229,7 @@ class Fun(commands.Cog):
                 )
                 return await cd_cookie.edit(embed=cookie_embed)
 
+# Suicide Command (Joke)
     @commands.command(hidden=True)
     async def suicide(self, ctx):
         pre = await self.avimetry.get_prefix(ctx.message)
@@ -238,10 +243,11 @@ class Fun(commands.Cog):
         )
         await ctx.send(embed=embed)
 
+# Akinator Command
     @commands.command(
         name="akinator",
         aliases=["aki", "avinator"],
-        brief="Play a game of akinator. [Here](https://gist.github.com/jbkn/8a5b9887d49a1d2740d0b6ad0176dbdb \"Akinator modes and reaction meanings\") is the list of valid modes. If you don't put anything, then it will default to `en` and `child=True`"
+        brief="Play a game of akinator If you don't put anything, then it will default to `en` and `child=True`"
     )
     @commands.cooldown(1, 60, commands.BucketType.member)
     @commands.max_concurrency(1, commands.BucketType.channel)
@@ -250,7 +256,7 @@ class Fun(commands.Cog):
         akinator_embed = discord.Embed(
             title="Akinator",
             description=(
-                f"Starting akinator session.\n\
+                "Starting akinator session.\n\
                 React with the emojis below to answer.\n\
                 <:Yes:812133712967761951>: Yes\n\
                 <:No:812133712946528316>: No\n\
@@ -258,7 +264,7 @@ class Fun(commands.Cog):
                 <:Probably:812133712962519100>: Probably\n\
                 <:ProbablyNot:812133712665772113>: Probably Not\n\
                 <:Back:815854941083664454>: Go back\n\
-                If you need more help, use `{ctx.clean_prefix}help akinator` to get help."
+                If you need more help, click [here](https://gist.github.com/jbkn/8a5b9887d49a1d2740d0b6ad0176dbdb)"
             ),
         )
         async with ctx.channel.typing():
@@ -285,7 +291,10 @@ class Fun(commands.Cog):
 
             def check(reaction, user):
                 return (
-                    reaction.message.id == initial_messsage.id and str(reaction.emoji) in akinator_reactions and user == ctx.author and user != self.avimetry.user
+                    reaction.message.id == initial_messsage.id and
+                    str(reaction.emoji) in akinator_reactions and
+                    user == ctx.author and
+                    user != self.avimetry.user
                 )
 
             try:
@@ -334,7 +343,9 @@ class Fun(commands.Cog):
             return
         await aki_client.win()
 
-        akinator_embed.description = f"I think it is {aki_client.first_guess['name']} ({aki_client.first_guess['description']})! Was I correct?"
+        akinator_embed.description = (
+            f"I think it is {aki_client.first_guess['name']} ({aki_client.first_guess['description']})! Was I correct?"
+        )
         akinator_embed.set_thumbnail(
             url=f"{aki_client.first_guess['absolute_picture_path']}"
         )
@@ -345,7 +356,10 @@ class Fun(commands.Cog):
 
         def yes_no_check(reaction, user):
             return (
-                reaction.message.id == initial_messsage.id and str(reaction.emoji) in ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"] and user != self.avimetry.user and user == ctx.author
+                reaction.message.id == initial_messsage.id and
+                str(reaction.emoji) in ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"] and
+                user != self.avimetry.user and
+                user == ctx.author
             )
         try:
             reaction, user = await self.avimetry.wait_for(
@@ -374,6 +388,15 @@ class Fun(commands.Cog):
             return await ctx.send(f"{person1} is 100% compatible with him/herself")
         percent = random.randint(0, 100)
         await ctx.send(f"{person1} + {person2} = {percent}%")
+
+# 10 second command
+    @commands.command(
+        name="10s",
+        brief="Test your reaction time!",
+        disabled=True
+    )
+    async def _10s(self, ctx, emoji: typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
+        await ctx.send("Click the {emoji} in 10 seconds")
 
 
 def setup(avimetry):
