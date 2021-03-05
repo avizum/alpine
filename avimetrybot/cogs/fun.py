@@ -13,15 +13,13 @@ class Fun(commands.Cog):
     """
     def __init__(self, avimetry):
         self.avimetry = avimetry
-        self.cog_cooldown = commands.CooldownMapping.from_cooldown(
-            1.0, 30.0, commands.BucketType.member
-        )
+        self._cd = commands.CooldownMapping.from_cooldown(1.0, 60.0, commands.BucketType.user)
 
-    def cog_check(self, ctx):
-        bucket = self.cog_cooldown.get_bucket(ctx.message)
-        update_bucket = bucket.update_rate_limit()
-        if update_bucket:
-            raise commands.CommandOnCooldown(bucket, update_bucket)
+    async def cog_check(self, ctx):
+        bucket = self._cd.get_bucket(ctx.message)
+        retry_after = bucket.update_rate_limit()
+        if retry_after:
+            raise commands.CommandOnCooldown(bucket, retry_after)
         return True
 
     # Magic 8 Ball
@@ -175,20 +173,11 @@ class Fun(commands.Cog):
         a = discord.Embed(description=f"{ctx.author.mention} hit their face.")
         await ctx.send(embed=a)
 
-    @commands.group(
-        aliases=["\U0001F36A", "kookie", "cookies"],
-    )
-    @commands.check(cog_check)
-    # @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
-    async def cookie(self, ctx):
-        if ctx.invoked_subcommand is None:
-            ctx.command.reset_cooldown(ctx)
-            await ctx.send_help("cookie")
-
-    @cookie.command(
+    @commands.command(
         brief="Get the cookie as fast as you can with out a countdown timer."
     )
-    async def hard(self, ctx):
+    @commands.cooldown(1, 30, commands.BucketType.member)
+    async def cookie(self, ctx):
         cookie_embed = discord.Embed()
         cookie_embed.add_field(
             name="Get the cookie!",
@@ -235,61 +224,6 @@ class Fun(commands.Cog):
                     value=f"{user.mention} got the cookie in **{total_second}**",
                 )
                 return await cd_cookie.edit(embed=cookie_embed)
-
-    @cookie.command(
-        brief="Get the cookie as fast as you can with a three second timer."
-    )
-    async def easy(self, ctx):
-        cntdown = 3
-        cookie_embed = discord.Embed()
-        cookie_embed.add_field(
-            name="Get the cookie!",
-            value="Who has the fastest reaction time? Get ready!",
-        )
-        cd_cookie = await ctx.send_raw(embed=cookie_embed)
-        await asyncio.sleep(5)
-        while cntdown > 0:
-            await asyncio.sleep(1)
-            cookie_embed.set_field_at(
-                0, name="Get Ready", value=f"Get the cookie in {cntdown}"
-            )
-            await cd_cookie.edit(embed=cookie_embed)
-            cntdown -= 1
-        await asyncio.sleep(1)
-        cookie_embed.set_field_at(0, name="Go!", value="Get the cookie now!")
-        await cd_cookie.edit(embed=cookie_embed)
-        await cd_cookie.add_reaction("\U0001F36A")
-        start = time.perf_counter()
-
-        def check(reaction, user):
-            return (
-                reaction.message.id == cd_cookie.id and str(reaction.emoji) in "\U0001F36A" and user != self.avimetry.user
-            )
-
-        try:
-            reaction, user = await self.avimetry.wait_for(
-                "reaction_add", check=check, timeout=10
-            )
-        except asyncio.TimeoutError:
-            cookie_embed.set_field_at(
-                0, name="Game over!", value="Nobody got the cookie :("
-            )
-            await cd_cookie.edit(embed=cookie_embed)
-            await cd_cookie.clear_reactions()
-        else:
-            if str(reaction.emoji) == "\U0001F36A":
-                end = time.perf_counter()
-                gettime = (end - start) * 1000
-                total_second = f"**{round(gettime)}ms**"
-                if gettime > 1000:
-                    gettime = gettime / 1000
-                    total_second = f"**{gettime:.2f}s**"
-                cookie_embed.set_field_at(
-                    0,
-                    name="Good job!",
-                    value=f"{user.mention} got the cookie in **{total_second}**",
-                )
-                await cd_cookie.edit(embed=cookie_embed)
 
     @commands.command(hidden=True)
     async def suicide(self, ctx):
