@@ -9,7 +9,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
-    # Mention prefix
+# Mention prefix
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author == self.avimetry.user:
@@ -20,7 +20,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
                 f"Hey {message.author.mention}, the prefix for **{message.guild.name}** is `{cool['prefix']}`"
             )
 
-    # Config Command
+# Config Command
     @commands.group(
         invoke_without_command=True,
         brief="The base config command, use this configure settings",
@@ -31,7 +31,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
     async def settings(self, ctx):
         await ctx.send_help("config")
 
-    # Config Prefix Commnad
+# Config Prefix Commnad
     @settings.command(brief="Change the prefix of this server")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
@@ -131,7 +131,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
         embed.add_field(name="RAM Usage", value=f"{psutil.virtual_memory().percent}%")
         embed.add_field(
             name="Bot Invite",
-            value=f"[here](f{discord.utils.oauth_url(self.avimetry.user.id, discord.Permissions(2147483647))})",
+            value=f"[here](f{str(discord.utils.oauth_url(self.avimetry.user.id, discord.Permissions(2147483647)))})",
         )
         embed.add_field(name="Commands", value=len(self.avimetry.commands))
         embed.add_field(name="Commands ran", value=self.avimetry.commands_ran)
@@ -181,7 +181,10 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
             source_embed.description = "This bot is made by [avi](https://discord.com/users/750135653638865017). \
                 It is run off of this [source code](https://github.com/jbkn/avimetry).\nKeep the license in mind"
         else:
-            source_embed.description = "Here is my [source code](https://github.com/jbkn/avimetry) made by [avi](https://discord.com/users/750135653638865017).\nMake sure you follow the license."
+            source_embed.description = (
+                "Here is my [source code](https://github.com/jbkn/avimetry) made by "
+                "[avi](https://discord.com/users/750135653638865017).\nMake sure you follow the license."
+            )
         await ctx.send(embed=source_embed)
 
     # Invite Command
@@ -190,12 +193,8 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
         invite_embed = discord.Embed(
             title=f"{self.avimetry.user.name} Invite",
             description=(
-                """
-                Invite me to your server! Here are the invite links.
-                •Invite with [all permissions](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)
-                •Invite with [administrator permissions](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=8)
-                •Invite with [no permissions](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=8)
-                """
+                "Invite me to your server! Here is the invite link.\n"
+                f"Click [here]({str(discord.utils.oauth_url(self.avimetry.user.id, discord.Permissions(2147483647)))})"
             ),
         )
         invite_embed.set_thumbnail(url=self.avimetry.user.avatar_url)
@@ -208,11 +207,8 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
         if bot.bot:
             bot_invite.title = f"{bot.name} Invite"
             bot_invite.description = (
-                f"""
-                Invite {bot.name} to your server! Here are the invite links.
-                •Invite with [all permissions](https://discord.com/oauth2/authorize?client_id={bot.id}&scope=bot&permissions=2147483647)
-                •Invite with [administrator permissions](https://discord.com/oauth2/authorize?client_id={bot.id}&scope=bot&permissions=8)
-                •Invite with [no permissions](https://discord.com/oauth2/authorize?client_id={bot.id}&scope=bot&permissions=8)"""
+                f"Invite {bot.name} to your server! Here is the invite link.\n"
+                f"Click [here]({str(discord.utils.oauth_url(bot.user.id, discord.Permissions(2147483647)))})"
             )
         else:
             bot_invite.title = f"{bot.name} Invite"
