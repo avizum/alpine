@@ -176,8 +176,9 @@ class Fun(commands.Cog):
         await ctx.send(embed=a)
 
     @commands.group(
-        aliases=["\U0001F36A", "kookie", "cookies"], invoke_without_command=True
+        aliases=["\U0001F36A", "kookie", "cookies"],
     )
+    @commands.check(cog_check)
     # @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     async def cookie(self, ctx):
         ctx.command.reset_cooldown(ctx)
@@ -186,7 +187,6 @@ class Fun(commands.Cog):
     @cookie.command(
         brief="Get the cookie as fast as you can with out a countdown timer."
     )
-    @commands.check(cog_check)
     async def hard(self, ctx):
         cookie_embed = discord.Embed()
         cookie_embed.add_field(
@@ -238,7 +238,6 @@ class Fun(commands.Cog):
     @cookie.command(
         brief="Get the cookie as fast as you can with a three second timer."
     )
-    @commands.check(cog_check)
     async def easy(self, ctx):
         cntdown = 3
         cookie_embed = discord.Embed()
