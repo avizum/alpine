@@ -231,7 +231,7 @@ class Owner(commands.Cog):
         data = {
             "_id": user.id
         }
-        await self.avimetry.blacklist.upsert(user.id)
+        await self.avimetry.blacklist.upsert({"_id": user.id})
         self.avimetry.blacklisted_users[user.id] = data
         await ctx.send(f"Blacklisted {str(user)}")
 
