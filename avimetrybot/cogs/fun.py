@@ -16,13 +16,6 @@ class Fun(commands.Cog):
         self.avimetry = avimetry
         self._cd = commands.CooldownMapping.from_cooldown(1.0, 60.0, commands.BucketType.user)
 
-    async def cog_check(self, ctx):
-        bucket = self._cd.get_bucket(ctx.message)
-        retry_after = bucket.update_rate_limit()
-        if retry_after:
-            raise commands.CommandOnCooldown(bucket, retry_after)
-        return True
-
 # Magic 8 Ball
     @commands.command(
         aliases=["8ball", "8b"],
