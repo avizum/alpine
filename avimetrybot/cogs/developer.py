@@ -229,7 +229,8 @@ class Owner(commands.Cog):
     @dev.command()
     async def blacklist(self, ctx, *, user: discord.Member):
         data = {
-            "_id": user.id
+            "_id": user.id,
+            "blacklist_time": datetime.datetime.utcnow()
         }
         await self.avimetry.blacklist.upsert({"_id": user.id})
         self.avimetry.blacklisted_users[user.id] = data

@@ -34,7 +34,7 @@ class ErrorHandler(commands.Cog):
         if isinstance(error, Blacklisted):
             blacklisted = discord.Embed(
                 title="You are blacklisted",
-                description=f"{ctx.author.mention}, you are blacklisted from this bot.\nIf you think this is a mistake, please join the non existant support server.",
+                description=f"{ctx.author.mention}, you are blacklisted from this bot.\nIf you think this is a mistake, please join the non existent support server.",
                 color=discord.Color.red(),
             )
             await ctx.send(embed=blacklisted)
