@@ -6,21 +6,6 @@ import asyncio
 import akinator
 from akinator.async_aki import Akinator
 
-cog_cooldown = commands.CooldownMapping.from_cooldown(
-    1.0, 30.0, commands.BucketType.member
-)
-
-
-def cog_check():
-    def predicate(ctx):
-        bucket = cog_cooldown.get_bucket(ctx.message)
-        update_bucket = bucket.update_rate_limit()
-        if update_bucket:
-            raise commands.CommandOnCooldown(bucket, update_bucket)
-        return True
-
-    return commands.check(predicate)
-
 
 class Fun(commands.Cog):
     """
@@ -28,6 +13,16 @@ class Fun(commands.Cog):
     """
     def __init__(self, avimetry):
         self.avimetry = avimetry
+        self.cog_cooldown = commands.CooldownMapping.from_cooldown(
+            1.0, 30.0, commands.BucketType.member
+        )
+
+    def cog_check(self, ctx):
+        bucket = self.cog_cooldown.get_bucket(ctx.message)
+        update_bucket = bucket.update_rate_limit()
+        if update_bucket:
+            raise commands.CommandOnCooldown(bucket, update_bucket)
+        return True
 
     # Magic 8 Ball
     @commands.command(
@@ -191,6 +186,7 @@ class Fun(commands.Cog):
     @cookie.command(
         brief="Get the cookie as fast as you can with out a countdown timer."
     )
+    @commands.check(cog_check)
     async def hard(self, ctx):
         cookie_embed = discord.Embed()
         cookie_embed.add_field(
@@ -242,6 +238,7 @@ class Fun(commands.Cog):
     @cookie.command(
         brief="Get the cookie as fast as you can with a three second timer."
     )
+    @commands.check(cog_check)
     async def easy(self, ctx):
         cntdown = 3
         cookie_embed = discord.Embed()
