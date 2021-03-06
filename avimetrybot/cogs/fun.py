@@ -5,6 +5,7 @@ import time
 import asyncio
 import akinator
 from akinator.async_aki import Akinator
+from twemoji_parser import emoji_to_url
 import typing
 
 
@@ -394,8 +395,19 @@ class Fun(commands.Cog):
         brief="Test your reaction time!",
         disabled=True
     )
-    async def _10s(self, ctx, emoji: typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]):
-        await ctx.send("Click the {emoji} in 10 seconds")
+    async def _10s(self, ctx, emoji: typing.Union[discord.PartialEmoji, discord.Emoji, str, None]):
+        if emoji is None:
+            emoji = emoji_to_url("\U0001F36A")
+        elif isinstance(emoji, discord.PartialEmoji) or isinstance(emoji, discord.Emoji):
+            emoji = emoji.url
+        else:
+            emoji = await emoji_to_url(emoji)
+        embed_10s = discord.Embed(
+            title="10 seconds",
+            description="Click the emoji in 10 seconds"
+            )
+        embed_10s.set_thumbnail(emoji)
+        await ctx.send(embed=embed_10s)
 
 
 def setup(avimetry):
