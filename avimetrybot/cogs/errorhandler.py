@@ -52,7 +52,7 @@ class ErrorHandler(commands.Cog):
             )
             if not lol:
                 return
-            not_found_embed.description = f'{not_found}" was not found. Did you mean...\n`{lol}`'
+            not_found_embed.description = f'"{not_found}" was not found. Did you mean...\n`{lol}`'
             not_found_embed.set_footer(
                 text=f"Not what you meant? Use {pre}help to see the whole list of commands."
             )

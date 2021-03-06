@@ -23,7 +23,7 @@ class HelpEmbeded(commands.HelpCommand):
                         if not line.strip().startswith("#") or not line.strip():
                             total += 1
         return (f"is a bot that is spread out across **{file_amount}** python files, "
-                "with a total of **{total}** lines of code.")
+                f"with a total of **{total}** lines of code.")
 
     async def get_bot_perms(self, command):
         user_perms = []
@@ -102,11 +102,8 @@ class HelpEmbeded(commands.HelpCommand):
         return self.context
 
     async def send_bot_help(self, mapping):
-        det_prefix = self.clean_prefix
-        if det_prefix == f"@{self.context.bot.user.display_name} ":
-            det_prefix = f"`@{self.context.bot.user.display_name} `"
-        else:
-            det_prefix = f"`{self.clean_prefix}` or `@{self.context.bot.user.display_name} `"
+        prefixes = await self.context.bot.config.find(self.context.guild.id)
+        det_prefix = f"`{prefixes['prefix']}` or `@{self.context.bot.user.display_name} `"
         embed = discord.Embed(
             title="Help Menu",
             description=(
@@ -128,11 +125,12 @@ class HelpEmbeded(commands.HelpCommand):
             name="Credits",
             value=(
                 "ZaneAPI\n"
-                "Some Random API"
+                "Some Random API\n"
+                "avi (developer)"
             )
         )
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
-        embed.set_footer(text=f"Use {self.clean_prefix}{self.invoked_with} [module] to get info on a module.")
+        embed.set_footer(text=f"Use {self.clean_prefix}{self.invoked_with} [module | command] to get info on a module.")
         await self.get_destination().send(embed=embed)
 
     async def send_cog_help(self, cog):

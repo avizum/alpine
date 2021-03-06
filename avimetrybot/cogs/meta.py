@@ -109,13 +109,14 @@ class Meta(commands.Cog):
 
     # Pick Command
     @commands.command(brief="Pick one of your options")
-    @commands.cooldown(1, 60, commands.BucketType.member)
-    async def pick(self, ctx, *options: str):
-        if len(options) < 2:
-            raise commands.BadArgument("You need to have at least two options.")
-        if len(options) > 10:
-            raise commands.BadArgument("You can only have ten options.")
-        await ctx.send(f"I picked: '{random.choice(options)}'")
+    @commands.cooldown(1, 1, commands.BucketType.member)
+    async def pick(self, ctx, *, options):
+        opt = options.split("or")
+        if len(opt) == 2:
+            return await ctx.send(random.choice(opt))
+        else:
+            opt = options.split(",")
+            return await ctx.send(random.choice(opt))
 
     # Info Command
     @commands.command(brief="Gets a member's information")

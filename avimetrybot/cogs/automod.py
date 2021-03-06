@@ -2,7 +2,7 @@ from discord.ext import commands
 import re
 
 regex_token = re.compile(r"[a-zA-Z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27}")
-regex_gamer_word = re.compile(
+regex_gamer_word = (
     r"(?P<main>(?:(?:(?<!s)[n\U0001F1F3]+(?:(?P<_nc>.)(?P=_nc)*)?[i1!|l\U0001f1ee]+(?:(?P<_ic>.)(?P=_ic)*)?\
     [g9\U0001F1EC](?:(?P<_gc>.)(?P=_gc)*)?)|(?:[k\U0001f1f0]+(?:(?P<_knc>.)(?P=_knc)*)?[n\U0001F1F3]+(?:\
     (?P<_nnc>.)(?P=_nnc)*)?[e3€£ÉÈëeÊêËéE\U0001f1ea]+(?:(?P<_enc>.)(?P=_enc)*)?[e3€£ÉÈëeÊêËéE\U0001f1ea]\
@@ -17,6 +17,8 @@ class AutoMod(commands.Cog, name="Auto Moderation"):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.guild == 336642139381301249:
+            return
         if message.author == self.avimetry.user:
             return
 
@@ -28,17 +30,15 @@ class AutoMod(commands.Cog, name="Auto Moderation"):
                         await message.add_reaction(i)
                         return
 
-        bot_token = [token for token in regex_token.findall(message.content)]
-        if message.guild == 336642139381301249:
-            return
-        if bot_token:
-            try:
-                await message.delete()
-            except Exception:
-                return
-            await message.channel.send(
-                "I found tokens in your message and I deleted your message. Next time do not send your token here."
-            )
+            bot_token = [token for token in regex_token.findall(message.content)]
+            if bot_token:
+                try:
+                    await message.delete()
+                except Exception:
+                    return
+                await message.channel.send(
+                    "I found tokens in your message and I deleted your message. Next time do not send your token here."
+                )
 
 
 def setup(avimetry):
