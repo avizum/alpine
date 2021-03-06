@@ -5,8 +5,6 @@ import time
 import asyncio
 import akinator
 from akinator.async_aki import Akinator
-from twemoji_parser import emoji_to_url
-import typing
 
 
 class Fun(commands.Cog):
@@ -395,19 +393,40 @@ class Fun(commands.Cog):
         brief="Test your reaction time!",
         disabled=True
     )
-    async def _10s(self, ctx, emoji: typing.Union[discord.PartialEmoji, discord.Emoji, str, None]):
-        if emoji is None:
-            emoji = emoji_to_url("\U0001F36A")
-        elif isinstance(emoji, discord.PartialEmoji) or isinstance(emoji, discord.Emoji):
-            emoji = emoji.url
-        else:
-            emoji = await emoji_to_url(emoji)
+    async def _10s(self, ctx):
         embed_10s = discord.Embed(
             title="10 seconds",
             description="Click the emoji in 10 seconds"
             )
-        embed_10s.set_thumbnail(emoji)
-        await ctx.send(embed=embed_10s)
+        react_message = await ctx.send(embed=embed_10s)
+        await react_message.add_reaction("\U0001F36A")
+        start_time = time.perf_counter()
+
+        def check_10s(reaction, user):
+            return (
+                reaction.message.id == react_message.id and
+                str(reaction.emoji) in "\U0001F36A" and
+                user == ctx.author
+            )
+
+        try:
+            reaction, user = await self.avimetry.wait_for(
+                "reaction_add", check=check_10s, timeout=20
+            )
+        except asyncio.TimeoutError:
+            pass
+        else:
+            if str(reaction.emoji) == "\U0001F36A":
+                end_time = time.perf_counter()
+                gettime = (end_time - start_time)
+                final_time = gettime
+                if final_time < 5.0:
+                    embed_10s.description = "You are supposed to wait 10 seconds to get the cookie"
+                    return await react_message.edit(embed=embed_10s)
+                embed_10s.description = (
+                    f"You got the cookie in {final_time:.2f} seconds\n"
+                )
+                await react_message.edit(embed=embed_10s)
 
 
 def setup(avimetry):
