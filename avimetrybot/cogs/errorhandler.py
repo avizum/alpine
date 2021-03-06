@@ -17,12 +17,9 @@ class ErrorHandler(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if ctx.author.id in self.avimetry.owner_ids:
-            if ctx.prefix == "dev ":
-                try:
-                    return await ctx.reinvoke()
-                except Exception:
-                    return
-            else:
+            try:
+                return await ctx.invoke()
+            except Exception:
                 pass
 
         pre = ctx.clean_prefix
@@ -34,7 +31,11 @@ class ErrorHandler(commands.Cog):
         if isinstance(error, Blacklisted):
             blacklisted = discord.Embed(
                 title="You are blacklisted",
-                description=f"{ctx.author.mention}, you are blacklisted from this bot.\nIf you think this is a mistake, please join the non existent support server.",
+                description=(
+                    f"{ctx.author.mention}, you are blacklisted from this bot.\n"
+                    "If you think this is a mistake, please join the "
+                    "[support server](https://dis.gd/threads)"
+                ),
                 color=discord.Color.red(),
             )
             await ctx.send(embed=blacklisted)
@@ -51,7 +52,7 @@ class ErrorHandler(commands.Cog):
             )
             if not lol:
                 return
-            not_found_embed.description = f'I wasn\'t able to find a command called "{not_found}". Did you mean...\n`{lol}`'
+            not_found_embed.description = f'{not_found}" was not found. Did you mean...\n`{lol}`'
             not_found_embed.set_footer(
                 text=f"Not what you meant? Use {pre}help to see the whole list of commands."
             )
@@ -163,7 +164,10 @@ class ErrorHandler(commands.Cog):
                 long_exception, syntax="python"
             )
             ee.title = "Unknown Error"
-            ee.description = f"Oh no, avi messed up again. The error was logged and will be fixed in the next ten years.\n\n```{short_exception}```"
+            ee.description = (
+                "Oh no, an unknown error has occured. The error was logged and will be fixed soon."
+                f"\n\n```{short_exception}```"
+            )
             try:
                 await ctx.send(embed=ee)
                 chanel = self.avimetry.get_channel(797362270593613854)

@@ -22,7 +22,8 @@ class HelpEmbeded(commands.HelpCommand):
                     for line in file:
                         if not line.strip().startswith("#") or not line.strip():
                             total += 1
-        return f"is a bot that is spread out across **{file_amount}** python files, with a total of **{total}** lines of code."
+        return (f"is a bot that is spread out across **{file_amount}** python files, "
+                "with a total of **{total}** lines of code.")
 
     async def get_bot_perms(self, command):
         user_perms = []
@@ -73,7 +74,11 @@ class HelpEmbeded(commands.HelpCommand):
         )
 
     def bnote(self):
-        return "<argument> = required argument\n[argument] = optional argument\n[argument...] = accepts multiple arguments"
+        return (
+            "<argument> = required argument\n"
+            "[argument] = optional argument\n"
+            "[argument...] = accepts multiple arguments"
+        )
 
     def gcommand_signature(self, command):
         parent = command.full_parent_name

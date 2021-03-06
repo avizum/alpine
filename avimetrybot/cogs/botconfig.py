@@ -194,7 +194,8 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
             title=f"{self.avimetry.user.name} Invite",
             description=(
                 "Invite me to your server! Here is the invite link.\n"
-                f"Click [here]({str(discord.utils.oauth_url(self.avimetry.user.id, discord.Permissions(2147483647)))})"
+                f"[Here]({str(discord.utils.oauth_url(self.avimetry.user.id, discord.Permissions(2147483647)))}) "
+                "is the invite link."
             ),
         )
         invite_embed.set_thumbnail(url=self.avimetry.user.avatar_url)
@@ -208,7 +209,7 @@ class BotInfo(commands.Cog, name="Bot Utilities"):
             bot_invite.title = f"{bot.name} Invite"
             bot_invite.description = (
                 f"Invite {bot.name} to your server! Here is the invite link.\n"
-                f"Click [here]({str(discord.utils.oauth_url(bot.user.id, discord.Permissions(2147483647)))})"
+                f"Click [here]({str(discord.utils.oauth_url(bot.id, discord.Permissions(2147483647)))}) for the invite!"
             )
         else:
             bot_invite.title = f"{bot.name} Invite"

@@ -83,12 +83,16 @@ class Fun(commands.Cog):
                     f"{author} murdered {member} with a machine gun.",
                     f"{author} accidentally shot themselves in the face while trying to load the gun",
                     f"{author} died while summoning a demon to kill {member}",
+                    f"A demon killed {member} because {author} summoned a demon.",
                     f"{author} was caught by the police because he was mumbling his plans to to kill {member}",
                     f"{author} hired a hitman to kill {member}.",
                     f"{author} shot and killed {member} then reloaded the gun, only to shoot himself in the face.",
                     f"{author} chopped {member}'s head off with a guillotine",
                     f"{author} sniped {member} at the store.",
                     f"{author} tried poisoned {member} but {author} forgot to wear a mask so they fainted",
+                    f"{author} died whilst fighting {member}.",
+                    f"{member} was stoned to death by {author}.",
+                    f"{member} was almost killed by {author} but {member} took the gun from him and shot {author}",
                 ]
                 await ctx.send(f"{random.choice(kill_response)}")
 

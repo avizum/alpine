@@ -156,15 +156,15 @@ class Owner(commands.Cog):
         sync_embed.description = "\n".join(output)
         sync_embed.timestamp = datetime.datetime.utcnow()
         sync_embed.title = "Synced With GitHub"
-        mod_list = []
         for filename in os.listdir("./avimetrybot/cogs"):
             if filename.endswith(".py"):
                 try:
                     self.avimetry.reload_extension(f"cogs.{filename[:-3]}")
                 except Exception as e:
-                    mod_list.append(f"**{filename}**\n{e}")
-        error_value = "\n".join(mod_list)
-        sync_embed.add_field(name="Reloaded all modules except the ones listed below.", value=error_value or "No errors detected.")
+                    sync_embed.add_field(
+                        name=f"<:noTick:777096756865269760> {filename}",
+                        value=e
+                    )
         await edit_sync.edit(embed=sync_embed)
 
     # Reboot Command
@@ -183,7 +183,9 @@ class Owner(commands.Cog):
 
         def check(reaction, user):
             return (
-                str(reaction.emoji) in ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"] and user != self.avimetry.user and user == ctx.author
+                str(reaction.emoji) in ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"] and
+                user != self.avimetry.user and
+                user == ctx.author
             )
 
         try:

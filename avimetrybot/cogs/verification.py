@@ -79,8 +79,8 @@ class Verification(commands.Cog):
             x = discord.Embed(
                 title=f"Welcome to **{member.guild.name}**!",
                 description=(
-                    f"Hey {member.mention}, welcome to this server!\n"
-                    f"Please use `{pre}verify` to verify. A key will be sent to your dms. Enter the key here to get verified."
+                    f"Hey {member.mention}, welcome to the server!\n"
+                    f"Please use `{pre}verify` to verify. Enter the key you recieve in your DMs here."
                 ),
                 timestamp=datetime.datetime.utcnow(),
                 color=discord.Color.green()
@@ -185,13 +185,17 @@ class Verification(commands.Cog):
             except asyncio.TimeoutError:
                 if member.is_on_mobile():
                     await member.send(
-                        "<:noTick:777096756865269760> **Your Key has expired**"
-                        "Sorry, your key has expired. If you want to generate a new key, use the command `a.verify` to generate a new key."
+                        "<:noTick:777096756865269760> **Your Key has expired**\n"
+                        "Sorry, your key has expired. If you want to generate a new key, "
+                        "use the command `a.verify` to generate a new key."
                     )
                 else:
                     timeup = discord.Embed(
                         title="Your Key has expired",
-                        description="Sorry, your key has expired. If you want to generate a new key, use the command `a.verify` to generate a new key.",
+                        description=(
+                            "Sorry, your key has expired. If you want to generate a new key, "
+                            f"use the command `{pre}.verify` to generate a new key."
+                        )
                     )
                     await ctx.author.send(embed=timeup)
             else:

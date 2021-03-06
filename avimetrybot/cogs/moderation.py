@@ -134,25 +134,7 @@ class Moderation(commands.Cog):
                     f"\n`{msg}`\n\n Total Messages Deleted:`{len(purge_amount)}`"
                 ),
             )
-            pe.set_footer(text="React with the emoji to delete this message")
-            purge_results = await ctx.send(embed=pe)
-            await purge_results.add_reaction("<:noTick:777096756865269760>")
-
-            def check(reaction, user):
-                return (
-                    str(reaction.emoji) in "<:noTick:777096756865269760>" and user != self.avimetry.user and user == ctx.author
-                )
-
-            try:
-                reaction, user = await self.avimetry.wait_for(
-                    "reaction_add", check=check, timeout=60
-                )
-            except asyncio.TimeoutError:
-                pe.set_footer(text="Menu has timed out")
-                await purge_results.edit(embed=pe)
-            else:
-                if str(reaction.emoji) == "<:noTick:777096756865269760>":
-                    await purge_results.delete()
+            await ctx.send(embed=pe, delete_after=10)
 
     @purge.command()
     @commands.has_permissions(manage_messages=True)

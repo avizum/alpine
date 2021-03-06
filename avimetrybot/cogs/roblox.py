@@ -32,7 +32,8 @@ class RobloxUpdate(commands.Cog, name="Roblox Update"):
             )
             embed = discord.Embed(
                 title="<:roblox:788835896354013229> A ROBLOX update has been detected.",
-                description="If you don't want ROBLOX to update, keep ROBLOX open. Please wait while people update their cool lego hak.",
+                description="If you don't want ROBLOX to update, keep ROBLOX open. "
+                            "Please wait while people update their cool lego hak.",
             )
             embed.add_field(name="Latest Version", value=f"{b}", inline=True)
             embed.add_field(name="Last Version", value=f"{a}", inline=True)

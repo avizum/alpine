@@ -47,7 +47,10 @@ class BotLogs(commands.Cog, name="bot logs"):
 
             embed.add_field(
                 name="Information",
-                value=f"Message Author: {message.author.mention},\nDeleted from {message.channel.mention} in {message.guild.name}",
+                value=(
+                    f"Message Author: {message.author.mention},\n"
+                    f"Deleted from {message.channel.mention} in {message.guild.name}"
+                ),
                 inline=False,
             )
         get_channel = await self.avimetry.logs.find(message.guild.id)
