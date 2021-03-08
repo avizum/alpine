@@ -304,7 +304,7 @@ class Fun(commands.Cog):
                 akinator_embed.description = (
                     "Akinator session closed because you took too long to answer."
                 )
-                akinator_embed.set_thumbnail(url="https://i.imgur.com/ODhExsH.png")
+                akinator_embed.set_thumbnail(url=discord.Embed.Empty)
                 await initial_messsage.edit(embed=akinator_embed)
                 game_end_early = True
                 break
@@ -325,6 +325,7 @@ class Fun(commands.Cog):
                 elif str(reaction.emoji) == "<:Stop:815859174667452426>":
                     game_end_early = True
                     akinator_embed.description = "Akinator session stopped."
+                    akinator_embed.set_thumbnail(url=discord.Embed.Empty)
                     await initial_messsage.edit(embed=akinator_embed)
                     await initial_messsage.clear_reactions()
                     break
@@ -427,6 +428,11 @@ class Fun(commands.Cog):
                     f"You got the cookie in {final_time:.2f} seconds\n"
                 )
                 await react_message.edit(embed=embed_10s)
+
+# Mock Command
+    @commands.command()
+    async def mock(self, ctx, *, text):
+        await ctx.send("".join(random.choice([mock.upper, mock.lower])() for mock in text))
 
 
 def setup(avimetry):

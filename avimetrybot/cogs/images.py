@@ -21,10 +21,8 @@ class Manipulation(commands.Cog):
     async def member_convert(self, ctx, url):
         if url is None:
             url = ctx.author.avatar_url_as(format="png")
-
         elif isinstance(url, discord.Member):
             url = url.avatar_url_as(format="png")
-
         elif isinstance(url, discord.PartialEmoji) or isinstance(url, discord.Emoji):
             url = url.url
         else:

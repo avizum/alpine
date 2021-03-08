@@ -17,11 +17,11 @@ class AutoMod(commands.Cog, name="Auto Moderation"):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        words = ["bday", "birthday", "birth date", "birth-day", "b-day", "birth-date"]
         if message.guild == 336642139381301249:
             return
         if message.author == self.avimetry.user:
             return
-
         if message.guild.id == 751490725555994716:
             if "bonk" in message.content.lower():
                 guild = await self.avimetry.fetch_guild(760382234908688385)
@@ -29,6 +29,10 @@ class AutoMod(commands.Cog, name="Auto Moderation"):
                     if i.name == "bonk":
                         await message.add_reaction(i)
                         return
+            for i in words:
+                if i in message.content.lower():
+                    await message.delete()
+                    await message.channel.send("Do not say that.")
 
             bot_token = [token for token in regex_token.findall(message.content)]
             if bot_token:

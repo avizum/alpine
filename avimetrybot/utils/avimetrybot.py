@@ -22,6 +22,8 @@ BETA_BOT_ID = 787046145884291072
 
 
 async def prefix(avimetry, message):
+    if avimetry.user.id == BETA_BOT_ID:
+        return "ab."
     if avimetry.devmode is True:
         command_prefix = ""
     get_prefix = await avimetry.config.find(message.guild.id)

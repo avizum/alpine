@@ -20,11 +20,11 @@ class Verification(commands.Cog):
         except KeyError:
             pass
             try:
-                await asyncio.sleep(1)
+                await asyncio.sleep(3)
                 channel = discord.utils.get(
                     member.guild.channels, name=f"{member.name.lower().replace(' ', '-')}-verification",
                 )
-                await channel.send("Member automuted")
+                await channel.send("You were auto-muted. If you think this is a mistake, join the support server.")
             except Exception:
                 pass
         if member.bot:
