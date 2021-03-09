@@ -8,7 +8,7 @@ Invite avimetry with this [link](https://discord.com/oauth2/authorize?client_id=
 
 
 #### Commands to get you started
-  * `a.config prefix`
+  * `a.settings prefix`
 Sets the Prefix of the server
 
   * `a.help`
