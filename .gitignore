@@ -1,12 +1,7 @@
 /cogs/__pycache__
-avimetrybot/files/prefixes.json
 avimetrybot/cogs/__pycache__
 avimetrybot/discord.log
-rules.txt
-avimetrybot/files/counting.json
-avimetrybot/files/bot-logs.json
 avimetrybot/.env
-nohup.out
 .DS_Store
 discord.log
 *__pycache__

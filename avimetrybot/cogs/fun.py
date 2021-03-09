@@ -464,6 +464,51 @@ class Fun(commands.Cog):
         reddit = self.avimetry.get_command("reddit")
         await reddit(ctx, subreddit="memes")
 
+# Reaction time commnad
+    @commands.command()
+    @commands.cooldown(1, 10, commands.BucketType.channel)
+    async def reaction(self, ctx):
+        emoji = ["🍪", "🎉", "🧋", "🍒", "🍑"]
+        random_emoji = random.choice(emoji)
+        random.shuffle(emoji)
+        embed = discord.Embed(
+            title="Reaction time",
+            description=f"After 1-30 seconds, a reaction ({random_emoji}) will be added to this message. "
+        )
+        first = await ctx.send(embed=embed)
+        await asyncio.sleep(2.5)
+        embed.description = f"Get ready to get the emoji ({random_emoji})!"
+        await first.edit(embed=embed)
+        await asyncio.sleep(random.randint(1, 30))
+        embed.description = "GO!!"
+        await first.edit(embed=embed)
+        for emojis in emoji:
+            await first.add_reaction(emojis)
+        start = time.perf_counter()
+
+        def check(reaction, user):
+            return(
+                reaction.message.id == first.id and
+                str(reaction.emoji) == random_emoji and
+                user != self.avimetry.user
+            )
+
+        try:
+            reaction, user = await self.avimetry.wait_for("reaction_add", check=check, timeout=15)
+        except asyncio.TimeoutError:
+            print("timeout")
+        else:
+
+            if str(reaction.emoji) == random_emoji:
+                end = time.perf_counter()
+                gettime = (end - start) * 1000
+                total_second = f"**{round(gettime)}ms**"
+                if gettime > 1000:
+                    gettime = gettime / 1000
+                    total_second = f"**{gettime:.2f}s**"
+                embed.description = f"{user.mention} got the {random_emoji} in {total_second}"
+                await first.edit(embed=embed)
+
 
 def setup(avimetry):
     avimetry.add_cog(Fun(avimetry))

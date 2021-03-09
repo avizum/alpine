@@ -253,7 +253,7 @@ class Help(commands.Cog):
         self.avimetry.help_command = HelpEmbeded(
             command_attrs=dict(
                 hidden=True,
-                aliases=["halp", "helps", "hlp"],
+                aliases=["halp", "helps", "hlp", "hlep", "hep"],
                 brief="Why do you need help with the help command? Oh well, Here it is anyways",
                 usage="[command] or [module]",
             )
