@@ -439,15 +439,18 @@ class Fun(commands.Cog):
     @commands.cooldown(1, 15, commands.BucketType.member)
     async def reddit(self, ctx, subreddit):
         async with self.avimetry.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
-            data = random.choice((await content.json())["data"]["children"])["data"]
-            embed = discord.Embed(
-                title=data["title"],
-                url=f"https://reddit.com{data['permalink']}",
-                description=(
-                    f"<:upvote:818730949662867456> {data['ups']} "
-                    f"<:downvote:818730935829659665> {data['downs']}\n"
-                    f"Upvote ratio: {data['upvote_ratio']}"
-                ))
+            stuff = await content.json()
+        get_data = stuff["data"]["children"]
+        data = random.choice(get_data)["data"]
+        embed = discord.Embed(
+            title=data["title"],
+            url=f"https://reddit.com{data['permalink']}",
+            description=(
+                f"<:upvote:818730949662867456> {data['ups']} "
+                f"<:downvote:818730935829659665> {data['downs']}\n"
+                f"Upvote ratio: {data['upvote_ratio']}\n"
+                f"[Image link]({data['url']})"
+            ))
         if "mp4" in data["url"]:
             embed.description = "The filetype of the media is unsupported by Discord."
         else:
