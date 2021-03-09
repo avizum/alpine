@@ -434,6 +434,33 @@ class Fun(commands.Cog):
     async def mock(self, ctx, *, text):
         await ctx.send("".join(random.choice([mock.upper, mock.lower])() for mock in text))
 
+# Reddit Command
+    @commands.command()
+    @commands.cooldown(1, 15, commands.BucketType.member)
+    async def reddit(self, ctx, subreddit):
+        async with self.avimetry.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
+            data = random.choice((await content.json())["data"]["children"])["data"]
+            embed = discord.Embed(
+                title=data["title"],
+                url=f"https://reddit.com{data['permalink']}",
+                description=(
+                    f"<:upvote:818730949662867456> {data['ups']} "
+                    f"<:downvote:818730935829659665> {data['downs']}\n"
+                    f"Upvote ratio: {data['upvote_ratio']}"
+                ))
+        if "mp4" in data["url"]:
+            embed.description = "The filetype of the media is unsupported by Discord."
+        else:
+            embed.set_image(url=data["url"])
+        await ctx.send(embed=embed)
+
+# Meme command
+    @commands.command()
+    @commands.cooldown(1, 15, commands.BucketType.member)
+    async def meme(self, ctx):
+        reddit = self.avimetry.get_command("reddit")
+        await reddit(ctx, subreddit="memes")
+
 
 def setup(avimetry):
     avimetry.add_cog(Fun(avimetry))
