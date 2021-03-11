@@ -6,62 +6,6 @@ class MemberManagement(commands.Cog, name="member management"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
-    # Counter
-    @commands.Cog.listener()
-    async def on_member_join(self, member):
-        refchan = self.avimetry.get_channel(783961111060938782)
-        try:
-            if member.guild.id == refchan.guild.id:
-                channel = self.avimetry.get_channel(783961111060938782)
-                await channel.edit(name=f"Total Members: {member.guild.member_count}")
-
-                channel2 = self.avimetry.get_channel(783960970472456232)
-                true_member_count = len([m for m in member.guild.members if not m.bot])
-                await channel2.edit(name=f"Members: {true_member_count}")
-
-                channel3 = self.avimetry.get_channel(783961050814611476)
-                true_bot_count = len([m for m in member.guild.members if m.bot])
-                await channel3.edit(name=f"Bots: {true_bot_count}")
-        except Exception:
-            return
-
-    @commands.Cog.listener()
-    async def on_member_remove(self, member):
-        lrefchan = self.avimetry.get_channel(783961111060938782)
-        try:
-            if member.guild.id == lrefchan.guild.id:
-                channel = self.avimetry.get_channel(783961111060938782)
-                await channel.edit(name=f"Total Members: {member.guild.member_count}")
-
-                channel2 = self.avimetry.get_channel(783960970472456232)
-                true_member_count = len([m for m in member.guild.members if not m.bot])
-                await channel2.edit(name=f"Members: {true_member_count}")
-
-                channel3 = self.avimetry.get_channel(783961050814611476)
-                true_bot_count = len([m for m in member.guild.members if m.bot])
-                await channel3.edit(name=f"Bots: {true_bot_count}")
-        except Exception:
-            return
-
-    # Update Member Count Command
-    @commands.command(
-        aliases=["updatemc", "umembercount"],
-        brief="Updates the member count if the count gets out of sync.",
-    )
-    @commands.has_permissions(administrator=True)
-    async def refreshcount(self, ctx):
-        channel = self.avimetry.get_channel(783961111060938782)
-        await channel.edit(name=f"Total Members: {channel.guild.member_count}")
-
-        channel2 = self.avimetry.get_channel(783960970472456232)
-        true_member_count = len([m for m in channel.guild.members if not m.bot])
-        await channel2.edit(name=f"Members: {true_member_count}")
-
-        channel3 = self.avimetry.get_channel(783961050814611476)
-        true_bot_count = len([m for m in channel.guild.members if m.bot])
-        await channel3.edit(name=f"Bots: {true_bot_count}")
-        await ctx.send("Member Count Updated.")
-
     # Member Count
     @commands.command(
         aliases=["members", "mc"], brief="Gets the members of the server and shows you."
@@ -75,66 +19,6 @@ class MemberManagement(commands.Cog, name="member management"):
         mce.add_field(name="Bots:", value=f"{tbc} bots", inline=False)
         mce.add_field(name="Total Members:", value=f"{amc} members", inline=False)
         await ctx.send(embed=mce)
-
-    # Role Command
-    @commands.group(invoke_without_command=True, brief="The command you just called")
-    @commands.has_permissions(kick_members=True)
-    async def role(self, ctx):
-        await ctx.send_help("role")
-
-    @role.command(brief="Give a role to a member.")
-    async def add(self, ctx, member: discord.Member, role: discord.Role):
-        await member.add_roles(role)
-        ra = discord.Embed()
-        ra.add_field(
-            name="<:yesTick:777096731438874634> Role Add",
-            value=f"Added {role.mention} to {member.mention}.",
-        )
-        await ctx.send(embed=ra)
-
-    @role.command(brief="Remove a role from a member.")
-    async def remove(self, ctx, member: discord.Member, role: discord.Role):
-        await member.remove_roles(role)
-        rr = discord.Embed()
-        rr.add_field(
-            name="<:yesTick:777096731438874634> Role Remove",
-            value=f"Removed {role.mention} from {member.mention}",
-        )
-        await ctx.send(embed=rr)
-
-    # Nick Command
-    @commands.command(brief="Changes a member's nickname.")
-    @commands.has_permissions(kick_members=True)
-    async def nick(self, ctx, member: discord.Member, *, nick=None):
-        if nick is None:
-            await member.edit(nick=member.name)
-        oldnick = member.display_name
-        await member.edit(nick=nick)
-        newnick = member.display_name
-        nickembed = discord.Embed(
-            title="<:yesTick:777096731438874634> Nickname Changed"
-        )
-        nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
-        nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
-        await ctx.send(embed=nickembed)
-
-    # Self Nick
-    @commands.command(aliases=["snick"], brief="Changes your nick name")
-    @commands.bot_has_permissions(manage_nicknames=True)
-    @commands.cooldown(1, 600, commands.BucketType.member)
-    async def selfnick(self, ctx, *, nick):
-        oldnick = ctx.author.display_name
-        if ctx.guild.id == 751490725555994716:
-            if "avi" in nick.lower():
-                return await ctx.send("You can not have your nickname as avi")
-        await ctx.author.edit(nick=nick)
-        newnick = ctx.author.display_name
-        nickembed = discord.Embed(
-            title="<:yesTick:777096731438874634> Nickname Changed"
-        )
-        nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
-        nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
-        await ctx.send(embed=nickembed)
 
 
 def setup(avimetry):

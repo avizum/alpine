@@ -12,3 +12,7 @@ class TimeZoneError(commands.BadArgument):
 
 class Blacklisted(commands.CheckFailure):
     pass
+
+
+class AvizumsLoungeOnly(commands.CheckFailure):
+    pass
