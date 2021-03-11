@@ -6,9 +6,9 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 
-    def cog_check(ctx):
+    def cog_check(self, ctx):
         if ctx.guild.id != 751490725555994716:
-            raise AvizumsLoungeOnly
+            raise AvizumsLoungeOnly("This command only works in a private server.")
         return True
 
     # Counter
