@@ -8,13 +8,6 @@ import humanize
 from utils.converters import TimeConverter
 
 
-def check(m):
-    def predicate(ctx):
-        if ctx.author == m:
-            print('a')
-        return predicate
-
-
 class Moderation(commands.Cog):
     """
     Moderation commands
@@ -23,8 +16,12 @@ class Moderation(commands.Cog):
         self.avimetry = avimetry
         self.check_mutes.start()
 
-        def cog_unload(self):
-            self.check_mutes.cancel()
+    def cog_unload(self):
+        self.check_mutes.cancel()
+
+    async def check_this(ctx, author, member):
+        if author == member:
+            return await ctx.send("nonono")
 
     # Unmute Loop
     @tasks.loop(minutes=1)
@@ -72,27 +69,32 @@ class Moderation(commands.Cog):
     # Clean Command
     @commands.command(brief="Cleans bot messages", usage="[amount]")
     @commands.has_permissions(manage_messages=True)
-    async def clean(self, ctx, limit=100):
+    async def clean(self, ctx, amount=15, limit=100):
         try:
             await ctx.message.delete()
         except Exception:
             pass
 
-        def avimetrybot(m):
-            return m.author == self.avimetry.user
-
+        message_list = []
+        msg_count = 0
+        async for message in ctx.channel.history(limit=limit):
+            if message.author.id == self.avimetry.user.id:
+                message_list.append(message)
+                msg_count += 1
+                if msg_count >= amount:
+                    break
+            if message.content.lower().startswith(ctx.clean_prefix):
+                message_list.append(message)
         try:
-            await ctx.channel.purge(limit=limit, check=avimetrybot, bulk=True)
+            await ctx.channel.delete_messages(message_list)
         except Exception:
-            async for i in ctx.channel.history(limit=limit):
-                if i.author == self.avimetry.user:
-                    await i.delete()
-        ce = discord.Embed()
-        ce.add_field(
-            name="<:yesTick:777096731438874634> Clean Messages",
-            value="Successfully Cleaned all messaages",
+            for mes in message_list:
+                await mes.delete()
+        clean_embed = discord.Embed(
+            title="Clean Messages",
+            description=f"Successfully deleted {msg_count} messages."
         )
-        await ctx.send(embed=ce)
+        await ctx.send(embed=clean_embed)
 
     # Purge Command
     @commands.group(
@@ -202,134 +204,75 @@ class Moderation(commands.Cog):
     )
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
-    async def kick(
-        self, ctx, member: discord.Member, *, reason="No reason was provided"
-    ):
+    async def kick(self, ctx, member: discord.Member, *, reason=None):
+        if reason is None:
+            reason = f"{ctx.author} ({ctx.author.id}): No reason was provided."
+        else:
+            reason = f"{ctx.author} ({ctx.author.id}): {reason}"
+        kick_embed = discord.Embed(
+            title="Kick Member"
+        )
         if member == ctx.message.author:
-            e1 = discord.Embed()
-            e1.add_field(
-                name="<:noTick:777096756865269760> No Permission",
-                value="You can't kick yourself. That's just stupid.",
-            )
-            await ctx.send(embed=e1, delete_after=10)
+            kick_embed.description = "You can not kick yourself, That would be stupid."
+            return await ctx.send(embed=kick_embed, delete_after=10)
         elif member == self.avimetry.user:
-            e2 = discord.Embed()
-            e2.add_field(
-                name="<:noTick:777096756865269760> No Permission",
-                value="You can't kick me, because that won't work.",
-            )
-            await ctx.send(embed=e2, delete_after=10)
-        elif member.top_role > ctx.author.top_role:
-            e3 = discord.Embed()
-            e3.add_field(
-                name="<:noTick:777096756865269760> No Permission",
-                value="You can not kick someone that has a higher role than you. They must have a role under you.",
-                inline=False,
-            )
-            await ctx.send(embed=e3, delete_after=10)
-        elif member.top_role == ctx.author.top_role:
-            e4 = discord.Embed()
-            e4.add_field(
-                name="<:noTick:777096756865269760> No Permission",
-                value="You can not kick someone that has the same role as you. They must have a role under you.",
-                inline=False,
-            )
-            await ctx.send(embed=e4, delete_after=10)
+            kick_embed.description = "You can not kick me because I can't kick myself."
+            return await ctx.send(embed=kick_embed, delete_after=10)
+        elif ctx.author.top_role <= member.top_role:
+            kick_embed.description = "You can not kick someone with a role equal or greater than your role"
+            return await ctx.send(embed=kick_embed, delete_after=10)
         else:
             try:
-                bae = discord.Embed(
-                    title=f"You have been kicked from {ctx.guild.name}",
+                dm_embed = discord.Embed(
+                    title="Moderation action: Kick",
+                    description=f"You were kicked from **{ctx.guild.name}** by **{ctx.author}**",
                     timestamp=datetime.datetime.utcnow(),
                 )
-                bae.add_field(
-                    name="Moderator:", value=f"{ctx.author.name} \n`{ctx.author.id}`"
-                )
-                bae.add_field(name="Reason:", value=f"{reason}")
-                await member.send(embed=bae)
+                await member.send(embed=dm_embed)
                 await member.kick(reason=reason)
-                kickembed = discord.Embed()
-                kickembed.add_field(
-                    name="<:yesTick:777096731438874634> Kick Member",
-                    value=f"**{member}** has been kicked from the server.",
-                    inline=False,
-                )
-                await ctx.send(embed=kickembed)
+                kick_embed.description = f"**{str(member)}** has been kicked from the server."
+                await ctx.send(embed=kick_embed)
             except discord.HTTPException:
                 await member.kick(reason=reason)
-                kickembed = discord.Embed()
-                kickembed.add_field(
-                    name="<:yesTick:777096731438874634> Kick Member",
-                    value=f"**{member}** has been kicked from the server, but I could not DM them.",
-                    inline=False,
-                )
-                await ctx.send(embed=kickembed)
+                kick_embed.description = f"**{str(member)}** has been kicked from the server, but I could not DM them.",
+                await ctx.send(embed=kick_embed)
 
     # Ban Command
     @commands.command(brief="Bans a member from the server", usage="<member> [reason]")
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def ban(
-        self, ctx, member: discord.Member, *, reason="No reason was provided"
-    ):
+    async def ban(self, ctx, member: discord.Member, *, reason=None):
+        if reason is None:
+            reason = f"{ctx.author} ({ctx.author.id}): No reason was provided."
+        else:
+            reason = f"{ctx.author} ({ctx.author.id}): {reason}"
+        ban_embed = discord.Embed(
+            title="Ban Member"
+        )
         if member == ctx.message.author:
-            mecma = discord.Embed()
-            mecma.add_field(
-                name="<:noTick:777096756865269760> No Permission",
-                value="You can't ban yourself. That's just stupid.",
-            )
-            await ctx.send(embed=mecma)
+            ban_embed.description = "You can not ban yourself, That would be stupid."
+            return await ctx.send(embed=ban_embed, delete_after=10)
         elif member == self.avimetry.user:
-            msau = discord.Embed()
-            msau.add_field(
-                name="<:noTick:777096756865269760> No Permission",
-                value="You can't ban me, because that won't work.",
-            )
-            await ctx.send(embed=msau)
-        elif member.top_role > ctx.author.top_role:
-            mtrgratr = discord.Embed()
-            mtrgratr.add_field(
-                name="<:noTick:777096756865269760> No Permission",
-                value="You can not ban someone that has a higher role than you. They must have a role under you.",
-                inline=False,
-            )
-            await ctx.send(embed=mtrgratr)
-        elif member.top_role == ctx.author.top_role:
-            mtretatr = discord.Embed()
-            mtretatr.add_field(
-                name="<:noTick:777096756865269760> No Permission",
-                value="You can not ban someone that has the same role as you. They must have a role under you.",
-                inline=False,
-            )
-            await ctx.send(embed=mtretatr)
+            ban_embed.description = "You can not ban me because I can't kick myself."
+            return await ctx.send(embed=ban_embed, delete_after=10)
+        elif ctx.author.top_role <= member.top_role:
+            ban_embed.description = "You can not ban someone with a role equal or greater than your role"
+            return await ctx.send(embed=ban_embed, delete_after=10)
         else:
             try:
-                bae = discord.Embed(
-                    title=f"You have been banned from {ctx.guild.name}",
+                dm_embed = discord.Embed(
+                    title="Moderation action: Ban",
+                    description=f"You were banned from **{ctx.guild}** by **{ctx.author}**",
                     timestamp=datetime.datetime.utcnow(),
                 )
-                bae.add_field(
-                    name="Moderator:", value=f"{ctx.author.mention} \n`{ctx.author.id}`"
-                )
-                bae.add_field(name="Reason:", value=f"{reason}")
-                await member.send(embed=bae)
+                await member.send(embed=dm_embed)
                 await member.ban(reason=reason)
-                banembed = discord.Embed()
-                banembed.add_field(
-                    name="<:yesTick:777096731438874634> Ban Member",
-                    value=f"{member.mention} (`{member.id}`) has been banned from **{ctx.guild.name}**.",
-                    inline=False,
-                )
-                await ctx.send(embed=banembed)
+                ban_embed.description = f"**{str(member)}** has been banned from the server."
+                await ctx.send(embed=ban_embed)
             except discord.HTTPException:
                 await member.ban(reason=reason)
-                banembed = discord.Embed()
-                banembed.add_field(
-                    name="<:yesTick:777096731438874634> Ban Member",
-                    value=f"{member.mention} (`{member.id}`) has been banned from **{ctx.guild.name}**, \
-                        but I could not DM them.",
-                    inline=False,
-                )
-                await ctx.send(embed=banembed)
+                ban_embed.description = f"**{str(member)}** has been banned from the server, but I could not DM them.",
+                await ctx.send(embed=ban_embed)
 
     # Unban Command
     @commands.command(
@@ -385,7 +328,9 @@ class Moderation(commands.Cog):
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
     async def mute(self, ctx, member: discord.Member, *, time: TimeConverter = None):
-        if time < 300:
+        if time is None:
+            pass
+        elif time < 300:
             return await ctx.send("The minumum mute time is 5 minutes.")
         elif time > 604800:
             return await ctx.send("The maximum mute time is 7 days.")
@@ -427,37 +372,11 @@ class Moderation(commands.Cog):
             )
             await ctx.send(embed=unlimited_mute)
         else:
-            minutes, seconds = divmod(time, 60)
-            hours, minutes = divmod(minutes, 60)
-            days, hours = divmod(hours, 24)
-            if int(days):
-                mute_days = discord.Embed()
-                mute_days.add_field(
-                    name="<:yesTick:777096731438874634> Muted Member",
-                    value=f"{member.mention} was muted for {days} days, and {hours} hours.",
-                )
-                await ctx.send(embed=mute_days)
-            elif int(hours):
-                mute_hours = discord.Embed()
-                mute_hours.add_field(
-                    name="<:yesTick:777096731438874634> Muted Member",
-                    value=f"{member.mention} was muted for {hours} hours, and {minutes} minutes.",
-                )
-                await ctx.send(embed=mute_hours)
-            elif int(minutes):
-                mute_minutes = discord.Embed()
-                mute_minutes.add_field(
-                    name="<:yesTick:777096731438874634> Muted Member",
-                    value=f"{member.mention} was muted for {minutes} minutes and {seconds} seconds",
-                )
-                await ctx.send(embed=mute_minutes)
-            elif int(seconds):
-                mute_seconds = discord.Embed()
-                mute_seconds.add_field(
-                    name="<:yesTick:777096731438874634> Muted Member",
-                    value=f"{member.mention} was muted for {seconds} seconds",
-                )
-                await ctx.send(embed=mute_seconds)
+            mute_embed = discord.Embed(
+                title="Member Muted",
+                description=f"{member.mention} has been muted for {humanize.naturaldelta(time)}"
+            )
+            await ctx.send(embed=mute_embed)
 
         if time and time < 300:
             await asyncio.sleep(time)
@@ -499,6 +418,66 @@ class Moderation(commands.Cog):
 
         await member.remove_roles(role)
         await ctx.send(f"Unmuted {member.display_name}")
+
+    # Role Command
+    @commands.group(invoke_without_command=True, brief="The command you just called")
+    @commands.has_permissions(manage_roles=True)
+    async def role(self, ctx):
+        await ctx.send_help("role")
+
+    @role.command(brief="Give a role to a member.")
+    async def add(self, ctx, member: discord.Member, role: discord.Role):
+        await member.add_roles(role)
+        ra = discord.Embed()
+        ra.add_field(
+            name="<:yesTick:777096731438874634> Role Add",
+            value=f"Added {role.mention} to {member.mention}.",
+        )
+        await ctx.send(embed=ra)
+
+    @role.command(brief="Remove a role from a member.")
+    async def remove(self, ctx, member: discord.Member, role: discord.Role):
+        await member.remove_roles(role)
+        rr = discord.Embed()
+        rr.add_field(
+            name="<:yesTick:777096731438874634> Role Remove",
+            value=f"Removed {role.mention} from {member.mention}",
+        )
+        await ctx.send(embed=rr)
+
+    # Nick Command
+    @commands.command(brief="Changes a member's nickname.")
+    @commands.has_permissions(kick_members=True)
+    async def nick(self, ctx, member: discord.Member, *, nick=None):
+        if nick is None:
+            await member.edit(nick=member.name)
+        oldnick = member.display_name
+        await member.edit(nick=nick)
+        newnick = member.display_name
+        nickembed = discord.Embed(
+            title="<:yesTick:777096731438874634> Nickname Changed"
+        )
+        nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
+        nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
+        await ctx.send(embed=nickembed)
+
+    # Self Nick
+    @commands.command(aliases=["snick"], brief="Changes your nick name")
+    @commands.bot_has_permissions(manage_nicknames=True)
+    @commands.cooldown(1, 600, commands.BucketType.member)
+    async def selfnick(self, ctx, *, nick):
+        oldnick = ctx.author.display_name
+        if ctx.guild.id == 751490725555994716:
+            if "avi" in nick.lower():
+                return await ctx.send("You can not have your nickname as avi")
+        await ctx.author.edit(nick=nick)
+        newnick = ctx.author.display_name
+        nickembed = discord.Embed(
+            title="<:yesTick:777096731438874634> Nickname Changed"
+        )
+        nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
+        nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
+        await ctx.send(embed=nickembed)
 
 
 def setup(avimetry):

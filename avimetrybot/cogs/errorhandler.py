@@ -109,7 +109,10 @@ class ErrorHandler(commands.Cog):
                 pass
             a = discord.Embed(
                 title="Missing Arguments",
-                description=f"You need to put the `{error.param.name}` parameter to run this command",
+                description=(
+                    f"You need to put the `{error.param.name}` parameter to run this command\n"
+                    f"If you need help, use `{ctx.clean_prefix}help {ctx.invoked_with}`"
+                    ),
                 color=discord.Color.red(),
             )
             await ctx.send(embed=a)
