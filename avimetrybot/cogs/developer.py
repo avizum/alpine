@@ -241,10 +241,11 @@ class Owner(commands.Cog):
 
     @dev.command()
     @commands.is_owner()
-    async def unblacklist(self, ctx, *, user: discord.Member):
-        await self.avimetry.blacklist.delete(user.id)
-        self.avimetry.blacklisted_users.pop(user.id)
-        await ctx.send(f"Unblacklisted {str(user)}")
+    async def unblacklist(self, ctx, *, user: commands.Greedy[discord.Member]):
+        for user_id in user:
+            await self.avimetry.blacklist.delete(user_id.id)
+            self.avimetry.blacklisted_users.pop(user_id.id)
+            await ctx.send(f"Unblacklisted {str(user)}")
 
 
 def setup(avimetry):
