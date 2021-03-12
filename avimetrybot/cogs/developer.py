@@ -241,7 +241,7 @@ class Owner(commands.Cog):
 
     @dev.command()
     @commands.is_owner()
-    async def unblacklist(self, ctx, *, user: commands.Greedy[discord.Member]):
+    async def unblacklist(self, ctx, user: commands.Greedy[discord.Member]):
         for user_id in user:
             await self.avimetry.blacklist.delete(user_id.id)
             self.avimetry.blacklisted_users.pop(user_id.id)
