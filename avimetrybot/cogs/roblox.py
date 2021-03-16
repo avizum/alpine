@@ -2,9 +2,10 @@ import requests
 import discord
 import asyncio
 from discord.ext import commands, tasks
+from roblox_py import Client
 
 
-class RobloxUpdate(commands.Cog, name="Roblox Update"):
+class RobloxUpdate(commands.Cog, name="Roblox"):
     """
     Roblox related commands.
     """
@@ -49,6 +50,7 @@ class RobloxUpdate(commands.Cog, name="Roblox Update"):
     # Roblox Version Command
     @commands.command(
         aliases=["rblxver", "rversion"], brief="Gets the current ROBLOX version.",
+        hidden=True
     )
     async def robloxversion(self, ctx):
         if ctx.guild.id == 751490725555994716:
@@ -64,7 +66,8 @@ class RobloxUpdate(commands.Cog, name="Roblox Update"):
             return await ctx.send("This command is for a private server.")
 
     @commands.command(
-        brief="Get pinged if you want to know when a ROBLOX update arrives."
+        brief="Get pinged if you want to know when a ROBLOX update arrives.",
+        hidden=True
     )
     async def updateping(self, ctx):
         if ctx.guild.id == 751490725555994716:
@@ -88,6 +91,19 @@ class RobloxUpdate(commands.Cog, name="Roblox Update"):
                 await ctx.send(embed=ru)
         else:
             return await ctx.send("This command is for a private server.")
+
+    @commands.group(
+        invoke_without_command=True
+    )
+    async def roblox(self, ctx):
+        await ctx.send_help("roblox")
+
+    @roblox.command()
+    async def user(self, ctx, user):
+        client = Client()
+        user = await client.get_user_by_name(user)
+        lisst = tuple(await user.friends())
+        print("\n".join(lisst))
 
 
 def setup(avimetry):

@@ -97,7 +97,7 @@ class ErrorHandler(commands.Cog):
         elif isinstance(error, commands.NotOwner):
             no = discord.Embed(
                 title="Missing Permissions",
-                description="You need the following permissions to run this command:\n`bot owner`",
+                description="You need to be bot owner to run this command.",
                 color=discord.Color.red(),
             )
             await ctx.send(embed=no)
@@ -126,22 +126,24 @@ class ErrorHandler(commands.Cog):
             await ctx.send(embed=ba)
 
         elif isinstance(error, commands.TooManyArguments):
-            await ctx.send(f"{error}")
+            many_arguments = discord.Embed(
+                title="Too many arguments",
+                description=error,
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=many_arguments)
 
         elif isinstance(error, commands.NoPrivateMessage):
-            NoPrivate = discord.Embed(color=discord.Color.red())
-            NoPrivate.add_field(
-                name="<:noTick:777096756865269760> No commands in Direct Messages",
-                value="Commands do not work in DMs. They only work in guilds/servers.",
-            )
-            await ctx.send(embed=NoPrivate)
+            return
 
         elif isinstance(error, commands.MaxConcurrencyReached):
-            max_uses = discord.Embed(color=discord.Color.red())
-            max_uses.add_field(
-                name="<:noTick:777096756865269760> Max Concurrency Reached",
-                value="Sorry, is at it's max concurrency. Please try again later.",
-            )
+            max_uses = discord.Embed(
+                title="Slow down",
+                description=(
+                    f"This command can only be used {error.number} "
+                    f"{'time' if error.number == 1 else 'times'} per {error.per.name}."),
+                color=discord.Color.red()
+                )
             await ctx.send(embed=max_uses)
         else:
             ctx.command.reset_cooldown(ctx)
@@ -151,14 +153,13 @@ class ErrorHandler(commands.Cog):
                     type(error), error, error.__traceback__
                 )
             )
-            print(
-                "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
-            )
+            print("Ignoring exception in command {}:".format(ctx.command), file=sys.stderr)
             traceback.print_exception(
                 type(error), error, error.__traceback__, file=sys.stderr
             )
             ee = discord.Embed(
-                color=discord.Color.red(), timestamp=datetime.datetime.utcnow()
+                color=discord.Color.red(),
+                timestamp=datetime.datetime.utcnow()
             )
             short_exception = "".join(
                 traceback.format_exception_only(type(error), error)
@@ -168,17 +169,15 @@ class ErrorHandler(commands.Cog):
             )
             ee.title = "Unknown Error"
             ee.description = (
-                "Oh no, an unknown error has occured. The error was logged and will be fixed soon."
-                f"\n\n```{short_exception}```"
+                "An unknown error has occured. This usually means that avi did not do something right. "
+                "The error was sent to the [support server](https://dis.gd/threads) and will be fixed soon."
+                f"\n\nError:\n```py\n{short_exception}```"
             )
             try:
                 await ctx.send(embed=ee)
                 chanel = self.avimetry.get_channel(797362270593613854)
-                ff = discord.Embed(
-                    title=f"{self.avimetry.user.name} Error",
-                    description=f"```{short_exception}``\n{str(myst_exception)}",
-                )
-                await chanel.send(embed=ff)
+                await chanel.send(f"```{long_exception}```\n{str(myst_exception)}",)
+                return
             except Exception:
                 return
 

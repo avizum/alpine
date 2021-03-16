@@ -13,17 +13,18 @@ class Owner(commands.Cog):
     def cog_unload(self):
         self.avimetry.load_extension("cogs.owner")
 
+    async def cog_check(self, ctx):
+        return await self.avimetry.is_owner(ctx.author)
+
     @commands.group(
         invoke_without_command=True,
         hidden=True
     )
-    @commands.is_owner()
     async def dev(self, ctx):
         await ctx.send_help("dev")
 
     # Load Command
     @dev.command(brief="Loads a module if it was disabled.")
-    @commands.is_owner()
     async def load(self, ctx, extension=None):
         if extension is None:
             embed = discord.Embed(
@@ -61,7 +62,6 @@ class Owner(commands.Cog):
 
     # Unload Command
     @dev.command(brief="Unloads a module if it is being abused.")
-    @commands.is_owner()
     async def unload(self, ctx, extension=None):
         if extension is None:
             embed = discord.Embed(
@@ -100,7 +100,6 @@ class Owner(commands.Cog):
     @dev.command(
         brief="Reloads a module if it is not working.", usage="[extension]"
     )
-    @commands.is_owner()
     async def reload(self, ctx, module):
         if module == "~":
             embed = discord.Embed(
@@ -138,13 +137,11 @@ class Owner(commands.Cog):
             await ctx.send(embed=reload_fail)
 
     @dev.command()
-    @commands.is_owner()
     async def prefixless(self, ctx, toggle: bool):
         await ctx.message.add_reaction(self.avimetry.emoji_dictionary["YesTick"])
         self.avimetry.devmode = toggle
 
     @dev.command(brief="Pulls from GitHub and then reloads all modules")
-    @commands.is_owner()
     async def sync(self, ctx):
         sync_embed = discord.Embed(
             title="Syncing with GitHub", description="Please Wait..."
@@ -169,7 +166,6 @@ class Owner(commands.Cog):
 
     # Reboot Command
     @dev.command(brief="Reboot the bot")
-    @commands.is_owner()
     async def reboot(self, ctx):
         sm = discord.Embed()
         sm.add_field(
@@ -223,13 +219,11 @@ class Owner(commands.Cog):
 
     # Leave command
     @dev.command()
-    @commands.is_owner()
     async def leave(self, ctx):
         await ctx.send("Okay bye")
         await ctx.guild.leave()
 
     @dev.command()
-    @commands.is_owner()
     async def blacklist(self, ctx, *, user: discord.Member):
         data = {
             "_id": user.id,
@@ -240,7 +234,6 @@ class Owner(commands.Cog):
         await ctx.send(f"Blacklisted {str(user)}")
 
     @dev.command()
-    @commands.is_owner()
     async def unblacklist(self, ctx, user: commands.Greedy[discord.Member]):
         for user_id in user:
             await self.avimetry.blacklist.delete(user_id.id)
