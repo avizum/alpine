@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 
-class MemberManagement(commands.Cog, name="member management"):
+class MemberManagement(commands.Cog, name="Member Management"):
     def __init__(self, avimetry):
         self.avimetry = avimetry
 

@@ -10,7 +10,7 @@ from utils.converters import TimeConverter
 
 class Moderation(commands.Cog):
     """
-    Moderation commands
+    Moderation commands.
     """
     def __init__(self, avimetry):
         self.avimetry = avimetry
@@ -18,10 +18,6 @@ class Moderation(commands.Cog):
 
     def cog_unload(self):
         self.check_mutes.cancel()
-
-    async def check_this(ctx, author, member):
-        if author == member:
-            return await ctx.send("nonono")
 
     # Unmute Loop
     @tasks.loop(minutes=1)
@@ -249,6 +245,7 @@ class Moderation(commands.Cog):
         ban_embed = discord.Embed(
             title="Ban Member"
         )
+        ban_embed.color = discord.Color.red()
         if member == ctx.message.author:
             ban_embed.description = "You can not ban yourself, That would be stupid."
             return await ctx.send(embed=ban_embed, delete_after=10)
@@ -259,6 +256,7 @@ class Moderation(commands.Cog):
             ban_embed.description = "You can not ban someone with a role equal or greater than your role"
             return await ctx.send(embed=ban_embed, delete_after=10)
         else:
+            ban_embed.color = discord.Color.green()
             try:
                 dm_embed = discord.Embed(
                     title="Moderation action: Ban",
@@ -266,11 +264,11 @@ class Moderation(commands.Cog):
                     timestamp=datetime.datetime.utcnow(),
                 )
                 await member.send(embed=dm_embed)
-                await member.ban(reason=reason)
+                # await member.ban(reason=reason)
                 ban_embed.description = f"**{str(member)}** has been banned from the server."
                 await ctx.send(embed=ban_embed)
             except discord.HTTPException:
-                await member.ban(reason=reason)
+                # await member.ban(reason=reason)
                 ban_embed.description = f"**{str(member)}** has been banned from the server, but I could not DM them.",
                 await ctx.send(embed=ban_embed)
 
@@ -454,24 +452,6 @@ class Moderation(commands.Cog):
         oldnick = member.display_name
         await member.edit(nick=nick)
         newnick = member.display_name
-        nickembed = discord.Embed(
-            title="<:yesTick:777096731438874634> Nickname Changed"
-        )
-        nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
-        nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
-        await ctx.send(embed=nickembed)
-
-    # Self Nick
-    @commands.command(aliases=["snick"], brief="Changes your nick name")
-    @commands.bot_has_permissions(manage_nicknames=True)
-    @commands.cooldown(1, 600, commands.BucketType.member)
-    async def selfnick(self, ctx, *, nick):
-        oldnick = ctx.author.display_name
-        if ctx.guild.id == 751490725555994716:
-            if "avi" in nick.lower():
-                return await ctx.send("You can not have your nickname as avi")
-        await ctx.author.edit(nick=nick)
-        newnick = ctx.author.display_name
         nickembed = discord.Embed(
             title="<:yesTick:777096731438874634> Nickname Changed"
         )

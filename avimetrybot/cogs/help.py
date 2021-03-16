@@ -1,30 +1,11 @@
 import discord
 from discord.ext import commands
-import os
-import pathlib
 from difflib import get_close_matches
 import traceback
 import humanize
 
 
 class HelpEmbeded(commands.HelpCommand):
-    def get_files(self):
-        total = 0
-        file_amount = 0
-        ENV = "env"
-        for path, _, files in os.walk("."):
-            for name in files:
-                file_dir = str(pathlib.PurePath(path, name))
-                if not name.endswith(".py") or ENV in file_dir:
-                    continue
-                file_amount += 1
-                with open(file_dir, "r", encoding="utf-8") as file:
-                    for line in file:
-                        if not line.strip().startswith("#") or not line.strip():
-                            total += 1
-        return (f"is a bot that is spread out across **{file_amount}** python files, "
-                f"with a total of **{total}** lines of code.")
-
     async def get_bot_perms(self, command):
         user_perms = []
         try:
@@ -37,7 +18,7 @@ class HelpEmbeded(commands.HelpCommand):
             try:
                 for i in frame.f_locals['perms']:
                     user_perms.append(i)
-                return "\n".join(user_perms)
+                return ", ".join(user_perms).replace("_", " ").title()
             except KeyError:
                 return None
 
@@ -53,7 +34,7 @@ class HelpEmbeded(commands.HelpCommand):
             try:
                 for i in frame.f_locals['perms']:
                     user_perms.append(i)
-                return "\n".join(user_perms)
+                return ", ".join(user_perms).replace("_", " ").title()
             except KeyError:
                 return None
 
@@ -80,17 +61,6 @@ class HelpEmbeded(commands.HelpCommand):
             "[argument...] = accepts multiple arguments"
         )
 
-    def gcommand_signature(self, command):
-        parent = command.full_parent_name
-        if len(command.aliases) > 0:
-            name_alias = f'{command.name} | {" | ".join(command.aliases)}'
-            if parent:
-                name_alias = f"{parent} {name_alias}"
-            alias = name_alias
-        else:
-            alias = command.name if not parent else f"{parent} {command.name}"
-        return f"{alias} {command.signature}"
-
     async def send_error_message(self, error):
         embed = discord.Embed(
             title="Help Menu", description=error, color=discord.Color.red()
@@ -107,8 +77,7 @@ class HelpEmbeded(commands.HelpCommand):
         embed = discord.Embed(
             title="Help Menu",
             description=(
-                f"{self.context.bot.user.name} {self.get_files()}\n\n```{self.bnote()}```\n"
-                "Do not put the brackets with the command. It is not needed.\n\n"
+                f"```{self.bnote()}```\nDo not put the brackets with the command. It is not needed.\n\n"
                 f"The prefix for **{self.get_destination().guild.name}** is {det_prefix}"
             ),
         )
@@ -160,16 +129,22 @@ class HelpEmbeded(commands.HelpCommand):
         )
         embed.add_field(
             name="Base command usage",
-            value=f"`{self.clean_prefix}{group.qualified_name}`"
+            value=(
+                f"`{self.clean_prefix}{group.qualified_name} {group.signature if group.signature is not None else ''}`"
+                )
         )
         embed.add_field(
             name="Command Aliases",
             value=", ".join(group.aliases) or None,
             inline=False
         )
+        can_run_check = await group.can_run(self.context)
+        if can_run_check:
+            can_run = self.context.bot.emoji_dictionary["YesTick"]
         embed.add_field(
             name="Required Permissions",
             value=(
+                f"Can Use: {can_run}\n"
                 f"Bot Permissions: `{await self.get_bot_perms(group)}`\n"
                 f"User Permissions: `{await self.get_user_perms(group)}`"
             ),
@@ -217,9 +192,13 @@ class HelpEmbeded(commands.HelpCommand):
             inline=True,
         )
 
+        can_run_check = await command.can_run(self.context)
+        if can_run_check:
+            can_run = self.context.bot.emoji_dictionary["YesTick"]
         embed.add_field(
             name="Required Permissions",
             value=(
+                f"Can Use: {can_run}\n"
                 f"Bot Permissions: `{await self.get_bot_perms(command)}`\n"
                 f"User Permissions: `{await self.get_user_perms(command)}`"
             ),

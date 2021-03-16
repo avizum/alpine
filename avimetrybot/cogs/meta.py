@@ -202,8 +202,10 @@ class Meta(commands.Cog):
         data = await self.avimetry.bot_users.find(member.id)
         try:
             timezone = data[str("time_zone")]
+        except TypeError:
+            return await ctx.send(f"{member} did not set their time zone yet.")
         except KeyError:
-            return await ctx.send("That user does not have a time zone set.")
+            return await ctx.send("You do not have a time zone setup yet.")
         timezone = pytz.timezone(timezone)
         time = datetime.datetime.now(timezone)
         format_time = time.strftime("%A, %B %d at %I:%M %p")
@@ -221,6 +223,9 @@ class Meta(commands.Cog):
     @time.command(brief="Sets your timezone")
     async def set(self, ctx, *, timezone):
         try:
+            if timezone.lower() == "none":
+                await self.avimetry.bot_users.unset({"_id": ctx.author.id, "time_zone": ""})
+                return await ctx.send("Removed timezone")
             timezones = pytz.timezone(timezone)
         except KeyError:
             raise TimeZoneError(timezone)
@@ -243,12 +248,6 @@ class Meta(commands.Cog):
             description=f"Here is the message link. [jump]({messages[0].jump_url})\n\n>>> {mg_cnt}",
         )
         await ctx.send(embed=embed_message)
-
-    @commands.command()
-    @commands.bot_has_permissions(manage_messages=True)
-    @commands.has_permissions(administrator=True, kick_members=True, ban_members=True)
-    async def testingcommand(self, ctx):
-        await ctx.send("esea")
 
 
 def setup(avimetry):

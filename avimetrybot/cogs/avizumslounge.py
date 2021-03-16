@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 from utils.errors import AvizumsLoungeOnly
 
@@ -48,6 +49,33 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
         except Exception:
             return
 
+    @commands.Cog.listener("on_voice_state_update")
+    async def vs_update(self, member, before, after):
+        if member.guild.id != 751490725555994716:
+            return
+        try:
+            if after.channel is None:
+                channel = discord.utils.get(member.guild.text_channels, name=f"vc-{before.channel.name}")
+                await channel.set_permissions(member, overwrite=None)
+                return
+            else:
+                if before.channel:
+                    before_channel = discord.utils.get(member.guild.text_channels, name=f"vc-{before.channel.name}")
+                    await before_channel.set_permissions(member, overwrite=None)
+
+                channel = discord.utils.get(member.guild.text_channels, name=f"vc-{after.channel.name}")
+                if channel is None:
+                    return
+
+                if after.channel.name == channel.name[3:]:
+                    overwrites = discord.PermissionOverwrite()
+                    overwrites.read_messages = True
+                    overwrites.read_message_history = True
+                    await channel.set_permissions(member, overwrite=overwrites)
+
+        except Exception:
+            return
+
     # Update Member Count Command
     @commands.command(
         aliases=["updatemc", "umembercount"],
@@ -66,6 +94,24 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
         true_bot_count = len([m for m in channel.guild.members if m.bot])
         await channel3.edit(name=f"Bots: {true_bot_count}")
         await ctx.send("Member Count Updated.")
+
+    # Self Nick
+    @commands.command(aliases=["snick"], brief="Changes your nick name")
+    @commands.bot_has_permissions(manage_nicknames=True)
+    @commands.cooldown(1, 600, commands.BucketType.member)
+    async def selfnick(self, ctx, *, nick):
+        oldnick = ctx.author.display_name
+        if ctx.guild.id == 751490725555994716:
+            if "avi" in nick.lower():
+                return await ctx.send("You can not have your nickname as avi")
+        await ctx.author.edit(nick=nick)
+        newnick = ctx.author.display_name
+        nickembed = discord.Embed(
+            title="<:yesTick:777096731438874634> Nickname Changed"
+        )
+        nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
+        nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
+        await ctx.send(embed=nickembed)
 
 
 def setup(avimetry):
