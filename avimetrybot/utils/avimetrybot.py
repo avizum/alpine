@@ -69,13 +69,13 @@ class AvimetryBot(commands.Bot):
         self.commands_ran = 0
         self.devmode = False
         self.emoji_dictionary = {
-            "NoTick": '<:noTick:777096756865269760>',
-            "YesTick": '<:yesTick:777096731438874634>',
-            "StatusOnline": '<:status_online:810683593193029642>',
-            "StatusIdle": '<:status_idle:810683571269664798>',
-            "StatusDND": '<:status_dnd:810683560863989805>',
-            "StatusOffline": '<:status_offline:810683581541515335',
-            "StatusStreaming": '<:status_streaming:810683604812169276>'
+            "red_tick": '<:noTick:777096756865269760>',
+            "green_tick": '<:yesTick:777096731438874634>',
+            "status_online": '<:status_online:810683593193029642>',
+            "status_idle": '<:status_idle:810683571269664798>',
+            "status_dnd": '<:status_dnd:810683560863989805>',
+            "status_offline": '<:status_offline:810683581541515335',
+            "status_streaming": '<:status_streaming:810683604812169276>'
         }
 
         # API Variables

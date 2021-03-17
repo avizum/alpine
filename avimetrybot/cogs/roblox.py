@@ -22,12 +22,13 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
             "http://setup.roblox.com/version"
         ) as old_version:
             a = await old_version.text()
-        await asyncio.sleep(1)
+        await asyncio.sleep(10)
         async with self.avimetry.session.get(
             "http://setup.roblox.com/version"
         ) as new_version:
             b = await new_version.text()
         if b != a:
+            print("update!")
             channel = discord.utils.get(
                 self.avimetry.get_all_channels(), name="gaming-announcements"
             )

@@ -23,16 +23,16 @@ class Moderation(commands.Cog):
     # Unmute Loop
     @tasks.loop(minutes=1)
     async def check_mutes(self):
-        currentTime = datetime.datetime.now()
+        current_time = datetime.datetime.now()
         mutes = deepcopy(self.avimetry.muted_users)
         for key, value in mutes.items():
-            if value["muteDuration"] is None:
+            if value["mute_duration"] is None:
                 continue
 
-            unmuteTime = value["mutedAt"] + relativedelta(seconds=value["muteDuration"])
+            unmute_time = value["muted_at"] + relativedelta(seconds=value["mute_duration"])
 
-            if currentTime >= unmuteTime:
-                guild = self.avimetry.get_guild(value["guildId"])
+            if current_time >= unmute_time:
+                guild = self.avimetry.get_guild(value["guild_id"])
                 member = guild.get_member(value["_id"])
 
                 role = discord.utils.get(guild.roles, name="Muted")
@@ -355,10 +355,10 @@ class Moderation(commands.Cog):
             pass
         data = {
             "_id": member.id,
-            "mutedAt": datetime.datetime.now(),
-            "muteDuration": time or None,
-            "mutedBy": ctx.author.id,
-            "guildId": ctx.guild.id,
+            "muted_at": datetime.datetime.now(),
+            "mute_duration": time or None,
+            "moderator": ctx.author.id,
+            "guild_id": ctx.guild.id,
         }
         await self.avimetry.mutes.upsert(data)
         self.avimetry.muted_users[member.id] = data

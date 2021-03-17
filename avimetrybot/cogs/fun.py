@@ -204,7 +204,7 @@ class Fun(commands.Cog):
 
         try:
             reaction, user = await self.avimetry.wait_for(
-                "reaction_add", check=check, timeout=10
+                "reaction_add" or "reaction_remove", check=check, timeout=10
             )
         except asyncio.TimeoutError:
             cookie_embed.set_field_at(
@@ -254,15 +254,10 @@ class Fun(commands.Cog):
         akinator_embed = discord.Embed(
             title="Akinator",
             description=(
-                "Starting akinator session.\n\
-                React with the emojis below to answer.\n\
-                <:Yes:812133712967761951>: Yes\n\
-                <:No:812133712946528316>: No\n\
-                <:IDontKnow:812133713046405230>: I don't know\n\
-                <:Probably:812133712962519100>: Probably\n\
-                <:ProbablyNot:812133712665772113>: Probably Not\n\
-                <:Back:815854941083664454>: Go back\n\
-                If you need more help, click [here](https://gist.github.com/jbkn/8a5b9887d49a1d2740d0b6ad0176dbdb)"
+                "Current Settings:\n"
+                f"Mode: `{mode}`\n"
+                f"Child Mode: {child}\n"
+                "[Here](https://gist.github.com/jbkn/8a5b9887d49a1d2740d0b6ad0176dbdb) are all the options for akinator"
             ),
         )
         async with ctx.channel.typing():
@@ -295,21 +290,33 @@ class Fun(commands.Cog):
                     user != self.avimetry.user
                 )
 
+            done, pending = await asyncio.wait([
+                self.avimetry.wait_for("reaction_remove", check=check, timeout=20),
+                self.avimetry.wait_for("reaction_add", check=check, timeout=20)
+            ], return_when=asyncio.FIRST_COMPLETED)
+
             try:
-                reaction, user = await self.avimetry.wait_for(
-                    "reaction_add", check=check, timeout=20
-                )
+                reaction, user = done.pop().result()
+
             except asyncio.TimeoutError:
-                await initial_messsage.clear_reactions()
-                akinator_embed.description = (
-                    "Akinator session closed because you took too long to answer."
-                )
-                akinator_embed.set_thumbnail(url=discord.Embed.Empty)
-                await initial_messsage.edit(embed=akinator_embed)
-                game_end_early = True
-                break
+                try:
+                    await initial_messsage.clear_reactions()
+                except discord.Forbidden:
+                    pass
+                finally:
+                    akinator_embed.description = (
+                        "Akinator session closed because you took too long to answer."
+                    )
+                    akinator_embed.set_thumbnail(url=discord.Embed.Empty)
+                    await initial_messsage.edit(embed=akinator_embed)
+                    game_end_early = True
+                    return
+
             else:
-                await initial_messsage.remove_reaction(reaction.emoji, user)
+                try:
+                    await initial_messsage.remove_reaction(reaction.emoji, user)
+                except discord.Forbidden:
+                    pass
                 if str(reaction.emoji) == "<:Yes:812133712967761951>":
                     ans = "yes"
                 elif str(reaction.emoji) == "<:No:812133712946528316>":
@@ -327,8 +334,17 @@ class Fun(commands.Cog):
                     akinator_embed.description = "Akinator session stopped."
                     akinator_embed.set_thumbnail(url=discord.Embed.Empty)
                     await initial_messsage.edit(embed=akinator_embed)
-                    await initial_messsage.clear_reactions()
+                    try:
+                        await initial_messsage.clear_reactions()
+                    except discord.Forbidden:
+                        return
                     break
+
+            finally:
+                for future in done:
+                    future.exception()
+                for future in pending:
+                    future.cancel()
 
             if ans == "back":
                 try:
@@ -336,8 +352,13 @@ class Fun(commands.Cog):
                 except akinator.CantGoBackAnyFurther:
                     pass
             else:
+                await asyncio.sleep(.5)
                 q = await aki_client.answer(ans)
-        await initial_messsage.clear_reactions()
+        try:
+            await initial_messsage.clear_reactions()
+        except discord.Forbidden:
+            await initial_messsage.delete()
+            initial_messsage = await ctx.send("Processing...")
         if game_end_early is True:
             return
         await aki_client.win()
@@ -365,9 +386,15 @@ class Fun(commands.Cog):
                 "reaction_add", check=yes_no_check, timeout=60
             )
         except asyncio.TimeoutError:
-            await initial_messsage.clear_reactions()
+            try:
+                await initial_messsage.clear_reactions()
+            except discord.Forbidden:
+                pass
         else:
-            await initial_messsage.clear_reactions()
+            try:
+                await initial_messsage.clear_reactions()
+            except discord.Forbidden:
+                pass
             if str(reaction.emoji) == "<:yesTick:777096731438874634>":
                 akinator_embed.description = (
                     f"{akinator_embed.description}\n\n------\n\nYay!"
@@ -387,6 +414,14 @@ class Fun(commands.Cog):
             return await ctx.send(f"{person1} is 100% compatible with him/herself")
         percent = random.randint(0, 100)
         await ctx.send(f"{person1} + {person2} = {percent}%")
+
+    @commands.command()
+    async def ppsize(self, ctx, member: discord.Member = None):
+        pp_embed = discord.Embed(
+            title=f"{member.name}'s pp size",
+            description=f"8{''.join('=' for i in range(random.randint(0, 12)))}D"
+        )
+        await ctx.send(embed=pp_embed)
 
 # 10 second command
     @commands.command(
