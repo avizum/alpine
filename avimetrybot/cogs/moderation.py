@@ -6,6 +6,7 @@ import asyncio
 import datetime
 import humanize
 from utils.converters import TimeConverter
+import typing
 
 
 class Moderation(commands.Cog):
@@ -237,7 +238,7 @@ class Moderation(commands.Cog):
     @commands.command(brief="Bans a member from the server", usage="<member> [reason]")
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def ban(self, ctx, member: discord.Member, *, reason=None):
+    async def ban(self, ctx, member: typing.Union[discord.User, discord.Member], *, reason=None):
         if reason is None:
             reason = f"{ctx.author} ({ctx.author.id}): No reason was provided."
         else:

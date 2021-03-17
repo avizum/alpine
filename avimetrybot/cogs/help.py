@@ -83,7 +83,7 @@ class HelpEmbeded(commands.HelpCommand):
         )
         modules_list = []
         for cog, command in mapping.items():
-            name = "No Category" if cog is None else cog.qualified_name.title()
+            name = "No Category" if cog is None else cog.qualified_name
             filtered = await self.filter_commands(command, sort=True)
             if filtered:
                 modules_list.append(f"{name} ({len(command)})")

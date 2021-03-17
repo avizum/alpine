@@ -59,12 +59,8 @@ class Verification(commands.Cog):
             name = "New Members"
             category = discord.utils.get(member.guild.categories, name=name)
             overwrites = {
-                member.guild.default_role: discord.PermissionOverwrite(
-                    read_messages=False
-                ),
-                member: discord.PermissionOverwrite(
-                    read_messages=True, send_messages=True, read_message_history=True
-                ),
+                member.guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                member: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True),
             }
             await member.guild.create_text_channel(
                 f"{member.name.lower().replace(' ', '-')}-verification",

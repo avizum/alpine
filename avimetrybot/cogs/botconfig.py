@@ -26,15 +26,12 @@ class BotInfo(commands.Cog, name="Utility"):
         brief="The base config command, use this configure settings",
         aliases=["config", "configuration"]
     )
-    @commands.has_permissions(administrator=True)
-    @commands.bot_has_permissions(administrator=True)
     async def settings(self, ctx):
         await ctx.send_help("config")
 
 # Config Prefix Commnad
     @settings.command(brief="Change the prefix of this server")
     @commands.has_permissions(administrator=True)
-    @commands.bot_has_permissions(administrator=True)
     async def prefix(self, ctx, new_prefix):
         await self.avimetry.config.upsert({"_id": ctx.guild.id, "prefix": new_prefix})
         cp = discord.Embed(

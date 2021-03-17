@@ -1,3 +1,4 @@
+import typing
 import discord
 import os
 import datetime
@@ -14,7 +15,9 @@ class Owner(commands.Cog):
         self.avimetry.load_extension("cogs.owner")
 
     async def cog_check(self, ctx):
-        return await self.avimetry.is_owner(ctx.author)
+        if await self.avimetry.is_owner(ctx.author) is True:
+            return True
+        raise commands.NotOwner("You do not own this bot.")
 
     @commands.group(
         invoke_without_command=True,
@@ -224,21 +227,21 @@ class Owner(commands.Cog):
         await ctx.guild.leave()
 
     @dev.command()
-    async def blacklist(self, ctx, *, user: discord.Member):
+    async def blacklist(self, ctx, *, user: typing.Union[discord.Member, discord.User], reason):
         data = {
             "_id": user.id,
-            "blacklist_time": datetime.datetime.utcnow()
+            "blacklist_time": datetime.datetime.utcnow(),
+            "reason": reason
         }
         await self.avimetry.blacklist.upsert(data)
         self.avimetry.blacklisted_users[user.id] = data
         await ctx.send(f"Blacklisted {str(user)}")
 
     @dev.command()
-    async def unblacklist(self, ctx, user: commands.Greedy[discord.Member]):
-        for user_id in user:
-            await self.avimetry.blacklist.delete(user_id.id)
-            self.avimetry.blacklisted_users.pop(user_id.id)
-            await ctx.send(f"Unblacklisted {str(user)}")
+    async def unblacklist(self, ctx, user: typing.Union[discord.Member, discord.User]):
+        await self.avimetry.blacklist.delete(user.id)
+        self.avimetry.blacklisted_users.pop(user.id)
+        await ctx.send(f"Unblacklisted {str(user)}")
 
 
 def setup(avimetry):
