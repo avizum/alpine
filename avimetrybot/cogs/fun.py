@@ -475,8 +475,13 @@ class Fun(commands.Cog):
     async def mock(self, ctx, *, text: typing.Union[discord.Member, str]):
         if isinstance(text, discord.Member):
             async for message in ctx.channel.history(limit=100):
-                if message.author == text:
-                    print(message)
+                if ctx.author == text:
+                    return await ctx.send("You cant mock yourself")
+                elif message.author == text:
+                    text = message.content
+                    await ctx.send("".join((random.choice([mock.upper, mock.lower])() for mock in text)))
+                    break
+
         else:
             await ctx.send("".join(random.choice([mock.upper, mock.lower])() for mock in text))
 
