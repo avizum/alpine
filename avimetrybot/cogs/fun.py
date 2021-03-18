@@ -367,6 +367,9 @@ class Fun(commands.Cog):
             f"I think it is {aki_client.first_guess['name']} ({aki_client.first_guess['description']})! Was I correct?"
         )
         akinator_embed.set_thumbnail(
+            url=discord.Embed.Empty
+        )
+        akinator_embed.set_image(
             url=f"{aki_client.first_guess['absolute_picture_path']}"
         )
         await initial_messsage.edit(embed=akinator_embed)
@@ -406,6 +409,7 @@ class Fun(commands.Cog):
                 )
                 await initial_messsage.edit(embed=akinator_embed)
 
+# Ship command
     @commands.command()
     async def ship(self, ctx, person1: discord.Member, person2: discord.Member):
         if person1.id == 750135653638865017 or person2.id == 750135653638865017:
@@ -415,6 +419,7 @@ class Fun(commands.Cog):
         percent = random.randint(0, 100)
         await ctx.send(f"{person1} + {person2} = {percent}%")
 
+# PP size command
     @commands.command()
     async def ppsize(self, ctx, member: discord.Member = None):
         pp_embed = discord.Embed(

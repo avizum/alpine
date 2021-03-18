@@ -3,4 +3,4 @@ from config import tokens
 
 if __name__ == "__main__":
     avimetry = AvimetryBot()
-    avimetry.run(tokens["AvimetryBeta"])
+    avimetry.run(tokens["Avimetry"])
