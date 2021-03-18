@@ -140,7 +140,7 @@ class HelpEmbeded(commands.HelpCommand):
         )
         can_run_check = await group.can_run(self.context)
         if can_run_check:
-            can_run = self.context.bot.emoji_dictionary["YesTick"]
+            can_run = self.context.bot.emoji_dictionary["green_tick"]
         embed.add_field(
             name="Required Permissions",
             value=(

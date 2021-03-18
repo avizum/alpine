@@ -1,3 +1,4 @@
+import typing
 import discord
 from discord.ext import commands
 import random
@@ -471,8 +472,13 @@ class Fun(commands.Cog):
 
 # Mock Command
     @commands.command()
-    async def mock(self, ctx, *, text):
-        await ctx.send("".join(random.choice([mock.upper, mock.lower])() for mock in text))
+    async def mock(self, ctx, *, text: typing.Union[discord.Member, str]):
+        if isinstance(text, discord.Member):
+            async for message in ctx.channel.history(limit=100):
+                if message.author == text:
+                    print(message)
+        else:
+            await ctx.send("".join(random.choice([mock.upper, mock.lower])() for mock in text))
 
 # Reddit Command
     @commands.command()
