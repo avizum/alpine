@@ -476,7 +476,7 @@ class Fun(commands.Cog):
         if isinstance(text, discord.Member):
             async for message in ctx.channel.history(limit=100):
                 if ctx.author == text:
-                    return await ctx.send("You cant mock yourself")
+                    return await ctx.send("You can't mock yourself")
                 elif message.author == text:
                     text = message.content
                     await ctx.send("".join((random.choice([mock.upper, mock.lower])() for mock in text)))
