@@ -55,14 +55,7 @@ class Moderation(commands.Cog):
     async def purge(self, ctx, amount: int):
         await ctx.message.delete()
         if amount == 0:
-            pass
-        elif amount > 250:
-            a100 = discord.Embed()
-            a100.add_field(
-                name="<:noTick:777096756865269760> No Permission",
-                value="You can't purge more than 150 messages at a time.",
-            )
-            await ctx.send(embed=a100, delete_after=10)
+            return
         else:
             authors = {}
             async for message in ctx.channel.history(limit=amount):
