@@ -11,13 +11,13 @@ logger.addHandler(handler)
 
 
 class GuildJoin(commands.Cog, name="Auto Setup"):
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
+    def __init__(self, avi):
+        self.avi = avi
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
-        await self.avimetry.config.upsert({"_id": guild.id, "prefix": "a."})
+        await self.avi.config.upsert({"_id": guild.id, "prefix": "a."})
 
 
-def setup(avimetry):
-    avimetry.add_cog(GuildJoin(avimetry))
+def setup(avi):
+    avi.add_cog(GuildJoin(avi))

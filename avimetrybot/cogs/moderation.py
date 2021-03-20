@@ -10,8 +10,8 @@ class Moderation(commands.Cog):
     """
     Moderation commands.
     """
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
+    def __init__(self, avi):
+        self.avi = avi
 
     # Clean Command
     @commands.command(brief="Cleans bot messages", usage="[amount]")
@@ -25,7 +25,7 @@ class Moderation(commands.Cog):
         message_list = []
         msg_count = 0
         async for message in ctx.channel.history(limit=limit):
-            if message.author.id == self.avimetry.user.id:
+            if message.author.id == self.avi.user.id:
                 message_list.append(message)
                 msg_count += 1
                 if msg_count >= amount:
@@ -293,5 +293,5 @@ class Moderation(commands.Cog):
         await ctx.send(f"{member} was tested")
 
 
-def setup(avimetry):
-    avimetry.add_cog(Moderation(avimetry))
+def setup(avi):
+    avi.add_cog(Moderation(avi))

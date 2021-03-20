@@ -4,8 +4,8 @@ from utils.errors import AvizumsLoungeOnly
 
 
 class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
+    def __init__(self, avi):
+        self.avi = avi
 
     def cog_check(self, ctx):
         if ctx.guild.id != 751490725555994716:
@@ -32,17 +32,17 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
             )
             await channel.send(embed=join_message)
 
-        refchan = self.avimetry.get_channel(783961111060938782)
+        refchan = self.avi.get_channel(783961111060938782)
         try:
             if member.guild.id == refchan.guild.id:
-                channel = self.avimetry.get_channel(783961111060938782)
+                channel = self.avi.get_channel(783961111060938782)
                 await channel.edit(name=f"Total Members: {member.guild.member_count}")
 
-                channel2 = self.avimetry.get_channel(783960970472456232)
+                channel2 = self.avi.get_channel(783960970472456232)
                 true_member_count = len([m for m in member.guild.members if not m.bot])
                 await channel2.edit(name=f"Members: {true_member_count}")
 
-                channel3 = self.avimetry.get_channel(783961050814611476)
+                channel3 = self.avi.get_channel(783961050814611476)
                 true_bot_count = len([m for m in member.guild.members if m.bot])
                 await channel3.edit(name=f"Bots: {true_bot_count}")
         except Exception:
@@ -64,17 +64,17 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
                 )
                 await channel.send(embed=lm)
 
-        lrefchan = self.avimetry.get_channel(783961111060938782)
+        lrefchan = self.avi.get_channel(783961111060938782)
         try:
             if member.guild.id == lrefchan.guild.id:
-                channel = self.avimetry.get_channel(783961111060938782)
+                channel = self.avi.get_channel(783961111060938782)
                 await channel.edit(name=f"Total Members: {member.guild.member_count}")
 
-                channel2 = self.avimetry.get_channel(783960970472456232)
+                channel2 = self.avi.get_channel(783960970472456232)
                 true_member_count = len([m for m in member.guild.members if not m.bot])
                 await channel2.edit(name=f"Members: {true_member_count}")
 
-                channel3 = self.avimetry.get_channel(783961050814611476)
+                channel3 = self.avi.get_channel(783961050814611476)
                 true_bot_count = len([m for m in member.guild.members if m.bot])
                 await channel3.edit(name=f"Bots: {true_bot_count}")
         except Exception:
@@ -114,14 +114,14 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
     )
     @commands.has_permissions(administrator=True)
     async def refreshcount(self, ctx):
-        channel = self.avimetry.get_channel(783961111060938782)
+        channel = self.avi.get_channel(783961111060938782)
         await channel.edit(name=f"Total Members: {channel.guild.member_count}")
 
-        channel2 = self.avimetry.get_channel(783960970472456232)
+        channel2 = self.avi.get_channel(783960970472456232)
         true_member_count = len([m for m in channel.guild.members if not m.bot])
         await channel2.edit(name=f"Members: {true_member_count}")
 
-        channel3 = self.avimetry.get_channel(783961050814611476)
+        channel3 = self.avi.get_channel(783961050814611476)
         true_bot_count = len([m for m in channel.guild.members if m.bot])
         await channel3.edit(name=f"Bots: {true_bot_count}")
         await ctx.send("Member Count Updated.")
@@ -145,5 +145,5 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
         await ctx.send(embed=nickembed)
 
 
-def setup(avimetry):
-    avimetry.add_cog(AvizumsLounge(avimetry))
+def setup(avi):
+    avi.add_cog(AvizumsLounge(avi))

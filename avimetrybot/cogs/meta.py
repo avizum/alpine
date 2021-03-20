@@ -12,8 +12,8 @@ class Meta(commands.Cog):
     """
     Commands that do not lie in any category.
     """
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
+    def __init__(self, avi):
+        self.avi = avi
 
     # Poll command
     @commands.command(brief="Launch a poll for users to vote to.")
@@ -146,7 +146,7 @@ class Meta(commands.Cog):
     async def time(self, ctx, *, member: discord.Member = None):
         if member is None:
             member = ctx.author
-        data = await self.avimetry.bot_users.find(member.id)
+        data = await self.avi.bot_users.find(member.id)
         try:
             timezone = data[str("time_zone")]
         except TypeError:
@@ -171,12 +171,12 @@ class Meta(commands.Cog):
     async def set(self, ctx, *, timezone):
         try:
             if timezone.lower() == "none":
-                await self.avimetry.bot_users.unset({"_id": ctx.author.id, "time_zone": ""})
+                await self.avi.bot_users.unset({"_id": ctx.author.id, "time_zone": ""})
                 return await ctx.send("Removed timezone")
             timezones = pytz.timezone(timezone)
         except KeyError:
             raise TimeZoneError(timezone)
-        await self.avimetry.bot_users.upsert(
+        await self.avi.bot_users.upsert(
             {"_id": ctx.author.id, "time_zone": str(timezones)}
         )
         await ctx.send(f"Set timezone to {timezones}")
@@ -197,5 +197,5 @@ class Meta(commands.Cog):
         await ctx.send(embed=embed_message)
 
 
-def setup(avimetry):
-    avimetry.add_cog(Meta(avimetry))
+def setup(avi):
+    avi.add_cog(Meta(avi))

@@ -3,8 +3,8 @@ from discord.ext import commands
 
 
 class MemberManagement(commands.Cog, name="Member Management"):
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
+    def __init__(self, avi):
+        self.avi = avi
 
     # Member Count
     @commands.command(
@@ -21,5 +21,5 @@ class MemberManagement(commands.Cog, name="Member Management"):
         await ctx.send(embed=mce)
 
 
-def setup(avimetry):
-    avimetry.add_cog(MemberManagement(avimetry))
+def setup(avi):
+    avi.add_cog(MemberManagement(avi))

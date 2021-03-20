@@ -10,8 +10,8 @@ from utils.errors import Blacklisted
 
 
 class ErrorHandler(commands.Cog):
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
+    def __init__(self, avi):
+        self.avi = avi
 
     # Command Error
     @commands.Cog.listener()
@@ -35,7 +35,7 @@ class ErrorHandler(commands.Cog):
             await ctx.send(embed=blacklisted)
 
         elif isinstance(error, commands.CommandNotFound):
-            if ctx.author.id in self.avimetry.blacklisted_users:
+            if ctx.author.id in self.avi.blacklisted_users:
                 return
             not_found_embed = discord.Embed(
                 title="Invalid Command", color=discord.Color.red()
@@ -161,7 +161,7 @@ class ErrorHandler(commands.Cog):
             short_exception = "".join(
                 traceback.format_exception_only(type(error), error)
             )
-            myst_exception = await self.avimetry.myst.post(
+            myst_exception = await self.avi.myst.post(
                 long_exception, syntax="python"
             )
             ee.title = "Unknown Error"
@@ -172,12 +172,12 @@ class ErrorHandler(commands.Cog):
             )
             try:
                 await ctx.send(embed=ee)
-                chanel = self.avimetry.get_channel(797362270593613854)
+                chanel = self.avi.get_channel(797362270593613854)
                 await chanel.send(f"```{long_exception}```\n{str(myst_exception)}",)
                 return
             except Exception:
                 return
 
 
-def setup(avimetry):
-    avimetry.add_cog(ErrorHandler(avimetry))
+def setup(avi):
+    avi.add_cog(ErrorHandler(avi))
