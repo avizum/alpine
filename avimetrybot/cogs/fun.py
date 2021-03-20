@@ -479,7 +479,7 @@ class Fun(commands.Cog):
                     return await ctx.send("You can't mock yourself")
                 elif message.author == text:
                     text = message.content
-                    await ctx.send("".join((random.choice([mock.upper, mock.lower])() for mock in text)))
+                    await message.reply("".join((random.choice([mock.upper, mock.lower])() for mock in text)))
                     break
 
         else:
