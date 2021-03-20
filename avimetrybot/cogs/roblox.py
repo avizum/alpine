@@ -103,8 +103,15 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
     async def user(self, ctx, user):
         client = Client()
         user = await client.get_user_by_name(user)
-        lisst = tuple(await user.friends())
-        print("\n".join(lisst))
+        user_embed = discord.Embed(title="Roblox User",)
+        user_embed.add_field(name="Username", value=user.name)
+        user_embed.add_field(name="User ID", value=user.id)
+        user_embed.add_field(name="Join Date", value=user.account_age)
+        user_embed.add_field(name="Amount of Friends", value=await user.friends_count())
+        user_embed.add_field(name="Amount of Followers", value=await user.follower_count())
+        user_embed.add_field(name="Amount of user badges", value=await user.count_roblox_badges())
+        user_embed.set_thumbnail(url=await user.avatar())
+        await ctx.send(embed=user_embed)
 
 
 def setup(avimetry):

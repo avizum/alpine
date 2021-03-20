@@ -15,6 +15,23 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
     # Counter
     @commands.Cog.listener()
     async def on_member_join(self, member):
+
+        if member.guild.id == (751490725555994716):
+            channel = discord.utils.get(member.guild.channels, name="joins-and-leaves")
+            root = member.guild.get_role(813535792655892481)
+            await member.add_roles(root)
+
+        if channel.guild.id == member.guild.id:
+            join_message = discord.Embed(
+                title="Member Joined",
+                description=(
+                    f"Hey **{str(member)}**, Welcome to **{member.guild.name}**!\n"
+                    f"This server now has a total of **{member.guild.member_count}** members."
+                ),
+                color=discord.Color.blurple()
+            )
+            await channel.send(embed=join_message)
+
         refchan = self.avimetry.get_channel(783961111060938782)
         try:
             if member.guild.id == refchan.guild.id:
@@ -33,6 +50,20 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
+
+        if member.guild.id == (751490725555994716):
+            channel = discord.utils.get(member.guild.channels, name="joins-and-leaves")
+            if channel.guild.id == member.guild.id:
+                lm = discord.Embed(
+                    title="Member Leave",
+                    description=(
+                        f"Aww, **{str(member)}** has left **{member.guild.name}**.\n"
+                        f"This server now has a total of **{member.guild.member_count}** members."
+                    ),
+                    color=discord.Color.red()
+                )
+                await channel.send(embed=lm)
+
         lrefchan = self.avimetry.get_channel(783961111060938782)
         try:
             if member.guild.id == lrefchan.guild.id:

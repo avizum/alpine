@@ -13,41 +13,11 @@ class Verification(commands.Cog):
     # Verification Gate
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        try:
-            if self.avimetry.muted_users[member.id]:
-                muted_role = discord.utils.get(member.guild.roles, name="Muted")
-            await member.add_roles(muted_role)
-        except KeyError:
-            pass
-            try:
-                await asyncio.sleep(3)
-                channel = discord.utils.get(
-                    member.guild.channels, name=f"{member.name.lower().replace(' ', '-')}-verification",
-                )
-                await channel.send("You were auto-muted. If you think this is a mistake, join the support server.")
-            except Exception:
-                pass
         if member.bot:
             return
         prefixes = await self.avimetry.config.find(member.guild.id)
         global pre
         pre = prefixes["prefix"]
-
-        if member.guild.id == (751490725555994716):
-            channel = discord.utils.get(member.guild.channels, name="joins-and-leaves")
-            root = member.guild.get_role(813535792655892481)
-            await member.add_roles(root)
-
-            if channel.guild.id == member.guild.id:
-                join_message = discord.Embed(
-                    title="Member Joined",
-                    description=(
-                        f"Hey **{str(member)}**, Welcome to **{member.guild.name}**!\n"
-                        f"This server now has a total of **{member.guild.member_count}** members."
-                    ),
-                    color=discord.Color.blurple()
-                )
-                await channel.send(embed=join_message)
 
         try:
             vergate = await self.avimetry.config.find(member.guild.id)
@@ -91,20 +61,7 @@ class Verification(commands.Cog):
     # Leave Message
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        if member.guild.id == (751490725555994716):
-            channel = discord.utils.get(member.guild.channels, name="joins-and-leaves")
-            if channel.guild.id == member.guild.id:
-                lm = discord.Embed(
-                    title="Member Leave",
-                    description=(
-                        f"Aww, **{str(member)}** has left **{member.guild.name}**.\n"
-                        f"This server now has a total of **{member.guild.member_count}** members."
-                    ),
-                    color=discord.Color.red()
-                )
-                await channel.send(embed=lm)
-
-        dchnl = discord.utils.get(self.avimetry.get_all_channels(), name=f"{member.name.lower()}-verification")
+        dchnl = discord.utils.get(member.guild.channels, name=f"{member.name.lower()}-verification")
         if dchnl in member.guild.channels:
             await dchnl.delete(reason=f"{member.name} left during verification process")
 
@@ -204,7 +161,7 @@ class Verification(commands.Cog):
                 await member.add_roles(roleid)
                 await asyncio.sleep(2)
                 cnl = discord.utils.get(
-                    self.avimetry.get_all_channels(), name=f"{member.name.lower().replace(' ', '-')}-verification",
+                    ctx.guild.channels, name=f"{member.name.lower().replace(' ', '-')}-verification",
                 )
                 try:
                     await cnl.delete(reason=f"{member.name} finished verification")
@@ -214,7 +171,7 @@ class Verification(commands.Cog):
     @verify.command(hidden=True)
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def member(self, ctx, member: discord.Member):
+    async def user(self, ctx, member: discord.Member):
         get_role = await self.avimetry.config.find(ctx.guild.id)
         try:
             role = get_role["gate_role"]

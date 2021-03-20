@@ -115,14 +115,17 @@ class ErrorHandler(commands.Cog):
             await ctx.send("This command is not open yet.")
 
         elif isinstance(error, commands.BadArgument):
-            ba = discord.Embed(color=discord.Color.red())
-            ba.add_field(name="<:noTick:777096756865269760> Bad argument", value=error)
+            ba = discord.Embed(
+                title="Bad Argument",
+                description=str(error),
+                color=discord.Color.red()
+                )
             await ctx.send(embed=ba)
 
         elif isinstance(error, commands.TooManyArguments):
             many_arguments = discord.Embed(
                 title="Too many arguments",
-                description=error,
+                description=str(error),
                 color=discord.Color.red()
             )
             await ctx.send(embed=many_arguments)

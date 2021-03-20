@@ -3,8 +3,7 @@ from discord.ext import commands
 import asyncio
 import datetime
 import humanize
-from utils.converters import TimeConverter
-import typing
+from utils.converters import TimeConverter, TargetMemberAction
 
 
 class Moderation(commands.Cog):
@@ -55,14 +54,7 @@ class Moderation(commands.Cog):
     async def purge(self, ctx, amount: int):
         await ctx.message.delete()
         if amount == 0:
-            pass
-        elif amount > 250:
-            a100 = discord.Embed()
-            a100.add_field(
-                name="<:noTick:777096756865269760> No Permission",
-                value="You can't purge more than 150 messages at a time.",
-            )
-            await ctx.send(embed=a100, delete_after=10)
+            return
         else:
             authors = {}
             async for message in ctx.channel.history(limit=amount):
@@ -149,7 +141,7 @@ class Moderation(commands.Cog):
     )
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
-    async def kick(self, ctx, member: discord.Member, *, reason=None):
+    async def kick(self, ctx, member: TargetMemberAction, *, reason=None):
         if reason is None:
             reason = f"{ctx.author} ({ctx.author.id}): No reason was provided."
         else:
@@ -157,36 +149,26 @@ class Moderation(commands.Cog):
         kick_embed = discord.Embed(
             title="Kick Member"
         )
-        if member == ctx.message.author:
-            kick_embed.description = "You can not kick yourself, That would be stupid."
-            return await ctx.send(embed=kick_embed, delete_after=10)
-        elif member == self.avimetry.user:
-            kick_embed.description = "You can not kick me because I can't kick myself."
-            return await ctx.send(embed=kick_embed, delete_after=10)
-        elif ctx.author.top_role <= member.top_role:
-            kick_embed.description = "You can not kick someone with a role equal or greater than your role"
-            return await ctx.send(embed=kick_embed, delete_after=10)
-        else:
-            try:
-                dm_embed = discord.Embed(
-                    title="Moderation action: Kick",
-                    description=f"You were kicked from **{ctx.guild.name}** by **{ctx.author}**",
-                    timestamp=datetime.datetime.utcnow(),
-                )
-                await member.send(embed=dm_embed)
-                await member.kick(reason=reason)
-                kick_embed.description = f"**{str(member)}** has been kicked from the server."
-                await ctx.send(embed=kick_embed)
-            except discord.HTTPException:
-                await member.kick(reason=reason)
-                kick_embed.description = f"**{str(member)}** has been kicked from the server, but I could not DM them.",
-                await ctx.send(embed=kick_embed)
+        try:
+            dm_embed = discord.Embed(
+                title="Moderation action: Kick",
+                description=f"You were kicked from **{ctx.guild.name}** by **{ctx.author}**",
+                timestamp=datetime.datetime.utcnow(),
+            )
+            await member.send(embed=dm_embed)
+            await member.kick(reason=reason)
+            kick_embed.description = f"**{str(member)}** has been kicked from the server."
+            await ctx.send(embed=kick_embed)
+        except discord.HTTPException:
+            await member.kick(reason=reason)
+            kick_embed.description = f"**{str(member)}** has been kicked from the server, but I could not DM them.",
+            await ctx.send(embed=kick_embed)
 
     # Ban Command
     @commands.command(brief="Bans a member from the server", usage="<member> [reason]")
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def ban(self, ctx, member: typing.Union[discord.User, discord.Member], *, reason=None):
+    async def ban(self, ctx, member: TargetMemberAction, *, reason=None):
         if reason is None:
             reason = f"{ctx.author} ({ctx.author.id}): No reason was provided."
         else:
@@ -200,32 +182,20 @@ class Moderation(commands.Cog):
             await ctx.guild.ban(member, reason=reason)
             ban_embed.description = f"**{str(member)}** has been banned from the server."
             await ctx.send(embed=ban_embed)
-
-        if member == ctx.message.author:
-            ban_embed.description = "You can not ban yourself, That would be stupid."
-            return await ctx.send(embed=ban_embed, delete_after=10)
-        elif member == self.avimetry.user:
-            ban_embed.description = "You can not ban me because I can't kick myself."
-            return await ctx.send(embed=ban_embed, delete_after=10)
-        elif ctx.author.top_role <= member.top_role:
-            ban_embed.description = "You can not ban someone with a role equal or greater than your role"
-            return await ctx.send(embed=ban_embed, delete_after=10)
-        else:
-            ban_embed.color = discord.Color.green()
-            try:
-                dm_embed = discord.Embed(
-                    title="Moderation action: Ban",
-                    description=f"You were banned from **{ctx.guild}** by **{ctx.author}**",
-                    timestamp=datetime.datetime.utcnow(),
-                )
-                await member.send(embed=dm_embed)
-                await member.ban(reason=reason)
-                ban_embed.description = f"**{str(member)}** has been banned from the server."
-                await ctx.send(embed=ban_embed)
-            except discord.HTTPException:
-                await member.ban(reason=reason)
-                ban_embed.description = f"**{str(member)}** has been banned from the server, but I could not DM them.",
-                await ctx.send(embed=ban_embed)
+        try:
+            dm_embed = discord.Embed(
+                title="Moderation action: Ban",
+                description=f"You were banned from **{ctx.guild}** by **{ctx.author}**",
+                timestamp=datetime.datetime.utcnow(),
+            )
+            await member.send(embed=dm_embed)
+            await member.ban(reason=reason)
+            ban_embed.description = f"**{str(member)}** has been banned from the server."
+            await ctx.send(embed=ban_embed)
+        except discord.HTTPException:
+            await member.ban(reason=reason)
+            ban_embed.description = f"**{str(member)}** has been banned from the server, but I could not DM them.",
+            await ctx.send(embed=ban_embed)
 
     # Unban Command
     @commands.command(
@@ -317,6 +287,10 @@ class Moderation(commands.Cog):
         nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
+
+    @commands.command()
+    async def modactiontest(self, ctx, member: TargetMemberAction):
+        await ctx.send(f"{member} was tested")
 
 
 def setup(avimetry):
