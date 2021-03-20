@@ -4,11 +4,11 @@ import datetime
 
 
 class BotLogs(commands.Cog, name="bot logs"):
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
+    def __init__(self, avi):
+        self.avi = avi
 
     async def get_logs(self, arg):
-        logcheck = await self.avimetry.logs.find(arg)
+        logcheck = await self.avi.logs.find(arg)
         return logcheck
 
     @commands.Cog.listener("on_message_delete")
@@ -23,7 +23,7 @@ class BotLogs(commands.Cog, name="bot logs"):
                 return
         except KeyError:
             return
-        if message.author == self.avimetry.user:
+        if message.author == self.avi.user:
             return
         embed = discord.Embed(
             title="Message_Delete", timestamp=datetime.datetime.utcnow()
@@ -53,9 +53,9 @@ class BotLogs(commands.Cog, name="bot logs"):
                 ),
                 inline=False,
             )
-        get_channel = await self.avimetry.logs.find(message.guild.id)
+        get_channel = await self.avi.logs.find(message.guild.id)
         send_channel = get_channel["logging_channel"]
-        channel = self.avimetry.get_channel(send_channel)
+        channel = self.avi.get_channel(send_channel)
         await channel.send(embed=embed)
 
     @commands.Cog.listener("on_message_edit")
@@ -72,7 +72,7 @@ class BotLogs(commands.Cog, name="bot logs"):
                 return
         except KeyError:
             return
-        if before.author == self.avimetry.user:
+        if before.author == self.avi.user:
             return
         if before.content == after.content:
             return
@@ -93,15 +93,15 @@ class BotLogs(commands.Cog, name="bot logs"):
             name="Information",
             value=f"Message Author: {before.author.mention}\nEdited in {before.channel.mention} in {before.guild.name}",
         )
-        get_channel = await self.avimetry.logs.find(before.guild.id)
+        get_channel = await self.avi.logs.find(before.guild.id)
         send_channel = get_channel["logging_channel"]
-        channel = self.avimetry.get_channel(send_channel)
+        channel = self.avi.get_channel(send_channel)
         await channel.send(embed=embed)
 
     @commands.Cog.listener("on_command")
     async def on_command(self, ctx):
-        self.avimetry.commands_ran += 1
+        self.avi.commands_ran += 1
 
 
-def setup(avimetry):
-    avimetry.add_cog(BotLogs(avimetry))
+def setup(avi):
+    avi.add_cog(BotLogs(avi))

@@ -238,10 +238,10 @@ class HelpEmbeded(commands.HelpCommand):
 
 
 class Help(commands.Cog):
-    def __init__(self, avimetry):
-        self.HCne = avimetry.help_command
-        self.avimetry = avimetry
-        self.avimetry.help_command = HelpEmbeded(
+    def __init__(self, avi):
+        self.HCne = avi.help_command
+        self.avi = avi
+        self.avi.help_command = HelpEmbeded(
             command_attrs=dict(
                 hidden=True,
                 aliases=["halp", "helps", "hlp", "hlep", "hep"],
@@ -251,8 +251,8 @@ class Help(commands.Cog):
         )
 
     def cog_unload(self):
-        self.avimetry.help_command = self.HCne
+        self.avi.help_command = self.HCne
 
 
-def setup(avimetry):
-    avimetry.add_cog(Help(avimetry))
+def setup(avi):
+    avi.add_cog(Help(avi))

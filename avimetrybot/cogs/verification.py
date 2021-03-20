@@ -7,20 +7,20 @@ import datetime
 
 
 class Verification(commands.Cog):
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
+    def __init__(self, avi):
+        self.avi = avi
 
     # Verification Gate
     @commands.Cog.listener()
     async def on_member_join(self, member):
         if member.bot:
             return
-        prefixes = await self.avimetry.config.find(member.guild.id)
+        prefixes = await self.avi.config.find(member.guild.id)
         global pre
         pre = prefixes["prefix"]
 
         try:
-            vergate = await self.avimetry.config.find(member.guild.id)
+            vergate = await self.avi.config.find(member.guild.id)
         except KeyError:
             return
         if vergate["verification_gate"] is False:
@@ -69,7 +69,7 @@ class Verification(commands.Cog):
     @commands.group(brief="Verify now!", invoke_without_command=True, hidden=True)
     async def verify(self, ctx):
         member = ctx.author
-        get_role = await self.avimetry.config.find(ctx.guild.id)
+        get_role = await self.avi.config.find(ctx.guild.id)
         try:
             role = get_role["gate_role"]
         except KeyError:
@@ -134,7 +134,7 @@ class Verification(commands.Cog):
                 return m.content == randomkey and m.channel == channel
 
             try:
-                await self.avimetry.wait_for("message", timeout=60, check=check)
+                await self.avi.wait_for("message", timeout=60, check=check)
             except asyncio.TimeoutError:
                 if member.is_on_mobile():
                     await member.send(
@@ -172,7 +172,7 @@ class Verification(commands.Cog):
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(manage_roles=True)
     async def user(self, ctx, member: discord.Member):
-        get_role = await self.avimetry.config.find(ctx.guild.id)
+        get_role = await self.avi.config.find(ctx.guild.id)
         try:
             role = get_role["gate_role"]
         except KeyError:
@@ -188,5 +188,5 @@ class Verification(commands.Cog):
         await ctx.send(f"{member} was manually verified")
 
 
-def setup(avimetry):
-    avimetry.add_cog(Verification(avimetry))
+def setup(avi):
+    avi.add_cog(Verification(avi))

@@ -12,8 +12,8 @@ class Fun(commands.Cog):
     """
     Fun commands for you and your friends to use.
     """
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
+    def __init__(self, avi):
+        self.avi = avi
         self._cd = commands.CooldownMapping.from_cooldown(1.0, 60.0, commands.BucketType.user)
 
 # Magic 8 Ball
@@ -35,7 +35,7 @@ class Fun(commands.Cog):
             "Without a doubt.", "Yes.",
             "Yes – definitely.", "You may rely on it.",
         ]
-        if ctx.author.id in self.avimetry.owner_ids:
+        if ctx.author.id in self.avi.owner_ids:
             if question.lower().endswith("\u200b"):
                 responses = [
                     "It is certain.", "Without a doubt.",
@@ -66,7 +66,7 @@ class Fun(commands.Cog):
     @commands.cooldown(2, 30, commands.BucketType.member)
     async def kill(self, ctx, member: discord.Member):
         await ctx.message.delete()
-        if member == self.avimetry.user or member.bot:
+        if member == self.avi.user or member.bot:
             await ctx.send("You fool. Us bots can't die")
 
         else:
@@ -200,11 +200,11 @@ class Fun(commands.Cog):
             return (
                 reaction.message.id == cd_cookie.id and
                 str(reaction.emoji) in "\U0001F36A" and
-                user != self.avimetry.user
+                user != self.avi.user
             )
 
         try:
-            reaction, user = await self.avimetry.wait_for(
+            reaction, user = await self.avi.wait_for(
                 "reaction_add" or "reaction_remove", check=check, timeout=10
             )
         except asyncio.TimeoutError:
@@ -231,7 +231,7 @@ class Fun(commands.Cog):
 # Suicide Command (Joke)
     @commands.command(hidden=True)
     async def suicide(self, ctx):
-        pre = await self.avimetry.get_prefix(ctx.message)
+        pre = await self.avi.get_prefix(ctx.message)
         embed = discord.Embed(
             title="Invalid Command",
             description="I wasn't about to find a command called \"suicide\". Did you mean...\n`don't\ndo\nit`",
@@ -288,12 +288,12 @@ class Fun(commands.Cog):
                     reaction.message.id == initial_messsage.id and
                     str(reaction.emoji) in akinator_reactions and
                     user == ctx.author and
-                    user != self.avimetry.user
+                    user != self.avi.user
                 )
 
             done, pending = await asyncio.wait([
-                self.avimetry.wait_for("reaction_remove", check=check, timeout=20),
-                self.avimetry.wait_for("reaction_add", check=check, timeout=20)
+                self.avi.wait_for("reaction_remove", check=check, timeout=20),
+                self.avi.wait_for("reaction_add", check=check, timeout=20)
             ], return_when=asyncio.FIRST_COMPLETED)
 
             try:
@@ -382,11 +382,11 @@ class Fun(commands.Cog):
             return (
                 reaction.message.id == initial_messsage.id and
                 str(reaction.emoji) in ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"] and
-                user != self.avimetry.user and
+                user != self.avi.user and
                 user == ctx.author
             )
         try:
-            reaction, user = await self.avimetry.wait_for(
+            reaction, user = await self.avi.wait_for(
                 "reaction_add", check=yes_no_check, timeout=60
             )
         except asyncio.TimeoutError:
@@ -452,7 +452,7 @@ class Fun(commands.Cog):
             )
 
         try:
-            reaction, user = await self.avimetry.wait_for(
+            reaction, user = await self.avi.wait_for(
                 "reaction_add", check=check_10s, timeout=20
             )
         except asyncio.TimeoutError:
@@ -489,7 +489,7 @@ class Fun(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.member)
     async def reddit(self, ctx, subreddit):
-        async with self.avimetry.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
+        async with self.avi.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
             stuff = await content.json()
         get_data = stuff["data"]["children"]
         data = random.choice(get_data)["data"]
@@ -512,7 +512,7 @@ class Fun(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.member)
     async def meme(self, ctx):
-        reddit = self.avimetry.get_command("reddit")
+        reddit = self.avi.get_command("reddit")
         await reddit(ctx, subreddit="memes")
 
 # Reaction time commnad
@@ -541,11 +541,11 @@ class Fun(commands.Cog):
             return(
                 reaction.message.id == first.id and
                 str(reaction.emoji) == random_emoji and
-                user != self.avimetry.user
+                user != self.avi.user
             )
 
         try:
-            reaction, user = await self.avimetry.wait_for("reaction_add", check=check, timeout=15)
+            reaction, user = await self.avi.wait_for("reaction_add", check=check, timeout=15)
         except asyncio.TimeoutError:
             print("timeout")
         else:
@@ -561,5 +561,5 @@ class Fun(commands.Cog):
                 await first.edit(embed=embed)
 
 
-def setup(avimetry):
-    avimetry.add_cog(Fun(avimetry))
+def setup(avi):
+    avi.add_cog(Fun(avi))

@@ -10,5 +10,5 @@ class JishakuCog(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     pass
 
 
-def setup(avimetry: commands.Bot):
-    avimetry.add_cog(JishakuCog(bot=avimetry))
+def setup(avi: commands.Bot):
+    avi.add_cog(JishakuCog(bot=avi))

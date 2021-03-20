@@ -9,8 +9,8 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
     """
     Roblox related commands.
     """
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
+    def __init__(self, avi):
+        self.avi = avi
         self.update_check.start()
 
     def cog_unload(self):
@@ -18,19 +18,19 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
 
     @tasks.loop(seconds=59)
     async def update_check(self):
-        async with self.avimetry.session.get(
+        async with self.avi.session.get(
             "http://setup.roblox.com/version"
         ) as old_version:
             a = await old_version.text()
         await asyncio.sleep(10)
-        async with self.avimetry.session.get(
+        async with self.avi.session.get(
             "http://setup.roblox.com/version"
         ) as new_version:
             b = await new_version.text()
         if b != a:
             print("update!")
             channel = discord.utils.get(
-                self.avimetry.get_all_channels(), name="gaming-announcements"
+                self.avi.get_all_channels(), name="gaming-announcements"
             )
             embed = discord.Embed(
                 title="<:roblox:788835896354013229> A ROBLOX update has been detected.",
@@ -46,7 +46,7 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
 
     @update_check.before_loop
     async def before_status_task(self):
-        await self.avimetry.wait_until_ready()
+        await self.avi.wait_until_ready()
 
     # Roblox Version Command
     @commands.command(
@@ -114,5 +114,5 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
         await ctx.send(embed=user_embed)
 
 
-def setup(avimetry):
-    avimetry.add_cog(RobloxUpdate(avimetry))
+def setup(avi):
+    avi.add_cog(RobloxUpdate(avi))
