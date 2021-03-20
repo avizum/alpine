@@ -1,66 +1,17 @@
 import discord
-from discord.ext import commands, tasks
-from copy import deepcopy
-from dateutil.relativedelta import relativedelta
+from discord.ext import commands
 import asyncio
 import datetime
 import humanize
-from utils.converters import TimeConverter
+from utils.converters import TimeConverter, TargetMemberAction
 
 
 class Moderation(commands.Cog):
     """
     Moderation commands.
     """
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
-        self.check_mutes.start()
-
-    def cog_unload(self):
-        self.check_mutes.cancel()
-
-    # Unmute Loop
-    @tasks.loop(minutes=1)
-    async def check_mutes(self):
-        currentTime = datetime.datetime.now()
-        mutes = deepcopy(self.avimetry.muted_users)
-        for key, value in mutes.items():
-            if value["muteDuration"] is None:
-                continue
-
-            unmuteTime = value["mutedAt"] + relativedelta(seconds=value["muteDuration"])
-
-            if currentTime >= unmuteTime:
-                guild = self.avimetry.get_guild(value["guildId"])
-                member = guild.get_member(value["_id"])
-
-                role = discord.utils.get(guild.roles, name="Muted")
-                if role in member.roles:
-                    await member.remove_roles(role)
-                    try:
-                        unmuted = discord.Embed()
-                        unmuted.add_field(
-                            name="<:yesTick:777096731438874634> Unmuted",
-                            value=f"You have been unmuted in {member.guild.name}",
-                        )
-                        await member.send(embed=unmuted)
-                    except discord.Forbidden:
-                        return
-                else:
-                    try:
-                        await self.avimetry.mutes.delete(member.id)
-                        await self.avimetry.muted_users.pop(member.id)
-                    except discord.Forbidden:
-                        return
-                await self.avimetry.mutes.delete(member.id)
-                try:
-                    self.avimetry.muted_users.pop(member.id)
-                except KeyError:
-                    pass
-
-    @check_mutes.before_loop
-    async def before_check_mutes(self):
-        await self.avimetry.wait_until_ready()
+    def __init__(self, avi):
+        self.avi = avi
 
     # Clean Command
     @commands.command(brief="Cleans bot messages", usage="[amount]")
@@ -74,7 +25,7 @@ class Moderation(commands.Cog):
         message_list = []
         msg_count = 0
         async for message in ctx.channel.history(limit=limit):
-            if message.author.id == self.avimetry.user.id:
+            if message.author.id == self.avi.user.id:
                 message_list.append(message)
                 msg_count += 1
                 if msg_count >= amount:
@@ -103,14 +54,7 @@ class Moderation(commands.Cog):
     async def purge(self, ctx, amount: int):
         await ctx.message.delete()
         if amount == 0:
-            pass
-        elif amount > 250:
-            a100 = discord.Embed()
-            a100.add_field(
-                name="<:noTick:777096756865269760> No Permission",
-                value="You can't purge more than 150 messages at a time.",
-            )
-            await ctx.send(embed=a100, delete_after=10)
+            return
         else:
             authors = {}
             async for message in ctx.channel.history(limit=amount):
@@ -119,18 +63,15 @@ class Moderation(commands.Cog):
                 else:
                     authors[message.author] += 1
             await asyncio.sleep(0.1)
-            purge_amount = await ctx.channel.purge(limit=amount)
+            await ctx.channel.purge(limit=amount)
             msg = "\n".join(
-                [f"{author}: {amount}" for author, amount in authors.items()]
+                [f"{author.mention}: {amount} {'message' if amount==1 else 'messages'}"
+                    for author, amount in authors.items()]
             )
 
-            pe = discord.Embed()
-            pe.add_field(
-                name="<:yesTick:777096731438874634> Purge Messages",
-                value=(
-                    f"Here are the results of the purged messages"
-                    f"\n`{msg}`\n\n Total Messages Deleted:`{len(purge_amount)}`"
-                ),
+            pe = discord.Embed(
+                title="Purge",
+                description=f"{msg}"
             )
             await ctx.send(embed=pe, delete_after=10)
 
@@ -200,7 +141,7 @@ class Moderation(commands.Cog):
     )
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
-    async def kick(self, ctx, member: discord.Member, *, reason=None):
+    async def kick(self, ctx, member: TargetMemberAction, *, reason=None):
         if reason is None:
             reason = f"{ctx.author} ({ctx.author.id}): No reason was provided."
         else:
@@ -208,36 +149,26 @@ class Moderation(commands.Cog):
         kick_embed = discord.Embed(
             title="Kick Member"
         )
-        if member == ctx.message.author:
-            kick_embed.description = "You can not kick yourself, That would be stupid."
-            return await ctx.send(embed=kick_embed, delete_after=10)
-        elif member == self.avimetry.user:
-            kick_embed.description = "You can not kick me because I can't kick myself."
-            return await ctx.send(embed=kick_embed, delete_after=10)
-        elif ctx.author.top_role <= member.top_role:
-            kick_embed.description = "You can not kick someone with a role equal or greater than your role"
-            return await ctx.send(embed=kick_embed, delete_after=10)
-        else:
-            try:
-                dm_embed = discord.Embed(
-                    title="Moderation action: Kick",
-                    description=f"You were kicked from **{ctx.guild.name}** by **{ctx.author}**",
-                    timestamp=datetime.datetime.utcnow(),
-                )
-                await member.send(embed=dm_embed)
-                await member.kick(reason=reason)
-                kick_embed.description = f"**{str(member)}** has been kicked from the server."
-                await ctx.send(embed=kick_embed)
-            except discord.HTTPException:
-                await member.kick(reason=reason)
-                kick_embed.description = f"**{str(member)}** has been kicked from the server, but I could not DM them.",
-                await ctx.send(embed=kick_embed)
+        try:
+            dm_embed = discord.Embed(
+                title="Moderation action: Kick",
+                description=f"You were kicked from **{ctx.guild.name}** by **{ctx.author}**",
+                timestamp=datetime.datetime.utcnow(),
+            )
+            await member.send(embed=dm_embed)
+            await member.kick(reason=reason)
+            kick_embed.description = f"**{str(member)}** has been kicked from the server."
+            await ctx.send(embed=kick_embed)
+        except discord.HTTPException:
+            await member.kick(reason=reason)
+            kick_embed.description = f"**{str(member)}** has been kicked from the server, but I could not DM them.",
+            await ctx.send(embed=kick_embed)
 
     # Ban Command
     @commands.command(brief="Bans a member from the server", usage="<member> [reason]")
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def ban(self, ctx, member: discord.Member, *, reason=None):
+    async def ban(self, ctx, member: TargetMemberAction, *, reason=None):
         if reason is None:
             reason = f"{ctx.author} ({ctx.author.id}): No reason was provided."
         else:
@@ -246,31 +177,25 @@ class Moderation(commands.Cog):
             title="Ban Member"
         )
         ban_embed.color = discord.Color.red()
-        if member == ctx.message.author:
-            ban_embed.description = "You can not ban yourself, That would be stupid."
-            return await ctx.send(embed=ban_embed, delete_after=10)
-        elif member == self.avimetry.user:
-            ban_embed.description = "You can not ban me because I can't kick myself."
-            return await ctx.send(embed=ban_embed, delete_after=10)
-        elif ctx.author.top_role <= member.top_role:
-            ban_embed.description = "You can not ban someone with a role equal or greater than your role"
-            return await ctx.send(embed=ban_embed, delete_after=10)
-        else:
+        if isinstance(member, discord.User):
             ban_embed.color = discord.Color.green()
-            try:
-                dm_embed = discord.Embed(
-                    title="Moderation action: Ban",
-                    description=f"You were banned from **{ctx.guild}** by **{ctx.author}**",
-                    timestamp=datetime.datetime.utcnow(),
-                )
-                await member.send(embed=dm_embed)
-                # await member.ban(reason=reason)
-                ban_embed.description = f"**{str(member)}** has been banned from the server."
-                await ctx.send(embed=ban_embed)
-            except discord.HTTPException:
-                # await member.ban(reason=reason)
-                ban_embed.description = f"**{str(member)}** has been banned from the server, but I could not DM them.",
-                await ctx.send(embed=ban_embed)
+            await ctx.guild.ban(member, reason=reason)
+            ban_embed.description = f"**{str(member)}** has been banned from the server."
+            await ctx.send(embed=ban_embed)
+        try:
+            dm_embed = discord.Embed(
+                title="Moderation action: Ban",
+                description=f"You were banned from **{ctx.guild}** by **{ctx.author}**",
+                timestamp=datetime.datetime.utcnow(),
+            )
+            await member.send(embed=dm_embed)
+            await member.ban(reason=reason)
+            ban_embed.description = f"**{str(member)}** has been banned from the server."
+            await ctx.send(embed=ban_embed)
+        except discord.HTTPException:
+            await member.ban(reason=reason)
+            ban_embed.description = f"**{str(member)}** has been banned from the server, but I could not DM them.",
+            await ctx.send(embed=ban_embed)
 
     # Unban Command
     @commands.command(
@@ -285,7 +210,7 @@ class Moderation(commands.Cog):
             unbanenmbed = discord.Embed()
             unbanenmbed.add_field(
                 name="<:yesTick:777096731438874634> Unban Member",
-                value="Unbanned <@{member}> ({member}) from **{ctx.guild.name}**.",
+                value=f"Unbanned <@{member}> ({member}) from **{ctx.guild.name}**.",
                 inline=False,
             )
             await ctx.send(embed=unbanenmbed)
@@ -320,102 +245,6 @@ class Moderation(commands.Cog):
             value=f"Slowmode delay is now set to {humanize.precisedelta(seconds)}.",
         )
         await ctx.send(embed=smembed)
-
-    # Mute command
-    @commands.command(brief="Mutes a member.")
-    @commands.has_permissions(manage_roles=True)
-    @commands.bot_has_permissions(manage_roles=True)
-    async def mute(self, ctx, member: discord.Member, *, time: TimeConverter = None):
-        if time is None:
-            pass
-        elif time < 300:
-            return await ctx.send("The minumum mute time is 5 minutes.")
-        elif time > 604800:
-            return await ctx.send("The maximum mute time is 7 days.")
-        role = discord.utils.get(ctx.guild.roles, name="Muted")
-        if not role:
-            no_muted_role = discord.Embed()
-            no_muted_role.add_field(
-                name="<:noTick:777096756865269760> Mute Failed",
-                value=f"Couldn't mute {member.mention} because there is no muted role.",
-            )
-            await ctx.send(embed=no_muted_role)
-            return
-        try:
-            if self.avimetry.muted_users[member.id]:
-                already_muted = discord.Embed()
-                already_muted.add_field(
-                    name="<:noTick:777096756865269760> Mute Failed",
-                    value=f"{member.mention} is already muted",
-                )
-                await ctx.send(embed=already_muted)
-            return
-        except KeyError:
-            pass
-        data = {
-            "_id": member.id,
-            "mutedAt": datetime.datetime.now(),
-            "muteDuration": time or None,
-            "mutedBy": ctx.author.id,
-            "guildId": ctx.guild.id,
-        }
-        await self.avimetry.mutes.upsert(data)
-        self.avimetry.muted_users[member.id] = data
-        await member.add_roles(role)
-        if not time:
-            unlimited_mute = discord.Embed()
-            unlimited_mute.add_field(
-                name="<:yesTick:777096731438874634> Muted Member",
-                value=f"{member.mention} was muted with no unmute time.",
-            )
-            await ctx.send(embed=unlimited_mute)
-        else:
-            mute_embed = discord.Embed(
-                title="Member Muted",
-                description=f"{member.mention} has been muted for {humanize.naturaldelta(time)}"
-            )
-            await ctx.send(embed=mute_embed)
-
-        if time and time < 300:
-            await asyncio.sleep(time)
-            if role in member.roles:
-                await member.remove_roles(role)
-                try:
-                    unmuted = discord.Embed()
-                    unmuted.add_field(
-                        name="<:yesTick:777096731438874634> Unmuted",
-                        value=f"You have been unmuted in {member.guild.name}",
-                    )
-                    await member.send(embed=unmuted)
-                except discord.Forbidden:
-                    return
-            await self.avimetry.mutes.delete(member.id)
-            try:
-                self.avimetry.muted_users.pop(member.id)
-            except KeyError:
-                pass
-
-    # Unmute command
-    @commands.command()
-    @commands.has_permissions(kick_members=True)
-    @commands.bot_has_permissions(kick_members=True)
-    async def unmute(self, ctx, member: discord.Member):
-        role = discord.utils.get(ctx.guild.roles, name="Muted")
-        if not role:
-            await ctx.send("No role named muted")
-            return
-
-        await self.avimetry.mutes.delete(member.id)
-        try:
-            self.avimetry.muted_users.pop(member.id)
-        except KeyError:
-            pass
-        if role not in member.roles:
-            await ctx.send("This member is not muted")
-            return
-
-        await member.remove_roles(role)
-        await ctx.send(f"Unmuted {member.display_name}")
 
     # Role Command
     @commands.group(invoke_without_command=True, brief="The command you just called")
@@ -459,6 +288,10 @@ class Moderation(commands.Cog):
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
 
+    @commands.command()
+    async def modactiontest(self, ctx, member: TargetMemberAction):
+        await ctx.send(f"{member} was tested")
 
-def setup(avimetry):
-    avimetry.add_cog(Moderation(avimetry))
+
+def setup(avi):
+    avi.add_cog(Moderation(avi))

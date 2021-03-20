@@ -1,3 +1,4 @@
+import typing
 import discord
 from discord.ext import commands
 import random
@@ -11,8 +12,8 @@ class Fun(commands.Cog):
     """
     Fun commands for you and your friends to use.
     """
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
+    def __init__(self, avi):
+        self.avi = avi
         self._cd = commands.CooldownMapping.from_cooldown(1.0, 60.0, commands.BucketType.user)
 
 # Magic 8 Ball
@@ -34,7 +35,7 @@ class Fun(commands.Cog):
             "Without a doubt.", "Yes.",
             "Yes – definitely.", "You may rely on it.",
         ]
-        if ctx.author.id in self.avimetry.owner_ids:
+        if ctx.author.id in self.avi.owner_ids:
             if question.lower().endswith("\u200b"):
                 responses = [
                     "It is certain.", "Without a doubt.",
@@ -65,7 +66,7 @@ class Fun(commands.Cog):
     @commands.cooldown(2, 30, commands.BucketType.member)
     async def kill(self, ctx, member: discord.Member):
         await ctx.message.delete()
-        if member == self.avimetry.user or member.bot:
+        if member == self.avi.user or member.bot:
             await ctx.send("You fool. Us bots can't die")
 
         else:
@@ -199,12 +200,12 @@ class Fun(commands.Cog):
             return (
                 reaction.message.id == cd_cookie.id and
                 str(reaction.emoji) in "\U0001F36A" and
-                user != self.avimetry.user
+                user != self.avi.user
             )
 
         try:
-            reaction, user = await self.avimetry.wait_for(
-                "reaction_add", check=check, timeout=10
+            reaction, user = await self.avi.wait_for(
+                "reaction_add" or "reaction_remove", check=check, timeout=10
             )
         except asyncio.TimeoutError:
             cookie_embed.set_field_at(
@@ -230,7 +231,7 @@ class Fun(commands.Cog):
 # Suicide Command (Joke)
     @commands.command(hidden=True)
     async def suicide(self, ctx):
-        pre = await self.avimetry.get_prefix(ctx.message)
+        pre = await self.avi.get_prefix(ctx.message)
         embed = discord.Embed(
             title="Invalid Command",
             description="I wasn't about to find a command called \"suicide\". Did you mean...\n`don't\ndo\nit`",
@@ -254,15 +255,10 @@ class Fun(commands.Cog):
         akinator_embed = discord.Embed(
             title="Akinator",
             description=(
-                "Starting akinator session.\n\
-                React with the emojis below to answer.\n\
-                <:Yes:812133712967761951>: Yes\n\
-                <:No:812133712946528316>: No\n\
-                <:IDontKnow:812133713046405230>: I don't know\n\
-                <:Probably:812133712962519100>: Probably\n\
-                <:ProbablyNot:812133712665772113>: Probably Not\n\
-                <:Back:815854941083664454>: Go back\n\
-                If you need more help, click [here](https://gist.github.com/jbkn/8a5b9887d49a1d2740d0b6ad0176dbdb)"
+                "Current Settings:\n"
+                f"Mode: `{mode}`\n"
+                f"Child Mode: {child}\n"
+                "[Here](https://gist.github.com/jbkn/8a5b9887d49a1d2740d0b6ad0176dbdb) are all the options for akinator"
             ),
         )
         async with ctx.channel.typing():
@@ -292,24 +288,36 @@ class Fun(commands.Cog):
                     reaction.message.id == initial_messsage.id and
                     str(reaction.emoji) in akinator_reactions and
                     user == ctx.author and
-                    user != self.avimetry.user
+                    user != self.avi.user
                 )
 
+            done, pending = await asyncio.wait([
+                self.avi.wait_for("reaction_remove", check=check, timeout=20),
+                self.avi.wait_for("reaction_add", check=check, timeout=20)
+            ], return_when=asyncio.FIRST_COMPLETED)
+
             try:
-                reaction, user = await self.avimetry.wait_for(
-                    "reaction_add", check=check, timeout=20
-                )
+                reaction, user = done.pop().result()
+
             except asyncio.TimeoutError:
-                await initial_messsage.clear_reactions()
-                akinator_embed.description = (
-                    "Akinator session closed because you took too long to answer."
-                )
-                akinator_embed.set_thumbnail(url=discord.Embed.Empty)
-                await initial_messsage.edit(embed=akinator_embed)
-                game_end_early = True
-                break
+                try:
+                    await initial_messsage.clear_reactions()
+                except discord.Forbidden:
+                    pass
+                finally:
+                    akinator_embed.description = (
+                        "Akinator session closed because you took too long to answer."
+                    )
+                    akinator_embed.set_thumbnail(url=discord.Embed.Empty)
+                    await initial_messsage.edit(embed=akinator_embed)
+                    game_end_early = True
+                    return
+
             else:
-                await initial_messsage.remove_reaction(reaction.emoji, user)
+                try:
+                    await initial_messsage.remove_reaction(reaction.emoji, user)
+                except discord.Forbidden:
+                    pass
                 if str(reaction.emoji) == "<:Yes:812133712967761951>":
                     ans = "yes"
                 elif str(reaction.emoji) == "<:No:812133712946528316>":
@@ -327,8 +335,17 @@ class Fun(commands.Cog):
                     akinator_embed.description = "Akinator session stopped."
                     akinator_embed.set_thumbnail(url=discord.Embed.Empty)
                     await initial_messsage.edit(embed=akinator_embed)
-                    await initial_messsage.clear_reactions()
+                    try:
+                        await initial_messsage.clear_reactions()
+                    except discord.Forbidden:
+                        return
                     break
+
+            finally:
+                for future in done:
+                    future.exception()
+                for future in pending:
+                    future.cancel()
 
             if ans == "back":
                 try:
@@ -336,8 +353,13 @@ class Fun(commands.Cog):
                 except akinator.CantGoBackAnyFurther:
                     pass
             else:
+                await asyncio.sleep(.5)
                 q = await aki_client.answer(ans)
-        await initial_messsage.clear_reactions()
+        try:
+            await initial_messsage.clear_reactions()
+        except discord.Forbidden:
+            await initial_messsage.delete()
+            initial_messsage = await ctx.send("Processing...")
         if game_end_early is True:
             return
         await aki_client.win()
@@ -346,6 +368,9 @@ class Fun(commands.Cog):
             f"I think it is {aki_client.first_guess['name']} ({aki_client.first_guess['description']})! Was I correct?"
         )
         akinator_embed.set_thumbnail(
+            url=discord.Embed.Empty
+        )
+        akinator_embed.set_image(
             url=f"{aki_client.first_guess['absolute_picture_path']}"
         )
         await initial_messsage.edit(embed=akinator_embed)
@@ -357,17 +382,23 @@ class Fun(commands.Cog):
             return (
                 reaction.message.id == initial_messsage.id and
                 str(reaction.emoji) in ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"] and
-                user != self.avimetry.user and
+                user != self.avi.user and
                 user == ctx.author
             )
         try:
-            reaction, user = await self.avimetry.wait_for(
+            reaction, user = await self.avi.wait_for(
                 "reaction_add", check=yes_no_check, timeout=60
             )
         except asyncio.TimeoutError:
-            await initial_messsage.clear_reactions()
+            try:
+                await initial_messsage.clear_reactions()
+            except discord.Forbidden:
+                pass
         else:
-            await initial_messsage.clear_reactions()
+            try:
+                await initial_messsage.clear_reactions()
+            except discord.Forbidden:
+                pass
             if str(reaction.emoji) == "<:yesTick:777096731438874634>":
                 akinator_embed.description = (
                     f"{akinator_embed.description}\n\n------\n\nYay!"
@@ -379,6 +410,7 @@ class Fun(commands.Cog):
                 )
                 await initial_messsage.edit(embed=akinator_embed)
 
+# Ship command
     @commands.command()
     async def ship(self, ctx, person1: discord.Member, person2: discord.Member):
         if person1.id == 750135653638865017 or person2.id == 750135653638865017:
@@ -387,6 +419,15 @@ class Fun(commands.Cog):
             return await ctx.send(f"{person1} is 100% compatible with him/herself")
         percent = random.randint(0, 100)
         await ctx.send(f"{person1} + {person2} = {percent}%")
+
+# PP size command
+    @commands.command()
+    async def ppsize(self, ctx, member: discord.Member = None):
+        pp_embed = discord.Embed(
+            title=f"{member.name}'s pp size",
+            description=f"8{''.join('=' for i in range(random.randint(0, 12)))}D"
+        )
+        await ctx.send(embed=pp_embed)
 
 # 10 second command
     @commands.command(
@@ -411,7 +452,7 @@ class Fun(commands.Cog):
             )
 
         try:
-            reaction, user = await self.avimetry.wait_for(
+            reaction, user = await self.avi.wait_for(
                 "reaction_add", check=check_10s, timeout=20
             )
         except asyncio.TimeoutError:
@@ -431,14 +472,24 @@ class Fun(commands.Cog):
 
 # Mock Command
     @commands.command()
-    async def mock(self, ctx, *, text):
-        await ctx.send("".join(random.choice([mock.upper, mock.lower])() for mock in text))
+    async def mock(self, ctx, *, text: typing.Union[discord.Member, str]):
+        if isinstance(text, discord.Member):
+            async for message in ctx.channel.history(limit=100):
+                if ctx.author == text:
+                    return await ctx.send("You can't mock yourself")
+                elif message.author == text:
+                    text = message.content
+                    await message.reply("".join((random.choice([mock.upper, mock.lower])() for mock in text)))
+                    break
+
+        else:
+            await ctx.send("".join(random.choice([mock.upper, mock.lower])() for mock in text))
 
 # Reddit Command
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.member)
     async def reddit(self, ctx, subreddit):
-        async with self.avimetry.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
+        async with self.avi.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
             stuff = await content.json()
         get_data = stuff["data"]["children"]
         data = random.choice(get_data)["data"]
@@ -461,7 +512,7 @@ class Fun(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.member)
     async def meme(self, ctx):
-        reddit = self.avimetry.get_command("reddit")
+        reddit = self.avi.get_command("reddit")
         await reddit(ctx, subreddit="memes")
 
 # Reaction time commnad
@@ -490,11 +541,11 @@ class Fun(commands.Cog):
             return(
                 reaction.message.id == first.id and
                 str(reaction.emoji) == random_emoji and
-                user != self.avimetry.user
+                user != self.avi.user
             )
 
         try:
-            reaction, user = await self.avimetry.wait_for("reaction_add", check=check, timeout=15)
+            reaction, user = await self.avi.wait_for("reaction_add", check=check, timeout=15)
         except asyncio.TimeoutError:
             print("timeout")
         else:
@@ -510,5 +561,5 @@ class Fun(commands.Cog):
                 await first.edit(embed=embed)
 
 
-def setup(avimetry):
-    avimetry.add_cog(Fun(avimetry))
+def setup(avi):
+    avi.add_cog(Fun(avi))

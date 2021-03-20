@@ -50,7 +50,7 @@ class HelpEmbeded(commands.HelpCommand):
             return None
 
     def gending_note(self):
-        return "Use {0}{1} [command] or [module] for more info on a command or module.".format(
+        return "Use {0}{1} [command|module] for help on a command or module.".format(
             self.clean_prefix, self.invoked_with
         )
 
@@ -83,7 +83,7 @@ class HelpEmbeded(commands.HelpCommand):
         )
         modules_list = []
         for cog, command in mapping.items():
-            name = "No Category" if cog is None else cog.qualified_name.title()
+            name = "No Category" if cog is None else cog.qualified_name
             filtered = await self.filter_commands(command, sort=True)
             if filtered:
                 modules_list.append(f"{name} ({len(command)})")
@@ -113,9 +113,14 @@ class HelpEmbeded(commands.HelpCommand):
         command_list = []
         for command in filtered:
             command_list.append(command.name)
+        split_list = [command_list[i:i+5]for i in range(0, len(command_list), 5)]
+        value = []
+        for lists in split_list:
+            value.append(", ".join(lists))
+
         embed.add_field(
             name=f"Commands in {cog.qualified_name.title()}",
-            value="\n".join(command_list),
+            value='{},'.format(",\n".join(value)),
             inline=False,
         )
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
@@ -130,8 +135,8 @@ class HelpEmbeded(commands.HelpCommand):
         embed.add_field(
             name="Base command usage",
             value=(
-                f"`{self.clean_prefix}{group.qualified_name} {group.signature if group.signature is not None else ''}`"
-                )
+                f"`{self.clean_prefix}{group.qualified_name} {group.signature}`"
+            )
         )
         embed.add_field(
             name="Command Aliases",
@@ -140,7 +145,7 @@ class HelpEmbeded(commands.HelpCommand):
         )
         can_run_check = await group.can_run(self.context)
         if can_run_check:
-            can_run = self.context.bot.emoji_dictionary["YesTick"]
+            can_run = self.context.bot.emoji_dictionary["green_tick"]
         embed.add_field(
             name="Required Permissions",
             value=(
@@ -160,9 +165,14 @@ class HelpEmbeded(commands.HelpCommand):
             group_commands = []
             for command in filtered:
                 group_commands.append(command.name)
+            split_list = [group_commands[i:i+5]for i in range(0, len(group_commands), 5)]
+            value = []
+            for lists in split_list:
+                value.append(", ".join(lists))
+
             embed.add_field(
                 name=f"Subcommands for {group.qualified_name}",
-                value="\n".join(group_commands) or None,
+                value='{},'.format(",\n".join(value)) or None,
                 inline=False,
             )
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
@@ -176,7 +186,9 @@ class HelpEmbeded(commands.HelpCommand):
 
         embed.add_field(
             name="Command Usage",
-            value=f"`{self.clean_prefix}{command.name} {command.signature}`"
+            value=(
+                f"`{self.clean_prefix}{command.name} {command.signature}`"
+                )
         )
         embed.add_field(
             name="Command Aliases",
@@ -194,7 +206,7 @@ class HelpEmbeded(commands.HelpCommand):
 
         can_run_check = await command.can_run(self.context)
         if can_run_check:
-            can_run = self.context.bot.emoji_dictionary["YesTick"]
+            can_run = self.context.bot.emoji_dictionary["green_tick"]
         embed.add_field(
             name="Required Permissions",
             value=(
@@ -226,21 +238,21 @@ class HelpEmbeded(commands.HelpCommand):
 
 
 class Help(commands.Cog):
-    def __init__(self, avimetry):
-        self.HCne = avimetry.help_command
-        self.avimetry = avimetry
-        self.avimetry.help_command = HelpEmbeded(
+    def __init__(self, avi):
+        self.HCne = avi.help_command
+        self.avi = avi
+        self.avi.help_command = HelpEmbeded(
             command_attrs=dict(
                 hidden=True,
                 aliases=["halp", "helps", "hlp", "hlep", "hep"],
                 brief="Why do you need help with the help command? Oh well, Here it is anyways",
-                usage="[command] or [module]",
+                usage="[command|module]",
             )
         )
 
     def cog_unload(self):
-        self.avimetry.help_command = self.HCne
+        self.avi.help_command = self.HCne
 
 
-def setup(avimetry):
-    avimetry.add_cog(Help(avimetry))
+def setup(avi):
+    avi.add_cog(Help(avi))

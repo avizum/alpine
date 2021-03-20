@@ -9,8 +9,8 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
     """
     Roblox related commands.
     """
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
+    def __init__(self, avi):
+        self.avi = avi
         self.update_check.start()
 
     def cog_unload(self):
@@ -18,18 +18,19 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
 
     @tasks.loop(seconds=59)
     async def update_check(self):
-        async with self.avimetry.session.get(
+        async with self.avi.session.get(
             "http://setup.roblox.com/version"
         ) as old_version:
             a = await old_version.text()
-        await asyncio.sleep(1)
-        async with self.avimetry.session.get(
+        await asyncio.sleep(10)
+        async with self.avi.session.get(
             "http://setup.roblox.com/version"
         ) as new_version:
             b = await new_version.text()
         if b != a:
+            print("update!")
             channel = discord.utils.get(
-                self.avimetry.get_all_channels(), name="gaming-announcements"
+                self.avi.get_all_channels(), name="gaming-announcements"
             )
             embed = discord.Embed(
                 title="<:roblox:788835896354013229> A ROBLOX update has been detected.",
@@ -45,7 +46,7 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
 
     @update_check.before_loop
     async def before_status_task(self):
-        await self.avimetry.wait_until_ready()
+        await self.avi.wait_until_ready()
 
     # Roblox Version Command
     @commands.command(
@@ -102,9 +103,16 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
     async def user(self, ctx, user):
         client = Client()
         user = await client.get_user_by_name(user)
-        lisst = tuple(await user.friends())
-        print("\n".join(lisst))
+        user_embed = discord.Embed(title="Roblox User",)
+        user_embed.add_field(name="Username", value=user.name)
+        user_embed.add_field(name="User ID", value=user.id)
+        user_embed.add_field(name="Join Date", value=user.account_age)
+        user_embed.add_field(name="Amount of Friends", value=await user.friends_count())
+        user_embed.add_field(name="Amount of Followers", value=await user.follower_count())
+        user_embed.add_field(name="Amount of user badges", value=await user.count_roblox_badges())
+        user_embed.set_thumbnail(url=await user.avatar())
+        await ctx.send(embed=user_embed)
 
 
-def setup(avimetry):
-    avimetry.add_cog(RobloxUpdate(avimetry))
+def setup(avi):
+    avi.add_cog(RobloxUpdate(avi))

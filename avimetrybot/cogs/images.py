@@ -15,8 +15,8 @@ args = typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, No
 
 
 class Manipulation(commands.Cog):
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
+    def __init__(self, avi):
+        self.avi = avi
 
     async def member_convert(self, ctx, url):
         if url is None:
@@ -40,7 +40,7 @@ class Manipulation(commands.Cog):
     async def magic(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            magic = await self.avimetry.zaneapi.magic(str(url))
+            magic = await self.avi.zaneapi.magic(str(url))
             file = discord.File(io.BytesIO(magic.read()), filename="magic.gif")
             embed.set_image(url="attachment://magic.gif")
             await ctx.send(file=file, embed=embed)
@@ -53,7 +53,7 @@ class Manipulation(commands.Cog):
     async def floor(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            floor = await self.avimetry.zaneapi.floor(str(url))
+            floor = await self.avi.zaneapi.floor(str(url))
             file = discord.File(io.BytesIO(floor.read()), filename="floor.gif")
             embed.set_image(url="attachment://floor.gif")
             await ctx.send(file=file, embed=embed)
@@ -64,14 +64,14 @@ class Manipulation(commands.Cog):
     async def braille(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            braille = await self.avimetry.zaneapi.braille(str(url))
+            braille = await self.avi.zaneapi.braille(str(url))
             return await ctx.send_raw(f"```{braille}```")
 
     @commands.command(usage="[url or member]", brief="Returns your image deepfried")
     async def deepfry(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            deepfry = await self.avimetry.zaneapi.deepfry(str(url))
+            deepfry = await self.avi.zaneapi.deepfry(str(url))
             file = discord.File(BytesIO(deepfry.read()), filename="deepfry.png")
             embed.set_image(url="attachment://deepfry.png")
             await ctx.send(file=file, embed=embed)
@@ -82,7 +82,7 @@ class Manipulation(commands.Cog):
     async def dots(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            dots = await self.avimetry.zaneapi.dots(str(url))
+            dots = await self.avi.zaneapi.dots(str(url))
             file = discord.File(BytesIO(dots.read()), filename="dots.png")
             embed.set_image(url="attachment://dots.png")
             await ctx.send(file=file, embed=embed)
@@ -94,7 +94,7 @@ class Manipulation(commands.Cog):
     async def jpeg(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            jpeg = await self.avimetry.zaneapi.jpeg(str(url))
+            jpeg = await self.avi.zaneapi.jpeg(str(url))
             file = discord.File(BytesIO(jpeg.read()), filename="jpeg.png")
             embed.set_image(url="attachment://jpeg.png")
             await ctx.send(file=file, embed=embed)
@@ -105,7 +105,7 @@ class Manipulation(commands.Cog):
     async def spread(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            spread = await self.avimetry.zaneapi.spread(str(url))
+            spread = await self.avi.zaneapi.spread(str(url))
             file = discord.File(BytesIO(spread.read()), filename="spread.gif")
             embed.set_image(url="attachment://spread.gif")
             await ctx.send(file=file, embed=embed)
@@ -114,7 +114,7 @@ class Manipulation(commands.Cog):
     async def cube(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            cube = await self.avimetry.zaneapi.cube(str(url))
+            cube = await self.avi.zaneapi.cube(str(url))
             file = discord.File(io.BytesIO(cube.read()), filename="cube.png")
             embed.set_image(url="attachment://cube.png")
             await ctx.send(file=file, embed=embed)
@@ -123,7 +123,7 @@ class Manipulation(commands.Cog):
     async def sort(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            sort = await self.avimetry.zaneapi.sort(str(url))
+            sort = await self.avi.zaneapi.sort(str(url))
             file = discord.File(BytesIO(sort.read()), filename="sort.png")
             embed.set_image(url="attachment://sort.png")
             await ctx.send(file=file, embed=embed)
@@ -134,7 +134,7 @@ class Manipulation(commands.Cog):
     async def palette(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            palette = await self.avimetry.zaneapi.palette(str(url))
+            palette = await self.avi.zaneapi.palette(str(url))
             file = discord.File(BytesIO(palette.read()), filename="palette.png")
             embed.set_image(url="attachment://palette.png")
             await ctx.send(file=file, embed=embed)
@@ -145,7 +145,7 @@ class Manipulation(commands.Cog):
     async def invert(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            invert = await self.avimetry.zaneapi.invert(str(url))
+            invert = await self.avi.zaneapi.invert(str(url))
             file = discord.File(BytesIO(invert.read()), filename="invert.png")
             embed.set_image(url="attachment://invert.png")
             await ctx.send(file=file, embed=embed)
@@ -156,7 +156,7 @@ class Manipulation(commands.Cog):
     async def posterize(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            posterize = await self.avimetry.zaneapi.posterize(str(url))
+            posterize = await self.avi.zaneapi.posterize(str(url))
             file = discord.File(BytesIO(posterize.read()), filename="posterize.png")
             embed.set_image(url="attachment://posterize.png")
             await ctx.send(file=file, embed=embed)
@@ -165,7 +165,7 @@ class Manipulation(commands.Cog):
     async def grayscale(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            grayscale = await self.avimetry.zaneapi.grayscale(str(url))
+            grayscale = await self.avi.zaneapi.grayscale(str(url))
             file = discord.File(BytesIO(grayscale.read()), filename="grayscale.png")
             embed.set_image(url="attachment://grayscale.png")
             await ctx.send(file=file, embed=embed)
@@ -177,7 +177,7 @@ class Manipulation(commands.Cog):
     async def pixelate(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            pixelate = await self.avimetry.zaneapi.pixelate(str(url))
+            pixelate = await self.avi.zaneapi.pixelate(str(url))
             file = discord.File(BytesIO(pixelate.read()), filename="pixelate.png")
             embed.set_image(url="attachment://pixelate.png")
             await ctx.send(file=file, embed=embed)
@@ -188,7 +188,7 @@ class Manipulation(commands.Cog):
     async def swirl(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            swirl = await self.avimetry.zaneapi.swirl(str(url))
+            swirl = await self.avi.zaneapi.swirl(str(url))
             file = discord.File(BytesIO(swirl.read()), filename="swirl.gif")
             embed.set_image(url="attachment://swirl.gif")
             await ctx.send(file=file, embed=embed)
@@ -199,7 +199,7 @@ class Manipulation(commands.Cog):
     async def sobel(self, ctx, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
-            sobel = await self.avimetry.zaneapi.sobel(str(url))
+            sobel = await self.avi.zaneapi.sobel(str(url))
             file = discord.File(BytesIO(sobel.read()), filename="sobel.png")
             embed.set_image(url="attachment://sobel.png")
             await ctx.send(file=file, embed=embed)
@@ -207,7 +207,7 @@ class Manipulation(commands.Cog):
     @commands.command()
     async def animal(self, ctx, animal):
         async with ctx.channel.typing():
-            e = await self.avimetry.sr.get_image(animal)
+            e = await self.avi.sr.get_image(animal)
             file = discord.File(BytesIO(await e.read()), filename="animal.png")
             embed.set_image(url="attachment://animal.png")
             await ctx.send(file=file, embed=embed)
@@ -218,8 +218,8 @@ class Manipulation(commands.Cog):
         await ctx.send(result)
 
 
-def setup(avimetry):
-    avimetry.add_cog(Manipulation(avimetry))
+def setup(avi):
+    avi.add_cog(Manipulation(avi))
 
 
 """todo

@@ -10,18 +10,12 @@ from utils.errors import Blacklisted
 
 
 class ErrorHandler(commands.Cog):
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
+    def __init__(self, avi):
+        self.avi = avi
 
     # Command Error
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        if ctx.author.id in self.avimetry.owner_ids:
-            try:
-                return await ctx.reinvoke()
-            except Exception:
-                pass
-
         pre = ctx.clean_prefix
         error = getattr(error, "original", error)
 
@@ -41,7 +35,7 @@ class ErrorHandler(commands.Cog):
             await ctx.send(embed=blacklisted)
 
         elif isinstance(error, commands.CommandNotFound):
-            if ctx.author.id in self.avimetry.blacklisted_users:
+            if ctx.author.id in self.avi.blacklisted_users:
                 return
             not_found_embed = discord.Embed(
                 title="Invalid Command", color=discord.Color.red()
@@ -121,14 +115,17 @@ class ErrorHandler(commands.Cog):
             await ctx.send("This command is not open yet.")
 
         elif isinstance(error, commands.BadArgument):
-            ba = discord.Embed(color=discord.Color.red())
-            ba.add_field(name="<:noTick:777096756865269760> Bad argument", value=error)
+            ba = discord.Embed(
+                title="Bad Argument",
+                description=str(error),
+                color=discord.Color.red()
+                )
             await ctx.send(embed=ba)
 
         elif isinstance(error, commands.TooManyArguments):
             many_arguments = discord.Embed(
                 title="Too many arguments",
-                description=error,
+                description=str(error),
                 color=discord.Color.red()
             )
             await ctx.send(embed=many_arguments)
@@ -164,7 +161,7 @@ class ErrorHandler(commands.Cog):
             short_exception = "".join(
                 traceback.format_exception_only(type(error), error)
             )
-            myst_exception = await self.avimetry.myst.post(
+            myst_exception = await self.avi.myst.post(
                 long_exception, syntax="python"
             )
             ee.title = "Unknown Error"
@@ -175,12 +172,12 @@ class ErrorHandler(commands.Cog):
             )
             try:
                 await ctx.send(embed=ee)
-                chanel = self.avimetry.get_channel(797362270593613854)
+                chanel = self.avi.get_channel(797362270593613854)
                 await chanel.send(f"```{long_exception}```\n{str(myst_exception)}",)
                 return
             except Exception:
                 return
 
 
-def setup(avimetry):
-    avimetry.add_cog(ErrorHandler(avimetry))
+def setup(avi):
+    avi.add_cog(ErrorHandler(avi))

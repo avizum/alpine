@@ -22,7 +22,7 @@ class AvimetryContext(commands.Context):
         if content:
             for key, token in tokens.items():
                 if token in content:
-                    content = content.replace(token, f"[{key} omitted]")
+                    content = str(content.replace(token, f"[{key} omitted]"))
             embed = discord.Embed(description=content)
             try:
                 if self.command.name == "jishaku":
@@ -38,7 +38,7 @@ class AvimetryContext(commands.Context):
                 if not embed.footer:
                     embed.set_footer(
                         icon_url=str(self.author.avatar_url),
-                        text=f"Requested by {self.author}",
+                        text=f"Requested by {self.author.display_name}",
                     )
                     embed.timestamp = datetime.datetime.utcnow()
                 if not embed.color:

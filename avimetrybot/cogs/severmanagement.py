@@ -4,6 +4,8 @@ import discord
 
 
 class ServerManagement(commands.Cog):
+    def __init__(self, avi):
+        self.avi = avi
 
     @commands.group()
     async def clone(self, ctx):
@@ -26,5 +28,5 @@ class ServerManagement(commands.Cog):
         await ctx.send(f"Cloned channel. Here is the new channel {cloned}")
 
 
-def setup(avimetry):
+def setup(avi):
     return

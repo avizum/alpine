@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 import datetime
-import aiohttp
 import random
 import humanize
 import pytz
@@ -13,60 +12,8 @@ class Meta(commands.Cog):
     """
     Commands that do not lie in any category.
     """
-    def __init__(self, avimetry):
-        self.avimetry = avimetry
-
-    # CoViD-19 Stats
-    @commands.command()
-    async def covid(self, ctx, *, country):
-        pre = await self.avimetry.get_prefix(ctx.message)
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"https://coronavirus-19-api.herokuapp.com/countries/{country}"
-                ) as resp:
-                    js_in = await resp.json()
-                    countries = js_in["country"]
-                    totalCases = js_in["cases"]
-                    todayCases = js_in["todayCases"]
-                    casesPerMil = js_in["casesPerOneMillion"]
-                    activeCases = js_in["active"]
-                    criticalCases = js_in["critical"]
-                    totalDeaths = js_in["deaths"]
-                    todayDeaths = js_in["todayDeaths"]
-                    deathsPerMil = js_in["deathsPerOneMillion"]
-                    recovered = js_in["recovered"]
-                    tests = js_in["totalTests"]
-                    testPerMil = js_in["testsPerOneMillion"]
-
-                    e = discord.Embed(
-                        title=f"COVID-19 Status for {countries}",
-                        description="Cases are not updated live, so it may not be very accurate at times.",
-                    )
-                    e.add_field(name="Total Cases:", value=totalCases, inline=True)
-                    e.add_field(name="Cases Today:", value=todayCases, inline=True)
-                    e.add_field(name="Cases Per 1M:", value=casesPerMil, inline=True)
-                    e.add_field(name="Active Cases:", value=activeCases, inline=True)
-                    e.add_field(
-                        name="Critical Cases:", value=criticalCases, inline=True
-                    )
-                    e.add_field(name="Total Deaths:", value=totalDeaths, inline=True)
-                    e.add_field(name="Deaths Today:", value=todayDeaths, inline=True)
-                    e.add_field(name="Deaths Per 1M:", value=deathsPerMil, inline=True)
-                    e.add_field(name="Recovered:", value=recovered, inline=True)
-                    e.add_field(name="Tests Taken:", value=tests, inline=True)
-                    e.add_field(
-                        name="Tests Taken Per 1M:", value=testPerMil, inline=True
-                    )
-                    await ctx.send(embed=e)
-        except Exception:
-            a = discord.Embed()
-            a.add_field(
-                name="<:noTick:777096756865269760> Invalid Country",
-                value=f"{country} is not a country, or the API may be down. Please try again later",
-            )
-            a.set_footer(text=f"Use '{pre}help' if you need help.")
-            await ctx.send(embed=a, delete_after=10)
+    def __init__(self, avi):
+        self.avi = avi
 
     # Poll command
     @commands.command(brief="Launch a poll for users to vote to.")
@@ -199,7 +146,7 @@ class Meta(commands.Cog):
     async def time(self, ctx, *, member: discord.Member = None):
         if member is None:
             member = ctx.author
-        data = await self.avimetry.bot_users.find(member.id)
+        data = await self.avi.bot_users.find(member.id)
         try:
             timezone = data[str("time_zone")]
         except TypeError:
@@ -224,12 +171,12 @@ class Meta(commands.Cog):
     async def set(self, ctx, *, timezone):
         try:
             if timezone.lower() == "none":
-                await self.avimetry.bot_users.unset({"_id": ctx.author.id, "time_zone": ""})
+                await self.avi.bot_users.unset({"_id": ctx.author.id, "time_zone": ""})
                 return await ctx.send("Removed timezone")
             timezones = pytz.timezone(timezone)
         except KeyError:
             raise TimeZoneError(timezone)
-        await self.avimetry.bot_users.upsert(
+        await self.avi.bot_users.upsert(
             {"_id": ctx.author.id, "time_zone": str(timezones)}
         )
         await ctx.send(f"Set timezone to {timezones}")
@@ -250,5 +197,5 @@ class Meta(commands.Cog):
         await ctx.send(embed=embed_message)
 
 
-def setup(avimetry):
-    avimetry.add_cog(Meta(avimetry))
+def setup(avi):
+    avi.add_cog(Meta(avi))
