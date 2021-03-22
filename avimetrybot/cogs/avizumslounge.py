@@ -4,6 +4,9 @@ from utils.errors import AvizumsLoungeOnly
 
 
 class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
+    '''
+    Commands for Avizum's Lounge only.
+    '''
     def __init__(self, avi):
         self.avi = avi
 

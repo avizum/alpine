@@ -26,9 +26,8 @@ class ErrorHandler(commands.Cog):
             blacklisted = discord.Embed(
                 title="You are blacklisted",
                 description=(
-                    f"{ctx.author.mention}, you are blacklisted from this bot.\n"
-                    "If you think this is a mistake, please join the "
-                    "[support server](https://dis.gd/threads)"
+                    f"Blacklist reason: `{error.reason}`\n"
+                    "If you think this is an error, Join the [support](https://discord.gg/yCUtp2RcKs) server to appeal."
                 ),
                 color=discord.Color.red(),
             )
@@ -168,13 +167,25 @@ class ErrorHandler(commands.Cog):
             ee.description = (
                 "An unknown error has occured. This usually means that avi did not do something right. "
                 "The error was sent to the [support server](https://dis.gd/threads) and will be fixed soon."
-                f"\n\nError:\n```py\n{short_exception}```"
+                f"\n\n[Error]({myst_exception}):\n```py\n{short_exception}```"
             )
             try:
                 await ctx.send(embed=ee)
-                chanel = self.avi.get_channel(797362270593613854)
-                await chanel.send(f"```{long_exception}```\n{str(myst_exception)}",)
-                return
+                error_channel = self.avi.get_channel(797362270593613854)
+                embed = discord.Embed(
+                    title="Uncaught Error",
+                    description=f"```py\n {short_exception}```",
+                    color=discord.Color.red()
+                )
+                embed.add_field(
+                    name="Error Info",
+                    value=(
+                        f"Command: {ctx.command.name}\n"
+                        f"Invoker: {ctx.command.author}\n"
+                        f"Link: {myst_exception}"
+                    )
+                )
+                await error_channel.send(embed=embed)
             except Exception:
                 return
 

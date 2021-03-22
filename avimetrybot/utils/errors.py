@@ -11,7 +11,8 @@ class TimeZoneError(commands.BadArgument):
 
 
 class Blacklisted(commands.CheckFailure):
-    pass
+    def __init__(self, reason):
+        self.reason = reason
 
 
 class AvizumsLoungeOnly(commands.CheckFailure):
