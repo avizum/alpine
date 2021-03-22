@@ -54,16 +54,16 @@ class HelpEmbeded(commands.HelpCommand):
             self.clean_prefix, self.invoked_with
         )
 
-    def bnote(self):
+    def command_signature(self):
         return (
-            "<argument> = required argument\n"
-            "[argument] = optional argument\n"
-            "[argument...] = accepts multiple arguments"
+            "```<> is a required argument\n"
+            "[] is an optional argument\n"
+            "[...] accepts multiple arguments```"
         )
 
     async def send_error_message(self, error):
         embed = discord.Embed(
-            title="Help Menu", description=error, color=discord.Color.red()
+            title="Help Error", description=error, color=discord.Color.red()
         )
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
@@ -73,12 +73,12 @@ class HelpEmbeded(commands.HelpCommand):
 
     async def send_bot_help(self, mapping):
         prefixes = await self.context.bot.config.find(self.context.guild.id)
-        det_prefix = f"`{prefixes['prefix']}` or `@{self.context.bot.user.display_name} `"
+        determine_prefix = f"`{prefixes['prefix']}` or `@{self.context.bot.user.display_name} `"
         embed = discord.Embed(
             title="Help Menu",
             description=(
-                f"```{self.bnote()}```\nDo not put the brackets with the command. It is not needed.\n\n"
-                f"The prefix for **{self.get_destination().guild.name}** is {det_prefix}"
+                f"{self.command_signature()}\nDo not put the brackets with the commands.\n"
+                f"The prefix for **{self.get_destination().guild.name}** is {determine_prefix}\n"
             ),
         )
         modules_list = []
@@ -86,26 +86,18 @@ class HelpEmbeded(commands.HelpCommand):
             name = "No Category" if cog is None else cog.qualified_name
             filtered = await self.filter_commands(command, sort=True)
             if filtered:
-                modules_list.append(f"{name} ({len(command)})")
+                modules_list.append(f"{name}")
         embed.add_field(
             name="Modules", value="{}".format("\n".join(modules_list)), inline=True
         )
-        embed.add_field(
-            name="Credits",
-            value=(
-                "ZaneAPI\n"
-                "Some Random API\n"
-                "avi (developer)"
-            )
-        )
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
-        embed.set_footer(text=f"Use {self.clean_prefix}{self.invoked_with} [module | command] to get info on a module.")
+        embed.set_footer(text=f"Use {self.clean_prefix}{self.invoked_with} [module|command] to get info on a module.")
         await self.get_destination().send(embed=embed)
 
     async def send_cog_help(self, cog):
         embed = discord.Embed(
             title=f"{cog.qualified_name.title()} Commands",
-            description=cog.description or "No module description",
+            description=cog.description or "No description was provided",
         )
         if cog.description:
             embed.description = cog.description
@@ -113,14 +105,14 @@ class HelpEmbeded(commands.HelpCommand):
         command_list = []
         for command in filtered:
             command_list.append(command.name)
-        split_list = [command_list[i:i+5]for i in range(0, len(command_list), 5)]
+        split_list = [command_list[i:i+3]for i in range(0, len(command_list), 3)]
         value = []
         for lists in split_list:
             value.append(", ".join(lists))
 
         embed.add_field(
             name=f"Commands in {cog.qualified_name.title()}",
-            value='{},'.format(",\n".join(value)),
+            value='{}'.format(",\n".join(value)) or None,
             inline=False,
         )
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
@@ -143,9 +135,14 @@ class HelpEmbeded(commands.HelpCommand):
             value=", ".join(group.aliases) or None,
             inline=False
         )
-        can_run_check = await group.can_run(self.context)
-        if can_run_check:
-            can_run = self.context.bot.emoji_dictionary["green_tick"]
+        try:
+            can_run_check = await group.can_run(self.context)
+            if can_run_check:
+                can_run = self.context.bot.emoji_dictionary["green_tick"]
+            else:
+                can_run = self.context.bot.emoji_dictionary["red_tick"]
+        except commands.CommandError:
+            can_run = self.context.bot.emoji_dictionary["red_tick"]
         embed.add_field(
             name="Required Permissions",
             value=(
@@ -165,14 +162,14 @@ class HelpEmbeded(commands.HelpCommand):
             group_commands = []
             for command in filtered:
                 group_commands.append(command.name)
-            split_list = [group_commands[i:i+5]for i in range(0, len(group_commands), 5)]
+            split_list = [group_commands[i:i+3]for i in range(0, len(group_commands), 3)]
             value = []
             for lists in split_list:
                 value.append(", ".join(lists))
 
             embed.add_field(
                 name=f"Subcommands for {group.qualified_name}",
-                value='{},'.format(",\n".join(value)) or None,
+                value='{}'.format(",\n".join(value)) or None,
                 inline=False,
             )
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
@@ -195,18 +192,19 @@ class HelpEmbeded(commands.HelpCommand):
             value=", ".join(command.aliases) or None,
             inline=False
         )
-        usage = command.short_doc
-        if not usage:
-            usage = "No description provided, now go try doing it yourself"
         embed.add_field(
             name="Description",
-            value=usage,
+            value=command.short_doc if not None else "No description was provided",
             inline=True,
         )
-
-        can_run_check = await command.can_run(self.context)
-        if can_run_check:
-            can_run = self.context.bot.emoji_dictionary["green_tick"]
+        try:
+            can_run_check = await command.can_run(self.context)
+            if can_run_check:
+                can_run = self.context.bot.emoji_dictionary["green_tick"]
+            else:
+                can_run = self.context.bot.emoji_dictionary["red_tick"]
+        except commands.CommandError:
+            can_run = self.context.bot.emoji_dictionary["red_tick"]
         embed.add_field(
             name="Required Permissions",
             value=(
@@ -237,11 +235,12 @@ class HelpEmbeded(commands.HelpCommand):
         return '"{0}" is not a subcommand of "{1}".'.format(string, command)
 
 
-class Help(commands.Cog):
+class HelpCommand(commands.Cog):
     def __init__(self, avi):
         self.HCne = avi.help_command
         self.avi = avi
         self.avi.help_command = HelpEmbeded(
+            verify_checks=True,
             command_attrs=dict(
                 hidden=True,
                 aliases=["halp", "helps", "hlp", "hlep", "hep"],
@@ -255,4 +254,4 @@ class Help(commands.Cog):
 
 
 def setup(avi):
-    avi.add_cog(Help(avi))
+    avi.add_cog(HelpCommand(avi))

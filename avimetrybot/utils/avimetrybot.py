@@ -103,7 +103,8 @@ class AvimetryBot(commands.Bot):
         @self.check
         async def is_blacklisted(ctx):
             if ctx.author.id in self.blacklisted_users:
-                raise Blacklisted()
+                get_reason = self.blacklisted_users[ctx.author.id]
+                raise Blacklisted(reason=get_reason["reason"])
             return True
 
         @self.event
@@ -149,6 +150,7 @@ class AvimetryBot(commands.Bot):
         return round((end - start) * 1000)
 
     async def close(self):
+        await self.change_presence(status=discord.Status.offline)
         self.mongo.close()
         await self.sr.close()
         await self.zaneapi.close()

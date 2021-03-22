@@ -16,7 +16,7 @@ class BotInfo(commands.Cog, name="Utility"):
             return
         if message.content == "<@!756257170521063444>":
             cool = await self.avi.config.find(message.guild.id)
-            await message.channel.send(
+            await message.reply(
                 f"Hey {message.author.mention}, the prefix for **{message.guild.name}** is `{cool['prefix']}`"
             )
 
@@ -72,17 +72,14 @@ class BotInfo(commands.Cog, name="Utility"):
     )
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
-    async def verify(self, ctx):
-        await ctx.send_help("config verify")
-
-    @verify.command(brief="Toggle the verification gate")
-    @commands.has_permissions(administrator=True)
-    @commands.bot_has_permissions(administrator=True)
-    async def toggle(self, ctx, bool: bool):
-        await self.avi.config.upsert(
-            {"_id": ctx.guild.id, "verification_gate": bool}
-        )
-        await ctx.send(f"Verification Gate is now {bool}")
+    async def verify(self, ctx, toggle: bool = None):
+        if toggle is None:
+            return await ctx.send_help("settings verify")
+        else:
+            await self.avi.config.upsert(
+                {"_id": ctx.guild.id, "verification_gate": toggle}
+            )
+            await ctx.send(f"Set verify system is set to {toggle}")
 
     @verify.command(
         brief="Set the role to give when a member finishes verification."

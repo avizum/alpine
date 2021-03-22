@@ -15,6 +15,9 @@ args = typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, No
 
 
 class Manipulation(commands.Cog):
+    '''
+    Commands to manipulate images.
+    '''
     def __init__(self, avi):
         self.avi = avi
 
@@ -35,7 +38,9 @@ class Manipulation(commands.Cog):
 
     # Magic Command
     @commands.command(
-        usage="[url or member]", brief="Returns a gif of your image being scaled"
+        usage="[url or member]",
+        brief="Returns a gif of your image being scaled",
+        aliases=["magik", "magick"]
     )
     async def magic(self, ctx, url: args):
         url = await self.member_convert(ctx, url)

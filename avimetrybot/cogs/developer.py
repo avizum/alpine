@@ -8,6 +8,9 @@ import asyncio
 
 
 class Owner(commands.Cog):
+    '''
+    Commands for bot owner.
+    '''
     def __init__(self, avi):
         self.avi = avi
 
@@ -226,7 +229,7 @@ class Owner(commands.Cog):
         await ctx.guild.leave()
 
     @dev.command()
-    async def blacklist(self, ctx, *, user: typing.Union[discord.Member, discord.User], reason):
+    async def blacklist(self, ctx, user: typing.Union[discord.User, discord.Member], *, reason):
         data = {
             "_id": user.id,
             "blacklist_time": datetime.datetime.utcnow(),
@@ -234,10 +237,17 @@ class Owner(commands.Cog):
         }
         await self.avi.blacklist.upsert(data)
         self.avi.blacklisted_users[user.id] = data
-        await ctx.send(f"Blacklisted {str(user)}")
+        embed = discord.Embed(
+            title="Blacklisted User",
+            description=(
+                f"Added {user} to the blacklist.\n"
+                f"Reason: `{reason}`"
+            )
+        )
+        await ctx.send(embed=embed)
 
     @dev.command()
-    async def unblacklist(self, ctx, user: typing.Union[discord.Member, discord.User]):
+    async def unblacklist(self, ctx, user: typing.Union[discord.User, discord.Member]):
         await self.avi.blacklist.delete(user.id)
         self.avi.blacklisted_users.pop(user.id)
         await ctx.send(f"Unblacklisted {str(user)}")

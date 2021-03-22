@@ -33,7 +33,7 @@ class BotLogs(commands.Cog, name="bot logs"):
         if not message.content:
             embed.add_field(
                 name="Deleted content",
-                value="Due to Discord's API limitations, embeds and images can not be logged. Sorry.",
+                value="Media can't be logged",
             )
 
         if message.guild.me.guild_permissions.view_audit_log is True:

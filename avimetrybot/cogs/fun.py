@@ -10,7 +10,7 @@ from akinator.async_aki import Akinator
 
 class Fun(commands.Cog):
     """
-    Fun commands for you and your friends to use.
+    Fun commands for you and your friends (if you have any) to use.
     """
     def __init__(self, avi):
         self.avi = avi
