@@ -8,6 +8,7 @@ import aiozaneapi
 import mystbin
 import time
 import re
+import asyncpg
 from utils import AvimetryContext
 from .errors import Blacklisted
 from discord.ext import commands
@@ -15,25 +16,30 @@ from utils.mongo import MongoDB
 from akinator.async_aki import Akinator
 from config import tokens
 
-DEFAULT_PREFIXES = ['A.', 'a.']
+DEFAULT_PREFIXES = ["A.", "a."]
+BETA_PREFIX = ["ab.", "ba."]
 OWNER_IDS = {750135653638865017, 547280209284562944}
 PUBLIC_BOT_ID = 756257170521063444
 BETA_BOT_ID = 787046145884291072
 
 
-async def prefix(avimetry, message):
+async def escape_prefix(prefixes):
+    if isinstance(prefixes, str):
+        return re.escape(prefixes)
+    if isinstance(prefixes, list):
+        return '|'.join(map(re.escape, prefixes))
+
+
+async def get_prefix(avimetry, message):
     if avimetry.user.id == BETA_BOT_ID:
-        return "ab."
-    if avimetry.devmode is True:
-        command_prefix = ""
-    get_prefix = await avimetry.config.find(message.guild.id)
-    if not message.guild or "prefix" not in get_prefix:
+        command_prefix = BETA_PREFIX
+    elif not message.guild or (get_prefix := await avimetry.config.find(message.guild.id)) is None:
         command_prefix = DEFAULT_PREFIXES
     else:
         command_prefix = get_prefix["prefix"]
         if command_prefix is None:
-            command_prefix = DEFAULT_PREFIXES
-    command_prefix = re.escape(command_prefix)
+            return DEFAULT_PREFIXES
+    command_prefix = await escape_prefix(command_prefix)
     match = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
     if match:
         return match.group(1)
@@ -52,7 +58,7 @@ class AvimetryBot(commands.Bot):
         intents = discord.Intents.all()
         super().__init__(
             **kwargs,
-            command_prefix=prefix,
+            command_prefix=get_prefix,
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,
@@ -86,6 +92,13 @@ class AvimetryBot(commands.Bot):
         self.akinator = Akinator()
 
         # Database
+        self.pool = self.loop.run_until_complete(asyncpg.create_pool(
+            host="avimetry-db.clthizbmyfyh.us-east-2.rds.amazonaws.com",
+            port=5432,
+            user="postgres",
+            database="avimetry",
+            password="8e9982WcNkTHho"
+        ))
         self.mongo = motor.motor_asyncio.AsyncIOMotorClient(tokens["MongoDB"])
         self.db = self.mongo["avimetry"]
         self.config = MongoDB(self.db, "new")
@@ -160,6 +173,4 @@ class AvimetryBot(commands.Bot):
         await super().close()
 
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
-        if after.author.id in self.owner_ids:
-            if before.content != after.content:
-                await self.process_commands(after)
+        await self.process_commands(after)

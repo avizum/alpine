@@ -26,12 +26,13 @@ class Meta(commands.Cog):
         if len(options) > 10:
             raise commands.BadArgument("You can only have ten options in a poll")
         await ctx.message.delete()
-        if len(options) == 2 and options[0] == "Yes" and options[1] == "No":
+        if len(options) == 3 and options[0] == "yes" and options[1] == "maybe" and options[2] == "no":
             reactions = [
                 "<:yesTick:777096731438874634>",
+                "<:noneTick:791040199798030336>",
                 "<:noTick:777096756865269760>",
             ]
-        elif len(options) == 2 and options[0] == "yes" and options[1] == "no":
+        elif len(options) == 2 and options[0].lower() == "yes" and options[1].lower() == "no":
             reactions = [
                 "<:yesTick:777096731438874634>",
                 "<:noTick:777096756865269760>",
