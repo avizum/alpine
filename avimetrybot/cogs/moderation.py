@@ -152,16 +152,19 @@ class Moderation(commands.Cog):
         try:
             dm_embed = discord.Embed(
                 title="Moderation action: Kick",
-                description=f"You were kicked from **{ctx.guild.name}** by **{ctx.author}**",
+                description=(
+                    f"You were kicked from **{ctx.guild.name}** by **{ctx.author}**.\n"
+                    f"Reason {reason}"
+                ),
                 timestamp=datetime.datetime.utcnow(),
             )
             await member.send(embed=dm_embed)
             await member.kick(reason=reason)
-            kick_embed.description = f"**{str(member)}** has been kicked from the server."
+            kick_embed.description = f"**{member}** has been kicked from the server."
             await ctx.send(embed=kick_embed)
         except discord.HTTPException:
             await member.kick(reason=reason)
-            kick_embed.description = f"**{str(member)}** has been kicked from the server, but I could not DM them.",
+            kick_embed.description = f"**{member}** has been kicked from the server, but I could not DM them."
             await ctx.send(embed=kick_embed)
 
     # Ban Command
@@ -185,7 +188,10 @@ class Moderation(commands.Cog):
         try:
             dm_embed = discord.Embed(
                 title="Moderation action: Ban",
-                description=f"You were banned from **{ctx.guild}** by **{ctx.author}**",
+                description=(
+                    f"You were banned from **{ctx.guild}** by **{ctx.author}**."
+                    f"Reason: {reason}"
+                ),
                 timestamp=datetime.datetime.utcnow(),
             )
             await member.send(embed=dm_embed)
@@ -194,7 +200,7 @@ class Moderation(commands.Cog):
             await ctx.send(embed=ban_embed)
         except discord.HTTPException:
             await member.ban(reason=reason)
-            ban_embed.description = f"**{str(member)}** has been banned from the server, but I could not DM them.",
+            ban_embed.description = f"**{str(member)}** has been banned from the server, but I could not DM them."
             await ctx.send(embed=ban_embed)
 
     # Unban Command
@@ -277,7 +283,7 @@ class Moderation(commands.Cog):
     @commands.has_permissions(kick_members=True)
     async def nick(self, ctx, member: discord.Member, *, nick=None):
         if nick is None:
-            await member.edit(nick=member.name)
+            await member.edit(nick=nick)
         oldnick = member.display_name
         await member.edit(nick=nick)
         newnick = member.display_name
@@ -287,10 +293,6 @@ class Moderation(commands.Cog):
         nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
-
-    @commands.command()
-    async def modactiontest(self, ctx, member: TargetMemberAction):
-        await ctx.send(f"{member} was tested")
 
 
 def setup(avi):

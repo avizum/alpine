@@ -20,6 +20,11 @@ class BotInfo(commands.Cog, name="Utility"):
                 f"Hey {message.author.mention}, the prefix for **{message.guild.name}** is `{cool['prefix']}`"
             )
 
+    @commands.command()
+    async def prefix(self, ctx):
+        command = self.avi.get_command("settings prefix")
+        await command(ctx)
+
 # Config Command
     @commands.group(
         invoke_without_command=True,
@@ -30,15 +35,42 @@ class BotInfo(commands.Cog, name="Utility"):
         await ctx.send_help("config")
 
 # Config Prefix Commnad
-    @settings.command(brief="Change the prefix of this server")
-    @commands.has_permissions(administrator=True)
-    async def prefix(self, ctx, new_prefix):
-        await self.avi.config.upsert({"_id": ctx.guild.id, "prefix": new_prefix})
-        cp = discord.Embed(
-            title="Set Prefix",
-            description=f"The prefix for **{ctx.guild.name}** is now `{new_prefix}`"
+    @settings.group(
+        brief="Show all the prefixes of this server",
+        invoke_without_command=True,
+        name="prefix")
+    async def settings_prefix(self, ctx):
+        prefix = await self.avi.avicache.get_guild_settings(ctx.guild.id)
+        if not prefix["prefixes"]:
+            guild_prefix = ["a."]
+            return await ctx.send(f"The prefix for this server is {guild_prefix[0]}")
+        else:
+            guild_prefix = prefix["prefixes"]
+        await ctx.send(f"The prefixes for this server are {', '.join(guild_prefix)}")
+
+    @settings_prefix.command(
+        brief="add prefix",
+        name="add"
         )
-        await ctx.send(embed=cp)
+    @commands.has_permissions(administrator=True)
+    async def prefix_add(self, ctx, prefix):
+        await self.avi.pool.execute(
+            "UPDATE guild_settings SET prefixes = ARRAY_APPEND(prefixes, $2) WHERE guild_id = $1",
+            ctx.guild.id, prefix)
+        self.avi.avicache.guild_settings_cache[ctx.guild.id]["prefixes"].append(prefix)
+        await ctx.send(f"Appended {prefix} to the list of prefixes.")
+
+    @settings_prefix.command(
+        brief="Remove a prefix from the list",
+        name="remove"
+    )
+    @commands.has_permissions(administrator=True)
+    async def prefix_remove(self, ctx, prefix):
+        await self.avi.pool.execute(
+            "UPDATE guild_settings SET prefixes = ARRAY_REMOVE(prefixes, $2) WHERE guild_id = $1",
+            ctx.guild.id, prefix)
+        self.avi.avicache.guild_settings_cache[ctx.guild.id]["prefixes"].remove(prefix)
+        await ctx.send(f"Removed {prefix} to the list of prefixes")
 
     @settings.group(invoke_without_command=True, brief="Configure logging")
     @commands.has_permissions(administrator=True)
@@ -157,10 +189,16 @@ class BotInfo(commands.Cog, name="Utility"):
             inline=False,
         )
         ping_embed.add_field(
-            name="Database Latency",
+            name="Database Latency (Mongo)",
             value=f"`{await self.avi.database_latency(ctx)}ms`",
             inline=False,
         )
+        ping_embed.add_field(
+            name="Database Latency (PostgreSQL)",
+            value=f"`{await self.avi.postgresql_latency()}ms`",
+            inline=False,
+        )
+
         await ctx.send(embed=ping_embed)
 
     # Source Command

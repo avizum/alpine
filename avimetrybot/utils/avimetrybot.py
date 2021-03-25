@@ -14,7 +14,8 @@ from .errors import Blacklisted
 from discord.ext import commands
 from utils.mongo import MongoDB
 from akinator.async_aki import Akinator
-from config import tokens
+from config import tokens, postgresql
+
 
 DEFAULT_PREFIXES = ["A.", "a."]
 BETA_PREFIX = ["ab.", "ba."]
@@ -30,20 +31,18 @@ async def escape_prefix(prefixes):
         return '|'.join(map(re.escape, prefixes))
 
 
-async def get_prefix(avimetry, message):
-    if avimetry.user.id == BETA_BOT_ID:
-        command_prefix = BETA_PREFIX
-    elif not message.guild or (get_prefix := await avimetry.config.find(message.guild.id)) is None:
+async def bot_prefix(avimetry, message: discord.Message):
+    if not message.guild or (get_prefix := await avimetry.avicache.get_guild_settings(message.guild.id)) is None:
         command_prefix = DEFAULT_PREFIXES
     else:
-        command_prefix = get_prefix["prefix"]
-        if command_prefix is None:
+        command_prefix = get_prefix["prefixes"]
+        if command_prefix is None or command_prefix == []:
             return DEFAULT_PREFIXES
-    command_prefix = await escape_prefix(command_prefix)
-    match = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
-    if match:
-        return match.group(1)
-    return commands.when_mentioned(avimetry, message)
+        command_prefix = await escape_prefix(command_prefix)
+        prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
+        if prefix:
+            return prefix.group(1)
+        return commands.when_mentioned(avimetry, message)
 
 allowed_mentions = discord.AllowedMentions(
     everyone=False, users=False,
@@ -58,7 +57,7 @@ class AvimetryBot(commands.Bot):
         intents = discord.Intents.all()
         super().__init__(
             **kwargs,
-            command_prefix=get_prefix,
+            command_prefix=bot_prefix,
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,
@@ -74,6 +73,7 @@ class AvimetryBot(commands.Bot):
         self.blacklisted_users = {}
         self.commands_ran = 0
         self.devmode = False
+        self.avicache = AvimetryCache(self)
         self.emoji_dictionary = {
             "red_tick": '<:noTick:777096756865269760>',
             "green_tick": '<:yesTick:777096731438874634>',
@@ -92,13 +92,8 @@ class AvimetryBot(commands.Bot):
         self.akinator = Akinator()
 
         # Database
-        self.pool = self.loop.run_until_complete(asyncpg.create_pool(
-            host="avimetry-db.clthizbmyfyh.us-east-2.rds.amazonaws.com",
-            port=5432,
-            user="postgres",
-            database="avimetry",
-            password="8e9982WcNkTHho"
-        ))
+        self.pool = self.loop.run_until_complete(asyncpg.create_pool(**postgresql))
+
         self.mongo = motor.motor_asyncio.AsyncIOMotorClient(tokens["MongoDB"])
         self.db = self.mongo["avimetry"]
         self.config = MongoDB(self.db, "new")
@@ -150,6 +145,12 @@ class AvimetryBot(commands.Bot):
     async def get_context(self, message, *, cls=AvimetryContext):
         return await super().get_context(message, cls=cls)
 
+    async def postgresql_latency(self):
+        start = time.perf_counter()
+        await self.pool.execute("SELECT 1")
+        end = time.perf_counter()
+        return round((end-start) * 1000)
+
     async def api_latency(self, ctx):
         start = time.perf_counter()
         await ctx.trigger_typing()
@@ -172,5 +173,31 @@ class AvimetryBot(commands.Bot):
         print("\nClosing Connection to Discord.")
         await super().close()
 
+    def run(self, *args, **kwargs):
+        self.loop.run_until_complete(self.avicache.cache_all())
+        super().run(*args, **kwargs)
+
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
         await self.process_commands(after)
+
+
+class AvimetryCache:
+    def __init__(self, bot: AvimetryBot):
+        self.avi = bot
+        self.guild_settings_cache = {}
+        self.blacklisted_users = []
+
+    async def cache_all(self):
+        await self.load_guild_settings()
+
+    async def get_guild_settings(self, guild_id: int):
+        return self.guild_settings_cache.get(guild_id, None)
+
+    async def load_guild_settings(self):
+        items = await self.avi.pool.fetch("SELECT * FROM guild_settings")
+        for entry in items:
+            self.guild_settings_cache[entry["guild_id"]] = {key: value for key, value in list(entry.items())}
+
+    async def load_blacklisted(self):
+        items = await self.avi.pool.fetch("SELECT * FROM bl_users")
+        return items
