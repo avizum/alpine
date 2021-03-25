@@ -1,4 +1,3 @@
-import typing
 import discord
 from discord.ext import commands
 import random
@@ -15,6 +14,9 @@ class Fun(commands.Cog):
     def __init__(self, avi):
         self.avi = avi
         self._cd = commands.CooldownMapping.from_cooldown(1.0, 60.0, commands.BucketType.user)
+
+    async def do_mock(self, string: str):
+        return "".join(random.choice([mock.upper, mock.lower])() for mock in string)
 
 # Magic 8 Ball
     @commands.command(
@@ -472,18 +474,9 @@ class Fun(commands.Cog):
 
 # Mock Command
     @commands.command()
-    async def mock(self, ctx, *, text: typing.Union[discord.Member, str]):
-        if isinstance(text, discord.Member):
-            async for message in ctx.channel.history(limit=100):
-                if ctx.author == text:
-                    return await ctx.send("You can't mock yourself")
-                elif message.author == text:
-                    text = message.content
-                    await message.reply("".join((random.choice([mock.upper, mock.lower])() for mock in text)))
-                    break
-
-        else:
-            await ctx.send("".join(random.choice([mock.upper, mock.lower])() for mock in text))
+    async def mock(self, ctx, *, text):
+        send = await self.do_mock(text)
+        await ctx.send(send)
 
 # Reddit Command
     @commands.command()
