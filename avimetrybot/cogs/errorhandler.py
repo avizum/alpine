@@ -114,6 +114,10 @@ class ErrorHandler(commands.Cog):
             await ctx.send("This command is not open yet.")
 
         elif isinstance(error, commands.BadArgument):
+            try:
+                ctx.reset_cooldown(ctx)
+            except Exception:
+                pass
             ba = discord.Embed(
                 title="Bad Argument",
                 description=str(error),
@@ -122,6 +126,10 @@ class ErrorHandler(commands.Cog):
             await ctx.send(embed=ba)
 
         elif isinstance(error, commands.TooManyArguments):
+            try:
+                ctx.reset_cooldown(ctx)
+            except Exception:
+                pass
             many_arguments = discord.Embed(
                 title="Too many arguments",
                 description=str(error),

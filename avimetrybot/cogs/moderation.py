@@ -30,7 +30,8 @@ class Moderation(commands.Cog):
                 msg_count += 1
                 if msg_count >= amount:
                     break
-            if message.content.lower().startswith(ctx.clean_prefix):
+            check_prefix = await ctx.cache.get_guild_settings(ctx.guild.id)
+            if message.content.lower() in check_prefix["prefixes"]:
                 message_list.append(message)
         try:
             await ctx.channel.delete_messages(message_list)

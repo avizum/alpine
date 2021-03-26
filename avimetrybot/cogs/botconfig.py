@@ -40,13 +40,14 @@ class BotInfo(commands.Cog, name="Utility"):
         invoke_without_command=True,
         name="prefix")
     async def settings_prefix(self, ctx):
-        prefix = await self.avi.avicache.get_guild_settings(ctx.guild.id)
+        prefix = await ctx.cache.get_guild_settings(ctx.guild.id)
         if not prefix["prefixes"]:
-            guild_prefix = ["a."]
-            return await ctx.send(f"The prefix for this server is {guild_prefix[0]}")
+            return await ctx.send("You don't have a custom prefix set yet. The default prefix is always `a.`")
         else:
             guild_prefix = prefix["prefixes"]
-        await ctx.send(f"The prefixes for this server are {', '.join(guild_prefix)}")
+        if len(guild_prefix) == 1:
+            return await ctx.send(f"The prefix for this server is `{guild_prefix[0]}`")
+        await ctx.send(f"Here are my prefixes for this server: \n`{'` | `'.join(guild_prefix)}`")
 
     @settings_prefix.command(
         brief="add prefix",
@@ -54,10 +55,17 @@ class BotInfo(commands.Cog, name="Utility"):
         )
     @commands.has_permissions(administrator=True)
     async def prefix_add(self, ctx, prefix):
+        guild_cache = await ctx.cache.get_guild_settings(ctx.guild.id)
+        if not guild_cache:
+            await self.avi.temp.cache_new_guild(ctx.guild.id)
+        else:
+            guild_prefix = guild_cache["prefixes"]
+            if prefix in guild_prefix:
+                return await ctx.send("This is already a prefix.")
         await self.avi.pool.execute(
             "UPDATE guild_settings SET prefixes = ARRAY_APPEND(prefixes, $2) WHERE guild_id = $1",
             ctx.guild.id, prefix)
-        self.avi.avicache.guild_settings_cache[ctx.guild.id]["prefixes"].append(prefix)
+        self.avi.temp.guild_settings_cache[ctx.guild.id]["prefixes"].append(prefix)
         await ctx.send(f"Appended {prefix} to the list of prefixes.")
 
     @settings_prefix.command(
@@ -66,10 +74,15 @@ class BotInfo(commands.Cog, name="Utility"):
     )
     @commands.has_permissions(administrator=True)
     async def prefix_remove(self, ctx, prefix):
+        guild_cache = await ctx.cache.get_guild_settings(ctx.guild.id)
+        if not guild_cache:
+            return await ctx.send(
+                "You don't have any prefixes set for this server. Set one by using a.settings prefix add <prefix>"
+                )
         await self.avi.pool.execute(
             "UPDATE guild_settings SET prefixes = ARRAY_REMOVE(prefixes, $2) WHERE guild_id = $1",
             ctx.guild.id, prefix)
-        self.avi.avicache.guild_settings_cache[ctx.guild.id]["prefixes"].remove(prefix)
+        self.avi.temp.guild_settings_cache[ctx.guild.id]["prefixes"].remove(prefix)
         await ctx.send(f"Removed {prefix} to the list of prefixes")
 
     @settings.group(invoke_without_command=True, brief="Configure logging")

@@ -72,13 +72,13 @@ class HelpEmbeded(commands.HelpCommand):
         return self.context
 
     async def send_bot_help(self, mapping):
-        prefixes = await self.context.bot.config.find(self.context.guild.id)
-        determine_prefix = f"`{prefixes['prefix']}` or `@{self.context.bot.user.display_name} `"
+        prefixes = await self.context.cache.get_guild_settings(self.context.guild.id)
+        determine_prefix = f"`{'` | `'.join(prefixes['prefixes'])}`"
         embed = discord.Embed(
             title="Help Menu",
             description=(
                 f"{self.command_signature()}\nDo not put the brackets with the commands.\n"
-                f"The prefix for **{self.get_destination().guild.name}** is {determine_prefix}\n"
+                f"Here are the prefixes for **{self.get_destination().guild.name}**.\n{determine_prefix}\n"
             ),
         )
         modules_list = []

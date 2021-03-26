@@ -7,6 +7,10 @@ from config import tokens
 
 class AvimetryContext(commands.Context):
     @property
+    def cache(self):
+        return self.bot.temp
+
+    @property
     def clean_prefix(self):
         prefix = re.sub(
             f"<@!?{self.bot.user.id}>", f"@{self.me.display_name}", self.prefix

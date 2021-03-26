@@ -230,13 +230,11 @@ class Owner(commands.Cog):
 
     @dev.command()
     async def blacklist(self, ctx, user: typing.Union[discord.User, discord.Member], *, reason):
-        data = {
-            "_id": user.id,
-            "blacklist_time": datetime.datetime.utcnow(),
-            "reason": reason
-        }
-        await self.avi.blacklist.upsert(data)
-        self.avi.blacklisted_users[user.id] = data
+        await self.avi.pool.execute(
+            "INSERT INTO blacklist_user VALUES ($1, $2)",
+            user.id, reason)
+        ctx.cache.blacklisted_users[user.id] = reason
+
         embed = discord.Embed(
             title="Blacklisted User",
             description=(
@@ -248,8 +246,11 @@ class Owner(commands.Cog):
 
     @dev.command()
     async def unblacklist(self, ctx, user: typing.Union[discord.User, discord.Member]):
-        await self.avi.blacklist.delete(user.id)
-        self.avi.blacklisted_users.pop(user.id)
+        await self.avi.pool.execute(
+            "DELETE FROM blacklist_user WHERE user_id = $1",
+            user.id
+        )
+        ctx.cache.blacklisted_users.pop(user.id)
         await ctx.send(f"Unblacklisted {str(user)}")
 
 

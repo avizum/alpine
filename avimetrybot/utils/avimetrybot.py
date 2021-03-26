@@ -13,12 +13,12 @@ from utils import AvimetryContext
 from .errors import Blacklisted
 from discord.ext import commands
 from utils.mongo import MongoDB
-from akinator.async_aki import Akinator
 from config import tokens, postgresql
+from copy import deepcopy
 
 
 DEFAULT_PREFIXES = ["A.", "a."]
-BETA_PREFIX = ["ab.", "ba."]
+BETA_PREFIXES = ["ab.", "ba."]
 OWNER_IDS = {750135653638865017, 547280209284562944}
 PUBLIC_BOT_ID = 756257170521063444
 BETA_BOT_ID = 787046145884291072
@@ -31,18 +31,20 @@ async def escape_prefix(prefixes):
         return '|'.join(map(re.escape, prefixes))
 
 
-async def bot_prefix(avimetry, message: discord.Message):
-    if not message.guild or (get_prefix := await avimetry.avicache.get_guild_settings(message.guild.id)) is None:
+async def bot_prefix(avi, message: discord.Message):
+    if avi.user.id == BETA_BOT_ID:
+        command_prefix = BETA_PREFIXES
+    if not message.guild or (get_prefix := await avi.temp.get_guild_settings(message.guild.id)) is None:
         command_prefix = DEFAULT_PREFIXES
     else:
         command_prefix = get_prefix["prefixes"]
-        if command_prefix is None or command_prefix == []:
+        if not command_prefix:
             return DEFAULT_PREFIXES
-        command_prefix = await escape_prefix(command_prefix)
-        prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
-        if prefix:
-            return prefix.group(1)
-        return commands.when_mentioned(avimetry, message)
+    command_prefix = await escape_prefix(command_prefix)
+    prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
+    if prefix:
+        return prefix.group(1)
+    return commands.when_mentioned(avi, message)
 
 allowed_mentions = discord.AllowedMentions(
     everyone=False, users=False,
@@ -73,7 +75,7 @@ class AvimetryBot(commands.Bot):
         self.blacklisted_users = {}
         self.commands_ran = 0
         self.devmode = False
-        self.avicache = AvimetryCache(self)
+        self.temp = AvimetryCache(self)
         self.emoji_dictionary = {
             "red_tick": '<:noTick:777096756865269760>',
             "green_tick": '<:yesTick:777096731438874634>',
@@ -89,11 +91,10 @@ class AvimetryBot(commands.Bot):
         self.zaneapi = aiozaneapi.Client(tokens["ZaneAPI"])
         self.myst = mystbin.Client()
         self.session = aiohttp.ClientSession()
-        self.akinator = Akinator()
 
         # Database
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**postgresql))
-
+        # TODO: Migrate all data to postgres.
         self.mongo = motor.motor_asyncio.AsyncIOMotorClient(tokens["MongoDB"])
         self.db = self.mongo["avimetry"]
         self.config = MongoDB(self.db, "new")
@@ -103,16 +104,11 @@ class AvimetryBot(commands.Bot):
         self.blacklist = MongoDB(self.db, "blacklisted")
 
         @self.check
-        async def globally_block_dms(ctx):
+        async def check(ctx):
             if not ctx.guild:
-                raise commands.NoPrivateMessage("Commands do not work in dm channels.")
-            return True
-
-        @self.check
-        async def is_blacklisted(ctx):
-            if ctx.author.id in self.blacklisted_users:
-                get_reason = self.blacklisted_users[ctx.author.id]
-                raise Blacklisted(reason=get_reason["reason"])
+                raise commands.NoPrivateMessage()
+            if ctx.author.id in self.temp.blacklisted_users:
+                raise Blacklisted(reason=self.temp.blacklisted_users[ctx.author.id])
             return True
 
         @self.event
@@ -126,14 +122,6 @@ class AvimetryBot(commands.Bot):
                 f"Login Time: {datetime.date.today()} at {timenow}\n"
                 "------"
             )
-
-            current_mutes = await self.mutes.get_all()
-            for mute in current_mutes:
-                self.muted_users[mute["_id"]] = mute
-
-            current_blacklisted = await self.blacklist.get_all()
-            for blacklist in current_blacklisted:
-                self.blacklisted_users[blacklist["_id"]] = blacklist
 
         os.environ["JISHAKU_HIDE"] = "True"
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
@@ -174,7 +162,7 @@ class AvimetryBot(commands.Bot):
         await super().close()
 
     def run(self, *args, **kwargs):
-        self.loop.run_until_complete(self.avicache.cache_all())
+        self.loop.run_until_complete(self.temp.cache_all())
         super().run(*args, **kwargs)
 
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
@@ -182,16 +170,22 @@ class AvimetryBot(commands.Bot):
 
 
 class AvimetryCache:
-    def __init__(self, bot: AvimetryBot):
-        self.avi = bot
+    def __init__(self, avi: AvimetryBot):
+        self.avi = avi
         self.guild_settings_cache = {}
-        self.blacklisted_users = []
+        self.blacklisted_users = {}
 
     async def cache_all(self):
         await self.load_guild_settings()
+        await self.load_blacklisted()
 
     async def get_guild_settings(self, guild_id: int):
         return self.guild_settings_cache.get(guild_id, None)
+
+    async def cache_new_guild(self, guild_id: int):
+        await self.avi.pool.execute("INSERT INTO guild_settings VALUES ($1)", guild_id)
+        self.guild_settings_cache[guild_id] = deepcopy({"prefixes": []})
+        return self.guild_settings_cache[guild_id]
 
     async def load_guild_settings(self):
         items = await self.avi.pool.fetch("SELECT * FROM guild_settings")
@@ -199,5 +193,6 @@ class AvimetryCache:
             self.guild_settings_cache[entry["guild_id"]] = {key: value for key, value in list(entry.items())}
 
     async def load_blacklisted(self):
-        items = await self.avi.pool.fetch("SELECT * FROM bl_users")
-        return items
+        items = await self.avi.pool.fetch("SELECT * FROM blacklist_user")
+        for entry in items:
+            self.blacklisted_users[entry["user_id"]] = entry["bl_reason"]

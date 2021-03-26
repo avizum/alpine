@@ -1,4 +1,4 @@
-def humanize_value(number, value):
+def format_string(number, value):
     """
     "Humanizes" a name, Ex: 1 time, 2 times
     """
@@ -8,7 +8,7 @@ def humanize_value(number, value):
         return f"{number} {value}s"
 
 
-def humanize_list(list):
+def format_list(list):
     """
     Makes a list easier to read
     """

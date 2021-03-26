@@ -9,22 +9,28 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
     '''
     def __init__(self, avi):
         self.avi = avi
+        self.guild_id = 751490725555994716
+        self.joins_and_leaves = 751967006701387827
+        self.member_channel = 783960970472456232
+        self.bot_channel = 783961050814611476
+        self.total_channel = 783961111060938782
 
     def cog_check(self, ctx):
-        if ctx.guild.id != 751490725555994716:
+        if ctx.guild.id != self.guild_id:
             raise AvizumsLoungeOnly("This command only works in a private server.")
         return True
+
+    def get(self, channel_id: int):
+        return self.avi.get_channel(channel_id)
 
     # Counter
     @commands.Cog.listener()
     async def on_member_join(self, member):
-
-        if member.guild.id == (751490725555994716):
-            channel = discord.utils.get(member.guild.channels, name="joins-and-leaves")
+        if member.guild.id == self.guild_id:
             root = member.guild.get_role(813535792655892481)
             await member.add_roles(root)
 
-        if channel.guild.id == member.guild.id:
+        if self.get(self.joins_and_leaves).guild.id == member.guild.id:
             join_message = discord.Embed(
                 title="Member Joined",
                 description=(
@@ -33,30 +39,24 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
                 ),
                 color=discord.Color.blurple()
             )
-            await channel.send(embed=join_message)
+            await self.get(self.joins_and_leaves).send(embed=join_message)
 
-        refchan = self.avi.get_channel(783961111060938782)
         try:
-            if member.guild.id == refchan.guild.id:
-                channel = self.avi.get_channel(783961111060938782)
-                await channel.edit(name=f"Total Members: {member.guild.member_count}")
+            if member.guild.id == self.get(self.joins_and_leaves).guild.id:
+                await self.get(self.total_channel).edit(name=f"Total Members: {member.guild.member_count}")
 
-                channel2 = self.avi.get_channel(783960970472456232)
                 true_member_count = len([m for m in member.guild.members if not m.bot])
-                await channel2.edit(name=f"Members: {true_member_count}")
+                await self.get(self.member_channel).edit(name=f"Members: {true_member_count}")
 
-                channel3 = self.avi.get_channel(783961050814611476)
                 true_bot_count = len([m for m in member.guild.members if m.bot])
-                await channel3.edit(name=f"Bots: {true_bot_count}")
+                await self.get(self.bot_channel).edit(name=f"Bots: {true_bot_count}")
         except Exception:
             return
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-
-        if member.guild.id == (751490725555994716):
-            channel = discord.utils.get(member.guild.channels, name="joins-and-leaves")
-            if channel.guild.id == member.guild.id:
+        if member.guild.id == self.guild_id:
+            if self.get(self.joins_and_leaves).guild.id == member.guild.id:
                 lm = discord.Embed(
                     title="Member Leave",
                     description=(
@@ -65,21 +65,17 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
                     ),
                     color=discord.Color.red()
                 )
-                await channel.send(embed=lm)
+                await self.get(self.joins_and_leaves).send(embed=lm)
 
-        lrefchan = self.avi.get_channel(783961111060938782)
         try:
-            if member.guild.id == lrefchan.guild.id:
-                channel = self.avi.get_channel(783961111060938782)
-                await channel.edit(name=f"Total Members: {member.guild.member_count}")
+            if member.guild.id == self.get(self.joins_and_leaves).guild.id:
+                await self.get(self.total_channel).edit(name=f"Total Members: {member.guild.member_count}")
 
-                channel2 = self.avi.get_channel(783960970472456232)
                 true_member_count = len([m for m in member.guild.members if not m.bot])
-                await channel2.edit(name=f"Members: {true_member_count}")
+                await self.get(self.member_channel).edit(name=f"Members: {true_member_count}")
 
-                channel3 = self.avi.get_channel(783961050814611476)
                 true_bot_count = len([m for m in member.guild.members if m.bot])
-                await channel3.edit(name=f"Bots: {true_bot_count}")
+                await self.get(self.bot_channel).edit(name=f"Bots: {true_bot_count}")
         except Exception:
             return
 
