@@ -34,18 +34,18 @@ class ErrorHandler(commands.Cog):
             await ctx.send(embed=blacklisted)
 
         elif isinstance(error, commands.CommandNotFound):
-            if ctx.author.id in self.avi.blacklisted_users:
+            if ctx.author.id in ctx.cache.blacklisted_users:
                 return
             not_found_embed = discord.Embed(
                 title="Invalid Command", color=discord.Color.red()
             )
             not_found = ctx.invoked_with
-            lol = "\n".join(
+            match = "\n".join(
                 get_close_matches(not_found, [i.name for i in ctx.bot.commands])
             )
-            if not lol:
+            if not match:
                 return
-            not_found_embed.description = f'"{not_found}" was not found. Did you mean...\n`{lol}`'
+            not_found_embed.description = f'"{not_found}" was not found. Did you mean...\n`{match}`'
             not_found_embed.set_footer(
                 text=f"Not what you meant? Use {pre}help to see the whole list of commands."
             )
@@ -103,7 +103,7 @@ class ErrorHandler(commands.Cog):
             a = discord.Embed(
                 title="Missing Arguments",
                 description=(
-                    f"You need to put the `{error.param.name}` parameter to run this command\n"
+                    f"You need to put the `{error.param.name}` parameter to run this command.\n"
                     f"If you need help, use `{ctx.clean_prefix}help {ctx.invoked_with}`"
                     ),
                 color=discord.Color.red(),

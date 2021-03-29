@@ -486,15 +486,23 @@ class Fun(commands.Cog):
             stuff = await content.json()
         get_data = stuff["data"]["children"]
         data = random.choice(get_data)["data"]
+        desc = data["selftext"] if data["selftext"] is not None else ""
+        if len(desc) > 2048:
+            desc = f'{data["selftext"][:2045]}...'
         embed = discord.Embed(
             title=data["title"],
             url=f"https://reddit.com{data['permalink']}",
-            description=(
+            description=desc
+            )
+        embed.add_field(
+            name="Post Info:",
+            value=(
                 f"<:upvote:818730949662867456> {data['ups']} "
                 f"<:downvote:818730935829659665> {data['downs']}\n"
                 f"Upvote ratio: {data['upvote_ratio']}\n"
                 f"[Image link]({data['url']})"
-            ))
+            )
+        )
         if "mp4" in data["url"]:
             embed.description = "The filetype of the media is unsupported by Discord."
         else:

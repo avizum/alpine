@@ -16,7 +16,7 @@ class GuildJoin(commands.Cog, name="Auto Setup"):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
-        await self.avi.loop.execute("INSERT INTO guild_settings (guild_id) VALUES ($1)", guild.id)
+        await self.avi.pool.execute("INSERT INTO guild_settings VALUES ($1)", guild.id)
 
 
 def setup(avi):

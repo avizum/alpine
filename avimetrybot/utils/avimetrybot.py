@@ -9,12 +9,12 @@ import mystbin
 import time
 import re
 import asyncpg
-from utils import AvimetryContext
+from .context import AvimetryContext
 from .errors import Blacklisted
 from discord.ext import commands
 from utils.mongo import MongoDB
 from config import tokens, postgresql
-from copy import deepcopy
+from .cache import AvimetryCache
 
 
 DEFAULT_PREFIXES = ["A.", "a."]
@@ -71,8 +71,6 @@ class AvimetryBot(commands.Bot):
 
         # Bot Variables
         self.launch_time = datetime.datetime.utcnow()
-        self.muted_users = {}
-        self.blacklisted_users = {}
         self.commands_ran = 0
         self.devmode = False
         self.temp = AvimetryCache(self)
@@ -86,15 +84,14 @@ class AvimetryBot(commands.Bot):
             "status_streaming": '<:status_streaming:810683604812169276>'
         }
 
-        # API Variables
+        # APIs
         self.sr = sr_api.Client()
         self.zaneapi = aiozaneapi.Client(tokens["ZaneAPI"])
         self.myst = mystbin.Client()
         self.session = aiohttp.ClientSession()
 
-        # Database
+        # Databases
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**postgresql))
-        # TODO: Migrate all data to postgres.
         self.mongo = motor.motor_asyncio.AsyncIOMotorClient(tokens["MongoDB"])
         self.db = self.mongo["avimetry"]
         self.config = MongoDB(self.db, "new")
@@ -115,8 +112,7 @@ class AvimetryBot(commands.Bot):
         async def on_ready():
             timenow = datetime.datetime.now().strftime("%I:%M %p")
             print(
-                "------\n"
-                "Succesfully logged in. Bot Info Below:\n"
+                "Succesfully logged in:\n"
                 f"Username: {self.user.name}\n"
                 f"Bot ID: {self.user.id}\n"
                 f"Login Time: {datetime.date.today()} at {timenow}\n"
@@ -151,6 +147,16 @@ class AvimetryBot(commands.Bot):
         end = time.perf_counter()
         return round((end - start) * 1000)
 
+    def run(self):
+        super().run(tokens["Avimetry"], reconnect=True)
+
+    def run_bot(self):
+        print("------")
+        print("Logging in...")
+        self.launch_time = datetime.datetime.utcnow()
+        self.loop.run_until_complete(self.temp.cache_all())
+        self.run()
+
     async def close(self):
         await self.change_presence(status=discord.Status.offline)
         self.mongo.close()
@@ -161,38 +167,5 @@ class AvimetryBot(commands.Bot):
         print("\nClosing Connection to Discord.")
         await super().close()
 
-    def run(self, *args, **kwargs):
-        self.loop.run_until_complete(self.temp.cache_all())
-        super().run(*args, **kwargs)
-
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
         await self.process_commands(after)
-
-
-class AvimetryCache:
-    def __init__(self, avi: AvimetryBot):
-        self.avi = avi
-        self.guild_settings_cache = {}
-        self.blacklisted_users = {}
-
-    async def cache_all(self):
-        await self.load_guild_settings()
-        await self.load_blacklisted()
-
-    async def get_guild_settings(self, guild_id: int):
-        return self.guild_settings_cache.get(guild_id, None)
-
-    async def cache_new_guild(self, guild_id: int):
-        await self.avi.pool.execute("INSERT INTO guild_settings VALUES ($1)", guild_id)
-        self.guild_settings_cache[guild_id] = deepcopy({"prefixes": []})
-        return self.guild_settings_cache[guild_id]
-
-    async def load_guild_settings(self):
-        items = await self.avi.pool.fetch("SELECT * FROM guild_settings")
-        for entry in items:
-            self.guild_settings_cache[entry["guild_id"]] = {key: value for key, value in list(entry.items())}
-
-    async def load_blacklisted(self):
-        items = await self.avi.pool.fetch("SELECT * FROM blacklist_user")
-        for entry in items:
-            self.blacklisted_users[entry["user_id"]] = entry["bl_reason"]
