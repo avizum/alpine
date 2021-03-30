@@ -100,11 +100,9 @@ class Moderation(commands.Cog):
     )
     @commands.has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def lock(
-        self, ctx, channel: discord.TextChannel, *, reason="No Reason Provided"
-    ):
+    async def lock(self, ctx, channel: discord.TextChannel, *, reason="No Reason Provided"):
         await channel.set_permissions(
-            ctx.guild.default_role, send_messages=False, read_messages=False
+            ctx.guild.default_role, send_messages=False,
         )
         lc = discord.Embed()
         lc.add_field(
@@ -122,12 +120,9 @@ class Moderation(commands.Cog):
     )
     @commands.has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def unlock(
-        self, ctx, channel: discord.TextChannel, *, reason="No Reason Provided"
-    ):
+    async def unlock(self, ctx, channel: discord.TextChannel, *, reason="No Reason Provided"):
         await channel.set_permissions(
-            ctx.guild.default_role, send_messages=None, read_messages=False
-        )
+            ctx.guild.default_role, send_messages=None)
         uc = discord.Embed()
         uc.add_field(
             name=":unlock: Channel has been unlocked.",
@@ -235,8 +230,6 @@ class Moderation(commands.Cog):
                     inline=False,
                 )
                 await ctx.send(embed=unbanenmbed)
-        else:
-            await ctx.send("Unban failed")
 
     # Slowmode Command
     @commands.command(brief="Sets the slowmode in the current channel.")

@@ -19,11 +19,30 @@ class AvimetryContext(commands.Context):
             prefix = f"{prefix.strip()} "
         return prefix
 
+    @property
+    async def get_prefix(self):
+        get_prefix = await self.cache.get_guild_settings(self.guild.id)
+        prefix = get_prefix["prefixes"]
+        if not prefix:
+            return "`a.`"
+        return f"`{'` | `'.join(prefix)}`"
+
     async def send_raw(self, *args, **kwargs):
         return await super().send(*args, **kwargs)
 
+    async def post(self, content, syntax=None):
+        if syntax is None:
+            syntax = "python"
+        link = await self.bot.myst.post(content, syntax=syntax)
+        embed = discord.Embed(
+            description=f"The output from the command {self.invoked_with} is too long, so I posted it here:\n{link}"
+        )
+        await self.send(embed=embed)
+
     async def send(self, content=None, embed: discord.Embed = None, *args, **kwargs):
         if content:
+            if len(content) > 2048:
+                return await self.post(content)
             for key, token in tokens.items():
                 if token in content:
                     content = str(content.replace(token, f"[{key} omitted. Nice try]"))
@@ -36,7 +55,7 @@ class AvimetryContext(commands.Context):
                 else:
                     content = None
             except Exception:
-                pass
+                content = None
         if discord.Embed:
             try:
                 if not embed.footer:
