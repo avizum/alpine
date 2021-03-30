@@ -28,14 +28,14 @@ class Meta(commands.Cog):
         await ctx.message.delete()
         if len(options) == 3 and options[0] == "yes" and options[1] == "maybe" and options[2] == "no":
             reactions = [
-                "<:yesTick:777096731438874634>",
-                "<:noneTick:791040199798030336>",
-                "<:noTick:777096756865269760>",
+                self.avi.emoji_dictionary["green_tick"],
+                self.avi.emoji_dictionary["gray_tick"],
+                self.avi.emoji_dictionary["red_tick"]
             ]
         elif len(options) == 2 and options[0].lower() == "yes" and options[1].lower() == "no":
             reactions = [
-                "<:yesTick:777096731438874634>",
-                "<:noTick:777096756865269760>",
+                self.avi.emoji_dictionary["green_tick"],
+                self.avi.emoji_dictionary["red_tick"]
             ]
         else:
             reactions = [
@@ -47,7 +47,12 @@ class Meta(commands.Cog):
             description += "\n\n{} {}".format(reactions[x], option)
         embed = discord.Embed(title=question, description="".join(description))
         embed.set_footer(text=f"Poll from: {str(ctx.author)}")
-        react_message = await ctx.send(embed=embed)
+        if ctx.guild.id == 751490725555994716:
+            embed.color = ctx.author.color
+            channel = discord.utils.get(ctx.guild.channels, id=774075297142013972)
+            react_message = await channel.send(embed=embed)
+        else:
+            react_message = await ctx.send(embed=embed)
         for reaction in reactions[: len(options)]:
             await react_message.add_reaction(reaction)
         embed.set_footer(
@@ -68,9 +73,7 @@ class Meta(commands.Cog):
 
     # Info Command
     @commands.command(brief="Gets a member's information")
-    async def uinfo(
-        self, ctx, *, member: typing.Union[discord.Member, discord.User] = None
-    ):
+    async def uinfo(self, ctx, *, member: typing.Union[discord.Member, discord.User] = None):
         if member is None:
             member = ctx.author
         if isinstance(member, discord.User):
@@ -196,6 +199,30 @@ class Meta(commands.Cog):
             description=f"Here is the message link. [jump]({messages[0].jump_url})\n\n>>> {mg_cnt}",
         )
         await ctx.send(embed=embed_message)
+
+    @commands.command()
+    async def rtfm(self, ctx, query):
+        params = {
+            "query": query,
+            "location": "https://discordpy.readthedocs.io/en/latest"
+        }
+        async with self.avi.session.get("https://idevision.net/api/public/rtfm", params=params) as resp:
+            response = await resp.json()
+        if not response["nodes"]:
+            return await ctx.send("Nothing found. Sorry.")
+        listed = []
+        for word, link in response["nodes"].items():
+            word = word.replace("discord.", "")
+            listed.append(f"[`{word}`]({link})")
+        embed = discord.Embed(description="\n".join(listed))
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    async def spam(self, ctx):
+        lol = []
+        for i in range(4000):
+            lol.append("lol")
+        await ctx.send(" ".join(lol))
 
 
 def setup(avi):

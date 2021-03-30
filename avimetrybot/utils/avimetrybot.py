@@ -9,11 +9,11 @@ import mystbin
 import time
 import re
 import asyncpg
-from .context import AvimetryContext
-from .errors import Blacklisted
 from discord.ext import commands
 from utils.mongo import MongoDB
 from config import tokens, postgresql
+from .context import AvimetryContext
+from .errors import Blacklisted
 from .cache import AvimetryCache
 
 
@@ -28,7 +28,7 @@ async def escape_prefix(prefixes):
     if isinstance(prefixes, str):
         return re.escape(prefixes)
     if isinstance(prefixes, list):
-        return '|'.join(map(re.escape, prefixes))
+        return "|".join(map(re.escape, prefixes))
 
 
 async def bot_prefix(avi, message: discord.Message):
@@ -45,6 +45,7 @@ async def bot_prefix(avi, message: discord.Message):
     if prefix:
         return prefix.group(1)
     return commands.when_mentioned(avi, message)
+
 
 allowed_mentions = discord.AllowedMentions(
     everyone=False, users=False,
@@ -75,8 +76,9 @@ class AvimetryBot(commands.Bot):
         self.devmode = False
         self.temp = AvimetryCache(self)
         self.emoji_dictionary = {
-            "red_tick": '<:noTick:777096756865269760>',
-            "green_tick": '<:yesTick:777096731438874634>',
+            "red_tick": '<:redtick:777096756865269760>',
+            "green_tick": '<:greentick:777096731438874634>',
+            "gray_tick": '<:graytick:791040199798030336>',
             "status_online": '<:status_online:810683593193029642>',
             "status_idle": '<:status_idle:810683571269664798>',
             "status_dnd": '<:status_dnd:810683560863989805>',
@@ -119,6 +121,7 @@ class AvimetryBot(commands.Bot):
                 "------"
             )
 
+        os.environ['PY_PRETTIFY_EXC'] = 'True'
         os.environ["JISHAKU_HIDE"] = "True"
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
@@ -129,11 +132,20 @@ class AvimetryBot(commands.Bot):
     async def get_context(self, message, *, cls=AvimetryContext):
         return await super().get_context(message, cls=cls)
 
+    async def process_commands(self, message):
+        if message.author == self.user:
+            return
+        ctx = await self.get_context(message)
+        await self.invoke(ctx)
+
+    async def on_message(self, message):
+        await self.process_commands(message)
+
     async def postgresql_latency(self):
         start = time.perf_counter()
         await self.pool.execute("SELECT 1")
         end = time.perf_counter()
-        return round((end-start) * 1000)
+        return round((end - start) * 1000)
 
     async def api_latency(self, ctx):
         start = time.perf_counter()
@@ -158,13 +170,14 @@ class AvimetryBot(commands.Bot):
         self.run()
 
     async def close(self):
-        await self.change_presence(status=discord.Status.offline)
+        print("\nClosing Connection to Discord.")
         self.mongo.close()
         await self.sr.close()
         await self.zaneapi.close()
         await self.myst.close()
         await self.session.close()
-        print("\nClosing Connection to Discord.")
+        print("Closed")
+        print("------")
         await super().close()
 
     async def on_message_edit(self, before: discord.Message, after: discord.Message):

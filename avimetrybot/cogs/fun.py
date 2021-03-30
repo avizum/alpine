@@ -200,9 +200,7 @@ class Fun(commands.Cog):
 
         def check(reaction, user):
             return (
-                reaction.message.id == cd_cookie.id and
-                str(reaction.emoji) in "\U0001F36A" and
-                user != self.avi.user
+                reaction.message.id == cd_cookie.id and str(reaction.emoji) in "\U0001F36A" and user != self.avi.user
             )
 
         try:
@@ -416,11 +414,11 @@ class Fun(commands.Cog):
     @commands.command()
     async def ship(self, ctx, person1: discord.Member, person2: discord.Member):
         if person1.id == 750135653638865017 or person2.id == 750135653638865017:
-            return await ctx.send("You can not ship him. He is forever alone.")
+            return await ctx.send(f"{person1.mention} and {person2.mention} are 0% compatible with each other")
         elif person1 == person2:
-            return await ctx.send(f"{person1} is 100% compatible with him/herself")
+            return await ctx.send("Thats not how that works")
         percent = random.randint(0, 100)
-        await ctx.send(f"{person1} + {person2} = {percent}%")
+        await ctx.send(f"{person1.mention} and {person2.mention} are {percent}% compatible with each other")
 
 # PP size command
     @commands.command()
@@ -441,16 +439,14 @@ class Fun(commands.Cog):
         embed_10s = discord.Embed(
             title="10 seconds",
             description="Click the emoji in 10 seconds"
-            )
+        )
         react_message = await ctx.send(embed=embed_10s)
         await react_message.add_reaction("\U0001F36A")
         start_time = time.perf_counter()
 
         def check_10s(reaction, user):
             return (
-                reaction.message.id == react_message.id and
-                str(reaction.emoji) in "\U0001F36A" and
-                user == ctx.author
+                reaction.message.id == react_message.id and str(reaction.emoji) in "\U0001F36A" and user == ctx.author
             )
 
         try:
@@ -493,7 +489,7 @@ class Fun(commands.Cog):
             title=data["title"],
             url=f"https://reddit.com{data['permalink']}",
             description=desc
-            )
+        )
         embed.add_field(
             name="Post Info:",
             value=(
@@ -540,9 +536,7 @@ class Fun(commands.Cog):
 
         def check(reaction, user):
             return(
-                reaction.message.id == first.id and
-                str(reaction.emoji) == random_emoji and
-                user != self.avi.user
+                reaction.message.id == first.id and str(reaction.emoji) == random_emoji and user != self.avi.user
             )
 
         try:

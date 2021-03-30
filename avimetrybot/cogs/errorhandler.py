@@ -16,6 +16,11 @@ class ErrorHandler(commands.Cog):
     # Command Error
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
+        if ctx.author.id in self.avi.owner_ids:
+            try:
+                return await ctx.reinvoke()
+            except Exception:
+                pass
         pre = ctx.clean_prefix
         error = getattr(error, "original", error)
 
@@ -105,7 +110,7 @@ class ErrorHandler(commands.Cog):
                 description=(
                     f"You need to put the `{error.param.name}` parameter to run this command.\n"
                     f"If you need help, use `{ctx.clean_prefix}help {ctx.invoked_with}`"
-                    ),
+                ),
                 color=discord.Color.red(),
             )
             await ctx.send(embed=a)
@@ -122,7 +127,7 @@ class ErrorHandler(commands.Cog):
                 title="Bad Argument",
                 description=str(error),
                 color=discord.Color.red()
-                )
+            )
             await ctx.send(embed=ba)
 
         elif isinstance(error, commands.TooManyArguments):
@@ -147,7 +152,7 @@ class ErrorHandler(commands.Cog):
                     f"This command can only be used {error.number} "
                     f"{'time' if error.number == 1 else 'times'} per {error.per.name}."),
                 color=discord.Color.red()
-                )
+            )
             await ctx.send(embed=max_uses)
         else:
             ctx.command.reset_cooldown(ctx)
@@ -173,7 +178,7 @@ class ErrorHandler(commands.Cog):
             )
             ee.title = "Unknown Error"
             ee.description = (
-                "An unknown error has occured. This usually means that avi did not do something right. "
+                "An unknown error has occured. This usually means that avi did something wrong. "
                 "The error was sent to the [support server](https://dis.gd/threads) and will be fixed soon."
                 f"\n\n[Error]({myst_exception}):\n```py\n{short_exception}```"
             )

@@ -230,8 +230,6 @@ class Moderation(commands.Cog):
                     inline=False,
                 )
                 await ctx.send(embed=unbanenmbed)
-        else:
-            await ctx.send("Unban failed")
 
     # Slowmode Command
     @commands.command(brief="Sets the slowmode in the current channel.")

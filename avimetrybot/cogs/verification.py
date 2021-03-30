@@ -15,9 +15,9 @@ class Verification(commands.Cog):
     async def on_member_join(self, member):
         if member.bot:
             return
-        prefixes = await self.avi.config.find(member.guild.id)
+        prefixes = await self.avi.temp.get_guild_settings(member.guild.id)
         global pre
-        pre = prefixes["prefix"]
+        pre = prefixes["prefixes"][0]
 
         try:
             vergate = await self.avi.config.find(member.guild.id)

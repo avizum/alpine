@@ -122,7 +122,7 @@ class HelpEmbeded(commands.HelpCommand):
     async def send_group_help(self, group):
         embed = discord.Embed(
             title=f"Commands in group {group.qualified_name.title()}",
-            description=f"{group.short_doc}",
+            description=f"{group.short_doc}" or None,
         )
         embed.add_field(
             name="Base command usage",
@@ -194,7 +194,7 @@ class HelpEmbeded(commands.HelpCommand):
         )
         embed.add_field(
             name="Description",
-            value=command.short_doc if not None else "No description was provided",
+            value=command.short_doc or None,
             inline=True,
         )
         try:

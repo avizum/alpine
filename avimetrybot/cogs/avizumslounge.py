@@ -83,6 +83,8 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
     async def vs_update(self, member, before, after):
         if member.guild.id != 751490725555994716:
             return
+        if before.channel == after.channel:
+            return
         try:
             if after.channel is None:
                 channel = discord.utils.get(member.guild.text_channels, name=f"vc-{before.channel.name}")

@@ -1,7 +1,7 @@
 import discord
 import datetime
 from discord.ext import commands
-from utils import Prefix
+from utils import Prefix, AvimetryContext
 import psutil
 import humanize
 
@@ -13,13 +13,12 @@ class BotInfo(commands.Cog, name="Utility"):
 # Mention prefix
     @commands.Cog.listener()
     async def on_message(self, message):
+        ctx = await self.avi.get_context(message, cls=AvimetryContext)
         if message.author == self.avi.user:
             return
         if message.content == "<@!756257170521063444>":
-            cool = self.avi.temp.guild_settings_cache[message.guild.id]
-            await message.reply(
-                f"Hey {message.author.mention}, the prefix for **{message.guild.name}** is `{cool['prefixes']}`"
-            )
+            prefix = self.avi.get_command("prefix")
+            await prefix(ctx)
 
     @commands.command()
     async def prefix(self, ctx):
@@ -54,7 +53,7 @@ class BotInfo(commands.Cog, name="Utility"):
         brief="Add a prefix to the server.",
         help="settings prefix add <prefix>",
         name="add"
-        )
+    )
     @commands.has_permissions(administrator=True)
     async def prefix_add(self, ctx, prefix: Prefix):
         await self.avi.pool.execute(
@@ -68,13 +67,13 @@ class BotInfo(commands.Cog, name="Utility"):
         name="remove"
     )
     @commands.has_permissions(administrator=True)
-    async def prefix_remove(self, ctx, *, prefix):
+    async def prefix_remove(self, ctx, prefix):
         prefix = prefix.lower()
         guild_cache = await ctx.cache.get_guild_settings(ctx.guild.id)
         if not guild_cache:
             return await ctx.send(
                 "You don't have any prefixes set for this server. Set one by using `a.settings prefix add <prefix>`"
-                )
+            )
 
         guild_prefix = guild_cache["prefixes"]
         if prefix not in guild_prefix:
