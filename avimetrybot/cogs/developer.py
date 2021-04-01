@@ -117,11 +117,11 @@ class Owner(commands.Cog):
                 if filename.endswith(".py"):
                     try:
                         self.avi.reload_extension(f"cogs.{filename[:-3]}")
-                    except Exception as e:
-                        embed.description = "Reloaded all Modules sucessfully except the one(s) listed below:"
+                    except Exception as exc:
+                        embed.description = "Reloaded all modules except the ones listed below:"
                         embed.add_field(
-                            name=f"<:noTick:777096756865269760> {filename}",
-                            value=f"Reload was not successful: {e}",
+                            name=filename,
+                            value=f"```{exc}```",
                             inline=True,
                         )
             return await ctx.send(embed=embed)
@@ -144,7 +144,7 @@ class Owner(commands.Cog):
 
     @dev.command()
     async def prefixless(self, ctx, toggle: bool):
-        await ctx.message.add_reaction(self.avi.emoji_dictionary["YesTick"])
+        await ctx.message.add_reaction(self.avi.emoji_dictionary["green_tick"])
         self.avi.devmode = toggle
 
     @dev.command(brief="Pulls from GitHub and then reloads all modules")

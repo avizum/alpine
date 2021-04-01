@@ -277,7 +277,7 @@ class Fun(commands.Cog):
         for i in akinator_reactions:
             await initial_messsage.add_reaction(i)
         await asyncio.sleep(5)
-        akinator_embed.set_thumbnail(url="https://i.imgur.com/c1KE1Ky.png")
+        akinator_embed.set_thumbnail(url="https://i.imgur.com/JMso9Kf.png")
 
         while aki_client.progression <= 80:
             akinator_embed.description = q
@@ -481,6 +481,8 @@ class Fun(commands.Cog):
         async with self.avi.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
             stuff = await content.json()
         get_data = stuff["data"]["children"]
+        if not get_data:
+            return await ctx.send("No posts found in this subreddit.")
         data = random.choice(get_data)["data"]
         desc = data["selftext"] if data["selftext"] is not None else ""
         if len(desc) > 2048:
@@ -490,20 +492,27 @@ class Fun(commands.Cog):
             url=f"https://reddit.com{data['permalink']}",
             description=desc
         )
+        url = data["url"]
+        embed.set_image(url=url)
         embed.add_field(
             name="Post Info:",
             value=(
                 f"<:upvote:818730949662867456> {data['ups']} "
                 f"<:downvote:818730935829659665> {data['downs']}\n"
                 f"Upvote ratio: {data['upvote_ratio']}\n"
-                f"[Image link]({data['url']})"
             )
         )
-        if "mp4" in data["url"]:
-            embed.description = "The filetype of the media is unsupported by Discord."
-        else:
-            embed.set_image(url=data["url"])
-        await ctx.send(embed=embed)
+        if data["over_18"]:
+            new_embed = discord.Embed(
+                title="NSFW Post",
+                description="Are you sure you want to view it?\nIf you accept, It will be sent to your DMs."
+            )
+            res = await ctx.confirm(embed=new_embed)
+            if res:
+                return await ctx.author.send(embed=embed)
+            if not res:
+                return
+        return await ctx.send(embed=embed)
 
 # Meme command
     @commands.command()

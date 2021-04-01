@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from discord.ext import commands
 import datetime
@@ -41,20 +42,15 @@ class AvimetryContext(commands.Context):
 
     async def send(self, content=None, embed: discord.Embed = None, *args, **kwargs):
         if content:
-            if len(content) > 2048:
-                return await self.post(content)
-            for key, token in tokens.items():
-                if token in content:
-                    content = str(content.replace(token, f"[{key} omitted. Nice try]"))
-            embed = discord.Embed(description=content)
-            try:
-                if self.command.name == "jishaku":
-                    content = None
-                elif "jishaku" in self.command.qualified_name:
-                    return await self.reply(content=content)
-                else:
-                    content = None
-            except Exception:
+            for key, value in tokens.items():
+                if value in content:
+                    content = str(content.replace(value, "[token omitted]"))
+            if self.command.qualified_name == "jishaku":
+                pass
+            elif "jishaku" in self.command.qualified_name:
+                return await self.reply(content=content)
+            else:
+                embed = discord.Embed(description=content)
                 content = None
         if discord.Embed:
             try:
@@ -75,4 +71,44 @@ class AvimetryContext(commands.Context):
                 content, embed=embed, *args, **kwargs, mention_author=False
             )
         except Exception:
+            try:
+                await self.post(content, syntax="python")
+            except Exception:
+                pass
             return await super().send(content, embed=embed, *args, **kwargs)
+
+    async def confirm(self, message=None, embed: discord.Embed = None, *, timeout=60, delete_after=True):
+        yes_no = [self.bot.emoji_dictionary['green_tick'], self.bot.emoji_dictionary['red_tick']]
+        check_message = f"React with {yes_no[0]} to accept, {yes_no[1]} to deny."
+        if message:
+            message = f"{message}\n\n{check_message}"
+            send = await self.send(message)
+        elif embed:
+            embed.description = f"{embed.description}\n\n{check_message}"
+            send = await self.send(embed=embed)
+
+        for emoji in yes_no:
+            await send.add_reaction(emoji)
+
+        def check(reaction, user):
+            return str(reaction.emoji) in yes_no and user == self.author and reaction.message.id == send.id
+
+        try:
+            reaction, user = await self.bot.wait_for('reaction_add', check=check, timeout=timeout)
+        except asyncio.TimeoutError:
+            print("timeout")
+            pass
+        else:
+            confirm = None
+            if str(reaction.emoji) == yes_no[0]:
+                confirm = True
+            if str(reaction.emoji) == yes_no[1]:
+                confirm = False
+
+        if delete_after:
+            try:
+                await send.delete()
+            except discord.Forbidden:
+                return
+
+        return confirm

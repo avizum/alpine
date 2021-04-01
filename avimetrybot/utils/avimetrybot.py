@@ -60,7 +60,7 @@ class AvimetryBot(commands.Bot):
         intents = discord.Intents.all()
         super().__init__(
             **kwargs,
-            command_prefix=bot_prefix,
+            command_prefix="ab.",
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,
@@ -125,6 +125,7 @@ class AvimetryBot(commands.Bot):
         os.environ["JISHAKU_HIDE"] = "True"
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
+        self.load_extension("utils.jishaku")
         for filename in os.listdir("./avimetrybot/cogs"):
             if filename.endswith(".py"):
                 self.load_extension(f"cogs.{filename[:-3]}")
@@ -133,9 +134,9 @@ class AvimetryBot(commands.Bot):
         return await super().get_context(message, cls=cls)
 
     async def process_commands(self, message):
+        ctx = await self.get_context(message)
         if message.author == self.user:
             return
-        ctx = await self.get_context(message)
         await self.invoke(ctx)
 
     async def on_message(self, message):
@@ -170,13 +171,13 @@ class AvimetryBot(commands.Bot):
         self.run()
 
     async def close(self):
-        print("\nClosing Connection to Discord.")
+        print("\nClosing all connections")
         self.mongo.close()
         await self.sr.close()
         await self.zaneapi.close()
         await self.myst.close()
         await self.session.close()
-        print("Closed")
+        print("Sucessfully closed.")
         print("------")
         await super().close()
 
