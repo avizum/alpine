@@ -18,17 +18,12 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
 
     @tasks.loop(seconds=59)
     async def update_check(self):
-        async with self.avi.session.get(
-            "http://setup.roblox.com/version"
-        ) as old_version:
+        async with self.avi.session.get("http://setup.roblox.com/version") as old_version:
             a = await old_version.text()
         await asyncio.sleep(10)
-        async with self.avi.session.get(
-            "http://setup.roblox.com/version"
-        ) as new_version:
+        async with self.avi.session.get("http://setup.roblox.com/version") as new_version:
             b = await new_version.text()
-        if b != a:
-            print("update!")
+        if b not in a:
             channel = discord.utils.get(
                 self.avi.get_all_channels(), name="gaming-announcements"
             )

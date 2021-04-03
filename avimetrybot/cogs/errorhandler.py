@@ -109,11 +109,15 @@ class ErrorHandler(commands.Cog):
                 title="Missing Arguments",
                 description=(
                     f"You need to put the `{error.param.name}` parameter to run this command.\n"
-                    f"If you need help, use `{ctx.clean_prefix}help {ctx.invoked_with}`"
+                    f"Send help for `{ctx.invoked_with}`?"
                 ),
                 color=discord.Color.red(),
             )
-            await ctx.send(embed=a)
+            conf = await ctx.confirm(embed=a)
+            if conf:
+                await ctx.send_help(ctx.command)
+            else:
+                return
 
         elif isinstance(error, commands.DisabledCommand):
             await ctx.send("This command is not open yet.")

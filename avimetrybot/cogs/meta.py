@@ -217,6 +217,13 @@ class Meta(commands.Cog):
         embed = discord.Embed(description="\n".join(listed))
         await ctx.send(embed=embed)
 
+    @commands.command()
+    async def spam(self, ctx):
+        liste = []
+        for i in range(3000):
+            liste.append("a")
+        await ctx.send("".join(liste))
+
 
 def setup(avi):
     avi.add_cog(Meta(avi))

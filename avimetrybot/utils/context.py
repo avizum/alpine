@@ -45,7 +45,9 @@ class AvimetryContext(commands.Context):
             for key, value in tokens.items():
                 if value in content:
                     content = str(content.replace(value, "[token omitted]"))
-            if self.command.qualified_name == "jishaku":
+            if not self.command:
+                pass
+            elif self.command.qualified_name == "jishaku":
                 pass
             elif "jishaku" in self.command.qualified_name:
                 return await self.reply(content=content)
@@ -72,21 +74,23 @@ class AvimetryContext(commands.Context):
             )
         except Exception:
             try:
-                await self.post(content, syntax="python")
+                return await super().send(content, embed=embed, *args, **kwargs)
             except Exception:
                 pass
-            return await super().send(content, embed=embed, *args, **kwargs)
+            return await self.post(content or embed.description, syntax="python")
 
-    async def confirm(self, message=None, embed: discord.Embed = None, *, timeout=60, delete_after=True):
+    async def confirm(
+        self, message=None, embed: discord.Embed = None, confirm_message=None, *,
+        timeout=60, delete_after=True
+    ):
         yes_no = [self.bot.emoji_dictionary['green_tick'], self.bot.emoji_dictionary['red_tick']]
-        check_message = f"React with {yes_no[0]} to accept, {yes_no[1]} to deny."
+        check_message = confirm_message or f"React with {yes_no[0]} to accept, or {yes_no[1]} to deny."
         if message:
             message = f"{message}\n\n{check_message}"
             send = await self.send(message)
         elif embed:
             embed.description = f"{embed.description}\n\n{check_message}"
             send = await self.send(embed=embed)
-
         for emoji in yes_no:
             await send.add_reaction(emoji)
 
@@ -96,19 +100,28 @@ class AvimetryContext(commands.Context):
         try:
             reaction, user = await self.bot.wait_for('reaction_add', check=check, timeout=timeout)
         except asyncio.TimeoutError:
-            print("timeout")
+            confirm = False
             pass
         else:
-            confirm = None
             if str(reaction.emoji) == yes_no[0]:
                 confirm = True
             if str(reaction.emoji) == yes_no[1]:
                 confirm = False
-
         if delete_after:
             try:
                 await send.delete()
             except discord.Forbidden:
-                return
-
+                pass
         return confirm
+
+    async def delete(self, *args, **kwargs):
+        emoji = self.bot.emoji_dictionary["red_tick"]
+        message = await self.send(*args, **kwargs)
+        await message.add_reaction(emoji)
+
+        def check(reaction, user):
+            return str(reaction.emoji) in emoji and user == self.author and reaction.message.id == message.id
+
+        reaction, user = await self.bot.wait_for("reaction_add", check=check)
+        if str(reaction.emoji) == emoji:
+            await message.delete()

@@ -108,6 +108,22 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
         except Exception:
             return
 
+    @commands.Cog.listener("on_member_update")
+    async def member_update(self, before, after):
+        if after.guild.id != 751490725555994716:
+            return
+        if not after.nick:
+            return
+        if "avi" in after.nick.lower():
+            if after == self.avi.user:
+                return
+            if after.id == 750135653638865017:
+                return
+            try:
+                return await after.edit(nick=after.name, reason="Nick can not be \"avi\"")
+            except discord.Forbidden:
+                pass
+
     # Update Member Count Command
     @commands.command(
         aliases=["updatemc", "umembercount"],
@@ -126,24 +142,6 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
         true_bot_count = len([m for m in channel.guild.members if m.bot])
         await channel3.edit(name=f"Bots: {true_bot_count}")
         await ctx.send("Member Count Updated.")
-
-    # Self Nick
-    @commands.command(aliases=["snick"], brief="Changes your nick name")
-    @commands.bot_has_permissions(manage_nicknames=True)
-    @commands.cooldown(1, 600, commands.BucketType.member)
-    async def selfnick(self, ctx, *, nick):
-        oldnick = ctx.author.display_name
-        if ctx.guild.id == 751490725555994716:
-            if "avi" in nick.lower():
-                return await ctx.send("You can not have your nickname as avi")
-        await ctx.author.edit(nick=nick)
-        newnick = ctx.author.display_name
-        nickembed = discord.Embed(
-            title="<:yesTick:777096731438874634> Nickname Changed"
-        )
-        nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
-        nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
-        await ctx.send(embed=nickembed)
 
 
 def setup(avi):

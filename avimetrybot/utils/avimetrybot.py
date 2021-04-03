@@ -34,7 +34,7 @@ async def escape_prefix(prefixes):
 async def bot_prefix(avi, message: discord.Message):
     if avi.user.id == BETA_BOT_ID:
         command_prefix = BETA_PREFIXES
-    if not message.guild or (get_prefix := await avi.temp.get_guild_settings(message.guild.id)) is None:
+    elif not message.guild or (get_prefix := await avi.temp.get_guild_settings(message.guild.id)) is None:
         command_prefix = DEFAULT_PREFIXES
     else:
         command_prefix = get_prefix["prefixes"]

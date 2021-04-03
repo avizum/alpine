@@ -265,7 +265,7 @@ class Fun(commands.Cog):
             initial_messsage = await ctx.send(embed=akinator_embed)
             q = await aki_client.start_game(mode, child)
         game_end_early = False
-        akinator_reactions = [
+        aki_react = [
             "<:Yes:812133712967761951>",
             "<:No:812133712946528316>",
             "<:IDontKnow:812133713046405230>",
@@ -274,7 +274,7 @@ class Fun(commands.Cog):
             "<:Back:815854941083664454>",
             "<:Stop:815859174667452426>"
         ]
-        for i in akinator_reactions:
+        for i in aki_react:
             await initial_messsage.add_reaction(i)
         await asyncio.sleep(5)
         akinator_embed.set_thumbnail(url="https://i.imgur.com/JMso9Kf.png")
@@ -286,7 +286,7 @@ class Fun(commands.Cog):
             def check(reaction, user):
                 return (
                     reaction.message.id == initial_messsage.id and
-                    str(reaction.emoji) in akinator_reactions and
+                    str(reaction.emoji) in aki_react and
                     user == ctx.author and
                     user != self.avi.user
                 )
@@ -314,23 +314,19 @@ class Fun(commands.Cog):
                     return
 
             else:
-                try:
-                    await initial_messsage.remove_reaction(reaction.emoji, user)
-                except discord.Forbidden:
-                    pass
-                if str(reaction.emoji) == "<:Yes:812133712967761951>":
+                if str(reaction.emoji) == aki_react[0]:
                     ans = "yes"
-                elif str(reaction.emoji) == "<:No:812133712946528316>":
+                elif str(reaction.emoji) == aki_react[1]:
                     ans = "no"
-                elif str(reaction.emoji) == "<:IDontKnow:812133713046405230>":
+                elif str(reaction.emoji) == aki_react[2]:
                     ans = "idk"
-                elif str(reaction.emoji) == "<:Probably:812133712962519100>":
+                elif str(reaction.emoji) == aki_react[3]:
                     ans = "probably"
-                elif str(reaction.emoji) == "<:ProbablyNot:812133712665772113>":
+                elif str(reaction.emoji) == aki_react[4]:
                     ans = "probably not"
-                elif str(reaction.emoji) == "<:Back:815854941083664454>":
+                elif str(reaction.emoji) == aki_react[5]:
                     ans = "back"
-                elif str(reaction.emoji) == "<:Stop:815859174667452426>":
+                elif str(reaction.emoji) == aki_react[6]:
                     game_end_early = True
                     akinator_embed.description = "Akinator session stopped."
                     akinator_embed.set_thumbnail(url=discord.Embed.Empty)
@@ -346,7 +342,10 @@ class Fun(commands.Cog):
                     future.exception()
                 for future in pending:
                     future.cancel()
-
+            try:
+                await initial_messsage.remove_reaction(reaction.emoji, user)
+            except discord.Forbidden:
+                pass
             if ans == "back":
                 try:
                     q = await aki_client.back()
@@ -374,14 +373,14 @@ class Fun(commands.Cog):
             url=f"{aki_client.first_guess['absolute_picture_path']}"
         )
         await initial_messsage.edit(embed=akinator_embed)
-        reactions = ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"]
+        reactions = ["<:greentick:777096731438874634>", "<:redtick:777096756865269760>"]
         for reaction in reactions:
             await initial_messsage.add_reaction(reaction)
 
         def yes_no_check(reaction, user):
             return (
                 reaction.message.id == initial_messsage.id and
-                str(reaction.emoji) in ["<:yesTick:777096731438874634>", "<:noTick:777096756865269760>"] and
+                str(reaction.emoji) in ["<:greentick:777096731438874634>", "<:redtick:777096756865269760>"] and
                 user != self.avi.user and
                 user == ctx.author
             )
@@ -399,12 +398,13 @@ class Fun(commands.Cog):
                 await initial_messsage.clear_reactions()
             except discord.Forbidden:
                 pass
-            if str(reaction.emoji) == "<:yesTick:777096731438874634>":
+
+            if str(reaction.emoji) == "<:greentick:777096731438874634>":
                 akinator_embed.description = (
                     f"{akinator_embed.description}\n\n------\n\nYay!"
                 )
                 await initial_messsage.edit(embed=akinator_embed)
-            if str(reaction.emoji) == "<:noTick:777096756865269760>":
+            if str(reaction.emoji) == "<:redtick:777096756865269760>":
                 akinator_embed.description = (
                     f"{akinator_embed.description}\n\n------\n\nAww, maybe next time."
                 )
