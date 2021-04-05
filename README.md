@@ -1,4 +1,4 @@
-# AvimetryBot()
+# Avimetry
 
 
 A multipurpose bot written in Python by [avi](https://discord.com/users/750135653638865017)
