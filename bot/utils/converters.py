@@ -1,4 +1,5 @@
 import re
+from utils.context import AvimetryContext
 import discord
 from discord.ext import commands
 
@@ -90,3 +91,17 @@ class Prefix(commands.Converter):
             raise commands.BadArgument("That is already a prefix for this server.")
 
         return argument
+
+
+class CogConverter(commands.Converter):
+    async def convert(self, ctx: AvimetryContext, argument):
+        exts = []
+        if argument == "~":
+            exts.extend(ctx.bot.extensions)
+        else:
+            exts.append(f"cogs.{argument}")
+        jsk = "utils.jishaku"
+        if jsk in exts:
+            exts.remove("utils.jishaku")
+        return exts
+

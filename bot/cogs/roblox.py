@@ -2,6 +2,7 @@ import requests
 import discord
 import asyncio
 from discord.ext import commands, tasks
+from utils.context import AvimetryContext
 from roblox_py import Client
 
 
@@ -48,7 +49,7 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
         aliases=["rblxver", "rversion"], brief="Gets the current ROBLOX version.",
         hidden=True
     )
-    async def robloxversion(self, ctx):
+    async def robloxversion(self, ctx: AvimetryContext):
         if ctx.guild.id == 751490725555994716:
             a = requests.get("http://setup.roblox.com/version")
             rverembed = discord.Embed()
@@ -57,6 +58,7 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
                 value="``" + a.text + "``",
                 inline=True,
             )
+
             await ctx.channel.send(embed=rverembed)
         else:
             return await ctx.send("This command is for a private server.")
@@ -65,7 +67,7 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
         brief="Get pinged if you want to know when a ROBLOX update arrives.",
         hidden=True
     )
-    async def updateping(self, ctx):
+    async def updateping(self, ctx: AvimetryContext):
         if ctx.guild.id == 751490725555994716:
             member = ctx.author
             role = discord.utils.get(member.guild.roles, name="RobloxUpdate")
@@ -91,11 +93,11 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
     @commands.group(
         invoke_without_command=True
     )
-    async def roblox(self, ctx):
+    async def roblox(self, ctx: AvimetryContext):
         await ctx.send_help("roblox")
 
     @roblox.command()
-    async def user(self, ctx, user):
+    async def user(self, ctx: AvimetryContext, user):
         client = Client()
         user = await client.get_user_by_name(user)
         user_embed = discord.Embed(title="Roblox User",)

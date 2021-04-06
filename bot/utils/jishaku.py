@@ -1,6 +1,8 @@
 from discord.ext import commands
 from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 from jishaku import Feature
+from utils.context import AvimetryContext
+from utils.converters import CogConverter
 import humanize
 import jishaku
 import discord
@@ -13,11 +15,38 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     Owner only commands.
     """
     @Feature.Command(
+        parent="jsk",
+        name="load",
+        aliases=["l"]
+    )
+    async def jsk_load(self, ctx: AvimetryContext, module: CogConverter):
+        command = self.bot.get_command("dev load")
+        await command(ctx, module=module)
+
+    @Feature.Command(
+        parent="jsk",
+        name="unload",
+        aliases=["u"]
+    )
+    async def jsk_unload(self, ctx: AvimetryContext, module: CogConverter):
+        command = self.bot.get_command("dev unload")
+        await command(ctx, module=module)
+
+    @Feature.Command(
+        parent="jsk",
+        name="reload",
+        aliases=["r"]
+    )
+    async def jsk_reload(self, ctx: AvimetryContext, module: CogConverter):
+        command = self.bot.get_command("dev reload")
+        await command(ctx, module=module)
+
+    @Feature.Command(
         name="jishaku",
         aliases=["jsk"],
         invoke_without_command=True,
     )
-    async def jsk(self, ctx):
+    async def jsk(self, ctx: AvimetryContext):
         summary = [
             f"Jishaku `v{jishaku.__version__}`, discord.py `v{discord.__version__}`, "
             f"Python `{sys.version}` on `{sys.platform}`, ".replace("\n", ""),

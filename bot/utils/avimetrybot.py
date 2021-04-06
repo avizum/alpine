@@ -125,10 +125,12 @@ class AvimetryBot(commands.Bot):
         os.environ["JISHAKU_HIDE"] = "True"
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
-        self.load_extension("utils.jishaku")
-        for filename in os.listdir("./avimetrybot/cogs"):
+        print("Loading Cogs...")
+        for filename in os.listdir("./cogs"):
             if filename.endswith(".py"):
                 self.load_extension(f"cogs.{filename[:-3]}")
+        self.load_extension("utils.jishaku")
+        print("Loaded all Cogs")
 
     async def get_context(self, message, *, cls=AvimetryContext):
         return await super().get_context(message, cls=cls)

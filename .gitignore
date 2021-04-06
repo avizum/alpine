@@ -1,10 +1,7 @@
 /cogs/__pycache__
-avimetrybot/cogs/__pycache__
-avimetrybot/discord.log
-avimetrybot/.env
 .DS_Store
 discord.log
 *__pycache__
 .vscode
-avimetrybot/config.py
+config.py
 extras

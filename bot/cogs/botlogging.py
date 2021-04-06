@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from utils.context import AvimetryContext
 import datetime
 
 
@@ -99,7 +100,7 @@ class BotLogs(commands.Cog, name="bot logs"):
         await channel.send(embed=embed)
 
     @commands.Cog.listener("on_command")
-    async def on_command(self, ctx):
+    async def on_command(self, ctx: AvimetryContext):
         self.avi.commands_ran += 1
 
 

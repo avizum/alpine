@@ -50,4 +50,5 @@ class Counting(commands.Cog):
 
 
 def setup(avi):
-    avi.add_cog(Counting(avi))
+    return
+    #  avi.add_cog(Counting(avi))

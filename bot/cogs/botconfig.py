@@ -1,7 +1,8 @@
 import discord
 import datetime
 from discord.ext import commands
-from utils import Prefix, AvimetryContext
+from utils.converters import Prefix
+from utils.context import AvimetryContext
 import psutil
 import humanize
 
@@ -21,7 +22,7 @@ class BotInfo(commands.Cog, name="Utility"):
             await prefix(ctx)
 
     @commands.command()
-    async def prefix(self, ctx):
+    async def prefix(self, ctx: AvimetryContext):
         command = self.avi.get_command("settings prefix")
         await command(ctx)
 
@@ -31,7 +32,7 @@ class BotInfo(commands.Cog, name="Utility"):
         brief="The base config command, use this configure settings",
         aliases=["config", "configuration"]
     )
-    async def settings(self, ctx):
+    async def settings(self, ctx: AvimetryContext):
         await ctx.send_help("config")
 
 # Config Prefix Commnad
@@ -39,7 +40,7 @@ class BotInfo(commands.Cog, name="Utility"):
         brief="Show all the prefixes of this server",
         invoke_without_command=True,
         name="prefix")
-    async def settings_prefix(self, ctx):
+    async def settings_prefix(self, ctx: AvimetryContext):
         prefix = await ctx.cache.get_guild_settings(ctx.guild.id)
         if not prefix["prefixes"]:
             return await ctx.send("You don't have a custom prefix set yet. The default prefix is always `a.`")
@@ -55,11 +56,11 @@ class BotInfo(commands.Cog, name="Utility"):
         name="add"
     )
     @commands.has_permissions(administrator=True)
-    async def prefix_add(self, ctx, prefix: Prefix):
+    async def prefix_add(self, ctx: AvimetryContext, prefix: Prefix):
         await self.avi.pool.execute(
             "UPDATE guild_settings SET prefixes = ARRAY_APPEND(prefixes, $2) WHERE guild_id = $1",
             ctx.guild.id, prefix)
-        self.avi.temp.guild_settings_cache[ctx.guild.id]["prefixes"].append(prefix)
+        ctx.cache.guild_settings_cache[ctx.guild.id]["prefixes"].append(prefix)
         await ctx.send(f"Appended `{prefix}` to the list of prefixes.")
 
     @settings_prefix.command(
@@ -67,7 +68,7 @@ class BotInfo(commands.Cog, name="Utility"):
         name="remove"
     )
     @commands.has_permissions(administrator=True)
-    async def prefix_remove(self, ctx, prefix):
+    async def prefix_remove(self, ctx: AvimetryContext, prefix):
         prefix = prefix.lower()
         guild_cache = await ctx.cache.get_guild_settings(ctx.guild.id)
         if not guild_cache:
@@ -88,12 +89,12 @@ class BotInfo(commands.Cog, name="Utility"):
 
     @settings.group(invoke_without_command=True, brief="Configure logging")
     @commands.has_permissions(administrator=True)
-    async def logging(self, ctx):
+    async def logging(self, ctx: AvimetryContext):
         await ctx.send_help("config logging")
 
     @logging.command(name="channel", brief="Configure logging channel")
     @commands.has_permissions(administrator=True)
-    async def _channel(self, ctx, channel: discord.TextChannel):
+    async def _channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
         await self.avi.logs.upsert(
             {"_id": ctx.guild.id, "logging_channel": channel.id}
         )
@@ -101,13 +102,13 @@ class BotInfo(commands.Cog, name="Utility"):
 
     @logging.command(brief="Configure delete logging")
     @commands.has_permissions(administrator=True)
-    async def delete(self, ctx, toggle: bool):
+    async def delete(self, ctx: AvimetryContext, toggle: bool):
         await self.avi.logs.upsert({"_id": ctx.guild.id, "delete_log": toggle})
         await ctx.send(f"Set on_message_delete logs to {toggle}")
 
     @logging.command(brief="Configure edit logging")
     @commands.has_permissions(administrator=True)
-    async def edit(self, ctx, toggle: bool):
+    async def edit(self, ctx: AvimetryContext, toggle: bool):
         await self.avi.logs.upsert({"_id": ctx.guild.id, "edit_log": toggle})
         await ctx.send(f"Set on_message_edit logs to {toggle}")
 
@@ -118,7 +119,7 @@ class BotInfo(commands.Cog, name="Utility"):
     )
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
-    async def verify(self, ctx, toggle: bool = None):
+    async def verify(self, ctx: AvimetryContext, toggle: bool = None):
         if toggle is None:
             return await ctx.send_help("settings verify")
         else:
@@ -132,7 +133,7 @@ class BotInfo(commands.Cog, name="Utility"):
     )
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
-    async def role(self, ctx, role: discord.Role):
+    async def role(self, ctx: AvimetryContext, role: discord.Role):
         await self.avi.config.upsert({"_id": ctx.guild.id, "gate_role": role.id})
         await ctx.send(f"The verify role is set to {role}")
 
@@ -140,20 +141,20 @@ class BotInfo(commands.Cog, name="Utility"):
     @settings.group(invoke_without_command=True, brief="Configure counting settings")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
-    async def counting(self, ctx):
+    async def counting(self, ctx: AvimetryContext):
         await ctx.send_help("config counting")
 
     @counting.command(brief="Set the count in the counting channel")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
-    async def setcount(self, ctx, count: int):
+    async def setcount(self, ctx: AvimetryContext, count: int):
         await self.avi.config.upsert({"_id": ctx.guild.id, "current_count": count})
         await ctx.send(f"Set the count to {count}")
 
     @counting.command(brief="Set the channel for counting")
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
-    async def channel(self, ctx, channel: discord.TextChannel):
+    async def channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
         await self.avi.config.upsert(
             {"_id": ctx.guild.id, "counting_channel": channel.id}
         )
@@ -161,7 +162,7 @@ class BotInfo(commands.Cog, name="Utility"):
 
     # Bot Info Command
     @commands.command()
-    async def about(self, ctx):
+    async def about(self, ctx: AvimetryContext):
         embed = discord.Embed(title="Info about Avimetry")
         embed.add_field(name="Developer", value="avi#4927")
         embed.add_field(name="Ping", value=f"`{round(self.avi.latency * 1000)}ms`")
@@ -180,7 +181,7 @@ class BotInfo(commands.Cog, name="Utility"):
 
     # Uptime Command
     @commands.command(brief="Get the bot's uptime")
-    async def uptime(self, ctx):
+    async def uptime(self, ctx: AvimetryContext):
         delta_uptime = datetime.datetime.utcnow() - self.avi.launch_time
         ue = discord.Embed(
             title="Current Uptime",
@@ -190,7 +191,7 @@ class BotInfo(commands.Cog, name="Utility"):
 
     # Ping Command
     @commands.command(brief="Gets the bot's ping.")
-    async def ping(self, ctx):
+    async def ping(self, ctx: AvimetryContext):
         ping_embed = discord.Embed(title="🏓 Pong!")
         ping_embed.add_field(
             name="Websocket Latency",
@@ -218,24 +219,24 @@ class BotInfo(commands.Cog, name="Utility"):
     # Source Command
     # Follow the license, Thanks. If you do use this code, you have to make your bot's source public.
     @commands.command(brief="Sends the bot's source")
-    async def source(self, ctx):
+    async def source(self, ctx: AvimetryContext):
         source_embed = discord.Embed(
             title=f"{self.avi.user.name}'s source code",
             timestamp=datetime.datetime.utcnow(),
         )
         if self.avi.user.id != 756257170521063444:
             source_embed.description = "This bot is made by [avi](https://discord.com/users/750135653638865017). \
-                It is run off of this [source code](https://github.com/avimetry/avimetrybot).\nKeep the license in mind"
+                It is run off of this [source code](https://github.com/avimetry/avimetry).\nKeep the license in mind"
         else:
             source_embed.description = (
-                "Here is my [source code](https://github.com/avimetry/avimetrybot) made by "
+                "Here is my [source code](https://github.com/avimetry/avimetry) made by "
                 "[avi](https://discord.com/users/750135653638865017).\nMake sure you follow the license."
             )
         await ctx.send(embed=source_embed)
 
     # Invite Command
     @commands.group(invoke_without_command=True)
-    async def invite(self, ctx):
+    async def invite(self, ctx: AvimetryContext):
         invite_embed = discord.Embed(
             title=f"{self.avi.user.name} Invite",
             description=(
@@ -248,7 +249,7 @@ class BotInfo(commands.Cog, name="Utility"):
         await ctx.send(embed=invite_embed)
 
     @invite.command()
-    async def bot(self, ctx, bot: discord.Member):
+    async def bot(self, ctx: AvimetryContext, bot: discord.Member):
         bot_invite = discord.Embed()
         bot_invite.set_thumbnail(url=bot.avatar_url)
         if bot.bot:
@@ -264,7 +265,7 @@ class BotInfo(commands.Cog, name="Utility"):
 
     @commands.command(brief="Request a feature to be added to the bot.")
     @commands.cooldown(1, 300, commands.BucketType.user)
-    async def request(self, ctx, *, request):
+    async def request(self, ctx: AvimetryContext, *, request):
         request_channel = self.avi.get_channel(817093957322407956)
         req_send = discord.Embed(
             title=f"Request from {str(ctx.author)}",

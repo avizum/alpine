@@ -6,6 +6,7 @@ import humanize
 import pytz
 import typing
 from utils.errors import TimeZoneError
+from utils.context import AvimetryContext
 
 
 class Meta(commands.Cog):
@@ -18,7 +19,7 @@ class Meta(commands.Cog):
     # Poll command
     @commands.command(brief="Launch a poll for users to vote to.")
     @commands.cooldown(1, 300, commands.BucketType.user)
-    async def poll(self, ctx, question, *options: str):
+    async def poll(self, ctx: AvimetryContext, question, *options: str):
         if len(options) < 2:
             raise commands.BadArgument(
                 "You need to have at least two options in the poll."
@@ -63,7 +64,7 @@ class Meta(commands.Cog):
     # Pick Command
     @commands.command(brief="Pick one of your options")
     @commands.cooldown(1, 1, commands.BucketType.member)
-    async def pick(self, ctx, *, options):
+    async def pick(self, ctx: AvimetryContext, *, options):
         opt = options.split("or")
         if len(opt) == 2:
             return await ctx.send(random.choice(opt))
@@ -73,7 +74,7 @@ class Meta(commands.Cog):
 
     # Info Command
     @commands.command(brief="Gets a member's information")
-    async def uinfo(self, ctx, *, member: typing.Union[discord.Member, discord.User] = None):
+    async def uinfo(self, ctx: AvimetryContext, *, member: typing.Union[discord.Member, discord.User] = None):
         if member is None:
             member = ctx.author
         if isinstance(member, discord.User):
@@ -137,7 +138,7 @@ class Meta(commands.Cog):
 
     # QR code command
     @commands.command(brief="Make a qr code ")
-    async def qr(self, ctx, *, content):
+    async def qr(self, ctx: AvimetryContext, *, content):
         qr_embed = discord.Embed()
         qr_embed.add_field(name="QR code", value="Here is your qr code")
         qr_embed.set_image(
@@ -147,7 +148,7 @@ class Meta(commands.Cog):
 
     # Time command
     @commands.group(brief="Gets the time for a member", invoke_without_command=True)
-    async def time(self, ctx, *, member: discord.Member = None):
+    async def time(self, ctx: AvimetryContext, *, member: discord.Member = None):
         if member is None:
             member = ctx.author
         data = await self.avi.bot_users.find(member.id)
@@ -172,7 +173,7 @@ class Meta(commands.Cog):
         await ctx.send(embed=time_embed)
 
     @time.command(brief="Sets your timezone")
-    async def set(self, ctx, *, timezone):
+    async def set(self, ctx: AvimetryContext, *, timezone):
         try:
             if timezone.lower() == "none":
                 await self.avi.bot_users.unset({"_id": ctx.author.id, "time_zone": ""})
@@ -186,7 +187,7 @@ class Meta(commands.Cog):
         await ctx.send(f"Set timezone to {timezones}")
 
     @commands.command(brief="Get the jump link for the channel that you mention")
-    async def firstmessage(self, ctx, *, channel: discord.TextChannel = None):
+    async def firstmessage(self, ctx: AvimetryContext, *, channel: discord.TextChannel = None):
         if channel is None:
             channel = ctx.channel
         messages = await channel.history(limit=1, oldest_first=True).flatten()
@@ -201,7 +202,7 @@ class Meta(commands.Cog):
         await ctx.send(embed=embed_message)
 
     @commands.command()
-    async def rtfm(self, ctx, query):
+    async def rtfm(self, ctx: AvimetryContext, query):
         params = {
             "query": query,
             "location": "https://discordpy.readthedocs.io/en/latest"
@@ -216,13 +217,6 @@ class Meta(commands.Cog):
             listed.append(f"[`{word}`]({link})")
         embed = discord.Embed(description="\n".join(listed))
         await ctx.send(embed=embed)
-
-    @commands.command()
-    async def spam(self, ctx):
-        liste = []
-        for i in range(3000):
-            liste.append("a")
-        await ctx.send("".join(liste))
 
 
 def setup(avi):
