@@ -4,6 +4,7 @@ from io import BytesIO
 import io
 import re
 from twemoji_parser import emoji_to_url as urlify_emoji
+from utils.context import AvimetryContext
 import typing
 
 embed = discord.Embed()
@@ -21,7 +22,7 @@ class Manipulation(commands.Cog):
     def __init__(self, avi):
         self.avi = avi
 
-    async def member_convert(self, ctx, url):
+    async def member_convert(self, ctx: AvimetryContext, url):
         if url is None:
             url = ctx.author.avatar_url_as(format="png")
         elif isinstance(url, discord.Member):
@@ -31,7 +32,7 @@ class Manipulation(commands.Cog):
         else:
             find_url = re.findall(regex_url, url)
             if find_url:
-                url = "".join(find_url)
+                url = find_url[0]
             else:
                 url = await urlify_emoji(url)
         return url
@@ -42,7 +43,7 @@ class Manipulation(commands.Cog):
         brief="Returns a gif of your image being scaled",
         aliases=["magik", "magick"]
     )
-    async def magic(self, ctx, url: args):
+    async def magic(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             magic = await self.avi.zaneapi.magic(str(url))
@@ -55,7 +56,7 @@ class Manipulation(commands.Cog):
         usage="[url or member]",
         brief="Returns a gif of your image being bent into a floor",
     )
-    async def floor(self, ctx, url: args):
+    async def floor(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             floor = await self.avi.zaneapi.floor(str(url))
@@ -66,14 +67,14 @@ class Manipulation(commands.Cog):
     @commands.command(
         usage="[url or member]", brief="Retruns text of the provided image"
     )
-    async def braille(self, ctx, url: args):
+    async def braille(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             braille = await self.avi.zaneapi.braille(str(url))
             return await ctx.send_raw(f"```{braille}```")
 
     @commands.command(usage="[url or member]", brief="Returns your image deepfried")
-    async def deepfry(self, ctx, url: args):
+    async def deepfry(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             deepfry = await self.avi.zaneapi.deepfry(str(url))
@@ -84,7 +85,7 @@ class Manipulation(commands.Cog):
     @commands.command(
         usage="[url or member]", brief="Returns your image with black and white dots"
     )
-    async def dots(self, ctx, url: args):
+    async def dots(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             dots = await self.avi.zaneapi.dots(str(url))
@@ -96,7 +97,7 @@ class Manipulation(commands.Cog):
         usage="[url or member]",
         brief="Returns your image heavilly compressed and with low quality, just like jpeg",
     )
-    async def jpeg(self, ctx, url: args):
+    async def jpeg(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             jpeg = await self.avi.zaneapi.jpeg(str(url))
@@ -107,7 +108,7 @@ class Manipulation(commands.Cog):
     @commands.command(
         usage="[url or member]", brief="Returns a gif of all the pixels spreading out"
     )
-    async def spread(self, ctx, url: args):
+    async def spread(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             spread = await self.avi.zaneapi.spread(str(url))
@@ -116,7 +117,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Returns your image on a cube")
-    async def cube(self, ctx, url: args):
+    async def cube(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             cube = await self.avi.zaneapi.cube(str(url))
@@ -125,7 +126,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Returns the pixels on your image")
-    async def sort(self, ctx, url: args):
+    async def sort(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             sort = await self.avi.zaneapi.sort(str(url))
@@ -136,7 +137,7 @@ class Manipulation(commands.Cog):
     @commands.command(
         usage="[url or member]", brief="Returns up to 8 colors from your image"
     )
-    async def palette(self, ctx, url: args):
+    async def palette(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             palette = await self.avi.zaneapi.palette(str(url))
@@ -147,7 +148,7 @@ class Manipulation(commands.Cog):
     @commands.command(
         usage="[url or member]", brief="Returns an inverted version of your image"
     )
-    async def invert(self, ctx, url: args):
+    async def invert(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             invert = await self.avi.zaneapi.invert(str(url))
@@ -158,7 +159,7 @@ class Manipulation(commands.Cog):
     @commands.command(
         usage="[url or member]", brief="Returns a poserized version of your image"
     )
-    async def posterize(self, ctx, url: args):
+    async def posterize(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             posterize = await self.avi.zaneapi.posterize(str(url))
@@ -167,7 +168,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(usage="[url or member]", brief="Returns your image as grayscale")
-    async def grayscale(self, ctx, url: args):
+    async def grayscale(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             grayscale = await self.avi.zaneapi.grayscale(str(url))
@@ -179,7 +180,7 @@ class Manipulation(commands.Cog):
         usage="[url or member]",
         brief="Returns an your image scaled down then scaled back up",
     )
-    async def pixelate(self, ctx, url: args):
+    async def pixelate(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             pixelate = await self.avi.zaneapi.pixelate(str(url))
@@ -190,7 +191,7 @@ class Manipulation(commands.Cog):
     @commands.command(
         usage="[url or member]", brief="Returns a gif of your image being swirled"
     )
-    async def swirl(self, ctx, url: args):
+    async def swirl(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             swirl = await self.avi.zaneapi.swirl(str(url))
@@ -201,7 +202,7 @@ class Manipulation(commands.Cog):
     @commands.command(
         usage="[url or member]", brief="Returns your image with a sobel filter"
     )
-    async def sobel(self, ctx, url: args):
+    async def sobel(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
             sobel = await self.avi.zaneapi.sobel(str(url))
@@ -210,7 +211,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command()
-    async def animal(self, ctx, animal):
+    async def animal(self, ctx: AvimetryContext, animal):
         async with ctx.channel.typing():
             e = await self.avi.sr.get_image(animal)
             file = discord.File(BytesIO(await e.read()), filename="animal.png")
@@ -218,7 +219,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(brief="Convert emoji to url so you can download them")
-    async def emojiurl(self, ctx, emoji):
+    async def emojiurl(self, ctx: AvimetryContext, emoji):
         result = await urlify_emoji(emoji)
         await ctx.send(result)
 

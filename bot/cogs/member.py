@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from utils.context import AvimetryContext
 
 
 class MemberManagement(commands.Cog, name="Member Management"):
@@ -10,7 +11,7 @@ class MemberManagement(commands.Cog, name="Member Management"):
     @commands.command(
         aliases=["members", "mc"], brief="Gets the members of the server and shows you."
     )
-    async def membercount(self, ctx):
+    async def membercount(self, ctx: AvimetryContext):
         tmc = len([m for m in ctx.guild.members if not m.bot])
         tbc = len([m for m in ctx.guild.members if m.bot])
         amc = ctx.guild.member_count

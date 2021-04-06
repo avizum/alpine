@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from utils.context import AvimetryContext
 import string
 import random
 import asyncio
@@ -67,7 +68,7 @@ class Verification(commands.Cog):
 
     # Verify Command
     @commands.group(brief="Verify now!", invoke_without_command=True, hidden=True)
-    async def verify(self, ctx):
+    async def verify(self, ctx: AvimetryContext):
         member = ctx.author
         get_role = await self.avi.config.find(ctx.guild.id)
         try:
@@ -171,7 +172,7 @@ class Verification(commands.Cog):
     @verify.command(hidden=True)
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def user(self, ctx, member: discord.Member):
+    async def user(self, ctx: AvimetryContext, member: discord.Member):
         get_role = await self.avi.config.find(ctx.guild.id)
         try:
             role = get_role["gate_role"]

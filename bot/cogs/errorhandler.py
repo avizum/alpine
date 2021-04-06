@@ -7,6 +7,7 @@ from difflib import get_close_matches
 import prettify_exceptions
 import humanize
 from utils.errors import Blacklisted
+from utils.context import AvimetryContext
 
 
 class ErrorHandler(commands.Cog):
@@ -15,12 +16,7 @@ class ErrorHandler(commands.Cog):
 
     # Command Error
     @commands.Cog.listener()
-    async def on_command_error(self, ctx, error):
-        if ctx.author.id in self.avi.owner_ids:
-            try:
-                return await ctx.reinvoke()
-            except Exception:
-                pass
+    async def on_command_error(self, ctx: AvimetryContext, error):
         pre = ctx.clean_prefix
         error = getattr(error, "original", error)
 

@@ -15,5 +15,5 @@ class Blacklisted(commands.CheckFailure):
         self.reason = reason
 
 
-class AvizumsLoungeOnly(commands.CheckFailure):
+class PrivateServer(commands.CheckFailure):
     pass

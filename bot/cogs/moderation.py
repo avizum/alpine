@@ -4,6 +4,7 @@ import asyncio
 import datetime
 import humanize
 from utils.converters import TimeConverter, TargetMemberAction
+from utils.context import AvimetryContext
 
 
 class Moderation(commands.Cog):
@@ -16,7 +17,9 @@ class Moderation(commands.Cog):
     # Clean Command
     @commands.command(brief="Cleans bot messages", usage="[amount]")
     @commands.has_permissions(manage_messages=True)
-    async def clean(self, ctx, amount=15, limit=100):
+    async def clean(self, ctx: AvimetryContext, amount=20, limit=100):
+        amount = 20
+        limit = 100
         try:
             await ctx.message.delete()
         except Exception:
@@ -31,7 +34,8 @@ class Moderation(commands.Cog):
                 if msg_count >= amount:
                     break
             check_prefix = await ctx.cache.get_guild_settings(ctx.guild.id)
-            if message.content.lower() in check_prefix["prefixes"]:
+            prefixes = tuple(check_prefix["prefixes"])
+            if message.content.lower().startswith(prefixes):
                 message_list.append(message)
         try:
             await ctx.channel.delete_messages(message_list)
@@ -42,7 +46,7 @@ class Moderation(commands.Cog):
             title="Clean Messages",
             description=f"Successfully deleted {msg_count} messages."
         )
-        await ctx.send(embed=clean_embed)
+        await ctx.send(embed=clean_embed, delete_after=5)
 
     # Purge Command
     @commands.group(
@@ -52,7 +56,7 @@ class Moderation(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
     @commands.cooldown(5, 30, commands.BucketType.member)
-    async def purge(self, ctx, amount: int):
+    async def purge(self, ctx: AvimetryContext, amount: int):
         await ctx.message.delete()
         if amount == 0:
             return
@@ -79,7 +83,7 @@ class Moderation(commands.Cog):
     @purge.command()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
-    async def match(self, ctx, amount: int, *, text):
+    async def match(self, ctx: AvimetryContext, amount: int, *, text):
         await ctx.message.delete()
 
         def pmatch(m):
@@ -100,7 +104,7 @@ class Moderation(commands.Cog):
     )
     @commands.has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def lock(self, ctx, channel: discord.TextChannel, *, reason="No Reason Provided"):
+    async def lock(self, ctx: AvimetryContext, channel: discord.TextChannel, *, reason="No Reason Provided"):
         await channel.set_permissions(
             ctx.guild.default_role, send_messages=False,
         )
@@ -120,7 +124,7 @@ class Moderation(commands.Cog):
     )
     @commands.has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def unlock(self, ctx, channel: discord.TextChannel, *, reason="No Reason Provided"):
+    async def unlock(self, ctx: AvimetryContext, channel: discord.TextChannel, *, reason="No Reason Provided"):
         await channel.set_permissions(
             ctx.guild.default_role, send_messages=None)
         uc = discord.Embed()
@@ -137,7 +141,7 @@ class Moderation(commands.Cog):
     )
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
-    async def kick(self, ctx, member: TargetMemberAction, *, reason=None):
+    async def kick(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason=None):
         if reason is None:
             reason = f"{ctx.author} ({ctx.author.id}): No reason was provided."
         else:
@@ -167,7 +171,7 @@ class Moderation(commands.Cog):
     @commands.command(brief="Bans a member from the server", usage="<member> [reason]")
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def ban(self, ctx, member: TargetMemberAction, *, reason=None):
+    async def ban(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason=None):
         if reason is None:
             reason = f"{ctx.author} ({ctx.author.id}): No reason was provided."
         else:
@@ -205,7 +209,7 @@ class Moderation(commands.Cog):
     )
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def unban(self, ctx, member, *, reason="No reason was provided"):
+    async def unban(self, ctx: AvimetryContext, member, *, reason="No reason was provided"):
         try:
             some_member = discord.Object(id=member)
             await ctx.guild.unban(some_member)
@@ -235,7 +239,7 @@ class Moderation(commands.Cog):
     @commands.command(brief="Sets the slowmode in the current channel.")
     @commands.has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def slowmode(self, ctx, *, seconds: TimeConverter = None):
+    async def slowmode(self, ctx: AvimetryContext, *, seconds: TimeConverter = None):
         if seconds > 21600:
             raise commands.BadArgument("Amount should be less than or equal to 6 hours")
         await ctx.channel.edit(slowmode_delay=seconds)
@@ -249,11 +253,11 @@ class Moderation(commands.Cog):
     # Role Command
     @commands.group(invoke_without_command=True, brief="The command you just called")
     @commands.has_permissions(manage_roles=True)
-    async def role(self, ctx):
+    async def role(self, ctx: AvimetryContext):
         await ctx.send_help("role")
 
     @role.command(brief="Give a role to a member.")
-    async def add(self, ctx, member: discord.Member, role: discord.Role):
+    async def add(self, ctx: AvimetryContext, member: discord.Member, role: discord.Role):
         await member.add_roles(role)
         ra = discord.Embed()
         ra.add_field(
@@ -263,7 +267,7 @@ class Moderation(commands.Cog):
         await ctx.send(embed=ra)
 
     @role.command(brief="Remove a role from a member.")
-    async def remove(self, ctx, member: discord.Member, role: discord.Role):
+    async def remove(self, ctx: AvimetryContext, member: discord.Member, role: discord.Role):
         await member.remove_roles(role)
         rr = discord.Embed()
         rr.add_field(
@@ -275,7 +279,7 @@ class Moderation(commands.Cog):
     # Nick Command
     @commands.command(brief="Changes a member's nickname.")
     @commands.has_permissions(kick_members=True)
-    async def nick(self, ctx, member: discord.Member, *, nick=None):
+    async def nick(self, ctx: AvimetryContext, member: discord.Member, *, nick=None):
         if nick is None:
             await member.edit(nick=nick)
         oldnick = member.display_name

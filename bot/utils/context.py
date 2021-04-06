@@ -23,7 +23,8 @@ class AvimetryContext(commands.Context):
     @property
     async def get_prefix(self):
         get_prefix = await self.cache.get_guild_settings(self.guild.id)
-        prefix = get_prefix["prefixes"]
+        if get_prefix:
+            prefix = get_prefix["prefixes"]
         if not prefix:
             return "`a.`"
         return f"`{'` | `'.join(prefix)}`"

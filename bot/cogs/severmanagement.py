@@ -1,5 +1,6 @@
 from discord.ext import commands
 from typing import Optional
+from utils.context import AvimetryContext
 import discord
 
 
@@ -8,11 +9,11 @@ class ServerManagement(commands.Cog):
         self.avi = avi
 
     @commands.group()
-    async def clone(self, ctx):
+    async def clone(self, ctx: AvimetryContext):
         await ctx.send_help("clone")
 
     @clone.command()
-    async def category(self, ctx, category: discord.CategoryChannel, name: Optional[str] = None):
+    async def category(self, ctx: AvimetryContext, category: discord.CategoryChannel, name: Optional[str] = None):
         cloned = await category.clone(name=name)
         message = await ctx.send("Cloning category")
         for channel in category.channels:
@@ -23,7 +24,7 @@ class ServerManagement(commands.Cog):
         return cloned
 
     @clone.command()
-    async def channel(self, ctx, channel: discord.TextChannel):
+    async def channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
         cloned = await channel.clone()
         await ctx.send(f"Cloned channel. Here is the new channel {cloned}")
 
