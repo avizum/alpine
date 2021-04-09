@@ -1,3 +1,6 @@
+from contextlib import redirect_stdout
+import textwrap
+import traceback
 import typing
 from utils.converters import CogConverter
 import discord
@@ -7,6 +10,7 @@ from discord.ext import commands
 from utils.context import AvimetryContext
 import subprocess
 import asyncio
+import io
 
 
 class Owner(commands.Cog):
@@ -14,10 +18,17 @@ class Owner(commands.Cog):
     Commands for bot owner.
     '''
     def __init__(self, avi):
-        self.avi = avi
+        self.avi= avi
+        self._last_result = None
 
     def cog_unload(self):
-        self.avi.load_extension("cogs.owner")
+        self.avi.load_extension("cogs.developer")
+
+    def cleanup_code(self, content):
+        if content.startswith('```') and content.endswith('```'):
+            return '\n'.join(content.split('\n')[1:-1])
+
+        return content.strip('` \n')
 
     async def cog_check(self, ctx: AvimetryContext):
         if await self.avi.is_owner(ctx.author) is True:
@@ -34,20 +45,28 @@ class Owner(commands.Cog):
     # Load Command
     @dev.command(brief="Load module")
     async def load(self, ctx: AvimetryContext, module: CogConverter):
+        reload_list = []
         for cog in module:
             try:
-                self.avi.reload_extension(cog)
+                self.avi.load_extension(cog)
+                reload_list.append(f'{self.avi.emoji_dictionary["green_tick"]} | {cog}')
             except Exception as e:
-                print(e)
+                reload_list.append(f'{self.avi.emoji_dictionary["red_tick"]} | {cog}```{e}```')
+        embed = discord.Embed(title="Load", description="\n".join(reload_list))
+        await ctx.send(embed=embed)
 
     # Unload Command
     @dev.command(brief="Unload module")
     async def unload(self, ctx: AvimetryContext, module: CogConverter):
+        unload_list = []
         for cog in module:
             try:
-                self.avi.reload_extension(cog)
+                self.avi.unload_extension(cog)
+                unload_list.append(f'{self.avi.emoji_dictionary["green_tick"]} | {cog}')
             except Exception as e:
-                print(e)
+                unload_list.append(f'{self.avi.emoji_dictionary["red_tick"]} | {cog}```{e}```')
+        embed = discord.Embed(title="Unload", description="\n".join(unload_list))
+        await ctx.send(embed=embed)
 
     # Reload Command
     @dev.command(
@@ -61,7 +80,7 @@ class Owner(commands.Cog):
                 reload_list.append(f'{self.avi.emoji_dictionary["green_tick"]} | {cog}')
             except Exception as e:
                 reload_list.append(f'{self.avi.emoji_dictionary["red_tick"]} | {cog}```{e}```')
-        embed = discord.Embed(description="\n".join(reload_list))
+        embed = discord.Embed(title="Reload", description="\n".join(reload_list))
         await ctx.send(embed=embed)
 
     @dev.command()
@@ -135,6 +154,54 @@ class Owner(commands.Cog):
         )
         ctx.cache.blacklisted_users.pop(user.id)
         await ctx.send(f"Unblacklisted {str(user)}")
+
+
+    @dev.command(hidden=True, name='eval')
+    async def _eval(self, ctx, *, body: str):
+
+        env = {
+            'bot': self.avi,
+            'ctx': ctx,
+            'channel': ctx.channel,
+            'author': ctx.author,
+            'guild': ctx.guild,
+            'message': ctx.message,
+            '_': self._last_result
+        }
+
+        env.update(globals())
+
+        body = self.cleanup_code(body)
+        stdout = io.StringIO()
+
+        to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
+
+        try:
+            exec(to_compile, env)
+        except Exception as e:
+            return await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
+
+        func = env['func']
+        try:
+            with redirect_stdout(stdout):
+                ret = await func()
+        except Exception as e:
+            value = stdout.getvalue()
+            await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
+        else:
+            value = stdout.getvalue()
+            try:
+                await ctx.message.add_reaction('\u2705')
+            except:
+                pass
+
+            if ret is None:
+                if value:
+                    await ctx.send(f'```py\n{value}\n```')
+            else:
+                self._last_result = ret
+                await ctx.send(f'```py\n{value}{ret}\n```')
+
 
 
 def setup(avi):

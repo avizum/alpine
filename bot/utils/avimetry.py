@@ -126,7 +126,7 @@ class AvimetryBot(commands.Bot):
         os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
         os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
         print("Loading Cogs...")
-        for filename in os.listdir("./cogs"):
+        for filename in os.listdir("./bot/cogs"):
             if filename.endswith(".py"):
                 self.load_extension(f"cogs.{filename[:-3]}")
         self.load_extension("utils.jishaku")

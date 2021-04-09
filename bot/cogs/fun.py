@@ -509,7 +509,8 @@ class Fun(commands.Cog):
     @commands.cooldown(1, 15, commands.BucketType.member)
     async def meme(self, ctx: AvimetryContext):
         reddit = self.avi.get_command("reddit")
-        await reddit(ctx, subreddit="memes")
+        a = await reddit(ctx, subreddit="memes")
+        print(a)
 
 # Reaction time commnad
     @commands.command()

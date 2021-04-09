@@ -32,10 +32,7 @@ class BotLogs(commands.Cog, name="bot logs"):
         if message.content:
             embed.add_field(name="Deleted content", value=f">>> {message.content}")
         if not message.content:
-            embed.add_field(
-                name="Deleted content",
-                value="Media can't be logged",
-            )
+            return
 
         if message.guild.me.guild_permissions.view_audit_log is True:
             deleted_by = (await message.guild.audit_logs(limit=1).flatten())[0]
@@ -98,6 +95,10 @@ class BotLogs(commands.Cog, name="bot logs"):
         send_channel = get_channel["logging_channel"]
         channel = self.avi.get_channel(send_channel)
         await channel.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_member_ban(self, guild, user):
+        print(user)
 
     @commands.Cog.listener("on_command")
     async def on_command(self, ctx: AvimetryContext):

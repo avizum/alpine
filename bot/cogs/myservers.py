@@ -12,37 +12,37 @@ URL_REGEX = re.compile(
 
 REACTION_ROLE_ID = 828830074080985138
 REACTION_ROLES_EMOJIS = {
-    discord.PartialEmoji(name='announceping', id=828446615135191100): 828437716429570128,
-    discord.PartialEmoji(name='updateping', id=828445765772509234): 828437885820076053
+    828446615135191100: 828437716429570128,
+    828445765772509234: 828437885820076053
 }
 
 COLOR_ROLE_ONE = 828830077302341642
 COLOR_ROLE_TWO = 828830098329174016
 COLOR_ROLES_EMOJIS = {
-    discord.PartialEmoji(name="Black", id=828803461499322419): 828783285735653407,
-    discord.PartialEmoji(name="Blue", id=828803483456897064): 828783291603746877,
-    discord.PartialEmoji(name="Blurple", id=828803502284472330): 828467481236078622,
-    discord.PartialEmoji(name="Cyan", id=828803518751047760): 828783292924297248,
-    discord.PartialEmoji(name="Gold", id=828803535088386080): 828783296983990272,
-    discord.PartialEmoji(name="Gray", id=828803555192078416): 828716599950311426,
-    discord.PartialEmoji(name="Green", id=828803571566248008): 828783295382814750,
-    discord.PartialEmoji(name="HSBalance", id=828803590067322910): 828788247105765407,
-    discord.PartialEmoji(name="HSBravery", id=828803604839792661): 828788233327869994,
-    discord.PartialEmoji(name="HSBrilliance", id=828803624644771860): 828788255334858815,
-    discord.PartialEmoji(name="Magenta", id=828803640004837376): 828783290281754664,
-    discord.PartialEmoji(name="Mint", id=828803656924397589): 828783293699850260,
-    discord.PartialEmoji(name="Orange", id=828803674633011253): 828783297411678240,
-    discord.PartialEmoji(name="Pink", id=828803726089256991): 828783289400950864,
-    discord.PartialEmoji(name="Purple", id=828803747755851776): 828783291279867934,
-    discord.PartialEmoji(name="Red", id=828803769013370880): 828783297927839745,
-    discord.PartialEmoji(name="Salmon", id=828803790673018960): 828783288410832916,
-    discord.PartialEmoji(name="Silver", id=828803810533179404): 828783286599024671,
-    discord.PartialEmoji(name="Sky", id=828803838387290162): 828783292504604702,
-    discord.PartialEmoji(name="Tan", id=828803863661248513): 828783287585341470,
-    discord.PartialEmoji(name="Teal", id=828803885811367966): 828448876469026846,
-    discord.PartialEmoji(name="USNavyBlue", id=828803903637422100): 828799927857053696,
-    discord.PartialEmoji(name="White", id=828803923799179304): 828476018439356436,
-    discord.PartialEmoji(name="Yellow", id=828803974941245470): 828783296023625770
+        828803461499322419: 828783285735653407,
+        828803483456897064: 828783291603746877,
+        828803502284472330: 828467481236078622,
+        828803518751047760: 828783292924297248,
+        828803535088386080: 828783296983990272,
+        828803555192078416: 828716599950311426,
+        828803571566248008: 828783295382814750,
+        828803590067322910: 828788247105765407,
+        828803604839792661: 828788233327869994,
+        828803624644771860: 828788255334858815,
+        828803640004837376: 828783290281754664,
+        828803656924397589: 828783293699850260,
+        828803674633011253: 828783297411678240,
+        828803726089256991: 828783289400950864,
+        828803747755851776: 828783291279867934,
+        828803769013370880: 828783297927839745,
+        828803790673018960: 828783288410832916,
+        828803810533179404: 828783286599024671,
+        828803838387290162: 828783292504604702,
+        828803863661248513: 828783287585341470,
+        828803885811367966: 828448876469026846,
+        828803903637422100: 828799927857053696,
+        828803923799179304: 828476018439356436,
+        828803974941245470: 828783296023625770,
 }
 
 ROLE_MAP = {
@@ -84,7 +84,7 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
         if guild is None:
             return
         try:
-            role_id = emojis[payload.emoji]
+            role_id = emojis[payload.emoji.id]
         except KeyError:
             return
 
@@ -106,7 +106,7 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
         if guild is None:
             return
         try:
-            role_id = emojis[payload.emoji]
+            role_id = emojis[payload.emoji.id]
         except KeyError:
             return
         role = guild.get_role(role_id)
@@ -139,6 +139,8 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
     @tasks.loop(minutes=5)
     async def update_count(self):
         guild: discord.Guild = self.avi.get_guild(self.guild_id)
+        if guild is None:
+            return
         total = guild.member_count
         members = len([m for m in guild.members if not m.bot])
         bots = len([m for m in guild.members if m.bot])

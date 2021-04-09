@@ -29,12 +29,11 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
                 self.avi.get_all_channels(), name="gaming-announcements"
             )
             embed = discord.Embed(
-                title="<:roblox:788835896354013229> A ROBLOX update has been detected.",
-                description="If you don't want ROBLOX to update, keep ROBLOX open. "
-                            "Please wait while people update their cool lego hak.",
+                title="<:roblox:829232494401683457> A ROBLOX update has been detected.",
+                description="If you don't want ROBLOX to update, Do not close ROBLOX.",
             )
-            embed.add_field(name="Latest Version", value=f"{b}", inline=True)
-            embed.add_field(name="Last Version", value=f"{a}", inline=True)
+            embed.add_field(name="Latest Version", value=f"`{b}`", inline=True)
+            embed.add_field(name="Last Version", value=f"`{a}`", inline=True)
             embed.set_footer(
                 text="If you want to get notified when ROBLOX updates, use the command 'a.updateping'."
             )
