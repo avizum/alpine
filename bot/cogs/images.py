@@ -23,7 +23,6 @@ class GetAvatar(commands.Converter):
             member_converter = commands.MemberConverter()
             member = await member_converter.convert(ctx, argument)
             image = member.avatar_url_as(format="png", static_format="png", size=1024)
-            print(image)
             return str(image)
         except Exception:
             try:
@@ -113,6 +112,20 @@ class Manipulation(commands.Cog):
         async with ctx.channel.typing():
             image = await self.avi.dagpi.image_process(ImageFeatures.why_are_you_gay(), url=item1, url2=item2)
         file = discord.File(fp=image.image, filename="why_are_you_gay.png")
+        await ctx.send(file=file)
+
+    @commands.command(name="tweet")
+    async def dag_tweet(self, ctx, user: GetAvatar, username: str, *, text: str):
+        async with ctx.channel.typing():
+            image = await self.avi.dagpi.image_process(ImageFeatures.tweet(), text=text, url=user, username=username)
+        file = discord.File(fp=image.image, filename="tweet.png")
+        await ctx.send(file=file)
+
+    @commands.command(name="discord")
+    async def dag_discord(self, ctx, user: GetAvatar, username: str, *, text: str):
+        async with ctx.channel.typing():
+            image = await self.avi.dagpi.image_process(ImageFeatures.discord(), text=text, url=user, username=username)
+        file = discord.File(fp=image.image, filename="tweet.png")
         await ctx.send(file=file)
 
     @commands.command(name="america")
