@@ -115,16 +115,16 @@ class Manipulation(commands.Cog):
         await ctx.send(file=file)
 
     @commands.command(name="tweet")
-    async def dag_tweet(self, ctx, user: GetAvatar, username: str, *, text: str):
+    async def dag_tweet(self, ctx, user: GetAvatar, *, text: str):
         async with ctx.channel.typing():
-            image = await self.avi.dagpi.image_process(ImageFeatures.tweet(), text=text, url=user, username=username)
+            image = await self.avi.dagpi.image_process(ImageFeatures.tweet(), text=text, url=user, username=user.name)
         file = discord.File(fp=image.image, filename="tweet.png")
         await ctx.send(file=file)
 
     @commands.command(name="discord")
-    async def dag_discord(self, ctx, user: GetAvatar, username: str, *, text: str):
+    async def dag_discord(self, ctx, user: GetAvatar, *, text: str):
         async with ctx.channel.typing():
-            image = await self.avi.dagpi.image_process(ImageFeatures.discord(), text=text, url=user, username=username)
+            image = await self.avi.dagpi.image_process(ImageFeatures.discord(), text=text, url=user, username=user.name)
         file = discord.File(fp=image.image, filename="tweet.png")
         await ctx.send(file=file)
 
