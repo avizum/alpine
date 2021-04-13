@@ -40,7 +40,7 @@ class GetAvatar(commands.Converter):
                     emoji.url_as(format="png", static_format="png", size=1024)
             except Exception:
                 return None
-        return None
+        raise commands.MemberNotFound(argument)
 
 
 async def image(ctx: AvimetryContext, argument: str):
@@ -91,12 +91,12 @@ class Manipulation(commands.Cog):
         return file
 
     @commands.command(name="pixel")
-    async def dag_pixel(self, ctx, item=None):
+    async def dag_pixel(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.pixel(), item, False)
         await ctx.send(file=meth)
 
     @commands.command(name="triggered")
-    async def dag_triggered(self, ctx, item=None):
+    async def dag_triggered(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.triggered(), item, True)
         await ctx.send(file=meth)
 
@@ -115,27 +115,27 @@ class Manipulation(commands.Cog):
         await ctx.send(file=file)
 
     @commands.command(name="america")
-    async def dag_america(self, ctx, item=None):
+    async def dag_america(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.america(), item, True)
         await ctx.send(file=meth)
 
     @commands.command(name="communism")
-    async def dag_communism(self, ctx, item=None):
+    async def dag_communism(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.communism(), item, True)
         await ctx.send(file=meth)
 
     @commands.command(name="colors")
-    async def dag_colors(self, ctx, item=None):
+    async def dag_colors(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.colors(), item)
         await ctx.send(file=meth)
 
     @commands.command(name="wasted")
-    async def dag_wasted(self, ctx, item=None):
+    async def dag_wasted(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.wasted(), item)
         await ctx.send(file=meth)
 
     @commands.command(name="hitler")
-    async def dag_hitler(self, ctx, item=None):
+    async def dag_hitler(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.hitler(), item)
         await ctx.send(file=meth)
 
@@ -145,7 +145,7 @@ class Manipulation(commands.Cog):
         brief="Returns a gif of your image being scaled",
         aliases=["magik", "magick"]
     )
-    async def magic(self, ctx: AvimetryContext, item=None):
+    async def magic(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_zane(ctx, self.avi.zane.magic, item, True)
         await ctx.send(file=meth)
 
