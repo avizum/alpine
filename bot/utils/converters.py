@@ -104,4 +104,3 @@ class CogConverter(commands.Converter):
         if jsk in exts:
             exts.remove("utils.jishaku")
         return exts
-

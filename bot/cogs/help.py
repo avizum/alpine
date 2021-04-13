@@ -196,6 +196,11 @@ class HelpEmbeded(commands.HelpCommand):
             inline=True,
         )
         try:
+            can_run = await self.avi.can_run(self.ctx)
+            print(can_run)
+        except Exception:
+            pass
+        try:
             can_run_check = await command.can_run(self.context)
             if can_run_check:
                 can_run = self.context.bot.emoji_dictionary["green_tick"]

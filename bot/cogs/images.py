@@ -3,16 +3,53 @@ from discord.ext import commands
 from io import BytesIO
 import io
 import re
+from asyncdagpi import ImageFeatures
 from twemoji_parser import emoji_to_url as urlify_emoji
 from utils.context import AvimetryContext
 import typing
 
 embed = discord.Embed()
 regex_url = re.compile(
-    r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.\
-        [^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
+    r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+"
+    r"[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
 )
+emoji_regex = r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>"
 args = typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]
+
+
+class GetAvatar(commands.Converter):
+    async def convert(self, ctx: AvimetryContext, argument: str = None):
+        try:
+            member_converter = commands.MemberConverter()
+            member = await member_converter.convert(ctx, argument)
+            image = member.avatar_url_as(format="png", static_format="png", size=1024)
+            print(image)
+            return str(image)
+        except Exception:
+            try:
+                url = await urlify_emoji(argument)
+                if re.match(regex_url, url):
+                    image = str(url)
+                    return image
+                if re.match(regex_url, argument):
+                    image = argument
+                    return image
+                if re.match(emoji_regex, argument):
+                    emoji_converter = commands.EmojiConverter()
+                    emoji = emoji_converter.convert(ctx, argument)
+                    emoji.url_as(format="png", static_format="png", size=1024)
+            except Exception:
+                return None
+        return None
+
+
+async def image(ctx: AvimetryContext, argument: str):
+    avatar = GetAvatar()
+    url = avatar.convert(ctx, argument)
+    if url is not None:
+        if ctx.message.attachments:
+            attachment = ctx.message.attachments[0]
+            url = attachment.url
 
 
 class Manipulation(commands.Cog):
@@ -22,20 +59,85 @@ class Manipulation(commands.Cog):
     def __init__(self, avi):
         self.avi = avi
 
-    async def member_convert(self, ctx: AvimetryContext, url):
-        if url is None:
-            url = ctx.author.avatar_url_as(format="png")
-        elif isinstance(url, discord.Member):
-            url = url.avatar_url_as(format="png")
-        elif isinstance(url, discord.PartialEmoji) or isinstance(url, discord.Emoji):
-            url = url.url
-        else:
-            find_url = re.findall(regex_url, url)
-            if find_url:
-                url = find_url[0]
+    async def do_dagpi(self, ctx: AvimetryContext, feature: ImageFeatures, argument, gif: bool = False):
+        converter = GetAvatar()
+        image = await converter.convert(ctx, argument)
+        if image is None:
+            if ctx.message.attachments:
+                img = ctx.message.attachments[0]
+                image = img.url
             else:
-                url = await urlify_emoji(url)
-        return url
+                image = str(ctx.author.avatar_url_as(format="png", static_format="png", size=1024))
+        else:
+            image = image
+        async with ctx.channel.typing():
+            image = await self.avi.dagpi.image_process(feature, image)
+        file = discord.File(fp=image.image, filename=f"{ctx.command.name}.{'gif' if gif is True else 'png'}")
+        return file
+
+    async def do_zane(self, ctx: AvimetryContext, method, argument, gif: bool = False):
+        converter = GetAvatar()
+        image = await converter.convert(ctx, argument)
+        if image is None:
+            if ctx.message.attachments:
+                img = ctx.message.attachments[0]
+                image = img.url
+            else:
+                image = str(ctx.author.avatar_url_as(format="png", static_format="png", size=1024))
+        else:
+            image = image
+        image = await method(argument)
+        file = discord.File(fp=image, filename=f"{ctx.command.name}.{'gif' if gif is True else 'png'}")
+        return file
+
+    @commands.command(name="pixel")
+    async def dag_pixel(self, ctx, item=None):
+        meth = await self.do_dagpi(ctx, ImageFeatures.pixel(), item, False)
+        await ctx.send(file=meth)
+
+    @commands.command(name="triggered")
+    async def dag_triggered(self, ctx, item=None):
+        meth = await self.do_dagpi(ctx, ImageFeatures.triggered(), item, True)
+        await ctx.send(file=meth)
+
+    @commands.command(name="5g1g")
+    async def dag_5g1g(self, ctx, item1: GetAvatar, item2: GetAvatar):
+        async with ctx.channel.typing():
+            image = await self.avi.dagpi.image_process(ImageFeatures.five_guys_one_girl(), url=item1, url2=item2)
+        file = discord.File(fp=image.image, filename="5g1g.png")
+        await ctx.send(file=file)
+
+    @commands.command(name="whyareyougay", aliases=["wayg"])
+    async def dag_wayg(self, ctx, item1: GetAvatar, item2: GetAvatar):
+        async with ctx.channel.typing():
+            image = await self.avi.dagpi.image_process(ImageFeatures.why_are_you_gay(), url=item1, url2=item2)
+        file = discord.File(fp=image.image, filename="why_are_you_gay.png")
+        await ctx.send(file=file)
+
+    @commands.command(name="america")
+    async def dag_america(self, ctx, item=None):
+        meth = await self.do_dagpi(ctx, ImageFeatures.america(), item, True)
+        await ctx.send(file=meth)
+
+    @commands.command(name="communism")
+    async def dag_communism(self, ctx, item=None):
+        meth = await self.do_dagpi(ctx, ImageFeatures.communism(), item, True)
+        await ctx.send(file=meth)
+
+    @commands.command(name="colors")
+    async def dag_colors(self, ctx, item=None):
+        meth = await self.do_dagpi(ctx, ImageFeatures.colors(), item)
+        await ctx.send(file=meth)
+
+    @commands.command(name="wasted")
+    async def dag_wasted(self, ctx, item=None):
+        meth = await self.do_dagpi(ctx, ImageFeatures.wasted(), item)
+        await ctx.send(file=meth)
+
+    @commands.command(name="hitler")
+    async def dag_hitler(self, ctx, item=None):
+        meth = await self.do_dagpi(ctx, ImageFeatures.hitler(), item)
+        await ctx.send(file=meth)
 
     # Magic Command
     @commands.command(
@@ -43,13 +145,9 @@ class Manipulation(commands.Cog):
         brief="Returns a gif of your image being scaled",
         aliases=["magik", "magick"]
     )
-    async def magic(self, ctx: AvimetryContext, url: args):
-        url = await self.member_convert(ctx, url)
-        async with ctx.channel.typing():
-            magic = await self.avi.zaneapi.magic(str(url))
-            file = discord.File(io.BytesIO(magic.read()), filename="magic.gif")
-            embed.set_image(url="attachment://magic.gif")
-            await ctx.send(file=file, embed=embed)
+    async def magic(self, ctx: AvimetryContext, item=None):
+        meth = await self.do_zane(ctx, self.avi.zane.magic, item, True)
+        await ctx.send(file=meth)
 
     # Floor Command
     @commands.command(

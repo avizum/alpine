@@ -189,8 +189,8 @@ class Moderation(commands.Cog):
             dm_embed = discord.Embed(
                 title="Moderation action: Ban",
                 description=(
-                    f"You were banned from **{ctx.guild}** by **{ctx.author}**."
-                    f"Reason: {reason}"
+                    f"You were banned from **{ctx.guild}** by **{ctx.author}**.\n"
+                    f"**Reason:** {reason}"
                 ),
                 timestamp=datetime.datetime.utcnow(),
             )

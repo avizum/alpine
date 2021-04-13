@@ -9,6 +9,7 @@ import mystbin
 import time
 import re
 import asyncpg
+import asyncdagpi
 from discord.ext import commands
 from utils.mongo import MongoDB
 from config import tokens, postgresql
@@ -89,6 +90,7 @@ class AvimetryBot(commands.Bot):
         # APIs
         self.sr = sr_api.Client()
         self.zaneapi = aiozaneapi.Client(tokens["ZaneAPI"])
+        self.dagpi = asyncdagpi.Client(tokens["DagpiAPI"])
         self.myst = mystbin.Client()
         self.session = aiohttp.ClientSession()
 
@@ -163,7 +165,7 @@ class AvimetryBot(commands.Bot):
         return round((end - start) * 1000)
 
     def run(self):
-        super().run(tokens["Avimetry"], reconnect=True)
+        super().run(tokens["AvimetryBeta"], reconnect=True)
 
     def run_bot(self):
         print("------")
@@ -179,6 +181,7 @@ class AvimetryBot(commands.Bot):
         await self.zaneapi.close()
         await self.myst.close()
         await self.session.close()
+        await self.dagpi.close()
         print("Sucessfully closed.")
         print("------")
         await super().close()

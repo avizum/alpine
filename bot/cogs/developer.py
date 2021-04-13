@@ -1,6 +1,3 @@
-from contextlib import redirect_stdout
-import textwrap
-import traceback
 import typing
 from utils.converters import CogConverter
 import discord
@@ -10,7 +7,6 @@ from discord.ext import commands
 from utils.context import AvimetryContext
 import subprocess
 import asyncio
-import io
 
 
 class Owner(commands.Cog):
@@ -18,8 +14,7 @@ class Owner(commands.Cog):
     Commands for bot owner.
     '''
     def __init__(self, avi):
-        self.avi= avi
-        self._last_result = None
+        self.avi = avi
 
     def cog_unload(self):
         self.avi.load_extension("cogs.developer")
@@ -43,7 +38,9 @@ class Owner(commands.Cog):
         await ctx.send_help("dev")
 
     # Load Command
-    @dev.command(brief="Load module")
+    @dev.command(
+        brief="Load module", aliases=["l"]
+        )
     async def load(self, ctx: AvimetryContext, module: CogConverter):
         reload_list = []
         for cog in module:
@@ -56,7 +53,9 @@ class Owner(commands.Cog):
         await ctx.send(embed=embed)
 
     # Unload Command
-    @dev.command(brief="Unload module")
+    @dev.command(
+        brief="Unload module", aliases=["u"]
+        )
     async def unload(self, ctx: AvimetryContext, module: CogConverter):
         unload_list = []
         for cog in module:
@@ -70,7 +69,7 @@ class Owner(commands.Cog):
 
     # Reload Command
     @dev.command(
-        brief="Reloads a module if it is not working.", usage="[extension]"
+        brief="Reloads a module if it is not working.", aliases=["r"]
     )
     async def reload(self, ctx: AvimetryContext, module: CogConverter):
         reload_list = []
@@ -100,7 +99,7 @@ class Owner(commands.Cog):
         sync_embed.description = "\n".join(output)
         sync_embed.timestamp = datetime.datetime.utcnow()
         sync_embed.title = "Synced With GitHub"
-        for filename in os.listdir("./cogs"):
+        for filename in os.listdir("./bot/cogs"):
             if filename.endswith(".py"):
                 try:
                     self.avi.reload_extension(f"cogs.{filename[:-3]}")
@@ -122,7 +121,6 @@ class Owner(commands.Cog):
             await self.avi.close()
         if not rr:
             await ctx.send("Reboot Aborted", delete_after=5)
-        
 
     # Leave command
     @dev.command()
@@ -154,54 +152,6 @@ class Owner(commands.Cog):
         )
         ctx.cache.blacklisted_users.pop(user.id)
         await ctx.send(f"Unblacklisted {str(user)}")
-
-
-    @dev.command(hidden=True, name='eval')
-    async def _eval(self, ctx, *, body: str):
-
-        env = {
-            'bot': self.avi,
-            'ctx': ctx,
-            'channel': ctx.channel,
-            'author': ctx.author,
-            'guild': ctx.guild,
-            'message': ctx.message,
-            '_': self._last_result
-        }
-
-        env.update(globals())
-
-        body = self.cleanup_code(body)
-        stdout = io.StringIO()
-
-        to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
-
-        try:
-            exec(to_compile, env)
-        except Exception as e:
-            return await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
-
-        func = env['func']
-        try:
-            with redirect_stdout(stdout):
-                ret = await func()
-        except Exception as e:
-            value = stdout.getvalue()
-            await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
-        else:
-            value = stdout.getvalue()
-            try:
-                await ctx.message.add_reaction('\u2705')
-            except:
-                pass
-
-            if ret is None:
-                if value:
-                    await ctx.send(f'```py\n{value}\n```')
-            else:
-                self._last_result = ret
-                await ctx.send(f'```py\n{value}{ret}\n```')
-
 
 
 def setup(avi):

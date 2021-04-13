@@ -18,7 +18,7 @@ class GuildJoin(commands.Cog, name="Auto Setup"):
     async def on_guild_join(self, guild):
         await self.avi.temp.cache_new_guild(guild.id)
         channel = self.avi.get_channel(829812033946910720)
-        await channel.send(f"Joined {guild.name} with {guild.member_count} members")
+        await channel.send(f"Joined a server **{guild.name}** with **{guild.member_count}** members")
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):

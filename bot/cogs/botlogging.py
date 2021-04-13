@@ -26,6 +26,8 @@ class BotLogs(commands.Cog, name="bot logs"):
             return
         if message.author == self.avi.user:
             return
+        if message.author.bot:
+            return
         embed = discord.Embed(
             title="Message_Delete", timestamp=datetime.datetime.utcnow()
         )
@@ -71,6 +73,8 @@ class BotLogs(commands.Cog, name="bot logs"):
         except KeyError:
             return
         if before.author == self.avi.user:
+            return
+        if before.author.bot:
             return
         if before.content == after.content:
             return

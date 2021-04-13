@@ -62,6 +62,10 @@ class ErrorHandler(commands.Cog):
 
         elif isinstance(error, commands.BotMissingPermissions):
             mp = error.missing_perms
+            if "embed_links" in mp:
+                return await ctx.send_raw(
+                    "I do not have permissions to use embeds. Please [turn them on](https://youtu.be/Cftk32YHzKM)."
+                )
             missing_perms = (
                 " ".join([str(elem) for elem in mp])
                 .replace("_", " ")
@@ -162,10 +166,12 @@ class ErrorHandler(commands.Cog):
                     type(error), error, error.__traceback__
                 )
             )
+            print("------")
             print("Ignoring exception in command {}:".format(ctx.command), file=sys.stderr)
             traceback.print_exception(
                 type(error), error, error.__traceback__, file=sys.stderr
             )
+            print("------")
             ee = discord.Embed(
                 color=discord.Color.red(),
                 timestamp=datetime.datetime.utcnow()
@@ -184,7 +190,7 @@ class ErrorHandler(commands.Cog):
             )
             try:
                 await ctx.send(embed=ee)
-                error_channel = self.avi.get_channel(797362270593613854)
+                error_channel = self.avi.get_channel(831398201974194186)
                 embed = discord.Embed(
                     title="Uncaught Error",
                     description=f"```py\n {short_exception}```",

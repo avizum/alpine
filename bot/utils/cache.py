@@ -19,7 +19,10 @@ class AvimetryCache:
         return self.guild_settings_cache.get(guild_id, None)
 
     async def cache_new_guild(self, guild_id: int):
-        await self.avi.pool.execute("INSERT INTO guild_settings VALUES ($1)", guild_id)
+        try:
+            await self.avi.pool.execute("INSERT INTO guild_settings VALUES ($1)", guild_id)
+        except Exception:
+            return
         self.guild_settings_cache[guild_id] = deepcopy({"prefixes": []})
         return self.guild_settings_cache[guild_id]
 
