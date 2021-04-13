@@ -115,16 +115,24 @@ class Manipulation(commands.Cog):
         await ctx.send(file=file)
 
     @commands.command(name="tweet")
-    async def dag_tweet(self, ctx, user: GetAvatar, *, text: str):
+    async def dag_tweet(self, ctx, user: GetAvatar, username: str, *, text: str):
         async with ctx.channel.typing():
-            image = await self.avi.dagpi.image_process(ImageFeatures.tweet(), text=text, url=user, username=user.name)
+            image = await self.avi.dagpi.image_process(ImageFeatures.tweet(), text=text, url=user, username=username)
         file = discord.File(fp=image.image, filename="tweet.png")
         await ctx.send(file=file)
 
     @commands.command(name="discord")
-    async def dag_discord(self, ctx, user: GetAvatar, *, text: str):
+    async def dag_discord(self, ctx, user: discord.Member = None, *, text: str = None):
+        if text is None:
+            url = str(ctx.author.avatar_url_as(format="png", static_format="png", size=1024))
+            text = "I am an idiot for not putting the text in"
+            user_name = ctx.author.name
+        else:
+            url = str(user.avatar_url_as(format="png", static_format="png", size=1024))
         async with ctx.channel.typing():
-            image = await self.avi.dagpi.image_process(ImageFeatures.discord(), text=text, url=user, username=str(user.name))
+            image = await self.avi.dagpi.image_process(
+                ImageFeatures.discord(), text=text, url=url,
+                username=user_name if user_name is not None else user_name)
         file = discord.File(fp=image.image, filename="tweet.png")
         await ctx.send(file=file)
 
