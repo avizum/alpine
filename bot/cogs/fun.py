@@ -555,6 +555,31 @@ class Fun(commands.Cog):
                 embed.description = f"{user.mention} got the {random_emoji} in {total_second}"
                 await first.edit(embed=embed)
 
+    @commands.command(name="guessthatlogo", aliases=["gtl"])
+    async def dag_guess_that_logo(self, ctx):
+        async with ctx.channel.typing():
+            logo = await self.avi.dagpi.logo()
+        embed = discord.Embed(
+            title="Which logo is this?",
+            description=f"{logo.clue}"
+        )
+        embed.set_image(url=logo.question)
+        message = await ctx.send(embed=embed)
+
+        def check(m):
+            return m.author == ctx.author
+
+        wait = await self.avi.wait_for("message", check=check, timeout=60)
+        if wait.content.lower() == logo.brand.lower():
+            embed.title = "🎉 Good Job 🎉"
+            embed.description = f"The answer was {logo.brand}"
+            embed.set_image(url=logo.answer)
+            return await message.edit(embed=embed)
+        embed.title = f"{self.avi.emoji_dictionary['red_tick']} | Wrong"
+        embed.description = f"Your answer was {wait.content}.\nThe correct answer is actually {logo.brand}"
+        embed.set_image(url=logo.answer)
+        await message.edit(embed=embed)
+
 
 def setup(avi):
     avi.add_cog(Fun(avi))
