@@ -123,6 +123,7 @@ class Manipulation(commands.Cog):
 
     @commands.command(name="discord")
     async def dag_discord(self, ctx, user: discord.Member = None, *, text: str = None):
+        user_name = None
         if text is None:
             url = str(ctx.author.avatar_url_as(format="png", static_format="png", size=1024))
             text = "I am an idiot for not putting the text in"
@@ -132,7 +133,7 @@ class Manipulation(commands.Cog):
         async with ctx.channel.typing():
             image = await self.avi.dagpi.image_process(
                 ImageFeatures.discord(), text=text, url=url,
-                username=user_name if user_name is not None else user_name)
+                username=user.name if user_name is None else user_name)
         file = discord.File(fp=image.image, filename="tweet.png")
         await ctx.send(file=file)
 
