@@ -137,6 +137,22 @@ class Manipulation(commands.Cog):
         file = discord.File(fp=image.image, filename="tweet.png")
         await ctx.send(file=file)
 
+    @commands.command(name="youtube")
+    async def dag_youtube(self, ctx, user: discord.Member = None, *, text: str = None):
+        user_name = None
+        if text is None:
+            url = str(ctx.author.avatar_url_as(format="png", static_format="png", size=1024))
+            text = "I am an idiot for not putting the text in"
+            user_name = ctx.author.name
+        else:
+            url = str(user.avatar_url_as(format="png", static_format="png", size=1024))
+        async with ctx.channel.typing():
+            image = await self.avi.dagpi.image_process(
+                ImageFeatures.youtube(), text=text, url=url,
+                username=user.name if user_name is None else user_name)
+        file = discord.File(fp=image.image, filename="tweet.png")
+        await ctx.send(file=file)
+
     @commands.command(name="america")
     async def dag_america(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.america(), item, True)

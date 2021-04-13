@@ -580,6 +580,11 @@ class Fun(commands.Cog):
         embed.set_image(url=logo.answer)
         await message.edit(embed=embed)
 
+    @commands.command(name="roast")
+    async def dag_roast(self, ctx, member: discord.Member):
+        roast = await self.avi.dagpi.roast()
+        await ctx.send(f"{member.mention}, {roast}")
+
 
 def setup(avi):
     avi.add_cog(Fun(avi))
