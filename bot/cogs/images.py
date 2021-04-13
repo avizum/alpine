@@ -124,7 +124,7 @@ class Manipulation(commands.Cog):
     @commands.command(name="discord")
     async def dag_discord(self, ctx, user: GetAvatar, *, text: str):
         async with ctx.channel.typing():
-            image = await self.avi.dagpi.image_process(ImageFeatures.discord(), text=text, url=user, username=user.name)
+            image = await self.avi.dagpi.image_process(ImageFeatures.discord(), text=text, url=user, username=str(user.name))
         file = discord.File(fp=image.image, filename="tweet.png")
         await ctx.send(file=file)
 
