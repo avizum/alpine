@@ -37,7 +37,8 @@ class GetAvatar(commands.Converter):
                 if re.match(emoji_regex, argument):
                     emoji_converter = commands.EmojiConverter()
                     emoji = emoji_converter.convert(ctx, argument)
-                    emoji.url_as(format="png", static_format="png", size=1024)
+                    image = emoji.url_as(format="png", static_format="png", size=1024)
+                    return image
             except Exception:
                 return None
         raise commands.MemberNotFound(argument)
