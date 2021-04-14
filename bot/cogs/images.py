@@ -150,7 +150,7 @@ class Manipulation(commands.Cog):
             image = await self.avi.dagpi.image_process(
                 ImageFeatures.youtube(), text=text, url=url,
                 username=user.name if user_name is None else user_name)
-        file = discord.File(fp=image.image, filename="tweet.png")
+        file = discord.File(fp=image.image, filename="youtube.png")
         await ctx.send(file=file)
 
     @commands.command(name="america")
@@ -178,8 +178,29 @@ class Manipulation(commands.Cog):
         meth = await self.do_dagpi(ctx, ImageFeatures.hitler(), item)
         await ctx.send(file=meth)
 
+    @commands.command(name="satan")
+    async def dag_satan(self, ctx, *, item=None):
+        meth = await self.do_dagpi(ctx, ImageFeatures.satan(), item)
+        await ctx.send(file=meth)
+
+    @commands.command(name="delete")
+    async def dag_delete(self, ctx, *, item=None):
+        meth = await self.do_dagpi(ctx, ImageFeatures.delete(), item)
+        await ctx.send(file=meth)
+
+    @commands.command(name="wanted")
+    async def dag_wanted(self, ctx, *, item=None):
+        meth = await self.do_dagpi(ctx, ImageFeatures.wanted(), item)
+        await ctx.send(file=meth)
+
+    @commands.command(name="jail")
+    async def dag_jail(self, ctx, *, item=None):
+        meth = await self.do_dagpi(ctx, ImageFeatures.jail(), item)
+        await ctx.send(file=meth)
+
     # Magic Command
     @commands.command(
+        disabled=True,
         usage="[url or member]",
         brief="Returns a gif of your image being scaled",
         aliases=["magik", "magick"]
@@ -190,6 +211,7 @@ class Manipulation(commands.Cog):
 
     # Floor Command
     @commands.command(
+        disabled=True,
         usage="[url or member]",
         brief="Returns a gif of your image being bent into a floor",
     )
@@ -202,6 +224,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(
+        disabled=True,
         usage="[url or member]", brief="Retruns text of the provided image"
     )
     async def braille(self, ctx: AvimetryContext, url: args):
@@ -210,7 +233,7 @@ class Manipulation(commands.Cog):
             braille = await self.avi.zaneapi.braille(str(url))
             return await ctx.send_raw(f"```{braille}```")
 
-    @commands.command(usage="[url or member]", brief="Returns your image deepfried")
+    @commands.command(disabled=True, usage="[url or member]", brief="Returns your image deepfried")
     async def deepfry(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
@@ -220,7 +243,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(
-        usage="[url or member]", brief="Returns your image with black and white dots"
+        disabled=True, usage="[url or member]", brief="Returns your image with black and white dots"
     )
     async def dots(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
@@ -231,6 +254,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(
+        disabled=True,
         usage="[url or member]",
         brief="Returns your image heavilly compressed and with low quality, just like jpeg",
     )
@@ -243,6 +267,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(
+        disabled=True,
         usage="[url or member]", brief="Returns a gif of all the pixels spreading out"
     )
     async def spread(self, ctx: AvimetryContext, url: args):
@@ -253,7 +278,7 @@ class Manipulation(commands.Cog):
             embed.set_image(url="attachment://spread.gif")
             await ctx.send(file=file, embed=embed)
 
-    @commands.command(usage="[url or member]", brief="Returns your image on a cube")
+    @commands.command(disabled=True, usage="[url or member]", brief="Returns your image on a cube")
     async def cube(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
@@ -262,7 +287,7 @@ class Manipulation(commands.Cog):
             embed.set_image(url="attachment://cube.png")
             await ctx.send(file=file, embed=embed)
 
-    @commands.command(usage="[url or member]", brief="Returns the pixels on your image")
+    @commands.command(disabled=True, usage="[url or member]", brief="Returns the pixels on your image")
     async def sort(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
@@ -272,6 +297,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(
+        disabled=True,
         usage="[url or member]", brief="Returns up to 8 colors from your image"
     )
     async def palette(self, ctx: AvimetryContext, url: args):
@@ -283,6 +309,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(
+        disabled=True,
         usage="[url or member]", brief="Returns an inverted version of your image"
     )
     async def invert(self, ctx: AvimetryContext, url: args):
@@ -294,6 +321,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(
+        disabled=True,
         usage="[url or member]", brief="Returns a poserized version of your image"
     )
     async def posterize(self, ctx: AvimetryContext, url: args):
@@ -304,7 +332,7 @@ class Manipulation(commands.Cog):
             embed.set_image(url="attachment://posterize.png")
             await ctx.send(file=file, embed=embed)
 
-    @commands.command(usage="[url or member]", brief="Returns your image as grayscale")
+    @commands.command(disabled=True, usage="[url or member]", brief="Returns your image as grayscale")
     async def grayscale(self, ctx: AvimetryContext, url: args):
         url = await self.member_convert(ctx, url)
         async with ctx.channel.typing():
@@ -314,6 +342,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(
+        disabled=True,
         usage="[url or member]",
         brief="Returns an your image scaled down then scaled back up",
     )
@@ -326,6 +355,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(
+        disabled=True,
         usage="[url or member]", brief="Returns a gif of your image being swirled"
     )
     async def swirl(self, ctx: AvimetryContext, url: args):
@@ -337,6 +367,7 @@ class Manipulation(commands.Cog):
             await ctx.send(file=file, embed=embed)
 
     @commands.command(
+        disabled=True,
         usage="[url or member]", brief="Returns your image with a sobel filter"
     )
     async def sobel(self, ctx: AvimetryContext, url: args):
