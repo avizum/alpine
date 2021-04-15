@@ -1,8 +1,8 @@
 import discord
-from discord.ext import commands
-from difflib import get_close_matches
 import traceback
 import humanize
+from discord.ext import commands
+from difflib import get_close_matches
 
 
 class HelpEmbeded(commands.HelpCommand):

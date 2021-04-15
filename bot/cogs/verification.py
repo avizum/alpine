@@ -1,10 +1,10 @@
 import discord
-from discord.ext import commands
-from utils.context import AvimetryContext
 import string
 import random
 import asyncio
 import datetime
+from discord.ext import commands
+from utils.context import AvimetryContext
 
 
 class Verification(commands.Cog):

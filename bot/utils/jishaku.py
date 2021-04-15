@@ -1,14 +1,14 @@
+import humanize
+import jishaku
+import discord
+import sys
+import psutil
 from discord.ext import commands
 from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 from jishaku import Feature
 from jishaku.flags import JISHAKU_HIDE
 from utils.context import AvimetryContext
 from utils.converters import CogConverter
-import humanize
-import jishaku
-import discord
-import sys
-import psutil
 
 
 class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):

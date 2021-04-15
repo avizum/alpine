@@ -1,7 +1,7 @@
 import discord
+import datetime
 from discord.ext import commands
 from utils.context import AvimetryContext
-import datetime
 
 
 class BotLogs(commands.Cog, name="bot logs"):

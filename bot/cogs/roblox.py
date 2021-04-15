@@ -1,4 +1,3 @@
-import requests
 import discord
 import asyncio
 from discord.ext import commands, tasks
@@ -50,11 +49,12 @@ class RobloxUpdate(commands.Cog, name="Roblox"):
     )
     async def robloxversion(self, ctx: AvimetryContext):
         if ctx.guild.id == 751490725555994716:
-            a = requests.get("http://setup.roblox.com/version")
+            async with self.avi.session.get("http://setup.roblox.com/version") as resp:
+                a = await resp.text()
             rverembed = discord.Embed()
             rverembed.add_field(
                 name="<:roblox:788835896354013229> Current Version",
-                value="``" + a.text + "``",
+                value=f"`{a}`",
                 inline=True,
             )
 

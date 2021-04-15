@@ -1,12 +1,12 @@
 import discord
-from discord.ext import commands
-from io import BytesIO
 import io
 import re
+import typing
+from discord.ext import commands
+from io import BytesIO
 from asyncdagpi import ImageFeatures
 from twemoji_parser import emoji_to_url as urlify_emoji
 from utils.context import AvimetryContext
-import typing
 
 embed = discord.Embed()
 regex_url = re.compile(
@@ -103,7 +103,7 @@ class Manipulation(commands.Cog):
         async with ctx.channel.typing():
             image = await self.avi.dagpi.image_process(ImageFeatures.five_guys_one_girl(), url=item1, url2=item2)
         file = discord.File(fp=image.image, filename="5g1g.png")
-        await ctx.send(file=file)
+        await self.do_embed(ctx, file)
 
     @commands.command(name="whyareyougay", aliases=["wayg"])
     async def dag_wayg(self, ctx, item1: GetAvatar, item2: GetAvatar):
@@ -120,7 +120,7 @@ class Manipulation(commands.Cog):
         await self.do_embed(ctx, file)
 
     @commands.command(name="discord")
-    async def dag_discord(self, ctx, user: discord.Member = None, *, text: str = None):
+    async def dag_discord(self, ctx, user: discord.User = None, *, text: str = None):
         user_name = None
         if text is None:
             url = str(ctx.author.avatar_url_as(format="png", static_format="png", size=1024))
@@ -132,7 +132,7 @@ class Manipulation(commands.Cog):
             image = await self.avi.dagpi.image_process(
                 ImageFeatures.discord(), text=text, url=url,
                 username=user.name if user_name is None else user_name)
-        file = discord.File(fp=image.image, filename="tweet.png")
+        file = discord.File(fp=image.image, filename="discord.png")
         await self.do_embed(ctx, file)
 
     @commands.command(name="youtube")

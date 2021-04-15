@@ -1,7 +1,7 @@
+import discord
 from discord.ext import commands
 from typing import Optional
 from utils.context import AvimetryContext
-import discord
 
 
 class ServerManagement(commands.Cog):

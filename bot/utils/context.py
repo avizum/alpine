@@ -1,9 +1,9 @@
 import asyncio
 import discord
-from discord.ext import commands
 import datetime
 import re
 from config import tokens
+from discord.ext import commands
 
 
 class AvimetryContext(commands.Context):

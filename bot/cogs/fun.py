@@ -1,9 +1,9 @@
 import discord
-from discord.ext import commands
 import random
 import time
 import asyncio
 import akinator
+from discord.ext import commands
 from akinator.async_aki import Akinator
 from utils.context import AvimetryContext
 

@@ -1,10 +1,10 @@
 import discord
 import datetime
+import psutil
+import humanize
 from discord.ext import commands
 from utils.converters import Prefix
 from utils.context import AvimetryContext
-import psutil
-import humanize
 
 
 class BotInfo(commands.Cog, name="Utility"):

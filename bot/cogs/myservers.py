@@ -72,7 +72,7 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
 
     def get(self, channel_id: int):
         return self.avi.get_channel(channel_id)
-        
+
 # event
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -194,35 +194,6 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
                     color=discord.Color.red()
                 )
                 await self.get(self.joins_and_leaves).send(embed=lm)
-
-    @commands.Cog.listener("on_voice_state_update")
-    async def vs_update(self, member, before, after):
-        if member.guild.id != 751490725555994716:
-            return
-        if before.channel == after.channel:
-            return
-        try:
-            if after.channel is None:
-                channel = discord.utils.get(member.guild.text_channels, name=f"vc-{before.channel.name}")
-                await channel.set_permissions(member, overwrite=None)
-                return
-            else:
-                if before.channel:
-                    before_channel = discord.utils.get(member.guild.text_channels, name=f"vc-{before.channel.name}")
-                    await before_channel.set_permissions(member, overwrite=None)
-
-                channel = discord.utils.get(member.guild.text_channels, name=f"vc-{after.channel.name}")
-                if channel is None:
-                    return
-
-                if after.channel.name == channel.name[3:]:
-                    overwrites = discord.PermissionOverwrite()
-                    overwrites.read_messages = True
-                    overwrites.read_message_history = True
-                    await channel.set_permissions(member, overwrite=overwrites)
-
-        except Exception:
-            return
 
     @commands.Cog.listener("on_member_update")
     async def member_update(self, before, after):
