@@ -164,7 +164,7 @@ class BotInfo(commands.Cog, name="Utility"):
     @commands.command()
     async def about(self, ctx: AvimetryContext):
         embed = discord.Embed(title="Info about Avimetry")
-        embed.add_field(name="Developer", value="avi#4927")
+        embed.add_field(name="Developer", value="avi#8771")
         embed.add_field(name="Ping", value=f"`{round(self.avi.latency * 1000)}ms`")
         embed.add_field(name="Guild Count", value=f"{len(self.avi.guilds)} Guilds")
         embed.add_field(name="User Count", value=f"{len(self.avi.users)} Users")
@@ -172,7 +172,7 @@ class BotInfo(commands.Cog, name="Utility"):
         embed.add_field(name="RAM Usage", value=f"{psutil.virtual_memory().percent}%")
         embed.add_field(
             name="Bot Invite",
-            value=f"[here](f{str(discord.utils.oauth_url(self.avi.user.id, discord.Permissions(2147483647)))})",
+            value=f"[here]({self.avi.invite})",
         )
         embed.add_field(name="Commands", value=len(self.avi.commands))
         embed.add_field(name="Commands ran", value=self.avi.commands_ran)

@@ -41,7 +41,8 @@ class AvimetryContext(commands.Context):
         )
         await self.send(embed=embed)
 
-    async def send(self, content=None, embed: discord.Embed = None, *args, **kwargs):
+    async def send(self, content=None, *args, **kwargs):
+        embed: discord.Embed = kwargs.get("embed")
         if content:
             for key, value in tokens.items():
                 if value in content:
@@ -71,11 +72,11 @@ class AvimetryContext(commands.Context):
                 pass
         try:
             return await self.reply(
-                content, embed=embed, *args, **kwargs, mention_author=False
+                content, *args, **kwargs, mention_author=False
             )
         except Exception:
             try:
-                return await super().send(content, embed=embed, *args, **kwargs)
+                return await super().send(content, *args, **kwargs)
             except Exception:
                 pass
             return await self.post(content or embed.description, syntax="python")

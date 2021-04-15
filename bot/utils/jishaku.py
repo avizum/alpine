@@ -1,6 +1,7 @@
 from discord.ext import commands
 from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 from jishaku import Feature
+from jishaku.flags import JISHAKU_HIDE
 from utils.context import AvimetryContext
 from utils.converters import CogConverter
 import humanize
@@ -41,11 +42,8 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         command = self.bot.get_command("dev reload")
         await command(ctx, module=module)
 
-    @Feature.Command(
-        name="jishaku",
-        aliases=["jsk"],
-        invoke_without_command=True,
-    )
+    @Feature.Command(name="jishaku", aliases=["jsk"], hidden=JISHAKU_HIDE,
+                     invoke_without_command=True, ignore_extra=False)
     async def jsk(self, ctx: AvimetryContext):
         summary = [
             f"Jishaku `v{jishaku.__version__}`, discord.py `v{discord.__version__}`, "

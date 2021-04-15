@@ -18,6 +18,11 @@ from .errors import Blacklisted
 from .cache import AvimetryCache
 
 
+os.environ["JISHAKU_HIDE"] = "True"
+os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
+os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
+
+
 DEFAULT_PREFIXES = ["A.", "a."]
 BETA_PREFIXES = ["ab.", "ba."]
 OWNER_IDS = {750135653638865017, 547280209284562944}
@@ -70,12 +75,11 @@ class AvimetryBot(commands.Bot):
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
         self.owner_ids = OWNER_IDS
         self.bot_id = PUBLIC_BOT_ID
-
-        # Bot Variables
         self.launch_time = datetime.datetime.utcnow()
         self.commands_ran = 0
         self.devmode = False
         self.temp = AvimetryCache(self)
+        self.invite = str(discord.utils.oauth_url(PUBLIC_BOT_ID, discord.Permissions(2147483647)))
         self.emoji_dictionary = {
             "red_tick": '<:redtick:777096756865269760>',
             "green_tick": '<:greentick:777096731438874634>',
@@ -86,15 +90,32 @@ class AvimetryBot(commands.Bot):
             "status_offline": '<:status_offline:810683581541515335',
             "status_streaming": '<:status_streaming:810683604812169276>'
         }
+        self.bot_cogs = [
+            "cogs.autosetup",
+            "cogs.botconfig",
+            "cogs.botlogging",
+            "cogs.counting",
+            "cogs.developer",
+            "cogs.errorhandler",
+            "cogs.fun",
+            "cogs.help",
+            "cogs.images",
+            "cogs.member",
+            "cogs.meta",
+            "cogs.moderation",
+            "cogs.myservers",
+            "cogs.roblox",
+            #  "cogs.servermanagement",
+            "cogs.verification",
+            "utils.jishaku"
+        ]
 
-        # APIs
         self.sr = sr_api.Client()
         self.zaneapi = aiozaneapi.Client(tokens["ZaneAPI"])
         self.dagpi = asyncdagpi.Client(tokens["DagpiAPI"])
         self.myst = mystbin.Client()
         self.session = aiohttp.ClientSession()
 
-        # Databases
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**postgresql))
         self.mongo = motor.motor_asyncio.AsyncIOMotorClient(tokens["MongoDB"])
         self.db = self.mongo["avimetry"]
@@ -114,25 +135,20 @@ class AvimetryBot(commands.Bot):
 
         @self.event
         async def on_ready():
+            await self.wait_until_ready()
             timenow = datetime.datetime.now().strftime("%I:%M %p")
             print(
+                "------\n"
                 "Succesfully logged in:\n"
                 f"Username: {self.user.name}\n"
                 f"Bot ID: {self.user.id}\n"
                 f"Login Time: {datetime.date.today()} at {timenow}\n"
-                "------"
-            )
-
-        os.environ['PY_PRETTIFY_EXC'] = 'True'
-        os.environ["JISHAKU_HIDE"] = "True"
-        os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
-        os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
-        print("Loading Cogs...")
-        for filename in os.listdir("./bot/cogs"):
-            if filename.endswith(".py"):
-                self.load_extension(f"cogs.{filename[:-3]}")
-        self.load_extension("utils.jishaku")
-        print("Loaded all Cogs")
+                "------")
+            for cog in self.bot_cogs:
+                try:
+                    self.load_extension(cog)
+                except commands.ExtensionAlreadyLoaded:
+                    pass
 
     async def get_context(self, message, *, cls=AvimetryContext):
         return await super().get_context(message, cls=cls)
@@ -168,23 +184,19 @@ class AvimetryBot(commands.Bot):
         super().run(tokens["AvimetryBeta"], reconnect=True)
 
     def run_bot(self):
-        print("------")
-        print("Logging in...")
         self.launch_time = datetime.datetime.utcnow()
         self.loop.run_until_complete(self.temp.cache_all())
         self.run()
 
     async def close(self):
-        print("\nClosing all connections")
         self.mongo.close()
         await self.sr.close()
         await self.zaneapi.close()
         await self.myst.close()
         await self.session.close()
         await self.dagpi.close()
-        print("Sucessfully closed.")
-        print("------")
         await super().close()
+        print("\nSuccessfully closed bot", end="\n\n")
 
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
         await self.process_commands(after)

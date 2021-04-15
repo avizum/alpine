@@ -43,15 +43,6 @@ class GetAvatar(commands.Converter):
         raise commands.MemberNotFound(argument)
 
 
-async def image(ctx: AvimetryContext, argument: str):
-    avatar = GetAvatar()
-    url = avatar.convert(ctx, argument)
-    if url is not None:
-        if ctx.message.attachments:
-            attachment = ctx.message.attachments[0]
-            url = attachment.url
-
-
 class Manipulation(commands.Cog):
     '''
     Commands to manipulate images.
@@ -90,15 +81,22 @@ class Manipulation(commands.Cog):
         file = discord.File(fp=image, filename=f"{ctx.command.name}.{'gif' if gif is True else 'png'}")
         return file
 
+    async def do_embed(self, ctx, file: discord.File):
+        embed = discord.Embed()
+        print(file.filename)
+        url = f"attachment://{file.filename}"
+        embed.set_image(url=url)
+        await ctx.send(file=file, embed=embed)
+
     @commands.command(name="pixel")
     async def dag_pixel(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.pixel(), item, False)
-        await ctx.send(file=meth)
+        await self.do_embed(ctx, meth)
 
     @commands.command(name="triggered")
     async def dag_triggered(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.triggered(), item, True)
-        await ctx.send(file=meth)
+        await self.do_embed(ctx, meth)
 
     @commands.command(name="5g1g")
     async def dag_5g1g(self, ctx, item1: GetAvatar, item2: GetAvatar):
@@ -112,14 +110,14 @@ class Manipulation(commands.Cog):
         async with ctx.channel.typing():
             image = await self.avi.dagpi.image_process(ImageFeatures.why_are_you_gay(), url=item1, url2=item2)
         file = discord.File(fp=image.image, filename="why_are_you_gay.png")
-        await ctx.send(file=file)
+        await self.do_embed(ctx, file)
 
     @commands.command(name="tweet")
     async def dag_tweet(self, ctx, user: GetAvatar, username: str, *, text: str):
         async with ctx.channel.typing():
             image = await self.avi.dagpi.image_process(ImageFeatures.tweet(), text=text, url=user, username=username)
         file = discord.File(fp=image.image, filename="tweet.png")
-        await ctx.send(file=file)
+        await self.do_embed(ctx, file)
 
     @commands.command(name="discord")
     async def dag_discord(self, ctx, user: discord.Member = None, *, text: str = None):
@@ -135,7 +133,7 @@ class Manipulation(commands.Cog):
                 ImageFeatures.discord(), text=text, url=url,
                 username=user.name if user_name is None else user_name)
         file = discord.File(fp=image.image, filename="tweet.png")
-        await ctx.send(file=file)
+        await self.do_embed(ctx, file)
 
     @commands.command(name="youtube")
     async def dag_youtube(self, ctx, user: discord.Member = None, *, text: str = None):
@@ -151,52 +149,52 @@ class Manipulation(commands.Cog):
                 ImageFeatures.youtube(), text=text, url=url,
                 username=user.name if user_name is None else user_name)
         file = discord.File(fp=image.image, filename="youtube.png")
-        await ctx.send(file=file)
+        await self.do_embed(ctx, file)
 
     @commands.command(name="america")
     async def dag_america(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.america(), item, True)
-        await ctx.send(file=meth)
+        await self.do_embed(ctx, meth)
 
     @commands.command(name="communism")
     async def dag_communism(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.communism(), item, True)
-        await ctx.send(file=meth)
+        await self.do_embed(ctx, meth)
 
     @commands.command(name="colors")
     async def dag_colors(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.colors(), item)
-        await ctx.send(file=meth)
+        await self.do_embed(ctx, meth)
 
     @commands.command(name="wasted")
     async def dag_wasted(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.wasted(), item)
-        await ctx.send(file=meth)
+        await self.do_embed(ctx, meth)
 
     @commands.command(name="hitler")
     async def dag_hitler(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.hitler(), item)
-        await ctx.send(file=meth)
+        await self.do_embed(ctx, meth)
 
     @commands.command(name="satan")
     async def dag_satan(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.satan(), item)
-        await ctx.send(file=meth)
+        await self.do_embed(ctx, meth)
 
     @commands.command(name="delete")
     async def dag_delete(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.delete(), item)
-        await ctx.send(file=meth)
+        await self.do_embed(ctx, meth)
 
     @commands.command(name="wanted")
     async def dag_wanted(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.wanted(), item)
-        await ctx.send(file=meth)
+        await self.do_embed(ctx, meth)
 
     @commands.command(name="jail")
     async def dag_jail(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.jail(), item)
-        await ctx.send(file=meth)
+        await self.do_embed(ctx, meth)
 
     # Magic Command
     @commands.command(
@@ -207,7 +205,7 @@ class Manipulation(commands.Cog):
     )
     async def magic(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_zane(ctx, self.avi.zane.magic, item, True)
-        await ctx.send(file=meth)
+        await self.do_embed(ctx, meth)
 
     # Floor Command
     @commands.command(
