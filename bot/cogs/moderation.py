@@ -17,36 +17,35 @@ class Moderation(commands.Cog):
     # Clean Command
     @commands.command(brief="Cleans bot messages", usage="[amount]")
     @commands.has_permissions(manage_messages=True)
-    async def clean(self, ctx: AvimetryContext, amount=20, limit=100):
-        amount = 20
-        limit = 100
+    @commands.bot_has_permissions(manage_messages=True)
+    async def cleanup(self, ctx: AvimetryContext, amount=15):
         try:
             await ctx.message.delete()
         except Exception:
             pass
-
-        message_list = []
-        msg_count = 0
-        async for message in ctx.channel.history(limit=limit):
-            if message.author.id == self.avi.user.id:
-                message_list.append(message)
-                msg_count += 1
-                if msg_count >= amount:
-                    break
+        authors = {}
+        messages = []
+        async for message in ctx.channel.history(limit=amount*2):
             check_prefix = await ctx.cache.get_guild_settings(ctx.guild.id)
             prefixes = tuple(check_prefix["prefixes"])
-            if message.content.lower().startswith(prefixes):
-                message_list.append(message)
-        try:
-            await ctx.channel.delete_messages(message_list)
-        except Exception:
-            for mes in message_list:
-                await mes.delete()
-        clean_embed = discord.Embed(
-            title="Clean Messages",
-            description=f"Successfully deleted {msg_count} messages."
+            if message.author == self.avi.user or message.content.lower().startswith(prefixes):
+                if message.author not in authors:
+                    authors[message.author] = 1
+                else:
+                    authors[message.author] += 1
+                messages.append(message)
+                if len(messages) == amount:
+                    break
+        await ctx.channel.delete_messages(messages)
+        msg = "\n".join(
+                [f"{author.mention}: {amount} {'message' if amount==1 else 'messages'}"
+                    for author, amount in authors.items()]
+            )
+        pe = discord.Embed(
+            title="Affected Messages",
+            description=f"{msg}"
         )
-        await ctx.send(embed=clean_embed, delete_after=5)
+        await ctx.send(embed=pe, delete_after=10)
 
     # Purge Command
     @commands.group(
@@ -58,7 +57,7 @@ class Moderation(commands.Cog):
     @commands.cooldown(5, 30, commands.BucketType.member)
     async def purge(self, ctx: AvimetryContext, amount: int):
         await ctx.message.delete()
-        if amount == 0:
+        if amount > 1:
             return
         else:
             authors = {}
@@ -75,7 +74,7 @@ class Moderation(commands.Cog):
             )
 
             pe = discord.Embed(
-                title="Purge",
+                title="Affected Messages",
                 description=f"{msg}"
             )
             await ctx.send(embed=pe, delete_after=10)

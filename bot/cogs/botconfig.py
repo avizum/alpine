@@ -17,7 +17,7 @@ class BotInfo(commands.Cog, name="Utility"):
         ctx = await self.avi.get_context(message, cls=AvimetryContext)
         if message.author == self.avi.user:
             return
-        if message.content == "<@!756257170521063444>":
+        if message.content == f"<@!{self.avi.user.id}>":
             prefix = self.avi.get_command("prefix")
             await prefix(ctx)
 

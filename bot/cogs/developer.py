@@ -153,6 +153,24 @@ class Owner(commands.Cog):
         ctx.cache.blacklisted_users.pop(user.id)
         await ctx.send(f"Unblacklisted {str(user)}")
 
+    @dev.command()
+    async def cleanup(self, ctx: AvimetryContext, amount: int = 15):
+        deleted = 0
+        async for message in ctx.channel.history(limit=amount*2):
+            if message.author.id == ctx.bot.user.id:
+                try:
+                    await message.delete()
+                except Exception:
+                    pass
+                deleted += 1
+                if deleted >= amount:
+                    break
+        await ctx.send(f"Successfully purged `{deleted}` message(s).")
+
+    @dev.command(name="dev")
+    async def _dev(self, ctx):
+        await ctx.send("asd")
+
 
 def setup(avi):
     avi.add_cog(Owner(avi))

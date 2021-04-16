@@ -41,33 +41,22 @@ class AvimetryContext(commands.Context):
         )
         await self.send(embed=embed)
 
-    async def send(self, content=None, *args, **kwargs):
-        embed: discord.Embed = kwargs.get("embed")
-        if self.message.id in self.bot.command_cache:
-            if self.message.edited_at:
-                edited_message = self.bot.command_cache[self.message.id]
-                if content and "embed" in kwargs:
-                    kwargs.pop("embed")
-                if edited_message.reactions:
-                    try:
-                        await edited_message.clear_reactions()
-                    except Exception:
-                        return
-                await edited_message.edit(content=content, *args, **kwargs)
-                return edited_message
+    async def send(self, content=None, *, tts=False, embed=None, file=None,
+                   files=None, delete_after=None, nonce=None,
+                   allowed_mentions=None, reference=None,
+                   mention_author=None):
         if content:
+            if len(content) > 2000:
+                return await self.post(content)
             for key, value in tokens.items():
                 if value in content:
                     content = str(content.replace(value, "[token omitted]"))
             if not self.command:
-                pass
-            elif self.command.qualified_name == "jishaku":
-                pass
-            elif "jishaku" in self.command.qualified_name:
+                self.command = self.bot.get_command("_")
+            if "jishaku" in self.command.qualified_name:
                 return await self.reply(content=content)
-            else:
-                embed = discord.Embed(description=content)
-                content = None
+            embed = discord.Embed(description=content)
+            content = None
         if discord.Embed:
             try:
                 if not embed.footer:
@@ -83,19 +72,20 @@ class AvimetryContext(commands.Context):
             except Exception:
                 pass
         try:
-            message = await self.reply(
-                content, *args, **kwargs, mention_author=False
+            return await self.reply(
+                content=content, tts=tts, embed=embed, file=file,
+                files=files, delete_after=delete_after, nonce=nonce,
+                allowed_mentions=allowed_mentions,
+                mention_author=mention_author
             )
-            return message
-        except Exception:
-            try:
-                message = await super().send(content, *args, **kwargs)
-                return message
-            except Exception:
-                pass
-            return await self.post(content or embed.description, syntax="python")
-        finally:
-            self.bot.command_cache[self.message.id] = message
+        except Exception as e:
+            print(e)
+            return await super().send(
+                content=content, tts=tts, embed=embed, file=file,
+                files=files, delete_after=delete_after, nonce=nonce,
+                allowed_mentions=allowed_mentions, reference=reference,
+                mention_author=mention_author
+            )
 
     async def confirm(
         self, message=None, embed: discord.Embed = None, confirm_message=None, *,

@@ -63,7 +63,8 @@ activity = discord.Game("Avimetry | @Avimetry help")
 
 class AvimetryBot(commands.Bot):
     def __init__(self, **kwargs):
-        intents = discord.Intents.all()
+        intents = discord.Intents.default()
+        intents.members = True
         super().__init__(
             **kwargs,
             command_prefix=bot_prefix,
@@ -155,6 +156,10 @@ class AvimetryBot(commands.Bot):
         async def clear_cache(self):
             self.command_cache = {}
 
+        @clear_cache.before_loop
+        async def before_clear_cache():
+            self.wait_until_ready
+
     async def get_context(self, message, *, cls=AvimetryContext):
         return await super().get_context(message, cls=cls)
 
@@ -186,7 +191,7 @@ class AvimetryBot(commands.Bot):
         return round((end - start) * 1000)
 
     def run(self):
-        super().run(tokens["Avimetry"], reconnect=True)
+        super().run(tokens["AvimetryBeta"], reconnect=True)
 
     def run_bot(self):
         self.launch_time = datetime.datetime.utcnow()

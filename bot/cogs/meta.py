@@ -218,6 +218,11 @@ class Meta(commands.Cog):
         embed = discord.Embed(description="\n".join(listed))
         await ctx.send(embed=embed)
 
+    @commands.command(
+        hidden=True)
+    async def _(self, ctx):
+        return
+
 
 def setup(avi):
     avi.add_cog(Meta(avi))
