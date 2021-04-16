@@ -43,6 +43,18 @@ class AvimetryContext(commands.Context):
 
     async def send(self, content=None, *args, **kwargs):
         embed: discord.Embed = kwargs.get("embed")
+        if self.message.id in self.bot.command_cache:
+            if self.message.edited_at:
+                edited_message = self.bot.command_cache[self.message.id]
+                if content and "embed" in kwargs:
+                    kwargs.pop("embed")
+                if edited_message.reactions:
+                    try:
+                        await edited_message.clear_reactions()
+                    except Exception:
+                        return
+                await edited_message.edit(content=content, *args, **kwargs)
+                return edited_message
         if content:
             for key, value in tokens.items():
                 if value in content:
@@ -71,15 +83,19 @@ class AvimetryContext(commands.Context):
             except Exception:
                 pass
         try:
-            return await self.reply(
+            message = await self.reply(
                 content, *args, **kwargs, mention_author=False
             )
+            return message
         except Exception:
             try:
-                return await super().send(content, *args, **kwargs)
+                message = await super().send(content, *args, **kwargs)
+                return message
             except Exception:
                 pass
             return await self.post(content or embed.description, syntax="python")
+        finally:
+            self.bot.command_cache[self.message.id] = message
 
     async def confirm(
         self, message=None, embed: discord.Embed = None, confirm_message=None, *,

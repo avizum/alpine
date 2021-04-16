@@ -10,7 +10,7 @@ import time
 import re
 import asyncpg
 import asyncdagpi
-from discord.ext import commands
+from discord.ext import commands, tasks
 from utils.mongo import MongoDB
 from config import tokens, postgresql
 from .context import AvimetryContext
@@ -77,6 +77,7 @@ class AvimetryBot(commands.Bot):
         self.bot_id = PUBLIC_BOT_ID
         self.launch_time = datetime.datetime.utcnow()
         self.commands_ran = 0
+        self.command_cache = {}
         self.devmode = False
         self.temp = AvimetryCache(self)
         self.invite = str(discord.utils.oauth_url(PUBLIC_BOT_ID, discord.Permissions(2147483647)))
@@ -149,6 +150,10 @@ class AvimetryBot(commands.Bot):
                     self.load_extension(cog)
                 except commands.ExtensionAlreadyLoaded:
                     pass
+
+        @tasks.loop(minutes=30)
+        async def clear_cache(self):
+            self.command_cache = {}
 
     async def get_context(self, message, *, cls=AvimetryContext):
         return await super().get_context(message, cls=cls)
