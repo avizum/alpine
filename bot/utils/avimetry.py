@@ -186,7 +186,7 @@ class AvimetryBot(commands.Bot):
         return round((end - start) * 1000)
 
     def run(self):
-        super().run(tokens["AvimetryBeta"], reconnect=True)
+        super().run(tokens["Avimetry"], reconnect=True)
 
     def run_bot(self):
         self.launch_time = datetime.datetime.utcnow()
