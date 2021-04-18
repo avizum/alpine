@@ -1,6 +1,7 @@
 import asyncio
 import discord
 import datetime
+import contextlib
 import re
 from config import tokens
 from discord.ext import commands
@@ -45,6 +46,13 @@ class AvimetryContext(commands.Context):
                    files=None, delete_after=None, nonce=None,
                    allowed_mentions=None, reference=None,
                    mention_author=None):
+        if self.message.id in self.bot.command_cache:
+            if self.message.edited_at:
+                edited_message = self.bot.command_cache[self.message.id]
+                if edited_message.reactions:
+                    async with contextlib.suppress():
+                        await edited_message.clear_reactions()
+                return await edited_message.edit(content=content, embed=embed, allowed_mentions=allowed_mentions)
         if content:
             if len(content) > 2000:
                 return await self.post(content)
@@ -72,20 +80,22 @@ class AvimetryContext(commands.Context):
             except Exception:
                 pass
         try:
-            return await self.reply(
+            message = await self.reply(
                 content=content, tts=tts, embed=embed, file=file,
                 files=files, delete_after=delete_after, nonce=nonce,
                 allowed_mentions=allowed_mentions,
                 mention_author=mention_author
             )
-        except Exception as e:
-            print(e)
-            return await super().send(
+        except Exception:
+            message = await super().send(
                 content=content, tts=tts, embed=embed, file=file,
                 files=files, delete_after=delete_after, nonce=nonce,
                 allowed_mentions=allowed_mentions, reference=reference,
                 mention_author=mention_author
             )
+        finally:
+            with contextlib.suppress():
+                self.bot.command_cache[self.message.id] = message
 
     async def confirm(
         self, message=None, embed: discord.Embed = None, confirm_message=None, *,

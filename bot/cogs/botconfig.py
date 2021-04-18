@@ -87,6 +87,24 @@ class BotInfo(commands.Cog, name="Utility"):
         self.avi.temp.guild_settings_cache[ctx.guild.id]["prefixes"].remove(prefix)
         await ctx.send(f"Removed `{prefix}` from the list of prefixes")
 
+    @settings.command()
+    @commands.has_permissions(manage_roles=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    async def muterole(self, ctx: AvimetryContext, role: discord.Role):
+        await self.avi.pool.execute(
+            "UPDATE guild_settings SET mute_role = $1 WHERE guild_id = $2",
+            role.id, ctx.guild.id)
+        self.avi.temp.guild_settings_cache[ctx.guild.id]["mute_role"] = role.id
+        for channel in ctx.guild.channels:
+            perms = channel.overwrites_for(role)
+            perms.update(send_messages=False)
+            await channel.set_permissions(
+                target=role,
+                overwrite=perms,
+                reason=f"Mute role set to {role.name} by {ctx.author}"
+            )
+        await ctx.send(f"Set the mute role to {role.mention}")
+
     @settings.group(invoke_without_command=True, brief="Configure logging")
     @commands.has_permissions(administrator=True)
     async def logging(self, ctx: AvimetryContext):

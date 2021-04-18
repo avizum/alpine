@@ -82,8 +82,6 @@ class Manipulation(commands.Cog):
         return file
 
     async def do_embed(self, ctx, file: discord.File):
-        embed = discord.Embed()
-        print(file.filename)
         url = f"attachment://{file.filename}"
         embed.set_image(url=url)
         await ctx.send(file=file, embed=embed)

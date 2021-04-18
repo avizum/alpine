@@ -96,7 +96,7 @@ class Prefix(commands.Converter):
 class CogConverter(commands.Converter):
     async def convert(self, ctx: AvimetryContext, argument):
         exts = []
-        if argument == "~":
+        if argument in ["~", "*", "a", "all"]:
             exts.extend(ctx.bot.extensions)
         else:
             exts.append(f"cogs.{argument}")
