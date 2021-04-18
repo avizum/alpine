@@ -67,10 +67,11 @@ class ErrorHandler(commands.Cog):
                     "I do not have permissions to use embeds. Please [turn them on](https://youtu.be/Cftk32YHzKM)."
                 )
             missing_perms = (
-                " ".join([str(elem) for elem in mp])
+                " ".join(str(elem) for elem in mp)
                 .replace("_", " ")
                 .replace("guild", "server")
             )
+
             bnp = discord.Embed(
                 title="Missing Permissions",
                 description=f"I need the following permisisons to run this command:\n`{missing_perms}`",
@@ -81,10 +82,11 @@ class ErrorHandler(commands.Cog):
         elif isinstance(error, commands.MissingPermissions):
             mp = error.missing_perms
             missing_perms = (
-                " ".join([str(elem) for elem in mp])
+                " ".join(str(elem) for elem in mp)
                 .replace("_", " ")
                 .replace("guild", "server")
             )
+
             np = discord.Embed(
                 title="Missing Permissions",
                 description=f"You need the following permissions to run this command:\n`{missing_perms}`",

@@ -46,13 +46,12 @@ class AvimetryContext(commands.Context):
                    files=None, delete_after=None, nonce=None,
                    allowed_mentions=None, reference=None,
                    mention_author=None):
-        if self.message.id in self.bot.command_cache:
-            if self.message.edited_at:
-                edited_message = self.bot.command_cache[self.message.id]
-                if edited_message.reactions:
-                    async with contextlib.suppress():
-                        await edited_message.clear_reactions()
-                return await edited_message.edit(content=content, embed=embed, allowed_mentions=allowed_mentions)
+        if self.message.id in self.bot.command_cache and self.message.edited_at:
+            edited_message = self.bot.command_cache[self.message.id]
+            if edited_message.reactions:
+                async with contextlib.suppress():
+                    await edited_message.clear_reactions()
+            return await edited_message.edit(content=content, embed=embed, allowed_mentions=allowed_mentions)
         if content:
             if len(content) > 2000:
                 return await self.post(content)

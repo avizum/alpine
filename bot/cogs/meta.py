@@ -66,11 +66,10 @@ class Meta(commands.Cog):
     @commands.cooldown(1, 1, commands.BucketType.member)
     async def pick(self, ctx: AvimetryContext, *, options):
         opt = options.split("or")
-        if len(opt) == 2:
-            return await ctx.send(random.choice(opt))
-        else:
+        if len(opt) != 2:
             opt = options.split(",")
-            return await ctx.send(random.choice(opt))
+
+        return await ctx.send(random.choice(opt))
 
     # Info Command
     @commands.command(brief="Gets a member's information")
@@ -91,9 +90,8 @@ class Meta(commands.Cog):
                 value=f"{humanize.naturaldate(member.created_at)} ({humanize.naturaltime(member.created_at)})",
                 inline=False,
             )
-            ie.set_thumbnail(url=member.avatar_url)
         else:
-            userroles = list()
+            userroles = []
             for roles in member.roles:
                 userroles.append(roles.mention)
                 if ctx.guild.default_role.mention in userroles:
@@ -116,14 +114,14 @@ class Meta(commands.Cog):
                 value=f"{humanize.naturaldate(member.created_at)} ({humanize.naturaltime(member.created_at)})",
                 inline=False,
             )
-            if member.raw_status == "online":
-                member_status = "Online <:status_online:810683593193029642>"
-            elif member.raw_status == "offline":
-                member_status = "Offline <:status_offline:810683581541515335>"
+            if member.raw_status == "dnd":
+                member_status = "Do not Disturb <:status_dnd:810683560863989805>"
             elif member.raw_status == "idle":
                 member_status = "Idle <:status_idle:810683571269664798>"
-            elif member.raw_status == "dnd":
-                member_status = "Do not Disturb <:status_dnd:810683560863989805>"
+            elif member.raw_status == "offline":
+                member_status = "Offline <:status_offline:810683581541515335>"
+            elif member.raw_status == "online":
+                member_status = "Online <:status_online:810683593193029642>"
             elif member.raw_status == "streaming":
                 member_status = "Streaming <:status_streaming:810683604812169276>"
             ie.add_field(name="Status", value=member_status)
@@ -133,7 +131,7 @@ class Meta(commands.Cog):
                 value=", ".join(userroles),
                 inline=False,
             )
-            ie.set_thumbnail(url=member.avatar_url)
+        ie.set_thumbnail(url=member.avatar_url)
         await ctx.send(embed=ie)
 
     # QR code command
@@ -193,7 +191,6 @@ class Meta(commands.Cog):
         messages = await channel.history(limit=1, oldest_first=True).flatten()
         if len(messages[0].content) > 100:
             mg_cnt = messages[0].content[:100]
-            pass
         mg_cnt = messages[0].content
         embed_message = discord.Embed(
             title=f"First Message of #{channel.name}",

@@ -38,15 +38,16 @@ class Fun(commands.Cog):
             "Without a doubt.", "Yes.",
             "Yes – definitely.", "You may rely on it.",
         ]
-        if ctx.author.id in self.avi.owner_ids:
-            if question.lower().endswith("\u200b"):
-                responses = [
-                    "It is certain.", "Without a doubt.",
-                    "You may rely on it.", "Yes definitely.",
-                    "It is decidedly so.", "As I see it, yes.",
-                    "Most likely.", "Yes.",
-                    "Outlook good.", "Signs point to yes.",
-                ]
+        if ctx.author.id in self.avi.owner_ids and question.lower().endswith(
+            "\u200b"
+        ):
+            responses = [
+                "It is certain.", "Without a doubt.",
+                "You may rely on it.", "Yes definitely.",
+                "It is decidedly so.", "As I see it, yes.",
+                "Most likely.", "Yes.",
+                "Outlook good.", "Signs point to yes.",
+            ]
         ballembed = discord.Embed(title=":8ball: Magic 8 Ball")
         ballembed.add_field(name="Question:", value=f"{question}", inline=False)
         ballembed.add_field(
