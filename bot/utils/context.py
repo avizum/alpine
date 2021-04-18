@@ -86,6 +86,7 @@ class AvimetryContext(commands.Context):
                 allowed_mentions=allowed_mentions,
                 mention_author=mention_author
             )
+            return message
         except Exception:
             message = await super().send(
                 content=content, tts=tts, embed=embed, file=file,
@@ -93,6 +94,7 @@ class AvimetryContext(commands.Context):
                 allowed_mentions=allowed_mentions, reference=reference,
                 mention_author=mention_author
             )
+            return message
         finally:
             with contextlib.suppress():
                 self.bot.command_cache[self.message.id] = message
