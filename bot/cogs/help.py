@@ -100,14 +100,9 @@ class HelpEmbeded(commands.HelpCommand):
         if cog.description:
             embed.description = cog.description
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
-        command_list = []
-        for command in filtered:
-            command_list.append(command.name)
+        command_list = [command.name for command in filtered]
         split_list = [command_list[i:i+3]for i in range(0, len(command_list), 3)]
-        value = []
-        for lists in split_list:
-            value.append(", ".join(lists))
-
+        value = [", ".join(lists) for lists in split_list]
         embed.add_field(
             name=f"Commands in {cog.qualified_name.title()}",
             value='{}'.format(",\n".join(value)) or None,
@@ -157,14 +152,9 @@ class HelpEmbeded(commands.HelpCommand):
 
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
-            group_commands = []
-            for command in filtered:
-                group_commands.append(command.name)
+            group_commands = [command.name for command in filtered]
             split_list = [group_commands[i:i+3]for i in range(0, len(group_commands), 3)]
-            value = []
-            for lists in split_list:
-                value.append(", ".join(lists))
-
+            value = [", ".join(lists) for lists in split_list]
             embed.add_field(
                 name=f"Subcommands for {group.qualified_name}",
                 value='{}'.format(",\n".join(value)) or None,
@@ -231,8 +221,7 @@ class HelpEmbeded(commands.HelpCommand):
         )
         if lol:
             return f'"{string}" is not a command/module. Did you mean...\n`{lol}`'
-        if not lol:
-            return f'"{string}" is not a command/module and I couln\'t find any similar commands.'
+        return f'"{string}" is not a command/module and I couln\'t find any similar commands.'
 
     async def subcommand_not_found(self, command, string):
         return '"{0}" is not a subcommand of "{1}".'.format(string, command)

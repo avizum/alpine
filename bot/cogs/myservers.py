@@ -152,8 +152,6 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
         role = guild.get_role(813535792655892481)
 
         for i in guild.members:
-            if role in i.roles:
-                pass
             if role not in i.roles:
                 try:
                     await i.add_roles(role)
@@ -183,17 +181,19 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        if member.guild.id == self.guild_id:
-            if self.get(self.joins_and_leaves).guild.id == member.guild.id:
-                lm = discord.Embed(
-                    title="Member Leave",
-                    description=(
-                        f"Aww, **{str(member)}** has left **{member.guild.name}**.\n"
-                        f"This server now has a total of **{member.guild.member_count}** members."
-                    ),
-                    color=discord.Color.red()
-                )
-                await self.get(self.joins_and_leaves).send(embed=lm)
+        if (
+            member.guild.id == self.guild_id
+            and self.get(self.joins_and_leaves).guild.id == member.guild.id
+        ):
+            lm = discord.Embed(
+                title="Member Leave",
+                description=(
+                    f"Aww, **{str(member)}** has left **{member.guild.name}**.\n"
+                    f"This server now has a total of **{member.guild.member_count}** members."
+                ),
+                color=discord.Color.red()
+            )
+            await self.get(self.joins_and_leaves).send(embed=lm)
 
     @commands.Cog.listener("on_member_update")
     async def member_update(self, before, after):

@@ -140,11 +140,10 @@ class BotInfo(commands.Cog, name="Utility"):
     async def verify(self, ctx: AvimetryContext, toggle: bool = None):
         if toggle is None:
             return await ctx.send_help("settings verify")
-        else:
-            await self.avi.config.upsert(
-                {"_id": ctx.guild.id, "verification_gate": toggle}
-            )
-            await ctx.send(f"Set verify system is set to {toggle}")
+        await self.avi.config.upsert(
+            {"_id": ctx.guild.id, "verification_gate": toggle}
+        )
+        await ctx.send(f"Set verify system is set to {toggle}")
 
     @verify.command(
         brief="Set the role to give when a member finishes verification."
@@ -270,14 +269,13 @@ class BotInfo(commands.Cog, name="Utility"):
     async def bot(self, ctx: AvimetryContext, bot: discord.Member):
         bot_invite = discord.Embed()
         bot_invite.set_thumbnail(url=bot.avatar_url)
+        bot_invite.title = f"{bot.name} Invite"
         if bot.bot:
-            bot_invite.title = f"{bot.name} Invite"
             bot_invite.description = (
                 f"Invite {bot.name} to your server! Here is the invite link.\n"
                 f"Click [here]({str(discord.utils.oauth_url(bot.id, discord.Permissions(2147483647)))}) for the invite!"
             )
         else:
-            bot_invite.title = f"{bot.name} Invite"
             bot_invite.description = "That is not a bot. Make sure you mention a bot."
         await ctx.send(embed=bot_invite)
 

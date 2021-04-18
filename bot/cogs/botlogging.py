@@ -38,12 +38,14 @@ class BotLogs(commands.Cog, name="bot logs"):
 
         if message.guild.me.guild_permissions.view_audit_log is True:
             deleted_by = (await message.guild.audit_logs(limit=1).flatten())[0]
-            if deleted_by.action == discord.AuditLogAction.message_delete:
-                if deleted_by.target == message.author:
-                    embed.set_footer(
-                        text=f"Deleted by {deleted_by.user}",
-                        icon_url=deleted_by.user.avatar_url,
-                    )
+            if (
+                deleted_by.action == discord.AuditLogAction.message_delete
+                and deleted_by.target == message.author
+            ):
+                embed.set_footer(
+                    text=f"Deleted by {deleted_by.user}",
+                    icon_url=deleted_by.user.avatar_url,
+                )
 
             embed.add_field(
                 name="Information",
@@ -62,8 +64,6 @@ class BotLogs(commands.Cog, name="bot logs"):
     async def message_edit(self, before, after):
         if before.guild is None and after.guild is None:
             return
-        else:
-            pass
         edit_log = await self.get_logs(before.guild.id)
         if edit_log is None:
             return
