@@ -140,7 +140,6 @@ class Moderation(commands.Cog):
             for author, amount in authors.items()
         )
 
-
         pe = discord.Embed(
             title="Affected Messages",
             description=f"{msg}"

@@ -49,6 +49,14 @@ class Manipulation(commands.Cog):
     '''
     def __init__(self, avi):
         self.avi = avi
+        self._cd = commands.CooldownMapping.from_cooldown(2.0, 10.0, commands.BucketType.member)
+
+    async def cog_check(self, ctx):
+        bucket = self._cd.get_bucket(ctx.message)
+        retry_after = bucket.update_rate_limit()
+        if retry_after:
+            raise commands.CommandOnCooldown(bucket, retry_after)
+        return True
 
     async def do_dagpi(self, ctx: AvimetryContext, feature: ImageFeatures, argument, gif: bool = False):
         converter = GetAvatar()

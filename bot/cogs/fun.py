@@ -557,6 +557,7 @@ class Fun(commands.Cog):
                 await first.edit(embed=embed)
 
     @commands.command(name="guessthatlogo", aliases=["gtl"])
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_guess_that_logo(self, ctx):
         async with ctx.channel.typing():
             logo = await self.avi.dagpi.logo()
