@@ -1,6 +1,5 @@
 import typing
 import discord
-import os
 import datetime
 import subprocess
 import asyncio
@@ -98,15 +97,15 @@ class Owner(commands.Cog):
         sync_embed.description = "\n".join(output)
         sync_embed.timestamp = datetime.datetime.utcnow()
         sync_embed.title = "Synced With GitHub"
-        for filename in os.listdir("./bot/cogs"):
-            if filename.endswith(".py"):
-                try:
-                    self.avi.reload_extension(f"cogs.{filename[:-3]}")
-                except Exception as e:
-                    sync_embed.add_field(
-                        name=f"<:noTick:777096756865269760> {filename}",
-                        value=e
-                    )
+        modules = CogConverter().convert(ctx, "~")
+        reload_list = []
+        for cog in modules:
+            try:
+                self.avi.reload_extension(cog)
+                reload_list.append(f'{self.avi.emoji_dictionary["green_tick"]} | {cog}')
+            except Exception as e:
+                reload_list.append(f'{self.avi.emoji_dictionary["red_tick"]} | {cog}```{e}```')
+        sync_embed.add_field(name="Reloaded Modules", value="\n".join(reload_list))
         await edit_sync.edit(embed=sync_embed)
 
     # Reboot Command

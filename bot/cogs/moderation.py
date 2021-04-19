@@ -108,6 +108,8 @@ class Moderation(commands.Cog):
                 await ctx.send(embed=unbanenmbed)
 
     @commands.command()
+    @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(manage_roles=True)
     async def mute(self, ctx: AvimetryContext, member: TargetMemberAction, duration: TimeConverter, reason=None):
         if reason is None:
             reason = f"{ctx.author} ({ctx.author.id}): No reason was provided."

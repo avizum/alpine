@@ -96,7 +96,7 @@ class AvimetryBot(commands.Bot):
             "cogs.autosetup",
             "cogs.botconfig",
             "cogs.botlogging",
-            "cogs.counting",
+            # "cogs.counting",
             "cogs.developer",
             "cogs.errorhandler",
             "cogs.fun",
@@ -107,7 +107,6 @@ class AvimetryBot(commands.Bot):
             "cogs.moderation",
             "cogs.myservers",
             "cogs.roblox",
-            #  "cogs.servermanagement",
             "cogs.verification",
             "utils.jishaku"
         ]
@@ -209,6 +208,8 @@ class AvimetryBot(commands.Bot):
         print("\nSuccessfully closed bot", end="\n\n")
 
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
+        if before.content == after.content:
+            return
         if after.attachments:
             return
         await self.process_commands(after)

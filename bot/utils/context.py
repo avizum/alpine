@@ -42,16 +42,7 @@ class AvimetryContext(commands.Context):
         )
         await self.send(embed=embed)
 
-    async def send(self, content=None, *, tts=False, embed=None, file=None,
-                   files=None, delete_after=None, nonce=None,
-                   allowed_mentions=None, reference=None,
-                   mention_author=None):
-        if self.message.id in self.bot.command_cache and self.message.edited_at:
-            edited_message = self.bot.command_cache[self.message.id]
-            if edited_message.reactions:
-                async with contextlib.suppress():
-                    await edited_message.clear_reactions()
-            return await edited_message.edit(content=content, embed=embed, allowed_mentions=allowed_mentions)
+    async def send(self, content=None, embed=None, **kwargs):
         if content:
             if len(content) > 2000:
                 return await self.post(content)
@@ -79,20 +70,16 @@ class AvimetryContext(commands.Context):
             except Exception:
                 pass
         try:
-            message = await self.reply(
-                content=content, tts=tts, embed=embed, file=file,
-                files=files, delete_after=delete_after, nonce=nonce,
-                allowed_mentions=allowed_mentions,
-                mention_author=mention_author
-            )
+            if self.message.id in self.bot.command_cache and self.message.edited_at:
+                edited_message = self.bot.command_cache[self.message.id]
+                if edited_message.reactions:
+                    async with contextlib.suppress():
+                        await edited_message.clear_reactions()
+                return await edited_message.edit(content=content, embed=embed, **kwargs)
+            message = await self.reply(content=content, embed=embed, **kwargs)
             return message
         except Exception:
-            message = await super().send(
-                content=content, tts=tts, embed=embed, file=file,
-                files=files, delete_after=delete_after, nonce=nonce,
-                allowed_mentions=allowed_mentions, reference=reference,
-                mention_author=mention_author
-            )
+            message = await super().send(content=content, embed=embed, **kwargs)
             return message
         finally:
             with contextlib.suppress():

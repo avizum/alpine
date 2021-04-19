@@ -4,7 +4,7 @@ from discord.ext import commands
 from utils.context import AvimetryContext
 
 
-class BotLogs(commands.Cog, name="bot logs"):
+class BotLogs(commands.Cog):
     def __init__(self, avi):
         self.avi = avi
 
