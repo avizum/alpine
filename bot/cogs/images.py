@@ -49,14 +49,6 @@ class Manipulation(commands.Cog):
     '''
     def __init__(self, avi):
         self.avi = avi
-        self._cd = commands.CooldownMapping.from_cooldown(2.0, 10.0, commands.BucketType.member)
-
-    async def cog_check(self, ctx):
-        bucket = self._cd.get_bucket(ctx.message)
-        retry_after = bucket.update_rate_limit()
-        if retry_after:
-            raise commands.CommandOnCooldown(bucket, retry_after)
-        return True
 
     async def do_dagpi(self, ctx: AvimetryContext, feature: ImageFeatures, argument, gif: bool = False):
         converter = GetAvatar()
@@ -95,16 +87,19 @@ class Manipulation(commands.Cog):
         await ctx.send(file=file, embed=embed)
 
     @commands.command(name="pixel")
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_pixel(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.pixel(), item, False)
         await self.do_embed(ctx, meth)
 
     @commands.command(name="triggered")
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_triggered(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.triggered(), item, True)
         await self.do_embed(ctx, meth)
 
     @commands.command(name="5g1g")
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_5g1g(self, ctx, item1: GetAvatar, item2: GetAvatar):
         async with ctx.channel.typing():
             image = await self.avi.dagpi.image_process(ImageFeatures.five_guys_one_girl(), url=item1, url2=item2)
@@ -112,6 +107,7 @@ class Manipulation(commands.Cog):
         await self.do_embed(ctx, file)
 
     @commands.command(name="whyareyougay", aliases=["wayg"])
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_wayg(self, ctx, item1: GetAvatar, item2: GetAvatar):
         async with ctx.channel.typing():
             image = await self.avi.dagpi.image_process(ImageFeatures.why_are_you_gay(), url=item1, url2=item2)
@@ -119,6 +115,7 @@ class Manipulation(commands.Cog):
         await self.do_embed(ctx, file)
 
     @commands.command(name="tweet")
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_tweet(self, ctx, user: GetAvatar, username: str, *, text: str):
         async with ctx.channel.typing():
             image = await self.avi.dagpi.image_process(ImageFeatures.tweet(), text=text, url=user, username=username)
@@ -126,6 +123,7 @@ class Manipulation(commands.Cog):
         await self.do_embed(ctx, file)
 
     @commands.command(name="discord")
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_discord(self, ctx, user: discord.User = None, *, text: str = None):
         user_name = None
         if text is None:
@@ -142,6 +140,7 @@ class Manipulation(commands.Cog):
         await self.do_embed(ctx, file)
 
     @commands.command(name="youtube")
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_youtube(self, ctx, user: discord.Member = None, *, text: str = None):
         user_name = None
         if text is None:
@@ -158,46 +157,55 @@ class Manipulation(commands.Cog):
         await self.do_embed(ctx, file)
 
     @commands.command(name="america")
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_america(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.america(), item, True)
         await self.do_embed(ctx, meth)
 
     @commands.command(name="communism")
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_communism(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.communism(), item, True)
         await self.do_embed(ctx, meth)
 
     @commands.command(name="colors")
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_colors(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.colors(), item)
         await self.do_embed(ctx, meth)
 
     @commands.command(name="wasted")
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_wasted(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.wasted(), item)
         await self.do_embed(ctx, meth)
 
     @commands.command(name="hitler")
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_hitler(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.hitler(), item)
         await self.do_embed(ctx, meth)
 
     @commands.command(name="satan")
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_satan(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.satan(), item)
         await self.do_embed(ctx, meth)
 
     @commands.command(name="delete")
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_delete(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.delete(), item)
         await self.do_embed(ctx, meth)
 
     @commands.command(name="wanted")
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_wanted(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.wanted(), item)
         await self.do_embed(ctx, meth)
 
     @commands.command(name="jail")
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_jail(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.jail(), item)
         await self.do_embed(ctx, meth)

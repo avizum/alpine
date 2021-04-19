@@ -209,4 +209,6 @@ class AvimetryBot(commands.Bot):
         print("\nSuccessfully closed bot", end="\n\n")
 
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
+        if after.attachments:
+            return
         await self.process_commands(after)

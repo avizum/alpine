@@ -100,16 +100,6 @@ class Fun(commands.Cog):
                 ]
                 await ctx.send(f"{random.choice(kill_response)}")
 
-# Revive Command
-    @commands.command(brief="Bring people back to life.")
-    @commands.cooldown(5, 30, commands.BucketType.member)
-    async def revive(self, ctx: AvimetryContext, member: discord.Member):
-        await ctx.message.delete()
-        if member == ctx.author:
-            await ctx.send("{ctx.author.mention} has come back from the dead")
-        else:
-            await ctx.send(f"{ctx.author.mention} revived {member.mention}")
-
 # Say Command
     @commands.command(
         brief="You can make me say whatever you please!", usage="<message>"
