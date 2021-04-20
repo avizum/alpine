@@ -166,6 +166,8 @@ class AvimetryBot(commands.Bot):
         ctx = await self.get_context(message)
         if message.author == self.user:
             return
+        if message.author.bot:
+            return
         await self.invoke(ctx)
 
     async def on_message(self, message):

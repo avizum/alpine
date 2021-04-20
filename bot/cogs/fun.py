@@ -220,20 +220,6 @@ class Fun(commands.Cog):
                 )
                 return await cd_cookie.edit(embed=cookie_embed)
 
-# Suicide Command (Joke)
-    @commands.command(hidden=True)
-    async def suicide(self, ctx: AvimetryContext):
-        pre = await self.avi.get_prefix(ctx.message)
-        embed = discord.Embed(
-            title="Invalid Command",
-            description="I wasn't about to find a command called \"suicide\". Did you mean...\n`don't\ndo\nit`",
-            color=discord.Color.red(),
-        )
-        embed.set_footer(
-            text=f"Not what you meant? Use {pre}help to see the whole list of commands."
-        )
-        await ctx.send(embed=embed)
-
 # Akinator Command
     @commands.command(
         name="akinator",
