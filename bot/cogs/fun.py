@@ -170,7 +170,7 @@ class Fun(commands.Cog):
             name="Get the cookie!",
             value="Who has the fastest reaction time? Get ready to grab the cookie!",
         )
-        cd_cookie = await ctx.send_raw(embed=cookie_embed)
+        cd_cookie = await ctx.send(embed=cookie_embed)
         await asyncio.sleep(5)
         cookie_embed.set_field_at(
             0, name="Ready Up!", value="Get ready to get the cookie!"
@@ -179,10 +179,6 @@ class Fun(commands.Cog):
         cntdown = (random.randint(1, 8))
         while cntdown > 0:
             await asyncio.sleep(1)
-            cookie_embed.set_field_at(
-                0, name="Get Ready", value=f"Get the cookie in {cntdown}"
-            )
-            await cd_cookie.edit(embed=cookie_embed)
             cntdown -= 1
         await asyncio.sleep(1)
         cookie_embed.set_field_at(0, name="NOW!", value="Get the cookie now!")
