@@ -123,7 +123,8 @@ class ErrorHandler(commands.Cog):
                 return
 
         elif isinstance(error, commands.DisabledCommand):
-            await ctx.send("This command is not open yet.")
+            await ctx.send(
+                "This command has been disabled because it is:\nNot done yet, API error or New API key needed")
 
         elif isinstance(error, commands.BadArgument):
             try:
