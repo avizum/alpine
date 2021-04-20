@@ -97,7 +97,7 @@ class Owner(commands.Cog):
         sync_embed.description = "\n".join(output)
         sync_embed.timestamp = datetime.datetime.utcnow()
         sync_embed.title = "Synced With GitHub"
-        modules = CogConverter().convert(ctx, "~")
+        modules = await CogConverter().convert(ctx, "~")
         reload_list = []
         for cog in modules:
             try:
