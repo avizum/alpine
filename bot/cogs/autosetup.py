@@ -10,7 +10,7 @@ handler.setFormatter(
 logger.addHandler(handler)
 
 
-class GuildJoin(commands.Cog, name="Auto Setup"):
+class Setup(commands.Cog):
     def __init__(self, avi):
         self.avi = avi
 
@@ -27,4 +27,4 @@ class GuildJoin(commands.Cog, name="Auto Setup"):
 
 
 def setup(avi):
-    avi.add_cog(GuildJoin(avi))
+    avi.add_cog(Setup(avi))

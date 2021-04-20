@@ -14,7 +14,6 @@ class ErrorHandler(commands.Cog):
     def __init__(self, avi):
         self.avi = avi
 
-    # Command Error
     @commands.Cog.listener()
     async def on_command_error(self, ctx: AvimetryContext, error):
         pre = ctx.clean_prefix
@@ -70,6 +69,7 @@ class ErrorHandler(commands.Cog):
                 " ".join(str(elem) for elem in mp)
                 .replace("_", " ")
                 .replace("guild", "server")
+                .title()
             )
 
             bnp = discord.Embed(
@@ -85,6 +85,7 @@ class ErrorHandler(commands.Cog):
                 " ".join(str(elem) for elem in mp)
                 .replace("_", " ")
                 .replace("guild", "server")
+                .title()
             )
 
             np = discord.Embed(
@@ -202,7 +203,7 @@ class ErrorHandler(commands.Cog):
                     name="Error Info",
                     value=(
                         f"Command: {ctx.command.name}\n"
-                        f"Invoker: {ctx.command.author}\n"
+                        f"Invoker: {ctx.author}\n"
                         f"Link: {myst_exception}"
                     )
                 )

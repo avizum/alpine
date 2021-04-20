@@ -193,6 +193,12 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
                 ),
                 color=discord.Color.red()
             )
+            audit = await member.guild.audit_logs(limit=1).flatten()[0]
+            if audit.action == discord.AuditLogAction.ban:
+                lm.title = "Member Leave: Ban"
+                lm.description = (
+                    f"**{str(member)}** left **{member.guild.name}** because they were banned."
+                    f"This server now has a total of **{member.guild.member_count}** members.")
             await self.get(self.joins_and_leaves).send(embed=lm)
 
     @commands.Cog.listener("on_member_update")

@@ -69,20 +69,20 @@ class AvimetryContext(commands.Context):
                         embed.color = discord.Color(0x2F3136)
             except Exception:
                 pass
+        if self.message.id in self.bot.command_cache and self.message.edited_at:
+            edited_message = self.bot.command_cache[self.message.id]
+            if edited_message.reactions:
+                async with contextlib.suppress():
+                    await edited_message.clear_reactions()
+            return await edited_message.edit(content=content, embed=embed, **kwargs)
         try:
-            if self.message.id in self.bot.command_cache and self.message.edited_at:
-                edited_message = self.bot.command_cache[self.message.id]
-                if edited_message.reactions:
-                    async with contextlib.suppress():
-                        await edited_message.clear_reactions()
-                return await edited_message.edit(content=content, embed=embed, **kwargs)
             message = await self.reply(content=content, embed=embed, **kwargs)
             return message
         except Exception:
             message = await super().send(content=content, embed=embed, **kwargs)
             return message
         finally:
-            with contextlib.suppress():
+            with contextlib.suppress(Exception):
                 self.bot.command_cache[self.message.id] = message
 
     async def confirm(
