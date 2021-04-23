@@ -17,12 +17,14 @@ class BotLogs(commands.Cog):
     async def on_message_delete(self, message: discord.Message):
         if not message.guild:
             return
-        thing = self.avi.temp.logging_cache[message.guild.id]
-        if thing["enabled"] is not True:
+        thing = self.avi.temp.logging_cache.get(message.guild.id)
+        if not thing:
             return
-        if thing["message_delete"] is False:
+        elif thing["enabled"] is not True:
             return
-        if message.author == self.avi.user or message.author.bot:
+        elif thing["message_delete"] is False:
+            return
+        elif message.author == self.avi.user or message.author.bot:
             return
         embed = discord.Embed(
             title="Message Delete", timestamp=datetime.datetime.utcnow(),
@@ -51,23 +53,19 @@ class BotLogs(commands.Cog):
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
         if before.guild is None and after.guild is None:
             return
-        thing = self.avi.temp.logging_cache[before.guild.id]
-        if thing["enabled"] is not True:
+        thing = self.avi.temp.logging_cache.get(before.guild.id)
+        if not thing:
             return
-        if thing["message_edit"] is False:
+        elif thing["enabled"] is not True:
             return
-        if before.author == self.avi.user or before.author.bot:
+        elif thing["message_edit"] is False:
             return
-        if before.content == after.content:
+        elif before.author == self.avi.user or before.author.bot:
             return
-        if len(before.content) > 1024:
-            bef_con = f"{str(before.content[:1017])}..."
-        else:
-            bef_con = before.content
-        if len(after.content) > 1024:
-            aft_con = f"{str(after.content[0:1017])}..."
-        else:
-            aft_con = after.content
+        elif before.content == after.content:
+            return
+        bef_con = f"{str(before.content[:1017])}..." if len(before.content) > 1024 else before.content
+        aft_con = f"{str(after.content[:1017])}..." if len(after.content) > 1024 else after.content
         embed = discord.Embed(
             title="Message Edit", timestamp=datetime.datetime.utcnow(),
             description=f"Message was edited by {before.author.mention} in {before.channel.mention}"
