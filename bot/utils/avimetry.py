@@ -8,9 +8,10 @@ import aiozaneapi
 import mystbin
 import time
 import re
+from sys import platform
 import asyncpg
 import asyncdagpi
-from discord.ext import commands, tasks
+from discord.ext import commands
 from utils.mongo import MongoDB
 from config import tokens, postgresql
 from .context import AvimetryContext
@@ -48,9 +49,7 @@ async def bot_prefix(avi, message: discord.Message):
             return DEFAULT_PREFIXES
     command_prefix = await escape_prefix(command_prefix)
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
-    if prefix:
-        return prefix.group(1)
-    return commands.when_mentioned(avi, message)
+    return prefix.group(1)
 
 
 allowed_mentions = discord.AllowedMentions(
@@ -93,7 +92,6 @@ class AvimetryBot(commands.Bot):
             "status_streaming": '<:status_streaming:810683604812169276>'
         }
         self.bot_cogs = [
-            "cogs.autosetup",
             "cogs.botconfig",
             "cogs.botlogging",
             # "cogs.counting",
@@ -108,6 +106,7 @@ class AvimetryBot(commands.Bot):
             "cogs.myservers",
             "cogs.roblox",
             "cogs.verification",
+            "cogs.setup",
             "utils.jishaku"
         ]
 
@@ -151,14 +150,6 @@ class AvimetryBot(commands.Bot):
                 except commands.ExtensionAlreadyLoaded:
                     pass
 
-        @tasks.loop(minutes=30)
-        async def clear_cache(self):
-            self.command_cache = {}
-
-        @clear_cache.before_loop
-        async def before_clear_cache():
-            self.wait_until_ready
-
     async def get_context(self, message, *, cls=AvimetryContext):
         return await super().get_context(message, cls=cls)
 
@@ -192,12 +183,13 @@ class AvimetryBot(commands.Bot):
         return round((end - start) * 1000)
 
     def run(self):
-        super().run(tokens["Avimetry"], reconnect=True)
-
-    def run_bot(self):
+        if platform in ["linux", "linux2"]:
+            token = tokens["Avimetry"]
+        else:
+            token = tokens["AvimetryBeta"]
         self.launch_time = datetime.datetime.utcnow()
         self.loop.run_until_complete(self.temp.cache_all())
-        self.run()
+        super().run(token, reconnect=True)
 
     async def close(self):
         self.mongo.close()

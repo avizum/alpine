@@ -10,6 +10,9 @@ from utils.context import AvimetryContext
 class BotInfo(commands.Cog, name="Utility"):
     def __init__(self, avi):
         self.avi = avi
+        self.map = {
+            True: "Enabled",
+            False: "Disabled"}
 
 # Mention prefix
     @commands.Cog.listener()
@@ -107,28 +110,57 @@ class BotInfo(commands.Cog, name="Utility"):
 
     @settings.group(invoke_without_command=True, brief="Configure logging")
     @commands.has_permissions(administrator=True)
-    async def logging(self, ctx: AvimetryContext):
-        await ctx.send_help("config logging")
+    async def logging(self, ctx: AvimetryContext, toggle: bool = None):
+        if toggle is None:
+            config = ctx.cache.logging_cache[ctx.guild.id]
+            embed = discord.Embed(
+                title="Logging Configuation",
+                description=(
+                    "```py\n"
+                    f"Global Toggle: {config['enabled']}\n"
+                    f"Message Delete: {config['message_delete']}\n"
+                    f"Message Edit: {config['message_edit']}```"))
+            return await ctx.send(embed=embed)
+        await self.avi.pool.execute(
+            "UPDATE logging SET enabled = $1 WHERE guild_id = $2",
+            toggle, ctx.guild.id)
+        ctx.cache.logging_cache[ctx.guild.id]["enabled"] = toggle
+        await ctx.send(f"{self.map[toggle]} logging")
 
     @logging.command(name="channel", brief="Configure logging channel")
     @commands.has_permissions(administrator=True)
-    async def _channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
-        await self.avi.logs.upsert(
-            {"_id": ctx.guild.id, "logging_channel": channel.id}
-        )
+    async def logging_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
+        await self.avi.pool.execute(
+            "UPDATE logging SET channel_id = $1 WHERE guild_id = $2",
+            channel.id, ctx.guild.id)
+        ctx.cache.logging_cache[ctx.guild.id]["channel_id"] = channel.id
         await ctx.send(f"Set logging channel to {channel}")
 
-    @logging.command(brief="Configure delete logging")
+    @logging.command(
+        brief="Configure delete logging",
+        name="message_delete",
+        aliases=["msgdelete, messagedelete"])
     @commands.has_permissions(administrator=True)
-    async def delete(self, ctx: AvimetryContext, toggle: bool):
-        await self.avi.logs.upsert({"_id": ctx.guild.id, "delete_log": toggle})
-        await ctx.send(f"Set on_message_delete logs to {toggle}")
+    async def message_delete(self, ctx: AvimetryContext, toggle: bool):
+        await self.avi.pool.execute(
+            "UPDATE logging SET message_delete = $1 WHERE guild_id = $2",
+            toggle, ctx.guild.id
+        )
+        ctx.cache.logging_cache[ctx.guild.id]["message_delete"] = toggle
+        await ctx.send(f"{self.map[toggle]} message delete logs")
 
-    @logging.command(brief="Configure edit logging")
+    @logging.command(
+        brief="Configure edit logging",
+        name="message_edit",
+        aliases=["msgedit", "messageedit"])
     @commands.has_permissions(administrator=True)
     async def edit(self, ctx: AvimetryContext, toggle: bool):
-        await self.avi.logs.upsert({"_id": ctx.guild.id, "edit_log": toggle})
-        await ctx.send(f"Set on_message_edit logs to {toggle}")
+        await self.avi.pool.execute(
+            "UPDATE logging SET message_edit = $1 WHERE guild_id = $2",
+            toggle, ctx.guild.id
+        )
+        ctx.cache.logging_cache[ctx.guild.id]["message_edit"] = toggle
+        await ctx.send(f"{self.map[toggle]} message edit logs")
 
     # Config Verification Command
     @settings.group(
@@ -191,7 +223,7 @@ class BotInfo(commands.Cog, name="Utility"):
             name="Bot Invite",
             value=f"[here]({self.avi.invite})",
         )
-        embed.add_field(name="Commands", value=len(self.avi.commands))
+        embed.add_field(name="Commands", value=f"{len(self.avi.commands)} usable")
         embed.add_field(name="Commands ran", value=self.avi.commands_ran)
         embed.set_thumbnail(url=ctx.me.avatar_url)
         await ctx.send(embed=embed)

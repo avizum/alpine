@@ -505,13 +505,11 @@ class Fun(commands.Cog):
         await first.edit(embed=embed)
         for emojis in emoji:
             await first.add_reaction(emojis)
-        start = time.perf_counter()
 
         def check(reaction, user):
             return(
-                reaction.message.id == first.id and str(reaction.emoji) == random_emoji and user != self.avi.user
-            )
-
+                reaction.message.id == first.id and str(reaction.emoji) == random_emoji and user != self.avi.user)
+        start = time.perf_counter()
         try:
             reaction, user = await self.avi.wait_for("reaction_add", check=check, timeout=15)
         except asyncio.TimeoutError:
@@ -530,7 +528,7 @@ class Fun(commands.Cog):
 
     @commands.command(name="guessthatlogo", aliases=["gtl"])
     @commands.cooldown(2, 10, commands.BucketType.member)
-    async def dag_guess_that_logo(self, ctx):
+    async def dag_guess_that_logo(self, ctx: AvimetryContext):
         async with ctx.channel.typing():
             logo = await self.avi.dagpi.logo()
         embed = discord.Embed(
@@ -555,9 +553,14 @@ class Fun(commands.Cog):
         await message.edit(embed=embed)
 
     @commands.command(name="roast")
-    async def dag_roast(self, ctx, member: discord.Member):
+    async def dag_roast(self, ctx: AvimetryContext, member: discord.Member):
         roast = await self.avi.dagpi.roast()
         await ctx.send(f"{member.mention}, {roast}")
+
+    @commands.command(name="funfact")
+    async def dag_fact(self, ctx: AvimetryContext):
+        fact = await self.avi.dagpi.fact()
+        await ctx.send(fact)
 
 
 def setup(avi):

@@ -6,10 +6,12 @@ class AvimetryCache:
         self.avi = avi
         self.guild_settings_cache = {}
         self.blacklisted_users = {}
+        self.logging_cache = {}
 
     async def cache_all(self):
         await self.cache_guild_settings()
         await self.cache_blacklisted()
+        await self.cache_logging()
 
     async def get_guild_prefixes(self, guild_id: int):
         prefix = self.guild_settings_cache.get(guild_id, None)
@@ -35,3 +37,8 @@ class AvimetryCache:
         items = await self.avi.pool.fetch("SELECT * FROM blacklist_user")
         for entry in items:
             self.blacklisted_users[entry["user_id"]] = entry["bl_reason"]
+
+    async def cache_logging(self):
+        items = await self.avi.pool.fetch("SELECT * FROM logging")
+        for entry in items:
+            self.logging_cache[entry["guild_id"]] = {key: value for key, value in list(entry.items())}

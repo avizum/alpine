@@ -43,7 +43,7 @@ class GetAvatar(commands.Converter):
         raise commands.MemberNotFound(argument)
 
 
-class Manipulation(commands.Cog):
+class Image(commands.Cog, name="Image Manipulation"):
     '''
     Commands to manipulate images.
     '''
@@ -208,6 +208,12 @@ class Manipulation(commands.Cog):
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_jail(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.jail(), item)
+        await self.do_embed(ctx, meth)
+
+    @commands.command(name="ascii")
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_ascii(self, ctx, *, item=None):
+        meth = await self.do_dagpi(ctx, ImageFeatures.ascii(), item)
         await self.do_embed(ctx, meth)
 
     # Magic Command
@@ -405,7 +411,7 @@ class Manipulation(commands.Cog):
 
 
 def setup(avi):
-    avi.add_cog(Manipulation(avi))
+    avi.add_cog(Image(avi))
 
 
 """todo

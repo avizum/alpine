@@ -118,6 +118,14 @@ class Moderation(commands.Cog):
         role = await ctx.cache.get_guild_settings(ctx.guild.id)
         mute_role = ctx.guild.get_role(role["mute_role"])
         await member.add_roles(mute_role, reason=reason)
+        await asyncio.sleep(duration)
+        await member.remove_roles(mute_role)
+
+    @commands.group(
+        enabled=False,
+        invote_without_command=True)
+    async def mass(self, ctx: AvimetryContext):
+        pass
 
     @commands.group(
         invoke_without_command=True,
@@ -178,11 +186,11 @@ class Moderation(commands.Cog):
             check_prefix = await ctx.cache.get_guild_settings(ctx.guild.id)
             prefixes = tuple(check_prefix["prefixes"])
             if message.author == self.avi.user or message.content.lower().startswith(prefixes):
+                messages.append(message)
                 if message.author not in authors:
                     authors[message.author] = 1
                 else:
                     authors[message.author] += 1
-                messages.append(message)
                 if len(messages) == amount:
                     break
         await ctx.channel.delete_messages(messages)

@@ -114,16 +114,14 @@ class Meta(commands.Cog):
                 value=f"{humanize.naturaldate(member.created_at)} ({humanize.naturaltime(member.created_at)})",
                 inline=False,
             )
-            if member.raw_status == "dnd":
-                member_status = "Do not Disturb <:status_dnd:810683560863989805>"
-            elif member.raw_status == "idle":
-                member_status = "Idle <:status_idle:810683571269664798>"
-            elif member.raw_status == "offline":
-                member_status = "Offline <:status_offline:810683581541515335>"
-            elif member.raw_status == "online":
-                member_status = "Online <:status_online:810683593193029642>"
-            elif member.raw_status == "streaming":
-                member_status = "Streaming <:status_streaming:810683604812169276>"
+            status = {
+                "dnd": "Do not Disturb <:status_dnd:810683560863989805>",
+                "idle": "Idle <:status_idle:810683571269664798>",
+                "offline": "Offline <:status_offline:810683581541515335>",
+                "online": "Online <:status_online:810683593193029642>",
+                "streaming": "Streaming <:status_streaming:810683604812169276>",
+            }
+            member_status = status[member.raw_status]
             ie.add_field(name="Status", value=member_status)
             ie.add_field(name="Top Role", value=member.top_role.mention, inline=False)
             ie.add_field(
