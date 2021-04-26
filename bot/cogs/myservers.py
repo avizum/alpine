@@ -1,6 +1,5 @@
 import discord
 import re
-import asyncio
 from discord.ext import commands, tasks
 from utils.errors import PrivateServer
 from utils.context import AvimetryContext
@@ -42,7 +41,7 @@ COLOR_ROLES_EMOJIS = {
         828803885811367966: 828448876469026846,
         828803903637422100: 828799927857053696,
         828803923799179304: 828476018439356436,
-        828803974941245470: 828783296023625770,
+        828803974941245470: 828783296023625770
 }
 
 ROLE_MAP = {
@@ -52,28 +51,27 @@ ROLE_MAP = {
 }
 
 
-class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
+class Servers(commands.Cog, name="Servers"):
     '''
-    Commands for Avizum's Lounge only.
+    Commands for My servers only.
     '''
     def __init__(self, avi):
         self.avi = avi
         self.update_count.start()
-        self.guild_id = 751490725555994716
+        self.guild_id = [751490725555994716, 814206001451761664]
         self.joins_and_leaves = 751967006701387827
         self.member_channel = 783960970472456232
         self.bot_channel = 783961050814611476
         self.total_channel = 783961111060938782
 
     def cog_check(self, ctx: AvimetryContext):
-        if ctx.guild.id != self.guild_id:
+        if ctx.guild.id not in self.guild_id:
             raise PrivateServer("This command only works in a private server.")
         return True
 
     def get(self, channel_id: int):
         return self.avi.get_channel(channel_id)
 
-# event
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         try:
@@ -119,22 +117,6 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
             await member.remove_roles(role)
         except Exception:
             return
-
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.channel.id != 810723783093911642:
-            return
-        if message.author == self.avi.user:
-            return
-        if message.attachments:
-            return
-        find_url = re.findall(URL_REGEX, message.content)
-        if find_url:
-            return
-        message = await message.reply("GIFs only.")
-        reference = message.reference.resolved
-        await asyncio.sleep(2)
-        await message.channel.delete_messages([message, reference])
 
     @tasks.loop(minutes=5)
     async def update_count(self):
@@ -236,6 +218,16 @@ class AvizumsLounge(commands.Cog, name="Avizum's Lounge"):
         await channel3.edit(name=f"Bots: {true_bot_count}")
         await ctx.send("Member Count Updated.")
 
+    @commands.command()
+    async def testing(self, ctx: AvimetryContext):
+        if ctx.guild.id != 814206001451761664:
+            return
+        role = ctx.guild.get_role(836105548457574410)
+        if role in ctx.author.roles:
+            return await ctx.message.add_reaction(self.avi.emoji_dictionary["red_tick"])
+        await ctx.author.add_roles(role, reason="Public testing")
+        await ctx.message.add_reaction(self.avi.emoji_dictionary["green_tick"])
+
 
 def setup(avi):
-    avi.add_cog(AvizumsLounge(avi))
+    avi.add_cog(Servers(avi))

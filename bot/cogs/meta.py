@@ -1,3 +1,4 @@
+import json
 import discord
 import datetime
 import random
@@ -16,8 +17,7 @@ class Meta(commands.Cog):
     def __init__(self, avi):
         self.avi = avi
 
-    # Poll command
-    @commands.command(brief="Launch a poll for users to vote to.")
+    @commands.command(brief="Sends a poll for people to vote to.")
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def poll(self, ctx: AvimetryContext, question, *options: str):
         if len(options) < 2:
@@ -61,7 +61,6 @@ class Meta(commands.Cog):
         )
         await react_message.edit(embed=embed)
 
-    # Pick Command
     @commands.command(brief="Pick one of your options")
     @commands.cooldown(1, 1, commands.BucketType.member)
     async def pick(self, ctx: AvimetryContext, *, options):
@@ -71,7 +70,6 @@ class Meta(commands.Cog):
 
         return await ctx.send(random.choice(opt))
 
-    # Info Command
     @commands.command(brief="Gets a member's information")
     async def uinfo(self, ctx: AvimetryContext, *, member: typing.Union[discord.Member, discord.User] = None):
         if member is None:
@@ -132,7 +130,6 @@ class Meta(commands.Cog):
         ie.set_thumbnail(url=member.avatar_url)
         await ctx.send(embed=ie)
 
-    # QR code command
     @commands.command(brief="Make a qr code ")
     async def qr(self, ctx: AvimetryContext, *, content):
         qr_embed = discord.Embed()
@@ -142,7 +139,6 @@ class Meta(commands.Cog):
         )
         await ctx.send(embed=qr_embed)
 
-    # Time command
     @commands.group(brief="Gets the time for a member", invoke_without_command=True)
     async def time(self, ctx: AvimetryContext, *, member: discord.Member = None):
         if member is None:
@@ -214,7 +210,24 @@ class Meta(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(
+        brief="Make embeds. This command is not for normal members because it can be abused.")
+    @commands.has_permissions(manage_messages=True)
+    @commands.cooldown(5, 300, commands.BucketType.member)
+    async def embed(self, ctx, *, thing: str):
+        if '"content":' in thing or "'content':" in thing:
+            return await ctx.send('Remove the "content" part from your message and try again.')
+        try:
+            thing = json.loads(thing)
+            return await ctx.send(embed=discord.Embed.from_dict(thing))
+        except Exception as e:
+            embed = discord.Embed(
+                title="Input Error",
+                description=f"The JSON input raised an error:\n```bash\n{e}```")
+            return await ctx.send(embed=embed)
+
+    @commands.command(
         hidden=True)
+    @commands.is_owner()
     async def _(self, ctx):
         return
 

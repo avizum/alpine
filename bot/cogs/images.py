@@ -43,9 +43,9 @@ class GetAvatar(commands.Converter):
         raise commands.MemberNotFound(argument)
 
 
-class Image(commands.Cog, name="Image Manipulation"):
+class Image(commands.Cog, name="Images"):
     '''
-    Commands to manipulate images.
+    Commands for image manipuation and more.
     '''
     def __init__(self, avi):
         self.avi = avi

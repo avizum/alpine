@@ -131,7 +131,7 @@ class Owner(commands.Cog):
         await self.avi.pool.execute(
             "INSERT INTO blacklist_user VALUES ($1, $2)",
             user.id, reason)
-        ctx.cache.blacklisted_users[user.id] = reason
+        ctx.cache.blacklist_cache[user.id] = reason
 
         embed = discord.Embed(
             title="Blacklisted User",
@@ -148,7 +148,7 @@ class Owner(commands.Cog):
             "DELETE FROM blacklist_user WHERE user_id = $1",
             user.id
         )
-        ctx.cache.blacklisted_users.pop(user.id)
+        ctx.cache.blacklist_cache.pop(user.id)
         await ctx.send(f"Unblacklisted {str(user)}")
 
     @dev.command()
@@ -164,10 +164,6 @@ class Owner(commands.Cog):
                 if deleted >= amount:
                     break
         await ctx.send(f"Successfully purged `{deleted}` message(s).")
-
-    @dev.command(name="dev")
-    async def _dev(self, ctx):
-        await ctx.send("asd")
 
 
 def setup(avi):

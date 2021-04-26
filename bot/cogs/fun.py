@@ -19,7 +19,6 @@ class Fun(commands.Cog):
     async def do_mock(self, string: str):
         return "".join(random.choice([mock.upper, mock.lower])() for mock in string)
 
-# Magic 8 Ball
     @commands.command(
         aliases=["8ball", "8b"],
         brief="Ask the 8ball something",
@@ -55,7 +54,6 @@ class Fun(commands.Cog):
         )
         await ctx.send(embed=ballembed)
 
-# Random Number
     @commands.command(brief="Pick a random number from 1 to 100", usage="[amount]")
     async def random(self, ctx: AvimetryContext, amount: int = 100):
         x = random.randint(1, amount)
@@ -63,10 +61,8 @@ class Fun(commands.Cog):
         e.add_field(name="Random Number", value=f"The number is {x}")
         await ctx.send(embed=e)
 
-# Kill Command
     @commands.command(
-        aliases=["murder"], brief="Kill some people. Make sure you don't get caught!"
-    )
+        aliases=["murder"], brief="Kill some people. Make sure you don't get caught!")
     @commands.cooldown(2, 30, commands.BucketType.member)
     async def kill(self, ctx: AvimetryContext, member: discord.Member):
         await ctx.message.delete()
@@ -100,25 +96,17 @@ class Fun(commands.Cog):
                 ]
                 await ctx.send(f"{random.choice(kill_response)}")
 
-# Say Command
-    @commands.command(
-        brief="You can make me say whatever you please!", usage="<message>"
-    )
+    @commands.command(brief="Makes me say a message")
     @commands.cooldown(1, 120, commands.BucketType.member)
-    async def say(self, ctx: AvimetryContext, *, botsay):
-        await ctx.send_raw(f"{botsay}")
+    async def say(self, ctx: AvimetryContext, *, message):
+        await ctx.send_raw(message)
 
-# Delete Say Command
-    @commands.command(
-        brief="You can make me say whatever you please, but I delete your message so it looks like I sent it!",
-        usage="<message>",
-    )
+    @commands.command(brief="Makes me say a message but I delete your message")
     @commands.cooldown(1, 120, commands.BucketType.member)
-    async def dsay(self, ctx: AvimetryContext, *, dbotsay):
+    async def dsay(self, ctx: AvimetryContext, *, message):
         await ctx.message.delete()
-        await ctx.send_raw(f"{dbotsay}")
+        await ctx.send_raw(message)
 
-# Skin Command
     @commands.command(brief="Remove the skin off of people that you don't like.")
     async def skin(self, ctx: AvimetryContext, member: discord.Member):
         await ctx.message.delete()
@@ -129,52 +117,32 @@ class Fun(commands.Cog):
             e = discord.Embed(description=f"{member.mention} was skinned.")
             await ctx.send(embed=e)
 
-# Self destruct command
     @commands.command(aliases=["sd"], brief="Self destruct? Who put that button there?")
     async def selfdestruct(self, ctx: AvimetryContext):
         a = discord.Embed(
-            description=f"{ctx.author.mention} self destructed due to overloaded fuel canisters"
-        )
+            description=f"{ctx.author.mention} self destructed due to overloaded fuel canisters")
         await ctx.send(embed=a)
 
-# Dropckick command
-    @commands.command(brief="Drop kicks someone")
+    @commands.command(brief="Dropkick someone")
     async def dropkick(self, ctx: AvimetryContext, *, mention: discord.Member):
         if mention == ctx.author:
-            a = discord.Embed(
-                description=f"{ctx.author.mention} tried dropkicking themselves"
-            )
-            await ctx.send(embed=a)
+            embed = discord.Embed(description=f"{ctx.author.mention} tried dropkicking themselves")
         else:
-            b = discord.Embed(
-                description=f"{ctx.author.mention} dropkicked {mention.mention}"
-            )
-            await ctx.send(embed=b)
+            embed = discord.Embed(
+                description=f"{ctx.author.mention} dropkicked {mention.mention}")
+        await ctx.send(embed=embed)
 
-# Face Palm Command
-    @commands.command(
-        aliases=["fp", "facep", "fpalm"], brief="Hit yourself on the face!"
-    )
-    async def facepalm(self, ctx: AvimetryContext):
-        a = discord.Embed(description=f"{ctx.author.mention} hit their face.")
-        await ctx.send(embed=a)
-
-# Cookie Command
-    @commands.command(
-        brief="Get the cookie as fast as you can with out a countdown timer."
-    )
+    @commands.command(brief="Try to get the cookie as fast as you can!")
     @commands.cooldown(1, 30, commands.BucketType.member)
     async def cookie(self, ctx: AvimetryContext):
         cookie_embed = discord.Embed()
         cookie_embed.add_field(
             name="Get the cookie!",
-            value="Who has the fastest reaction time? Get ready to grab the cookie!",
-        )
+            value="Who has the fastest reaction time? Get ready to grab the cookie!")
         cd_cookie = await ctx.send(embed=cookie_embed)
         await asyncio.sleep(5)
         cookie_embed.set_field_at(
-            0, name="Ready Up!", value="Get ready to get the cookie!"
-        )
+            0, name="Ready Up!", value="Get ready to get the cookie!")
         await cd_cookie.edit(embed=cookie_embed)
         cntdown = (random.randint(1, 8))
         while cntdown > 0:
@@ -216,27 +184,25 @@ class Fun(commands.Cog):
                 )
                 return await cd_cookie.edit(embed=cookie_embed)
 
-# Akinator Command
+    async def remove(self, message: discord.Message, emoji, user, perm: bool):
+        if not perm:
+            return
+        await message.remove_reaction(emoji, user)
+
+    async def clear(self, message: discord.Message, perm: bool):
+        if not perm:
+            return
+        await message.clear_reactions()
+
     @commands.command(
         name="akinator",
         aliases=["aki", "avinator"],
-        brief="Play a game of akinator If you don't put anything, then it will default to `en` and `child=True`"
-    )
+        brief="Play a game of akinator If you don't put anything, then it will default to `en` and `child=True`")
     @commands.cooldown(1, 60, commands.BucketType.member)
     @commands.max_concurrency(1, commands.BucketType.channel)
     async def fun_akinator(self, ctx: AvimetryContext, mode="en", child=True):
-        if ctx.me.permissions_in(ctx.channel).manage_messages is True:
-            async def remove(message: discord.Message, emoji, user):
-                await message.remove_reaction(emoji, user)
-
-            async def clear(message: discord.Message):
-                await message.clear_reactions()
-        else:
-            async def remove(message, emoji, user):
-                return
-
-            async def clear(message):
-                return
+        bot_perm = ctx.me.permissions_in(ctx.channel)
+        perms = True if bot_perm.manage_messages is True else False
         aki_dict = {
             "<:Yes:812133712967761951>": "yes",
             "<:No:812133712946528316>": "no",
@@ -257,11 +223,11 @@ class Fun(commands.Cog):
                 f"Mode: `{mode}`\n"
                 f"Child Mode: {child}\n"
                 "[Here](https://gist.github.com/jbkn/8a5b9887d49a1d2740d0b6ad0176dbdb) are all the options for akinator"
-            ),
+            )
         )
         async with ctx.channel.typing():
             initial_messsage = await ctx.send(embed=akinator_embed)
-            q = await aki_client.start_game(mode, child)
+            game = await aki_client.start_game(mode, child)
         game_end_early = False
         for i in aki_react:
             await initial_messsage.add_reaction(i)
@@ -269,9 +235,7 @@ class Fun(commands.Cog):
         akinator_embed.set_thumbnail(url="https://i.imgur.com/JMso9Kf.png")
 
         while aki_client.progression <= 80:
-            print(aki_client.step)
-            print(aki_client.progression)
-            akinator_embed.description = f"{q}"
+            akinator_embed.description = game
             await initial_messsage.edit(embed=akinator_embed)
 
             def check(reaction, user):
@@ -291,7 +255,7 @@ class Fun(commands.Cog):
                 reaction, user = done.pop().result()
 
             except asyncio.TimeoutError:
-                await clear(initial_messsage)
+                await self.clear(initial_messsage, perms)
                 akinator_embed.description = (
                     "Akinator session closed because you took too long to answer."
                 )
@@ -306,11 +270,11 @@ class Fun(commands.Cog):
                     akinator_embed.description = "Akinator session stopped."
                     akinator_embed.set_thumbnail(url=discord.Embed.Empty)
                     await initial_messsage.edit(embed=akinator_embed)
-                    await clear(initial_messsage)
+                    await self.clear(initial_messsage, perms)
                     break
                 elif ans == "back":
                     try:
-                        q = await aki_client.back()
+                        game = await aki_client.back()
                     except akinator.CantGoBackAnyFurther:
                         pass
                 else:
@@ -322,8 +286,8 @@ class Fun(commands.Cog):
                 for future in pending:
                     future.cancel()
 
-            await remove(message=initial_messsage, emoji=reaction.emoji, user=user)
-            q = await aki_client.answer(answer)
+            await self.remove(initial_messsage, reaction.emoji, user, perms)
+            game = await aki_client.answer(answer)
         try:
             await initial_messsage.clear_reactions()
         except discord.Forbidden:
@@ -359,9 +323,9 @@ class Fun(commands.Cog):
                 "reaction_add", check=yes_no_check, timeout=60
             )
         except asyncio.TimeoutError:
-            await clear(initial_messsage)
+            await self.clear(initial_messsage, perms)
         else:
-            await clear(initial_messsage)
+            await self.clear(initial_messsage, perms)
             if str(reaction.emoji) == "<:greentick:777096731438874634>":
                 akinator_embed.description = (
                     f"{akinator_embed.description}\n\n------\n\nYay!"

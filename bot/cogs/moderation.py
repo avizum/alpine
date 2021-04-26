@@ -135,7 +135,7 @@ class Moderation(commands.Cog):
     @commands.cooldown(5, 30, commands.BucketType.member)
     async def purge(self, ctx: AvimetryContext, amount: int):
         await ctx.message.delete()
-        if amount > 1:
+        if amount < 1:
             return
         authors = {}
         async for message in ctx.channel.history(limit=amount):
@@ -152,9 +152,8 @@ class Moderation(commands.Cog):
 
         pe = discord.Embed(
             title="Affected Messages",
-            description=f"{msg}"
-        )
-        await ctx.send(embed=pe, delete_after=10)
+            description=f"{msg}")
+        await ctx.delete(embed=pe)
 
     @purge.command()
     @commands.has_permissions(manage_messages=True)
@@ -196,14 +195,12 @@ class Moderation(commands.Cog):
         await ctx.channel.delete_messages(messages)
         msg = "\n".join(
             f"{author.mention}: {amount} {'message' if amount==1 else 'messages'}"
-            for author, amount in authors.items()
-        )
+            for author, amount in authors.items())
 
         pe = discord.Embed(
             title="Affected Messages",
-            description=f"{msg}"
-        )
-        await ctx.send(embed=pe, delete_after=10)
+            description=f"{msg}")
+        await ctx.delete(embed=pe)
 
     @commands.command(
         brief="Locks the mentioned channel.",

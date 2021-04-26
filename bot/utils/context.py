@@ -52,7 +52,10 @@ class AvimetryContext(commands.Context):
             if not self.command:
                 self.command = self.bot.get_command("_")
             if "jishaku" in self.command.qualified_name:
-                return await self.reply(content=content)
+                try:
+                    return await self.reply(content=content)
+                except Exception:
+                    return await super().send(content=content, embed=embed, **kwargs)
             embed = discord.Embed(description=content)
             content = None
         if discord.Embed:

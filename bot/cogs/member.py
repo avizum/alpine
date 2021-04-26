@@ -3,7 +3,7 @@ from discord.ext import commands
 from utils.context import AvimetryContext
 
 
-class MemberManagement(commands.Cog, name="Member Management"):
+class ServerManagement(commands.Cog, name="Server Management"):
     def __init__(self, avi):
         self.avi = avi
 
@@ -23,4 +23,4 @@ class MemberManagement(commands.Cog, name="Member Management"):
 
 
 def setup(avi):
-    avi.add_cog(MemberManagement(avi))
+    avi.add_cog(ServerManagement(avi))

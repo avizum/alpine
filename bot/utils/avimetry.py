@@ -49,7 +49,9 @@ async def bot_prefix(avi, message: discord.Message):
             return DEFAULT_PREFIXES
     command_prefix = await escape_prefix(command_prefix)
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
-    return prefix.group(1)
+    if prefix:
+        return prefix.group(1)
+    return commands.when_mentioned(avi, message)
 
 
 allowed_mentions = discord.AllowedMentions(
@@ -92,22 +94,24 @@ class AvimetryBot(commands.Bot):
             "status_streaming": '<:status_streaming:810683604812169276>'
         }
         self.bot_cogs = [
-            "cogs.botconfig",
-            "cogs.botlogging",
-            # "cogs.counting",
+            "cogs.botinfo",
+            "cogs.counting",
             "cogs.developer",
             "cogs.errorhandler",
             "cogs.fun",
             "cogs.help",
             "cogs.images",
+            "cogs.jishaku",
+            "cogs.events",
             "cogs.member",
+            "cogs.memberjoin",
             "cogs.meta",
             "cogs.moderation",
             "cogs.myservers",
             "cogs.roblox",
-            "cogs.verification",
+            "cogs.settings",
             "cogs.setup",
-            "utils.jishaku"
+            "cogs.testing"
         ]
 
         self.sr = sr_api.Client()
@@ -129,12 +133,13 @@ class AvimetryBot(commands.Bot):
         async def check(ctx):
             if not ctx.guild:
                 raise commands.NoPrivateMessage()
-            if ctx.author.id in self.temp.blacklisted_users:
-                raise Blacklisted(reason=self.temp.blacklisted_users[ctx.author.id])
+            if ctx.author.id in self.temp.blacklist_cache:
+                raise Blacklisted(reason=self.temp.blacklist_cache[ctx.author.id])
             return True
 
         @self.event
         async def on_ready():
+            print("before ready")
             await self.wait_until_ready()
             timenow = datetime.datetime.now().strftime("%I:%M %p")
             print(
@@ -188,7 +193,6 @@ class AvimetryBot(commands.Bot):
         else:
             token = tokens["AvimetryBeta"]
         self.launch_time = datetime.datetime.utcnow()
-        self.loop.run_until_complete(self.temp.cache_all())
         super().run(token, reconnect=True)
 
     async def close(self):

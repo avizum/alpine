@@ -7,7 +7,7 @@ from discord.ext import commands
 from utils.context import AvimetryContext
 
 
-class Verification(commands.Cog):
+class MemberJoin(commands.Cog):
     def __init__(self, avi):
         self.avi = avi
 
@@ -190,4 +190,4 @@ class Verification(commands.Cog):
 
 
 def setup(avi):
-    avi.add_cog(Verification(avi))
+    avi.add_cog(MemberJoin(avi))

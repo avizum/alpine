@@ -13,7 +13,7 @@ from utils.converters import CogConverter
 
 class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     """
-    Owner only commands.
+    Advanced debug cog.
     """
     @Feature.Command(
         parent="jsk",
