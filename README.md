@@ -8,8 +8,8 @@ Invite Avimetry [here](https://discord.com/oauth2/authorize?client_id=7562571705
 
 
 #### Commands to get you started
-  * `a.settings prefix`
-Sets the Prefix of the server
+  * `a.prefix [add|remove]`
+Add or remove a prefix from the server
 
   * `a.help`
 Shows the help menu
