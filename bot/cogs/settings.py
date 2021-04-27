@@ -167,7 +167,7 @@ class Settings(commands.Cog):
                     "Join Message:\n"
                     "Join Channel:```"))
             return await ctx.send(embed=embed)
-        await self.avi.execute(
+        await self.avi.pool.execute(
             "UPDATE join_leave SET join_enabled = $1 WHERE guild_id = $2",
             toggle, ctx.guild.id)
         ctx.cache.join_leave_cache[ctx.guild.id]["join_enabled"] = toggle
@@ -217,7 +217,7 @@ class Settings(commands.Cog):
                     "Leave Message:\n"
                     "Leave Channel:```"))
             return await ctx.send(embed=embed)
-        await self.avi.execute(
+        await self.avi.pool.execute(
             "UPDATE join_leave SET leave_enabled = $1 WHERE guild_id = $2",
             toggle, ctx.guild.id)
         ctx.cache.join_leave_cache[ctx.guild.id]["leave_enabled"] = toggle
