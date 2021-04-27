@@ -10,10 +10,6 @@ class Settings(commands.Cog):
             True: "Enabled",
             False: "Disabled"}
 
-    async def cog_command_error(self, ctx, error):
-        if isinstance(error, KeyError):
-            await ctx.cache.recache(ctx.guild)
-
     @commands.group(
         brief="Configure the server's prefixes",
         case_insensitive=True,
