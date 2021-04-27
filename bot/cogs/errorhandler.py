@@ -35,7 +35,7 @@ class ErrorHandler(commands.Cog):
             await ctx.send(embed=blacklisted)
 
         elif isinstance(error, commands.CommandNotFound):
-            if ctx.author.id in ctx.cache.blacklist_cache:
+            if ctx.author.id in ctx.cache.blacklist:
                 return
             not_found_embed = discord.Embed(
                 title="Invalid Command", color=discord.Color.red()

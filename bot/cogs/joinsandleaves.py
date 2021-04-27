@@ -69,7 +69,7 @@ class JoinsAndLeaves(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
-        config = self.avi.temp.join_leave_cache.get(member.guild.id)
+        config = self.avi.temp.join_leave.get(member.guild.id)
         if not config:
             return
         join_channel = discord.utils.get(member.guild.channels, id=config["join_channel"])
@@ -83,14 +83,13 @@ class JoinsAndLeaves(commands.Cog):
         }
         message = parser.parse(join_message, env=env)
         final = await self.convert(message)
-        try:
-            await join_channel.send(final)
-        except Exception:
-            await join_channel.send(embed=final)
+        if type(final) == discord.Embed:
+            return await join_channel.send(embed=final)
+        return await join_channel.send(final)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
-        config = self.avi.temp.join_leave_cache.get(member.guild.id)
+        config = self.avi.temp.join_leave.get(member.guild.id)
         if not config:
             return
         leave_channel = discord.utils.get(member.guild.channels, id=config["leave_channel"])
@@ -100,10 +99,9 @@ class JoinsAndLeaves(commands.Cog):
             return
         message = parser.parse(leave_message, env=self.env)
         final = await self.convert(message)
-        try:
-            await leave_channel.send(final)
-        except Exception:
-            await leave_channel.send(embed=final)
+        if type(final) == discord.Embed:
+            return await leave_channel.send(embed=final)
+        return await leave_channel.send(final)
 
 
 def setup(avi):

@@ -17,7 +17,7 @@ class BotLogs(commands.Cog):
     async def on_message_delete(self, message: discord.Message):
         if not message.guild:
             return
-        thing = self.avi.temp.logging_cache.get(message.guild.id)
+        thing = self.avi.temp.logging.get(message.guild.id)
         if not thing:
             return
         elif thing["enabled"] is not True:
@@ -53,7 +53,7 @@ class BotLogs(commands.Cog):
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
         if before.guild is None and after.guild is None:
             return
-        thing = self.avi.temp.logging_cache.get(before.guild.id)
+        thing = self.avi.temp.logging.get(before.guild.id)
         if not thing:
             return
         elif thing["enabled"] is not True:

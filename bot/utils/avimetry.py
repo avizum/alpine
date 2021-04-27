@@ -133,8 +133,8 @@ class AvimetryBot(commands.Bot):
         async def check(ctx):
             if not ctx.guild:
                 raise commands.NoPrivateMessage()
-            if ctx.author.id in self.temp.blacklist_cache:
-                raise Blacklisted(reason=self.temp.blacklist_cache[ctx.author.id])
+            if ctx.author.id in self.temp.blacklist:
+                raise Blacklisted(reason=self.temp.blacklist[ctx.author.id])
             return True
 
         @self.event

@@ -27,7 +27,7 @@ class Setup(commands.Cog):
         channel = self.avi.get_channel(829812033946910720)
         await channel.send(f"Left a server named **{guild.name}** with **{guild.member_count}** members")
 
-    @tasks.loop(hours=1)
+    @tasks.loop(minutes=30)
     async def recache(self):
         await self.avi.temp.cache_all()
 

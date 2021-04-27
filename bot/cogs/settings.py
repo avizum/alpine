@@ -10,6 +10,10 @@ class Settings(commands.Cog):
             True: "Enabled",
             False: "Disabled"}
 
+    async def cog_command_error(self, ctx, error):
+        if isinstance(error, KeyError):
+            await ctx.cache.recache(ctx.guild.id)
+
     @commands.group(
         brief="Configure the server's prefixes",
         case_insensitive=True,
@@ -33,7 +37,7 @@ class Settings(commands.Cog):
         await self.avi.pool.execute(
             "UPDATE guild_settings SET prefixes = ARRAY_APPEND(prefixes, $2) WHERE guild_id = $1",
             ctx.guild.id, prefix)
-        ctx.cache.guild_settings_cache[ctx.guild.id]["prefixes"].append(prefix)
+        ctx.cache.guild_settings[ctx.guild.id]["prefixes"].append(prefix)
         await ctx.send(f"Appended `{prefix}` to the list of prefixes.")
 
     @prefix.command(
@@ -56,7 +60,7 @@ class Settings(commands.Cog):
             "UPDATE guild_settings SET prefixes = ARRAY_REMOVE(prefixes, $2) WHERE guild_id = $1",
             ctx.guild.id, prefix)
 
-        self.avi.temp.guild_settings_cache[ctx.guild.id]["prefixes"].remove(prefix)
+        self.avi.temp.guild_settings[ctx.guild.id]["prefixes"].remove(prefix)
         await ctx.send(f"Removed `{prefix}` from the list of prefixes")
 
     @commands.command()
@@ -66,7 +70,7 @@ class Settings(commands.Cog):
         await self.avi.pool.execute(
             "UPDATE guild_settings SET mute_role = $1 WHERE guild_id = $2",
             role.id, ctx.guild.id)
-        self.avi.temp.guild_settings_cache[ctx.guild.id]["mute_role"] = role.id
+        self.avi.temp.guild_settings[ctx.guild.id]["mute_role"] = role.id
         for channel in ctx.guild.channels:
             perms = channel.overwrites_for(role)
             perms.update(send_messages=False)
@@ -81,19 +85,23 @@ class Settings(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     async def logging(self, ctx: AvimetryContext, toggle: bool = None):
         if toggle is None:
-            config = ctx.cache.logging_cache[ctx.guild.id]
+            config = ctx.cache.logging[ctx.guild.id]
             embed = discord.Embed(
                 title="Logging Configuation",
                 description=(
                     "```py\n"
-                    f"Global Toggle: {config['enabled']}\n"
+                    f"Global Toggle: {self.map[config['enabled']]}\n"
+                    f"Logging Channel ID: {config['channel_id']}\n"
                     f"Message Delete: {config['message_delete']}\n"
                     f"Message Edit: {config['message_edit']}```"))
             return await ctx.send(embed=embed)
         await self.avi.pool.execute(
             "UPDATE logging SET enabled = $1 WHERE guild_id = $2",
             toggle, ctx.guild.id)
-        ctx.cache.logging_cache[ctx.guild.id]["enabled"] = toggle
+        try:
+            ctx.cache.logging[ctx.guild.id]["enabled"] = toggle
+        except KeyError:
+            await ctx.cache.recache(ctx.guild.id)
         await ctx.send(f"{self.map[toggle]} logging")
 
     @logging.command(name="channel", brief="Configure logging channel")
@@ -102,7 +110,10 @@ class Settings(commands.Cog):
         await self.avi.pool.execute(
             "UPDATE logging SET channel_id = $1 WHERE guild_id = $2",
             channel.id, ctx.guild.id)
-        ctx.cache.logging_cache[ctx.guild.id]["channel_id"] = channel.id
+        try:
+            ctx.cache.logging[ctx.guild.id]["channel_id"] = channel.id
+        except KeyError:
+            await ctx.cache.recache(ctx.guild.id)
         await ctx.send(f"Set logging channel to {channel}")
 
     @logging.command(
@@ -115,7 +126,10 @@ class Settings(commands.Cog):
             "UPDATE logging SET message_delete = $1 WHERE guild_id = $2",
             toggle, ctx.guild.id
         )
-        ctx.cache.logging_cache[ctx.guild.id]["message_delete"] = toggle
+        try:
+            ctx.cache.logging[ctx.guild.id]["message_delete"] = toggle
+        except KeyError:
+            await ctx.cache.add_to_cache(ctx.cache.logging, ctx.guild.id)
         await ctx.send(f"{self.map[toggle]} message delete logs")
 
     @logging.command(
@@ -128,7 +142,10 @@ class Settings(commands.Cog):
             "UPDATE logging SET message_edit = $1 WHERE guild_id = $2",
             toggle, ctx.guild.id
         )
-        ctx.cache.logging_cache[ctx.guild.id]["message_edit"] = toggle
+        try:
+            ctx.cache.logging[ctx.guild.id]["message_edit"] = toggle
+        except KeyError:
+            await ctx.cache.recache(ctx.guild.id)
         await ctx.send(f"{self.map[toggle]} message edit logs")
 
     @commands.group(
@@ -159,18 +176,24 @@ class Settings(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     async def join_message(self, ctx: AvimetryContext, toggle: bool = None):
         if toggle is None:
+            config = ctx.cache.join_leave.get(ctx.guild.id)
+            join_message = config["join_message"]
             embed = discord.Embed(
                 title="Join Message Configuration",
                 description=(
                     "```py\n"
-                    "Toggle:\n"
-                    "Join Message:\n"
-                    "Join Channel:```"))
+                    f"Toggle: {self.map[config['join_enabled']]}\n"
+                    f"Join Message: {join_message if len(join_message) < 10 else 'Too Long.'}\n"
+                    f"Join Channel ID: {config['join_channel']}```"))
             return await ctx.send(embed=embed)
         await self.avi.pool.execute(
             "UPDATE join_leave SET join_enabled = $1 WHERE guild_id = $2",
             toggle, ctx.guild.id)
-        ctx.cache.join_leave_cache[ctx.guild.id]["join_enabled"] = toggle
+        try:
+            ctx.cache.join_leave[ctx.guild.id]["join_enabled"] = toggle
+        except KeyError:
+            await ctx.cache.recache(ctx.guild.id)
+        await ctx.send("Enabled Join Message")
 
     @join_message.command(
         name="set",
@@ -188,7 +211,10 @@ class Settings(commands.Cog):
             await self.avi.pool.execute(
                 "UPDATE join_leave SET join_message = $1 WHERE guild_id = $2",
                 message, ctx.guild.id)
-            ctx.cache.join_leave_cache[ctx.guild.id]["join_message"] = message
+            try:
+                ctx.cache.join_leave[ctx.guild.id]["join_message"] = message
+            except KeyError:
+                await ctx.cache.recache(ctx.guild.id)
             return await ctx.send("Succesfully set the join message.")
         return await ctx.send("Cancelled")
 
@@ -200,7 +226,10 @@ class Settings(commands.Cog):
         await self.avi.pool.execute(
             "UPDATE join_leave SET join_channel = $1 WHERE guild_id = $2",
             channel.id, ctx.guild.id)
-        ctx.cache.join_leave_cache[ctx.guild.id]["join_channel"] = channel.id
+        try:
+            ctx.cache.join_leave[ctx.guild.id]["join_channel"] = channel.id
+        except KeyError:
+            await ctx.cache.recache(ctx.guild.id)
 
     @commands.group(
         name="leave-message",
@@ -209,18 +238,23 @@ class Settings(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     async def leave_message(self, ctx: AvimetryContext, toggle: bool = None):
         if toggle is None:
+            config = ctx.cache.join_leave.get(ctx.guild.id)
+            join_message = config["leave_message"]
             embed = discord.Embed(
                 title="Leave Message Configuration",
                 description=(
                     "```py\n"
-                    "Toggle:\n"
-                    "Leave Message:\n"
-                    "Leave Channel:```"))
+                    f"Toggle: {self.map[config['leave_enabled']]}\n"
+                    f"Join Message: {join_message if len(join_message) < 10 else 'Too Long.'}\n"
+                    f"Join Channel ID: {config['leave_channel']}```"))
             return await ctx.send(embed=embed)
         await self.avi.pool.execute(
             "UPDATE join_leave SET leave_enabled = $1 WHERE guild_id = $2",
             toggle, ctx.guild.id)
-        ctx.cache.join_leave_cache[ctx.guild.id]["leave_enabled"] = toggle
+        try:
+            ctx.cache.join_leave[ctx.guild.id]["leave_enabled"] = toggle
+        except KeyError:
+            await ctx.cache.recache(ctx.guild.id)
 
     @leave_message.command(
         name="set",
@@ -238,7 +272,10 @@ class Settings(commands.Cog):
             await self.avi.pool.execute(
                 "UPDATE join_leave SET leave_message = $1 WHERE guild_id = $2",
                 message, ctx.guild.id)
-            ctx.cache.join_leave_cache[ctx.guild.id]["leave_message"] = message
+            try:
+                ctx.cache.join_leave[ctx.guild.id]["leave_message"] = message
+            except KeyError:
+                await ctx.cache.recache(ctx.guild.id)
             return await ctx.send("Succesfully set leave message.")
         return await ctx.send("Cancelled")
 
@@ -250,7 +287,10 @@ class Settings(commands.Cog):
         await self.avi.pool.execute(
             "UPDATE join_leave SET leave_channel = $1 WHERE guild_id = $2",
             channel.id, ctx.guild.id)
-        ctx.cache.join_leave_cache[ctx.guild.id]["leave_channel"] = channel.id
+        try:
+            ctx.cache.join_leave[ctx.guild.id]["leave_channel"] = channel.id
+        except KeyError:
+            await ctx.cache.recache(ctx.guild.id)
 
     @commands.group(invoke_without_command=True, brief="Configure counting settings")
     @commands.has_permissions(administrator=True)
