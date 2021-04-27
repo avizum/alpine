@@ -32,7 +32,6 @@ class AvimetryCache:
 
     async def recache(self, guild: discord.Guild):
         guild_settings = await self.avi.pool.fetch("SELECT * FROM guild_settings WHERE guild_id = $1", guild.id)
-        blacklist = await self.avi.pool.fetch("SELECT * FROM blacklist_user WHERE guild_id = $1", guild.id)
         logging = await self.avi.pool.fetch("SELECT * FROM logging WHERE guild_id = $1", guild.id)
         join_leave = await self.avi.pool.fetch("SELECT * FROM join_leave WHERE guild_id = $1", guild.id)
 
@@ -40,9 +39,6 @@ class AvimetryCache:
             settings = dict(entry)
             settings.pop("guild_id")
             self.guild_settings[entry["guild_id"]] = settings
-
-        for entry in blacklist:
-            self.blacklist[entry["user_id"]] = entry["bl_reason"]
 
         for entry in logging:
             logs = dict(entry)
