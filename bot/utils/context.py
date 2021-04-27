@@ -67,6 +67,8 @@ class AvimetryContext(commands.Context):
                     )
                     embed.timestamp = datetime.datetime.utcnow()
                 if not embed.color:
+                    if self.author.id in self.bot.owner_ids:
+                        embed.color == discord.Color.blurple()
                     embed.color = self.author.color
                     if self.author.color == discord.Color(0):
                         embed.color = discord.Color(0x2F3136)

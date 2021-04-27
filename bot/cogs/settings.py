@@ -12,7 +12,7 @@ class Settings(commands.Cog):
 
     async def cog_command_error(self, ctx, error):
         if isinstance(error, KeyError):
-            await ctx.cache.recache(ctx.guild.id)
+            await ctx.cache.recache(ctx.guild)
 
     @commands.group(
         brief="Configure the server's prefixes",
@@ -101,7 +101,7 @@ class Settings(commands.Cog):
         try:
             ctx.cache.logging[ctx.guild.id]["enabled"] = toggle
         except KeyError:
-            await ctx.cache.recache(ctx.guild.id)
+            await ctx.cache.recache(ctx.guild)
         await ctx.send(f"{self.map[toggle]} logging")
 
     @logging.command(name="channel", brief="Configure logging channel")
@@ -113,7 +113,7 @@ class Settings(commands.Cog):
         try:
             ctx.cache.logging[ctx.guild.id]["channel_id"] = channel.id
         except KeyError:
-            await ctx.cache.recache(ctx.guild.id)
+            await ctx.cache.recache(ctx.guild)
         await ctx.send(f"Set logging channel to {channel}")
 
     @logging.command(
@@ -145,7 +145,7 @@ class Settings(commands.Cog):
         try:
             ctx.cache.logging[ctx.guild.id]["message_edit"] = toggle
         except KeyError:
-            await ctx.cache.recache(ctx.guild.id)
+            await ctx.cache.recache(ctx.guild)
         await ctx.send(f"{self.map[toggle]} message edit logs")
 
     @commands.group(
@@ -192,7 +192,7 @@ class Settings(commands.Cog):
         try:
             ctx.cache.join_leave[ctx.guild.id]["join_enabled"] = toggle
         except KeyError:
-            await ctx.cache.recache(ctx.guild.id)
+            await ctx.cache.recache(ctx.guild)
         await ctx.send("Enabled Join Message")
 
     @join_message.command(
@@ -214,7 +214,7 @@ class Settings(commands.Cog):
             try:
                 ctx.cache.join_leave[ctx.guild.id]["join_message"] = message
             except KeyError:
-                await ctx.cache.recache(ctx.guild.id)
+                await ctx.cache.recache(ctx.guild)
             return await ctx.send("Succesfully set the join message.")
         return await ctx.send("Cancelled")
 
@@ -229,7 +229,7 @@ class Settings(commands.Cog):
         try:
             ctx.cache.join_leave[ctx.guild.id]["join_channel"] = channel.id
         except KeyError:
-            await ctx.cache.recache(ctx.guild.id)
+            await ctx.cache.recache(ctx.guild)
 
     @commands.group(
         name="leave-message",
@@ -254,7 +254,7 @@ class Settings(commands.Cog):
         try:
             ctx.cache.join_leave[ctx.guild.id]["leave_enabled"] = toggle
         except KeyError:
-            await ctx.cache.recache(ctx.guild.id)
+            await ctx.cache.recache(ctx.guild)
 
     @leave_message.command(
         name="set",
@@ -275,7 +275,7 @@ class Settings(commands.Cog):
             try:
                 ctx.cache.join_leave[ctx.guild.id]["leave_message"] = message
             except KeyError:
-                await ctx.cache.recache(ctx.guild.id)
+                await ctx.cache.recache(ctx.guild)
             return await ctx.send("Succesfully set leave message.")
         return await ctx.send("Cancelled")
 
@@ -290,7 +290,7 @@ class Settings(commands.Cog):
         try:
             ctx.cache.join_leave[ctx.guild.id]["leave_channel"] = channel.id
         except KeyError:
-            await ctx.cache.recache(ctx.guild.id)
+            await ctx.cache.recache(ctx.guild)
 
     @commands.group(invoke_without_command=True, brief="Configure counting settings")
     @commands.has_permissions(administrator=True)
