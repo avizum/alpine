@@ -18,8 +18,7 @@ class MemberJoin(commands.Cog):
             return
         prefixes = await self.avi.temp.get_guild_settings(member.guild.id)
         global pre
-        pre = prefixes["prefixes"][0] or "a."
-
+        pre = "a." if not prefixes["prefixes"] else prefixes["prefixes"][0]
         try:
             vergate = await self.avi.config.find(member.guild.id)
         except KeyError:
