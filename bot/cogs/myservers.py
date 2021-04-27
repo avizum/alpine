@@ -53,7 +53,7 @@ ROLE_MAP = {
 
 class Servers(commands.Cog, name="Servers"):
     '''
-    Commands for My servers only.
+    Commands for avi's servers only.
     '''
     def __init__(self, avi):
         self.avi = avi
@@ -120,7 +120,7 @@ class Servers(commands.Cog, name="Servers"):
 
     @tasks.loop(minutes=5)
     async def update_count(self):
-        guild: discord.Guild = self.avi.get_guild(self.guild_id)
+        guild: discord.Guild = self.avi.get_guild(self.guild_id[0])
         if guild is None:
             return
         total = guild.member_count
@@ -146,7 +146,7 @@ class Servers(commands.Cog, name="Servers"):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        if member.guild.id == self.guild_id:
+        if member.guild.id == self.guild_id[0]:
             root = member.guild.get_role(813535792655892481)
             await member.add_roles(root)
 
@@ -164,7 +164,7 @@ class Servers(commands.Cog, name="Servers"):
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         if (
-            member.guild.id == self.guild_id
+            member.guild.id == self.guild_id[0]
             and self.get(self.joins_and_leaves).guild.id == member.guild.id
         ):
             lm = discord.Embed(
@@ -199,7 +199,6 @@ class Servers(commands.Cog, name="Servers"):
             except discord.Forbidden:
                 pass
 
-    # Update Member Count Command
     @commands.command(
         aliases=["updatemc", "umembercount"],
         brief="Updates the member count if the count gets out of sync.",

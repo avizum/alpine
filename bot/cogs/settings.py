@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from utils import AvimetryBot, AvimetryContext, Prefix
+from utils import AvimetryBot, AvimetryContext, Prefix, preview_message
 
 
 class Settings(commands.Cog):
@@ -24,7 +24,10 @@ class Settings(commands.Cog):
             return await ctx.send(f"The prefix for this server is `{guild_prefix[0]}`")
         await ctx.send(f"Here are my prefixes for this server: \n`{'` | `'.join(guild_prefix)}`")
 
-    @prefix.command()
+    @prefix.command(
+        name="add",
+        brief="Add a prefix to the server"
+    )
     @commands.has_permissions(manage_guild=True)
     async def prefix_add(self, ctx: AvimetryContext, prefix: Prefix):
         await self.avi.pool.execute(
@@ -33,7 +36,10 @@ class Settings(commands.Cog):
         ctx.cache.guild_settings_cache[ctx.guild.id]["prefixes"].append(prefix)
         await ctx.send(f"Appended `{prefix}` to the list of prefixes.")
 
-    @prefix.command()
+    @prefix.command(
+        name="remove",
+        brief="Remove a prefix from the server"
+    )
     @commands.has_permissions(manage_guild=True)
     async def prefix_remove(self, ctx: AvimetryContext, prefix):
         prefix = prefix.lower()
@@ -147,10 +153,104 @@ class Settings(commands.Cog):
         await ctx.send(f"The verify role is set to {role}")
 
     @commands.group(
-        invoke_without_command=True)
+        name="join-message",
+        invoke_without_command=True
+        )
     @commands.has_permissions(manage_guild=True)
-    async def welcome(self, ctx):
-        return
+    async def join_message(self, ctx: AvimetryContext, toggle: bool = None):
+        if toggle is None:
+            embed = discord.Embed(
+                title="Join Message Configuration",
+                description=(
+                    "```py\n"
+                    "Toggle:\n"
+                    "Join Message:\n"
+                    "Join Channel:```"))
+            return await ctx.send(embed=embed)
+        await self.avi.execute(
+            "UPDATE join_leave SET join_enabled = $1 WHERE guild_id = $2",
+            toggle, ctx.guild.id)
+        ctx.cache.join_leave_cache[ctx.guild.id]["join_enabled"] = toggle
+
+    @join_message.command(
+        name="set",
+        brief="Set the message when a member joins"
+    )
+    @commands.has_permissions(manage_guild=True)
+    async def join_message_set(self, ctx: AvimetryContext, *, message: str):
+        conf_message = "Does this look good to you?"
+        thing = await preview_message(message, ctx)
+        if type(thing) == discord.Embed:
+            conf = await ctx.confirm(conf_message, embed=thing, raw=True)
+        else:
+            conf = await ctx.confirm(f"{conf_message}\n\n{thing}", raw=True)
+        if conf:
+            await self.avi.pool.execute(
+                "UPDATE join_leave SET join_message = $1 WHERE guild_id = $2",
+                message, ctx.guild.id)
+            ctx.cache.join_leave_cache[ctx.guild.id]["join_message"] = message
+            return await ctx.send("Succesfully set the join message.")
+        return await ctx.send("Cancelled")
+
+    @join_message.command(
+        name="channel",
+        brief="Set the join message channel"
+    )
+    async def join_message_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
+        await self.avi.pool.execute(
+            "UPDATE join_leave SET join_channel = $1 WHERE guild_id = $2",
+            channel.id, ctx.guild.id)
+        ctx.cache.join_leave_cache[ctx.guild.id]["join_channel"] = channel.id
+
+    @commands.group(
+        name="leave-message",
+        invoke_without_command=True
+        )
+    @commands.has_permissions(manage_guild=True)
+    async def leave_message(self, ctx: AvimetryContext, toggle: bool = None):
+        if toggle is None:
+            embed = discord.Embed(
+                title="Leave Message Configuration",
+                description=(
+                    "```py\n"
+                    "Toggle:\n"
+                    "Leave Message:\n"
+                    "Leave Channel:```"))
+            return await ctx.send(embed=embed)
+        await self.avi.execute(
+            "UPDATE join_leave SET leave_enabled = $1 WHERE guild_id = $2",
+            toggle, ctx.guild.id)
+        ctx.cache.join_leave_cache[ctx.guild.id]["leave_enabled"] = toggle
+
+    @leave_message.command(
+        name="set",
+        brief="Set the message when a member leaves"
+    )
+    @commands.has_permissions(manage_guild=True)
+    async def leave_message_set(self, ctx: AvimetryContext, *, message: str):
+        conf_message = "Does this look good to you?"
+        thing = await preview_message(message, ctx)
+        if type(thing) == discord.Embed:
+            conf = await ctx.confirm(conf_message, embed=thing, raw=True)
+        else:
+            conf = await ctx.confirm(f"{conf_message}\n\n{thing}", raw=True)
+        if conf:
+            await self.avi.pool.execute(
+                "UPDATE join_leave SET leave_message = $1 WHERE guild_id = $2",
+                message, ctx.guild.id)
+            ctx.cache.join_leave_cache[ctx.guild.id]["leave_message"] = message
+            return await ctx.send("Succesfully set leave message.")
+        return await ctx.send("Cancelled")
+
+    @leave_message.command(
+        name="channel",
+        brief="Set the leave message channel"
+    )
+    async def leave_message_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
+        await self.avi.pool.execute(
+            "UPDATE join_leave SET leave_channel = $1 WHERE guild_id = $2",
+            channel.id, ctx.guild.id)
+        ctx.cache.join_leave_cache[ctx.guild.id]["leave_channel"] = channel.id
 
     @commands.group(invoke_without_command=True, brief="Configure counting settings")
     @commands.has_permissions(administrator=True)

@@ -27,7 +27,8 @@ class ErrorHandler(commands.Cog):
                 title="You are blacklisted",
                 description=(
                     f"Blacklist reason: `{error.reason}`\n"
-                    "If you think this is an error, Join the [support](https://discord.gg/EG8M4DTm6U) server to appeal."
+                    "If you think this message is an error, "
+                    "Please join the [support](https://discord.gg/NM7E7Rxy) server to appeal."
                 ),
                 color=discord.Color.red(),
             )
@@ -61,10 +62,6 @@ class ErrorHandler(commands.Cog):
 
         elif isinstance(error, commands.BotMissingPermissions):
             mp = error.missing_perms
-            if "embed_links" in mp:
-                return await ctx.send_raw(
-                    "I do not have permissions to use embeds. Please [turn them on](https://youtu.be/Cftk32YHzKM)."
-                )
             missing_perms = (
                 " ".join(str(elem) for elem in mp)
                 .replace("_", " ")
@@ -189,7 +186,7 @@ class ErrorHandler(commands.Cog):
             ee.title = "Unknown Error"
             ee.description = (
                 "An unknown error has occured. This usually means that avi did something wrong. "
-                "The error was sent to the [support server](https://discord.gg/EG8M4DTm6U) and will be fixed soon."
+                "The error was sent to the [support server](https://discord.gg/NM7E7Rxy) and will be fixed soon."
                 f"\n\n[Error]({myst_exception}):\n```py\n{short_exception}```"
             )
             try:

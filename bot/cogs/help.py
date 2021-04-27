@@ -115,12 +115,12 @@ class HelpEmbeded(commands.HelpCommand):
     async def send_group_help(self, group):
         embed = discord.Embed(
             title=f"Commands in group {group.qualified_name.title()}",
-            description=f"{group.short_doc}" or None,
+            description=f"{group.short_doc}" or "There are no commands in this module",
         )
         embed.add_field(
             name="Base command usage",
             value=(
-                f"`{self.clean_prefix}{group.qualified_name} {group.signature}`"
+                f"`{self.clean_prefix}{group.qualified_name} [{group.signature}|subcommands]`"
             )
         )
         embed.add_field(

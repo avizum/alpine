@@ -30,9 +30,11 @@ class AvimetryCache:
         self.guild_settings_cache = {}
         self.blacklist_cache = {}
         self.logging_cache = {}
+        self.join_leave_cache = {}
         await self.cache_guild_settings()
         await self.cache_blacklisted()
         await self.cache_logging()
+        await self.cache_join_leave()
 
     async def get_guild_prefixes(self, guild_id: int):
         prefix = self.guild_settings_cache.get(guild_id, None)
@@ -53,7 +55,7 @@ class AvimetryCache:
         except Exception:
             return
         self.guild_settings_cache[guild_id] = deepcopy({"prefixes": []})
-        self.logging_cache[guild_id] = []
+        self.logging_cache[guild_id] = {}
         return self.guild_settings_cache[guild_id]
 
     async def cache_guild_settings(self):
@@ -70,3 +72,8 @@ class AvimetryCache:
         items = await self.avi.pool.fetch("SELECT * FROM logging")
         for entry in items:
             self.logging_cache[entry["guild_id"]] = {key: value for key, value in list(entry.items())}
+
+    async def cache_join_leave(self):
+        items = await self.avi.pool.fetch("SELECT * FROM join_leave")
+        for entry in items:
+            self.join_leave_cache[entry["guild_id"]] = {key: value for key, value in list(entry.items())}

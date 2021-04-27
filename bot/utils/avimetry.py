@@ -98,20 +98,20 @@ class AvimetryBot(commands.Bot):
             "cogs.counting",
             "cogs.developer",
             "cogs.errorhandler",
+            "cogs.events",
             "cogs.fun",
             "cogs.help",
             "cogs.images",
             "cogs.jishaku",
-            "cogs.events",
+            "cogs.joinsandleaves",
             "cogs.member",
-            "cogs.memberjoin",
             "cogs.meta",
             "cogs.moderation",
             "cogs.myservers",
             "cogs.roblox",
             "cogs.settings",
             "cogs.setup",
-            "cogs.testing"
+            "cogs.verification"
         ]
 
         self.sr = sr_api.Client()

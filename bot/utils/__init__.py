@@ -7,3 +7,4 @@ from .errors import *
 from .menus import *
 from .mongo import *
 from .utils import *
+from .parser import *

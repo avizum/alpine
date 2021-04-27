@@ -25,6 +25,10 @@ class BotInfo(commands.Cog, name="Bot Info"):
     @commands.command()
     async def about(self, ctx: AvimetryContext):
         embed = discord.Embed(title="Info about Avimetry")
+        embed.add_field(
+            name="Latest Updates",
+            value="New Database! Migrating will take a bit, So prefixes, configuration may be broken."
+        )
         embed.add_field(name="Developer", value="avi#8771")
         embed.add_field(name="Ping", value=f"`{round(self.avi.latency * 1000)}ms`")
         embed.add_field(name="Guild Count", value=f"{len(self.avi.guilds)} Guilds")
@@ -129,7 +133,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         req_embed = discord.Embed(
             title="Request sent",
             description=(
-                "Thank you for your request! Join the [support]('https://discord.gg/EG8M4DTm6U') server to see if \n"
+                "Thank you for your request! Join the [support](https://discord.gg/NM7E7Rxy) server to see if \n"
                 "your request has been approved.\n"
                 "Please note that spam requests will get you permanently blacklisted from this bot."
             )
