@@ -292,7 +292,7 @@ class Settings(commands.Cog):
                     """
                     INSERT INTO join_leave (guild_id, join_enabled, join_message, join_channel)
                     VALUES ($1, $2, $3, $4)
-                    ON CONFLICT DO
+                    ON CONFLICT (guild_id) DO
                     UPDATE SET guild_id = $1, join_enabled = $2, join_message = $3, join_channel = $4
                     """
                 )
@@ -421,7 +421,7 @@ class Settings(commands.Cog):
                     """
                     INSERT INTO leave_leave (guild_id, leave_enabled, leave_message, leave_channel)
                     VALUES ($1, $2, $3, $4)
-                    ON CONFLICT DO
+                    ON CONFLICT (guild_id) DO
                     UPDATE SET guild_id = $1, leave_enabled = $2, leave_message = $3, leave_channel = $4
                     """
                 )
