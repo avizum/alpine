@@ -310,16 +310,30 @@ class Settings(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     async def leave_message(self, ctx: AvimetryContext, toggle: bool = None):
         if toggle is None:
-            config = ctx.cache.join_leave.get(ctx.guild.id)
-            join_message = config["leave_message"]
-            embed = discord.Embed(
-                title="Leave Message Configuration",
-                description=(
-                    "```py\n"
-                    f"Toggle: {self.map[config['leave_enabled']]}\n"
-                    f"Join Message: {join_message if len(join_message) < 10 else 'Too Long.'}\n"
-                    f"Join Channel ID: {config['leave_channel']}```"))
-            return await ctx.send(embed=embed)
+            try:
+                config = ctx.cache.join_leave.get(ctx.guild.id)
+                join_message = config["leave_message"]
+                embed = discord.Embed(
+                    title="Leave Message Configuration",
+                    description=(
+                        "```py\n"
+                        f"Toggle: {self.map[config['leave_enabled']]}\n"
+                        f"Join Message: {join_message if len(join_message) < 10 else 'Too Long.'}\n"
+                        f"Join Channel ID: {config['leave_channel']}```"))
+                return await ctx.send(embed=embed)
+            except KeyError:
+                embed = discord.Embed(
+                    title="Leave Message Configuration",
+                    description=(
+                        "You do not have leave messages setup yet.\n"
+                        "Do you want to set them up?"
+                    )
+                )
+                confirm = await ctx.confirm(embed=embed)
+                if confirm:
+                    command = self.avi.get_command("leave-message setup")
+                    await command(ctx)
+                return
         await self.avi.pool.execute(
             "UPDATE join_leave SET leave_enabled = $1 WHERE guild_id = $2",
             toggle, ctx.guild.id)
@@ -356,6 +370,7 @@ class Settings(commands.Cog):
         name="channel",
         brief="Set the leave message channel"
     )
+    @commands.has_permissions(manage_guild=True)
     async def leave_message_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
         query = (
             """
@@ -419,7 +434,7 @@ class Settings(commands.Cog):
             if conf:
                 query = (
                     """
-                    INSERT INTO leave_leave (guild_id, leave_enabled, leave_message, leave_channel)
+                    INSERT INTO join_leave (guild_id, leave_enabled, leave_message, leave_channel)
                     VALUES ($1, $2, $3, $4)
                     ON CONFLICT (guild_id) DO
                     UPDATE SET guild_id = $1, leave_enabled = $2, leave_message = $3, leave_channel = $4
