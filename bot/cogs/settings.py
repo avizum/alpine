@@ -246,7 +246,7 @@ class Settings(commands.Cog):
     )
     @commands.has_permissions(manage_guild=True)
     async def join_message_setup(self, ctx: AvimetryContext):
-        if ctx.guild.id in ctx.cache.join_leave:
+        if "join_message" in ctx.cache.join_leave[ctx.guild.id]:
             confirm = await ctx.confirm("You already have join messages setup. Do you want to continue?")
             if not confirm:
                 return
@@ -374,7 +374,7 @@ class Settings(commands.Cog):
     )
     @commands.has_permissions(manage_guild=True)
     async def leave_message_setup(self, ctx: AvimetryContext):
-        if ctx.guild.id in ctx.cache.join_leave:
+        if "leave_message" in ctx.cache.join_leave[ctx.guild.id]:
             confirm = await ctx.confirm("You already have leave messages setup. Do you want to continue?")
             if not confirm:
                 return
