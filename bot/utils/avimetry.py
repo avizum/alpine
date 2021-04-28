@@ -164,6 +164,8 @@ class AvimetryBot(commands.Bot):
             return
         if message.author.bot:
             return
+        if self.devmode is True and ctx.author.id not in self.owner_ids:
+            return
         await self.invoke(ctx)
 
     async def on_message(self, message):
@@ -188,10 +190,10 @@ class AvimetryBot(commands.Bot):
         return round((end - start) * 1000)
 
     def run(self):
-        if platform in ["linux", "linux2"]:
-            token = tokens["Avimetry"]
-        else:
-            token = tokens["AvimetryBeta"]
+        if platform not in ["linux", "linux2"]:
+            self.devmode = True
+            self.command_prefix = "ab."
+        token = tokens["Avimetry"]
         self.loop.run_until_complete(self.cache.cache_all())
         self.launch_time = datetime.datetime.utcnow()
         super().run(token, reconnect=True)

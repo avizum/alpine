@@ -5,6 +5,7 @@ from discord.ext import tasks
 class AvimetryCache:
     def __init__(self, avi):
         self.avi = avi
+        self.cache_loop.start()
         self.guild_settings = {}
         self.logging = {}
         self.join_leave = {}
@@ -28,6 +29,9 @@ class AvimetryCache:
             for cache in cache_list:
                 if guild.id not in cache:
                     cache[guild.id] = {}
+
+    async def delete_all(self, gid):
+        await self.avi.pool.execute("DELETE FROM guild_settings WHERE guild_id = $1", gid)
 
     async def get_guild_settings(self, guild_id: int):
         return self.guild_settings.get(guild_id, None)

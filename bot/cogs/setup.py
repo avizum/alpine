@@ -25,6 +25,7 @@ class Setup(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
         channel = self.avi.get_channel(829812033946910720)
+        await self.avi.cache.delete_all(guild.id)
         await channel.send(f"Left a server named **{guild.name}** with **{guild.member_count}** members")
 
 

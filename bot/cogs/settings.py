@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from discord.ext import commands
 from utils import AvimetryBot, AvimetryContext, Prefix, preview_message
@@ -159,16 +160,30 @@ class Settings(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     async def join_message(self, ctx: AvimetryContext, toggle: bool = None):
         if toggle is None:
-            config = ctx.cache.join_leave.get(ctx.guild.id)
-            join_message = config["join_message"]
-            embed = discord.Embed(
-                title="Join Message Configuration",
-                description=(
-                    "```py\n"
-                    f"Toggle: {self.map[config['join_enabled']]}\n"
-                    f"Join Message: {join_message if len(join_message) < 10 else 'Too Long.'}\n"
-                    f"Join Channel ID: {config['join_channel']}```"))
-            return await ctx.send(embed=embed)
+            try:
+                config = ctx.cache.join_leave.get(ctx.guild.id)
+                join_message = config["join_message"]
+                embed = discord.Embed(
+                    title="Join Message Configuration",
+                    description=(
+                        "```py\n"
+                        f"Toggle: {self.map[config['join_enabled']]}\n"
+                        f"Join Message: {join_message if len(join_message) < 10 else 'Too Long.'}\n"
+                        f"Join Channel ID: {config['join_channel']}```"))
+                return await ctx.send(embed=embed)
+            except KeyError:
+                embed = discord.Embed(
+                    title="Join Message Configutation",
+                    description=(
+                        "You do not have join messages setup yet.\n"
+                        "Do you want to set them up?"
+                    )
+                )
+                confirm = await ctx.confirm(embed=embed)
+                if confirm:
+                    command = self.avi.get_command("join-message setup")
+                    await command(ctx)
+                return
         await self.avi.pool.execute(
             "UPDATE join_leave SET join_enabled = $1 WHERE guild_id = $2",
             toggle, ctx.guild.id)
@@ -176,35 +191,62 @@ class Settings(commands.Cog):
         await ctx.send(f"{self.map[toggle]} join message")
 
     @join_message.command(
-        name="set",
-        brief="Set the message when a member joins"
+        name="setup",
+        brief="Setup join message"
     )
     @commands.has_permissions(manage_guild=True)
-    async def join_message_set(self, ctx: AvimetryContext, *, message: str):
-        conf_message = "Does this look good to you?"
-        thing = await preview_message(message, ctx)
-        if type(thing) == discord.Embed:
-            conf = await ctx.confirm(conf_message, embed=thing, raw=True)
-        else:
-            conf = await ctx.confirm(f"{conf_message}\n\n{thing}", raw=True)
-        if conf:
-            await self.avi.pool.execute(
-                "UPDATE join_leave SET join_message = $1 WHERE guild_id = $2",
-                message, ctx.guild.id)
-            ctx.cache.join_leave[ctx.guild.id]["join_message"] = message
-            return await ctx.send("Succesfully set the join message.")
-        return await ctx.send("Cancelled")
+    async def join_message_setup(self, ctx: AvimetryContext):
+        try:
+            await self.avi.pool.execute("INSERT INTO join_leave (guild_id) VALUES ($1)", ctx.guild.id)
+        except Exception:
+            confirm = await ctx.confirm("You already have join messages setup. Do you want to continue?")
+            if not confirm:
+                return
+        await ctx.send("Hello. Which channel would you like to send the join messages to?")
 
-    @join_message.command(
-        name="channel",
-        brief="Set the join message channel"
-    )
-    async def join_message_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
-        await self.avi.pool.execute(
-            "UPDATE join_leave SET join_channel = $1 WHERE guild_id = $2",
-            channel.id, ctx.guild.id)
-        ctx.cache.join_leave[ctx.guild.id]["join_channel"] = channel.id
-        await ctx.send(f"Set the join message channel to {channel.mention}")
+        def check(m):
+            return m.author == ctx.author
+        try:
+            wait_channel = await self.avi.wait_for("message", check=check, timeout=300)
+        except asyncio.TimeoutError:
+            await ctx.send("Cancelling due to timeout.")
+        else:
+            if wait_channel.content.lower() == "cancel":
+                wait_channel.reply("Cancelled.")
+                return
+            try:
+                channel = await commands.TextChannelConverter().convert(ctx, wait_channel.content)
+            except commands.ChannelNotFound:
+                await wait_channel.reply("That is not a channel. Cancelling.")
+            if channel:
+                await wait_channel.reply(
+                    f"Okay, set {channel.mention} as the channel.\n What would you want the message to be?"
+                )
+
+        try:
+            wait_message = await self.avi.wait_for("message", check=check, timeout=300)
+        except asyncio.TimeoutError:
+            await ctx.send("Cancelling due to timeout.")
+        else:
+            message = wait_message.content
+            conf_message = "Does this look good to you?"
+            preview = await preview_message(message, ctx)
+            if type(preview) == discord.Embed:
+                conf = await ctx.confirm(conf_message, embed=preview, raw=True)
+            else:
+                conf = await ctx.confirm(f"{conf_message}\n\n{preview}", raw=True)
+            if conf:
+                query = (
+                    "UPDATE join_leave "
+                    "SET guild_id = $1, join_enabled = $2, join_message = $3, join_channel = $4 "
+                    "WHERE guild_id = $1"
+                )
+                await self.avi.pool.execute(query, ctx.guild.id, True, message, channel.id)
+                ctx.cache.join_leave[ctx.guild.id]["join_enabled"] = True
+                ctx.cache.join_leave[ctx.guild.id]["join_message"] = message
+                ctx.cache.join_leave[ctx.guild.id]["join_channel"] = channel.id
+                return await wait_message.reply("Sucessfully setup join messages.")
+            return await wait_message.reply("Cancelled. Goodbye.")
 
     @commands.group(
         name="leave-message",

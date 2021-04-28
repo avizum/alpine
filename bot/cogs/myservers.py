@@ -144,45 +144,6 @@ class Servers(commands.Cog, name="Servers"):
     async def before_update_count(self):
         await self.avi.wait_until_ready()
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member):
-        if member.guild.id == self.guild_id[0]:
-            root = member.guild.get_role(813535792655892481)
-            await member.add_roles(root)
-
-        if self.get(self.joins_and_leaves).guild.id == member.guild.id:
-            join_message = discord.Embed(
-                title="Member Joined",
-                description=(
-                    f"Hey **{str(member)}**, Welcome to **{member.guild.name}**!\n"
-                    f"This server now has a total of **{member.guild.member_count}** members."
-                ),
-                color=discord.Color.blurple()
-            )
-            await self.get(self.joins_and_leaves).send(embed=join_message)
-
-    @commands.Cog.listener()
-    async def on_member_remove(self, member):
-        if (
-            member.guild.id == self.guild_id[0]
-            and self.get(self.joins_and_leaves).guild.id == member.guild.id
-        ):
-            lm = discord.Embed(
-                title="Member Leave",
-                description=(
-                    f"Aww, **{str(member)}** has left **{member.guild.name}**.\n"
-                    f"This server now has a total of **{member.guild.member_count}** members."
-                ),
-                color=discord.Color.red()
-            )
-            audit = await member.guild.audit_logs(limit=1).flatten()[0]
-            if audit.action == discord.AuditLogAction.ban:
-                lm.title = "Member Leave: Ban"
-                lm.description = (
-                    f"**{str(member)}** left **{member.guild.name}** because they were banned."
-                    f"This server now has a total of **{member.guild.member_count}** members.")
-            await self.get(self.joins_and_leaves).send(embed=lm)
-
     @commands.Cog.listener("on_member_update")
     async def member_update(self, before, after):
         if after.guild.id != 751490725555994716:
@@ -198,24 +159,6 @@ class Servers(commands.Cog, name="Servers"):
                 return await after.edit(nick=after.name, reason="Nick can not be \"avi\"")
             except discord.Forbidden:
                 pass
-
-    @commands.command(
-        aliases=["updatemc", "umembercount"],
-        brief="Updates the member count if the count gets out of sync.",
-    )
-    @commands.has_permissions(administrator=True)
-    async def refreshcount(self, ctx: AvimetryContext):
-        channel = self.avi.get_channel(783961111060938782)
-        await channel.edit(name=f"Total Members: {channel.guild.member_count}")
-
-        channel2 = self.avi.get_channel(783960970472456232)
-        true_member_count = len([m for m in channel.guild.members if not m.bot])
-        await channel2.edit(name=f"Members: {true_member_count}")
-
-        channel3 = self.avi.get_channel(783961050814611476)
-        true_bot_count = len([m for m in channel.guild.members if m.bot])
-        await channel3.edit(name=f"Bots: {true_bot_count}")
-        await ctx.send("Member Count Updated.")
 
     @commands.command()
     async def testing(self, ctx: AvimetryContext):
