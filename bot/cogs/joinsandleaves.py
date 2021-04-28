@@ -42,6 +42,11 @@ def guild(env):
     return env.guild.name
 
 
+@parser.tag("name")
+def guild_name(env):
+    return env.guild.name
+
+
 @guild.tag("member_count", alias="count")
 def guild_member_count(env):
     return env.guild.member_count
