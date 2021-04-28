@@ -16,7 +16,7 @@ class MemberJoin(commands.Cog):
     async def on_member_join(self, member):
         if member.bot:
             return
-        prefixes = await self.avi.temp.get_guild_settings(member.guild.id)
+        prefixes = await self.avi.cache.get_guild_settings(member.guild.id)
         global pre
         pre = "a." if not prefixes["prefixes"] else prefixes["prefixes"][0]
         try:

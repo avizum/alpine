@@ -41,7 +41,7 @@ async def escape_prefix(prefixes):
 async def bot_prefix(avi, message: discord.Message):
     if avi.user.id == BETA_BOT_ID:
         command_prefix = BETA_PREFIXES
-    elif not message.guild or (get_prefix := await avi.temp.get_guild_settings(message.guild.id)) is None:
+    elif not message.guild or (get_prefix := await avi.cache.get_guild_settings(message.guild.id)) is None:
         command_prefix = DEFAULT_PREFIXES
     else:
         command_prefix = get_prefix["prefixes"]
@@ -81,7 +81,7 @@ class AvimetryBot(commands.Bot):
         self.commands_ran = 0
         self.command_cache = {}
         self.devmode = False
-        self.temp = AvimetryCache(self)
+        self.cache = AvimetryCache(self)
         self.invite = str(discord.utils.oauth_url(PUBLIC_BOT_ID, discord.Permissions(2147483647)))
         self.emoji_dictionary = {
             "red_tick": '<:redtick:777096756865269760>',
@@ -121,6 +121,7 @@ class AvimetryBot(commands.Bot):
         self.session = aiohttp.ClientSession()
 
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**postgresql))
+
         self.mongo = motor.motor_asyncio.AsyncIOMotorClient(tokens["MongoDB"])
         self.db = self.mongo["avimetry"]
         self.config = MongoDB(self.db, "new")
@@ -133,13 +134,12 @@ class AvimetryBot(commands.Bot):
         async def check(ctx):
             if not ctx.guild:
                 raise commands.NoPrivateMessage()
-            if ctx.author.id in self.temp.blacklist:
-                raise Blacklisted(reason=self.temp.blacklist[ctx.author.id])
+            if ctx.author.id in self.cache.blacklist:
+                raise Blacklisted(reason=self.cache.blacklist[ctx.author.id])
             return True
 
         @self.event
         async def on_ready():
-            print("before ready")
             await self.wait_until_ready()
             timenow = datetime.datetime.now().strftime("%I:%M %p")
             print(
@@ -192,6 +192,7 @@ class AvimetryBot(commands.Bot):
             token = tokens["Avimetry"]
         else:
             token = tokens["AvimetryBeta"]
+        self.loop.run_until_complete(self.cache.cache_all())
         self.launch_time = datetime.datetime.utcnow()
         super().run(token, reconnect=True)
 

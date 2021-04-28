@@ -10,7 +10,7 @@ from discord.ext import commands
 class AvimetryContext(commands.Context):
     @property
     def cache(self):
-        return self.bot.temp
+        return self.bot.cache
 
     @property
     def clean_prefix(self):
