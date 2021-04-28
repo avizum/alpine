@@ -266,6 +266,7 @@ class Settings(commands.Cog):
                 channel = await commands.TextChannelConverter().convert(ctx, wait_channel.content)
             except commands.ChannelNotFound:
                 await wait_channel.reply("That is not a channel. Cancelling.")
+                return
             if channel:
                 await wait_channel.reply(
                     f"Okay, set {channel.mention} as the channel.\nWhat would you want the message to be? (5 Min)"
@@ -394,6 +395,7 @@ class Settings(commands.Cog):
                 channel = await commands.TextChannelConverter().convert(ctx, wait_channel.content)
             except commands.ChannelNotFound:
                 await wait_channel.reply("That is not a channel. Cancelling.")
+                return
             if channel:
                 await wait_channel.reply(
                     f"Okay, set {channel.mention} as the channel.\nWhat would you want the message to be? (5 Min)"
