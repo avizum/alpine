@@ -9,10 +9,6 @@ class BotLogs(commands.Cog):
         self.avi = avi
         self.clear_cache.start()
 
-    async def get_logs(self, arg):
-        logcheck = await self.avi.logs.find(arg)
-        return logcheck
-
     @commands.Cog.listener("on_message_delete")
     async def on_message_delete(self, message: discord.Message):
         if not message.guild:

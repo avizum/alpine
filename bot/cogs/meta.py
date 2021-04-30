@@ -89,7 +89,7 @@ class Meta(commands.Cog):
                 inline=False,
             )
         else:
-            userroles = []
+            userroles = ["@everyone"]
             for roles in member.roles:
                 userroles.append(roles.mention)
                 if ctx.guild.default_role.mention in userroles:
@@ -121,7 +121,10 @@ class Meta(commands.Cog):
             }
             member_status = status[member.raw_status]
             ie.add_field(name="Status", value=member_status)
-            ie.add_field(name="Top Role", value=member.top_role.mention, inline=False)
+            top_role = member.top_role.mention
+            if top_role == ctx.guild.default_role.mention:
+                top_role = "@everyone"
+            ie.add_field(name="Top Role", value=top_role, inline=False)
             ie.add_field(
                 name=f"Roles [{len(userroles)}]",
                 value=", ".join(userroles),
@@ -143,8 +146,7 @@ class Meta(commands.Cog):
     async def time(self, ctx: AvimetryContext, *, member: discord.Member = None):
         if member is None:
             member = ctx.author
-        query = "SELECT FROM user_settings WHERE user_id = $1"
-        thing = await self.avi.pool.fetchrow(query, ctx.author.id)
+        thing = ctx.cache.users[member.id]["timezone"]
         try:
             timezone = thing["timezone"]
         except KeyError:
