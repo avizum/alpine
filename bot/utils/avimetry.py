@@ -186,7 +186,8 @@ class AvimetryBot(commands.Bot):
         if platform not in ["linux", "linux2"]:
             self.devmode = True
             self.command_prefix = "ab."
-        token = tokens["AvimetryBeta"]
+            token = tokens["AvimetryBeta"]
+        token = tokens["Avimetry"]
         self.loop.run_until_complete(self.cache.cache_all())
         self.launch_time = datetime.datetime.utcnow()
         super().run(token, reconnect=True)
