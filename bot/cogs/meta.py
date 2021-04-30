@@ -174,7 +174,7 @@ class Meta(commands.Cog):
                 "INSERT INTO user_settings (user_id, timezone) "
                 "VALUES ($1, $2) "
                 "ON CONFLICT (user_id) DO "
-                "UPDATE SET timezone = $1"
+                "UPDATE SET timezone = $2"
         )
         await self.avi.pool.execute(query, ctx.author.id, timezone)
         try:
