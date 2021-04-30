@@ -1,1 +1,0 @@
-UPDATE guild_settings SET prefixes = array_append(prefixes, $2) WHERE guild_id = $1 ON CONFLICT (prefixes) DO INSERT INTO prefixes($1, $2) WHERE guild_id = $1
