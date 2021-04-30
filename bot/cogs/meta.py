@@ -146,9 +146,8 @@ class Meta(commands.Cog):
     async def time(self, ctx: AvimetryContext, *, member: discord.Member = None):
         if member is None:
             member = ctx.author
-        thing = ctx.cache.users[member.id]["timezone"]
         try:
-            timezone = thing["timezone"]
+            timezone = ctx.cache.users[member.id]["timezone"]
         except KeyError:
             return await ctx.send("This user does not have a timezone setup.")
         timezone = pytz.timezone(timezone)
@@ -178,6 +177,10 @@ class Meta(commands.Cog):
                 "UPDATE SET timezone = $1"
         )
         await self.avi.pool.execute(query, ctx.author.id, timezone)
+        try:
+            ctx.cache.users[ctx.author.id].update({"timezone": "US/Pacific"})
+        except KeyError:
+            ctx.cache.users.update({ctx.author.id: {"timezone": "US/Pacific"}})
         await ctx.send(f"Set timezone to {timezones}")
 
     @commands.command(brief="Get the jump link for the channel that you mention")
