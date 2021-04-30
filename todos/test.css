@@ -1,0 +1,29 @@
+/*Message edited at*/
+.cozyMessage-3V1Y8y:not(.systemMessage-1I9LCe) .markup-2BOw-j .timestampInline-yHQ6fX>[aria-label]::after{
+    content:"(edited " attr(aria-label) ")";
+    text-transform: lowercase;
+    font-size: 0.625rem;
+    font-weight: 400;
+    line-height: 1;
+  }
+  .cozyMessage-3V1Y8y:not(.systemMessage-1I9LCe) .markup-2BOw-j .timestampInline-yHQ6fX .edited-3sfAzf{
+    display: none;
+  }
+  
+/*Hover Channel List*/
+.sidebar-2K8pFh {
+    width: 0px;
+    transition: 0.2s ease;
+}
+
+.wrapper-3NnKdC:hover+.base-3dtUhz>.content-98HsJk>.sidebar-2K8pFh{
+    width:240px;
+}
+
+.sidebar-2K8pFh:hover {
+    width:240px;
+}
+
+
+
+/**/

@@ -1,0 +1,61 @@
+@leave_message.command(
+        name="setup",
+        brief="Setup leave message"
+    )
+    @commands.has_permissions(manage_guild=True)
+    async def leave_message_setup(self, ctx: AvimetryContext):
+        if ctx.guild.id in ctx.cache.leave_leave:
+            confirm = await ctx.confirm("You already have leave messages setup. Do you want to continue?")
+            if not confirm:
+                return
+        await ctx.send("Hello. Which channel would you like to send the leave messages to? (5 Min)")
+
+        def check(m):
+            return m.author == ctx.author
+        try:
+            wait_channel = await self.avi.wait_for("message", check=check, timeout=300)
+        except asyncio.TimeoutError:
+            await ctx.send("Cancelling due to timeout.")
+        else:
+            if wait_channel.content.lower() == "cancel":
+                await wait_channel.reply("Cancelled.")
+                return
+            try:
+                channel = await commands.TextChannelConverter().convert(ctx, wait_channel.content)
+            except commands.ChannelNotFound:
+                await wait_channel.reply("That is not a channel. Cancelling.")
+            if channel:
+                await wait_channel.reply(
+                    f"Okay, set {channel.mention} as the channel.\nWhat would you want the message to be? (5 Min)"
+                )
+
+        try:
+            wait_message = await self.avi.wait_for("message", check=check, timeout=300)
+        except asyncio.TimeoutError:
+            await ctx.send("Cancelling due to timeout.")
+        else:
+            if wait_message.content.lower() == "cancel":
+                await wait_channel.reply("Cancelled. Goodbye")
+                return
+            message = wait_message.content
+            conf_message = "Does this look good to you?"
+            preview = await preview_message(message, ctx)
+            if type(preview) == discord.Embed:
+                conf = await ctx.confirm(conf_message, embed=preview, raw=True)
+            else:
+                conf = await ctx.confirm(f"{conf_message}\n\n{preview}", raw=True)
+            if conf:
+                query = (
+                    """
+                    INSERT INTO leave_leave (guild_id, leave_enabled, leave_message, leave_channel)
+                    VALUES ($1, $2, $3, $4)
+                    ON CONFLICT DO
+                    UPDATE SET guild_id = $1, leave_enabled = $2, leave_message = $3, leave_channel = $4
+                    """
+                )
+                await self.avi.pool.execute(query, ctx.guild.id, True, message, channel.id)
+                ctx.cache.leave_leave[ctx.guild.id]["leave_enabled"] = True
+                ctx.cache.leave_leave[ctx.guild.id]["leave_message"] = message
+                ctx.cache.leave_leave[ctx.guild.id]["leave_channel"] = channel.id
+                return await wait_message.reply("Sucessfully setup leave messages.")
+            return await wait_message.reply("Cancelled. Goodbye.")

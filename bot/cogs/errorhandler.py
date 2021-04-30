@@ -28,11 +28,11 @@ class ErrorHandler(commands.Cog):
                 description=(
                     f"Blacklist reason: `{error.reason}`\n"
                     "If you think this message is an error, "
-                    "Please join the [support](https://discord.gg/NM7E7Rxy) server to appeal."
+                    "Please join the [support](https://discord.gg/KaqqPhfwS4) server to appeal."
                 ),
                 color=discord.Color.red(),
             )
-            await ctx.send(embed=blacklisted)
+            await ctx.send(embed=blacklisted, delete_after=15)
 
         elif isinstance(error, commands.CommandNotFound):
             if ctx.author.id in ctx.cache.blacklist:
@@ -186,7 +186,7 @@ class ErrorHandler(commands.Cog):
             ee.title = "Unknown Error"
             ee.description = (
                 "An unknown error has occured. This usually means that avi did something wrong. "
-                "The error was sent to the [support server](https://discord.gg/NM7E7Rxy) and will be fixed soon."
+                "The error was sent to the [support server](https://discord.gg/KaqqPhfwS4) and will be fixed soon."
                 f"\n\n[Error]({myst_exception}):\n```py\n{short_exception}```"
             )
             try:

@@ -10,6 +10,7 @@ class AvimetryCache:
         self.logging = {}
         self.join_leave = {}
         self.blacklist = {}
+        self.users = {}
 
     @tasks.loop(minutes=5)
     async def cache_loop(self):
@@ -46,9 +47,9 @@ class AvimetryCache:
 
     async def cache_all(self):
         guild_settings = await self.avi.pool.fetch("SELECT * FROM guild_settings")
-        blacklist = await self.avi.pool.fetch("SELECT * FROM blacklist_user")
         logging = await self.avi.pool.fetch("SELECT * FROM logging")
         join_leave = await self.avi.pool.fetch("SELECT * FROM join_leave")
+        users = await self.avi.pool.fetch("SELECT * FROM user_settings")
 
         print("(Re)Caching...")
         for entry in guild_settings:
@@ -56,8 +57,15 @@ class AvimetryCache:
             settings.pop("guild_id")
             self.guild_settings[entry["guild_id"]] = settings
 
-        for entry in blacklist:
-            self.blacklist[entry["user_id"]] = entry["bl_reason"]
+        for entry in users:
+            check = dict(entry)
+            if check["user_id"] and check["blacklist"]:
+                self.blacklist[entry["user_id"]] = entry["blacklist"]
+
+        for entry in users:
+            user = dict(entry)
+            user.pop("user_id")
+            self.users[entry["user_id"]] = user
 
         for entry in logging:
             logs = dict(entry)

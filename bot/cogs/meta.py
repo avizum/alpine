@@ -143,13 +143,12 @@ class Meta(commands.Cog):
     async def time(self, ctx: AvimetryContext, *, member: discord.Member = None):
         if member is None:
             member = ctx.author
-        data = await self.avi.bot_users.find(member.id)
+        query = "SELECT FROM user_settings WHERE user_id = $1"
+        thing = await self.avi.pool.fetchrow(query, ctx.author.id)
         try:
-            timezone = data[str("time_zone")]
-        except TypeError:
-            return await ctx.send(f"{member} did not set their time zone yet.")
+            timezone = thing["timezone"]
         except KeyError:
-            return await ctx.send("You do not have a time zone setup yet.")
+            return await ctx.send("This user does not have a timezone setup.")
         timezone = pytz.timezone(timezone)
         time = datetime.datetime.now(timezone)
         format_time = time.strftime("%A, %B %d at %I:%M %p")
@@ -167,15 +166,16 @@ class Meta(commands.Cog):
     @time.command(brief="Sets your timezone")
     async def set(self, ctx: AvimetryContext, *, timezone):
         try:
-            if timezone.lower() == "none":
-                await self.avi.bot_users.unset({"_id": ctx.author.id, "time_zone": ""})
-                return await ctx.send("Removed timezone")
             timezones = pytz.timezone(timezone)
         except KeyError:
             raise TimeZoneError(timezone)
-        await self.avi.bot_users.upsert(
-            {"_id": ctx.author.id, "time_zone": str(timezones)}
+        query = (
+                "INSERT INTO user_settings (user_id, timezone) "
+                "VALUES ($1, $2) "
+                "ON CONFLICT (user_id) DO "
+                "UPDATE SET timezone = $1"
         )
+        await self.avi.pool.execute(query, ctx.author.id, timezone)
         await ctx.send(f"Set timezone to {timezones}")
 
     @commands.command(brief="Get the jump link for the channel that you mention")

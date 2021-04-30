@@ -36,7 +36,6 @@ class Owner(commands.Cog):
     async def dev(self, ctx: AvimetryContext):
         await ctx.send_help("dev")
 
-    # Load Command
     @dev.command(
         brief="Load module", aliases=["l"]
         )
@@ -51,7 +50,6 @@ class Owner(commands.Cog):
         embed = discord.Embed(title="Load", description="\n".join(reload_list))
         await ctx.send(embed=embed)
 
-    # Unload Command
     @dev.command(
         brief="Unload module", aliases=["u"]
         )
@@ -66,7 +64,6 @@ class Owner(commands.Cog):
         embed = discord.Embed(title="Unload", description="\n".join(unload_list))
         await ctx.send(embed=embed)
 
-    # Reload Command
     @dev.command(
         brief="Reloads a module if it is not working.", aliases=["r"]
     )
@@ -108,7 +105,6 @@ class Owner(commands.Cog):
         sync_embed.add_field(name="Reloaded Modules", value="\n".join(reload_list))
         await edit_sync.edit(embed=sync_embed)
 
-    # Reboot Command
     @dev.command(brief="Reboot the bot")
     async def reboot(self, ctx: AvimetryContext):
         sm = discord.Embed(
@@ -120,7 +116,6 @@ class Owner(commands.Cog):
         if not rr:
             await ctx.send("Reboot Aborted", delete_after=5)
 
-    # Leave command
     @dev.command()
     async def leave(self, ctx: AvimetryContext):
         await ctx.send("Okay bye")
@@ -128,10 +123,13 @@ class Owner(commands.Cog):
 
     @dev.command()
     async def blacklist(self, ctx: AvimetryContext, user: typing.Union[discord.User, discord.Member], *, reason):
-        await self.avi.pool.execute(
-            "INSERT INTO blacklist_user VALUES ($1, $2)",
-            user.id, reason)
-        ctx.cache.blacklist_cache[user.id] = reason
+        try:
+            ctx.cache.blacklist[user.id]
+            return await ctx.send(f"{user} is already blacklisted.")
+        except Exception:
+            query = "INSERT INTO user_settings VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET blacklist = $2"
+            await self.avi.pool.execute(query, user.id, reason)
+            ctx.cache.blacklist[user.id] = reason
 
         embed = discord.Embed(
             title="Blacklisted User",
@@ -140,15 +138,43 @@ class Owner(commands.Cog):
                 f"Reason: `{reason}`"
             )
         )
+        try:
+            dm_embed = discord.Embed(
+                title="Bot Moderator Action: Blacklist",
+                description=(
+                    f"You were __**blacklisted**__ from using this bot by `{ctx.author}`.\n"
+                    f"Reason: `{reason}`\n"
+                    f"You can appeal at the Support Server."
+                ),
+                timestamp=datetime.datetime.utcnow(),
+            )
+            await user.send(embed=dm_embed)
+        except discord.Forbidden:
+            pass
         await ctx.send(embed=embed)
 
     @dev.command()
-    async def unblacklist(self, ctx: AvimetryContext, user: typing.Union[discord.User, discord.Member]):
-        await self.avi.pool.execute(
-            "DELETE FROM blacklist_user WHERE user_id = $1",
-            user.id
-        )
-        ctx.cache.blacklist_cache.pop(user.id)
+    async def unblacklist(self, ctx: AvimetryContext, user: typing.Union[discord.User, discord.Member], *, reason):
+        try:
+            ctx.cache.blacklist[user.id]
+        except Exception:
+            return await ctx.send(f"{user} is not blacklisted")
+        query = "UPDATE user_settings SET blacklist = $1 WHERE user_id = $2"
+        await self.avi.pool.execute(query, None, user.id)
+        del ctx.cache.blacklist[user.id]
+        try:
+            dm_embed = discord.Embed(
+                title="Bot Moderator Action: Unblacklist",
+                description=(
+                    f"You have __**unblacklisted**__ from using this bot by `{ctx.author}`.\n"
+                    f"Reason: `{reason}`\n"
+                    f"You can get blacklisted again at the Support Server."
+                ),
+                timestamp=datetime.datetime.utcnow(),
+            )
+            await user.send(embed=dm_embed)
+        except discord.Forbidden:
+            pass
         await ctx.send(f"Unblacklisted {str(user)}")
 
     @dev.command()

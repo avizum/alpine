@@ -1,0 +1,143 @@
+
+    # Unmute Loop
+    @tasks.loop(minutes=1)
+    async def check_mutes(self):
+        current_time = datetime.datetime.now()
+        mutes = deepcopy(self.avimetry.muted_users)
+        for key, value in mutes.items():
+            if value["mute_duration"] is None:
+                continue
+
+            unmute_time = value["muted_at"] + relativedelta(seconds=value["mute_duration"])
+
+            if current_time >= unmute_time:
+                guild = self.avimetry.get_guild(value["guild_id"])
+                member = guild.get_member(value["_id"])
+
+                role = discord.utils.get(guild.roles, name="Muted")
+                if role in member.roles:
+                    await member.remove_roles(role)
+                    try:
+                        unmuted = discord.Embed()
+                        unmuted.add_field(
+                            name="<:yesTick:777096731438874634> Unmuted",
+                            value=f"You have been unmuted in {member.guild.name}",
+                        )
+                        await member.send(embed=unmuted)
+                    except discord.Forbidden:
+                        return
+                else:
+                    try:
+                        await self.avimetry.mutes.delete(member.id)
+                        await self.avimetry.muted_users.pop(member.id)
+                    except discord.Forbidden:
+                        return
+                await self.avimetry.mutes.delete(member.id)
+                try:
+                    self.avimetry.muted_users.pop(member.id)
+                except KeyError:
+                    pass
+
+    @check_mutes.before_loop
+    async def before_check_mutes(self):
+        await self.avimetry.wait_until_ready()
+
+
+
+    # Mute command
+    @commands.command(brief="Mutes a member.")
+    @commands.has_permissions(manage_roles=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    async def mute(self, ctx, member: discord.Member, *, time: TimeConverter = None):
+        
+        if time is None:
+            pass
+        elif time < 300:
+            return await ctx.send("The minumum mute time is 5 minutes.")
+        elif time > 604800:
+            return await ctx.send("The maximum mute time is 7 days.")
+        role = discord.utils.get(ctx.guild.roles, name="Muted")
+        if not role:
+            no_muted_role = discord.Embed()
+            no_muted_role.add_field(
+                name="<:noTick:777096756865269760> Mute Failed",
+                value=f"Couldn't mute {member.mention} because there is no muted role.",
+            )
+            await ctx.send(embed=no_muted_role)
+            return
+        try:
+            if self.avimetry.muted_users[member.id] or role in member.roles:
+                already_muted = discord.Embed()
+                already_muted.add_field(
+                    name="<:noTick:777096756865269760> Mute Failed",
+                    value=f"{member.mention} is already muted",
+                )
+                await ctx.send(embed=already_muted)
+            return
+        except KeyError:
+            pass
+        data = {
+            "_id": member.id,
+            "muted_at": datetime.datetime.now(),
+            "mute_duration": time or None,
+            "moderator": ctx.author.id,
+            "guild_id": ctx.guild.id,
+        }
+        await self.avimetry.mutes.upsert(data)
+        self.avimetry.muted_users[member.id] = data
+        await member.add_roles(role)
+        if not time:
+            unlimited_mute = discord.Embed()
+            unlimited_mute.add_field(
+                name="<:yesTick:777096731438874634> Muted Member",
+                value=f"{member.mention} was muted with no unmute time.",
+            )
+            await ctx.send(embed=unlimited_mute)
+        else:
+            mute_embed = discord.Embed(
+                title="Member Muted",
+                description=f"{member.mention} has been muted for {humanize.naturaldelta(time)}"
+            )
+            await ctx.send(embed=mute_embed)
+
+        if time and time < 300:
+            await asyncio.sleep(time)
+            if role in member.roles:
+                await member.remove_roles(role)
+                try:
+                    unmuted = discord.Embed()
+                    unmuted.add_field(
+                        name="<:yesTick:777096731438874634> Unmuted",
+                        value=f"You have been unmuted in {member.guild.name}",
+                    )
+                    await member.send(embed=unmuted)
+                except discord.Forbidden:
+                    return
+            await self.avimetry.mutes.delete(member.id)
+            try:
+                self.avimetry.muted_users.pop(member.id)
+            except KeyError:
+                pass
+
+    # Unmute command
+    @commands.command()
+    @commands.has_permissions(kick_members=True)
+    @commands.bot_has_permissions(kick_members=True)
+    async def unmute(self, ctx, member: discord.Member):
+        role = discord.utils.get(ctx.guild.roles, name="Muted")
+        if not role:
+            await ctx.send("No role named muted")
+            return
+
+        await self.avimetry.mutes.delete(member.id)
+        try:
+            self.avimetry.muted_users.pop(member.id)
+        except KeyError:
+            pass
+        if role not in member.roles:
+            await ctx.send("This member is not muted")
+            return
+
+        await member.remove_roles(role)
+        await ctx.send(f"Unmuted {member.display_name}")
+

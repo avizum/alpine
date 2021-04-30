@@ -31,9 +31,8 @@ class Settings(commands.Cog):
     )
     @commands.has_permissions(manage_guild=True)
     async def prefix_add(self, ctx: AvimetryContext, prefix: Prefix):
-        await self.avi.pool.execute(
-            "UPDATE guild_settings SET prefixes = ARRAY_APPEND(prefixes, $2) WHERE guild_id = $1",
-            ctx.guild.id, prefix)
+        query = "UPDATE guild_settings SET prefixes = ARRAY_APPEND(prefixes, $2) WHERE guild_id = $1"
+        await self.avi.pool.execute(query, ctx.guild.id, prefix)
         ctx.cache.guild_settings[ctx.guild.id]["prefixes"].append(prefix)
         await ctx.send(f"Appended `{prefix}` to the list of prefixes.")
 
@@ -53,9 +52,8 @@ class Settings(commands.Cog):
         if prefix not in guild_prefix:
             return await ctx.send(f"`{prefix}` is not a prefix of this server.")
 
-        await self.avi.pool.execute(
-            "UPDATE guild_settings SET prefixes = ARRAY_REMOVE(prefixes, $2) WHERE guild_id = $1",
-            ctx.guild.id, prefix)
+        query = "UPDATE guild_settings SET prefixes = ARRAY_REMOVE(prefixes, $2) WHERE guild_id = $1"
+        await self.avi.pool.execute(query, ctx.guild.id, prefix)
 
         self.avi.cache.guild_settings[ctx.guild.id]["prefixes"].remove(prefix)
         await ctx.send(f"Removed `{prefix}` from the list of prefixes")
@@ -64,9 +62,8 @@ class Settings(commands.Cog):
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
     async def muterole(self, ctx: AvimetryContext, role: discord.Role):
-        await self.avi.pool.execute(
-            "UPDATE guild_settings SET mute_role = $1 WHERE guild_id = $2",
-            role.id, ctx.guild.id)
+        query = "UPDATE guild_settings SET mute_role = $1 WHERE guild_id = $2"
+        await self.avi.pool.execute(query, role.id, ctx.guild.id)
         self.avi.cache.guild_settings[ctx.guild.id]["mute_role"] = role.id
         for channel in ctx.guild.channels:
             perms = channel.overwrites_for(role)
@@ -92,18 +89,16 @@ class Settings(commands.Cog):
                     f"Message Delete: {config['message_delete']}\n"
                     f"Message Edit: {config['message_edit']}```"))
             return await ctx.send(embed=embed)
-        await self.avi.pool.execute(
-            "UPDATE logging SET enabled = $1 WHERE guild_id = $2",
-            toggle, ctx.guild.id)
+        query = "UPDATE logging SET enabled = $1 WHERE guild_id = $2"
+        await self.avi.pool.execute(query, toggle, ctx.guild.id)
         ctx.cache.logging[ctx.guild.id]["enabled"] = toggle
         await ctx.send(f"{self.map[toggle]} logging")
 
     @logging.command(name="channel", brief="Configure logging channel")
     @commands.has_permissions(manage_guild=True)
     async def logging_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
-        await self.avi.pool.execute(
-            "UPDATE logging SET channel_id = $1 WHERE guild_id = $2",
-            channel.id, ctx.guild.id)
+        query = "UPDATE logging SET channel_id = $1 WHERE guild_id = $2"
+        await self.avi.pool.execute(query, channel.id, ctx.guild.id)
         ctx.cache.logging[ctx.guild.id]["channel_id"] = channel.id
 
     @logging.command(
@@ -112,10 +107,8 @@ class Settings(commands.Cog):
         aliases=["msgdelete, messagedelete"])
     @commands.has_permissions(manage_guild=True)
     async def message_delete(self, ctx: AvimetryContext, toggle: bool):
-        await self.avi.pool.execute(
-            "UPDATE logging SET message_delete = $1 WHERE guild_id = $2",
-            toggle, ctx.guild.id
-        )
+        query = "UPDATE logging SET message_delete = $1 WHERE guild_id = $2"
+        await self.avi.pool.execute(query, toggle, ctx.guild.id)
         ctx.cache.logging[ctx.guild.id]["message_delete"] = toggle
         await ctx.send(f"{self.map[toggle]} message delete logs")
 
@@ -125,10 +118,8 @@ class Settings(commands.Cog):
         aliases=["msgedit", "messageedit"])
     @commands.has_permissions(administrator=True)
     async def edit(self, ctx: AvimetryContext, toggle: bool):
-        await self.avi.pool.execute(
-            "UPDATE logging SET message_edit = $1 WHERE guild_id = $2",
-            toggle, ctx.guild.id
-        )
+        query = "UPDATE logging SET message_edit = $1 WHERE guild_id = $2"
+        await self.avi.pool.execute(query, toggle, ctx.guild.id)
         ctx.cache.logging[ctx.guild.id]["message_edit"] = toggle
         await ctx.send(f"{self.map[toggle]} message edit logs")
 
@@ -246,47 +237,48 @@ class Settings(commands.Cog):
     )
     @commands.has_permissions(manage_guild=True)
     async def join_message_setup(self, ctx: AvimetryContext):
-        if "join_message" in ctx.cache.join_leave[ctx.guild.id]:
-            confirm = await ctx.confirm("You already have join messages setup. Do you want to continue?")
-            if not confirm:
-                return
-        await ctx.send("Hello. Which channel would you like to send the join messages to? (5 Min)")
+        embed = discord.Embed(
+            title="Join message setup",
+            description="Hello. Which channel would you like to send the join messages to?"
+        )
+        await ctx.send(embed=embed)
 
         def check(m):
             return m.author == ctx.author
         try:
             wait_channel = await self.avi.wait_for("message", check=check, timeout=300)
         except asyncio.TimeoutError:
-            await ctx.send("Cancelling due to timeout.")
+            embed.description = "Cancelling due to timeout."
+            await ctx.send(embed=embed)
         else:
             if wait_channel.content.lower() == "cancel":
-                await wait_channel.reply("Cancelled.")
-                return
+                embed.description = "Okay, I cancelled the setup, Goodbye."
+                return await wait_channel.reply(embed=embed)
             try:
                 channel = await commands.TextChannelConverter().convert(ctx, wait_channel.content)
             except commands.ChannelNotFound:
-                await wait_channel.reply("That is not a channel. Cancelling.")
-                return
+                embed.description = "That is not a channel. Goodbye."
+                return await wait_channel.reply(embed=embed)
             if channel:
-                await wait_channel.reply(
-                    f"Okay, set {channel.mention} as the channel.\nWhat would you want the message to be? (5 Min)"
-                )
-
+                embed.description = (
+                    f"Okay, the channel will be {channel.mention}.\n"
+                    "What should the join message be? (5 minutes)")
+                await wait_channel.reply(embed=embed)
         try:
             wait_message = await self.avi.wait_for("message", check=check, timeout=300)
         except asyncio.TimeoutError:
-            await ctx.send("Cancelling due to timeout.")
+            embed.description = "Cancelling due to timeout."
+            return await ctx.send(embed=embed)
         else:
-            if wait_message.content.lower() == "cancel":
-                await wait_channel.reply("Cancelled. Goodbye")
-                return
+            if wait_channel.content.lower() == "cancel":
+                embed.description = "Okay, I cancelled the setup, Goodbye."
             message = wait_message.content
             conf_message = "Does this look good to you?"
             preview = await preview_message(message, ctx)
             if type(preview) == discord.Embed:
                 conf = await ctx.confirm(conf_message, embed=preview, raw=True)
             else:
-                conf = await ctx.confirm(f"{conf_message}\n\n{preview}", raw=True)
+                conf = await ctx.confirm(f"{conf_message}\n=====\n{preview}", raw=True)
             if conf:
                 query = (
                     """
@@ -300,8 +292,10 @@ class Settings(commands.Cog):
                 ctx.cache.join_leave[ctx.guild.id]["join_enabled"] = True
                 ctx.cache.join_leave[ctx.guild.id]["join_message"] = message
                 ctx.cache.join_leave[ctx.guild.id]["join_channel"] = channel.id
-                return await wait_message.reply("Sucessfully setup join messages.")
-            return await wait_message.reply("Cancelled. Goodbye.")
+                embed.description = "Alright, join messages are now setup."
+                return await wait_message.reply(embed=embed)
+            embed.description = "Cancelled. Goodbye."
+            return await wait_message.reply(embed=embed)
 
     @commands.group(
         name="leave-message",
@@ -334,9 +328,8 @@ class Settings(commands.Cog):
                     command = self.avi.get_command("leave-message setup")
                     await command(ctx)
                 return
-        await self.avi.pool.execute(
-            "UPDATE join_leave SET leave_enabled = $1 WHERE guild_id = $2",
-            toggle, ctx.guild.id)
+        query = "UPDATE join_leave SET leave_enabled = $1 WHERE guild_id = $2"
+        await self.avi.pool.execute(query, toggle, ctx.guild.id)
         ctx.cache.join_leave[ctx.guild.id]["leave_enabled"] = toggle
         await ctx.send(f"{self.map[toggle]} leave message")
 
@@ -390,47 +383,48 @@ class Settings(commands.Cog):
     )
     @commands.has_permissions(manage_guild=True)
     async def leave_message_setup(self, ctx: AvimetryContext):
-        if "leave_message" in ctx.cache.join_leave[ctx.guild.id]:
-            confirm = await ctx.confirm("You already have leave messages setup. Do you want to continue?")
-            if not confirm:
-                return
-        await ctx.send("Hello. Which channel would you like to send the leave messages to? (5 Min)")
+        embed = discord.Embed(
+            title="Leave message setup",
+            description="Hello. Which channel would you like to send the leave messages to?"
+        )
+        await ctx.send(embed=embed)
 
         def check(m):
             return m.author == ctx.author
         try:
             wait_channel = await self.avi.wait_for("message", check=check, timeout=300)
         except asyncio.TimeoutError:
-            await ctx.send("Cancelling due to timeout.")
+            embed.description = "Cancelling due to timeout."
+            await ctx.send(embed=embed)
         else:
             if wait_channel.content.lower() == "cancel":
-                await wait_channel.reply("Cancelled.")
-                return
+                embed.description = "Okay, I cancelled the setup, Goodbye."
+                return await wait_channel.reply(embed=embed)
             try:
                 channel = await commands.TextChannelConverter().convert(ctx, wait_channel.content)
             except commands.ChannelNotFound:
-                await wait_channel.reply("That is not a channel. Cancelling.")
-                return
+                embed.description = "That is not a channel. Goodbye."
+                return await wait_channel.reply(embed=embed)
             if channel:
-                await wait_channel.reply(
-                    f"Okay, set {channel.mention} as the channel.\nWhat would you want the message to be? (5 Min)"
-                )
-
+                embed.description = (
+                    f"Okay, the channel will be {channel.mention}.\n"
+                    "What should the leave message be? (5 minutes)")
+                await wait_channel.reply(embed=embed)
         try:
             wait_message = await self.avi.wait_for("message", check=check, timeout=300)
         except asyncio.TimeoutError:
-            await ctx.send("Cancelling due to timeout.")
+            embed.description = "Cancelling due to timeout."
+            return await ctx.send(embed=embed)
         else:
-            if wait_message.content.lower() == "cancel":
-                await wait_channel.reply("Cancelled. Goodbye")
-                return
+            if wait_channel.content.lower() == "cancel":
+                embed.description = "Okay, I cancelled the setup, Goodbye."
             message = wait_message.content
             conf_message = "Does this look good to you?"
             preview = await preview_message(message, ctx)
             if type(preview) == discord.Embed:
                 conf = await ctx.confirm(conf_message, embed=preview, raw=True)
             else:
-                conf = await ctx.confirm(f"{conf_message}\n\n{preview}", raw=True)
+                conf = await ctx.confirm(f"{conf_message}\n=====\n{preview}", raw=True)
             if conf:
                 query = (
                     """
@@ -441,11 +435,13 @@ class Settings(commands.Cog):
                     """
                 )
                 await self.avi.pool.execute(query, ctx.guild.id, True, message, channel.id)
-                ctx.cache.leave_leave[ctx.guild.id]["leave_enabled"] = True
-                ctx.cache.leave_leave[ctx.guild.id]["leave_message"] = message
-                ctx.cache.leave_leave[ctx.guild.id]["leave_channel"] = channel.id
-                return await wait_message.reply("Sucessfully setup leave messages.")
-            return await wait_message.reply("Cancelled. Goodbye.")
+                ctx.cache.join_leave[ctx.guild.id]["leave_enabled"] = True
+                ctx.cache.join_leave[ctx.guild.id]["leave_message"] = message
+                ctx.cache.join_leave[ctx.guild.id]["leave_channel"] = channel.id
+                embed.description = "Alright, leave messages are now setup."
+                return await wait_message.reply(embed=embed)
+            embed.description = "Cancelled. Goodbye."
+            return await wait_message.reply(embed=embed)
 
     @commands.group(invoke_without_command=True, brief="Configure counting settings")
     @commands.has_permissions(administrator=True)

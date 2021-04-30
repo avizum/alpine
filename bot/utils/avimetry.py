@@ -31,23 +31,17 @@ PUBLIC_BOT_ID = 756257170521063444
 BETA_BOT_ID = 787046145884291072
 
 
-async def escape_prefix(prefixes):
-    if isinstance(prefixes, str):
-        return re.escape(prefixes)
-    if isinstance(prefixes, list):
-        return "|".join(map(re.escape, prefixes))
-
-
 async def bot_prefix(avi, message: discord.Message):
-    if avi.user.id == BETA_BOT_ID:
-        command_prefix = BETA_PREFIXES
-    elif not message.guild or (get_prefix := await avi.cache.get_guild_settings(message.guild.id)) is None:
+    if not message.guild or (get_prefix := await avi.cache.get_guild_settings(message.guild.id)) is None:
         command_prefix = DEFAULT_PREFIXES
     else:
         command_prefix = get_prefix["prefixes"]
         if not command_prefix:
             return DEFAULT_PREFIXES
-    command_prefix = await escape_prefix(command_prefix)
+    if await avi.is_owner(message.author):
+        if message.content.startswith(("jsk", "dev")):
+            return ""
+    command_prefix = "|".join(map(re.escape, command_prefix))
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
     if prefix:
         return prefix.group(1)
@@ -58,14 +52,13 @@ allowed_mentions = discord.AllowedMentions(
     everyone=False, users=False,
     roles=True, replied_user=False
 )
-intents = discord.Intents.all()
+intents = discord.Intents.default()
+intents.members = True
 activity = discord.Game("Avimetry | @Avimetry help")
 
 
 class AvimetryBot(commands.Bot):
     def __init__(self, **kwargs):
-        intents = discord.Intents.default()
-        intents.members = True
         super().__init__(
             **kwargs,
             command_prefix=bot_prefix,
@@ -193,7 +186,7 @@ class AvimetryBot(commands.Bot):
         if platform not in ["linux", "linux2"]:
             self.devmode = True
             self.command_prefix = "ab."
-        token = tokens["Avimetry"]
+        token = tokens["AvimetryBeta"]
         self.loop.run_until_complete(self.cache.cache_all())
         self.launch_time = datetime.datetime.utcnow()
         super().run(token, reconnect=True)

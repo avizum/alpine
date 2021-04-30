@@ -102,7 +102,11 @@ class JoinsAndLeaves(commands.Cog):
         leave_config = config["leave_enabled"]
         if not leave_channel or not leave_message or not leave_config:
             return
-        message = parser.parse(leave_message, env=self.env)
+        env = {
+            "member": member,
+            "guild": member.guild
+        }
+        message = parser.parse(leave_message, env=env)
         final = await self.convert(message)
         if type(final) == discord.Embed:
             return await leave_channel.send(embed=final)

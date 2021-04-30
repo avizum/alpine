@@ -2,6 +2,8 @@ import discord
 import datetime
 import psutil
 import humanize
+import pathlib
+import inspect
 from discord.ext import commands
 from utils.context import AvimetryContext
 
@@ -27,7 +29,8 @@ class BotInfo(commands.Cog, name="Bot Info"):
         embed = discord.Embed(title="Info about Avimetry")
         embed.add_field(
             name="Latest Updates",
-            value="New Database! Migrating will take a bit, So prefixes, configuration may be broken."
+            value="New Database! Migrating will take a bit, So prefixes, configuration may be broken.",
+            inline=False
         )
         embed.add_field(name="Developer", value="avi#8771")
         embed.add_field(name="Ping", value=f"`{round(self.avi.latency * 1000)}ms`")
@@ -75,25 +78,6 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
         await ctx.send(embed=ping_embed)
 
-    # Source Command
-    # Follow the license, Thanks. If you do use this code, you have to make your bot's source public.
-    @commands.command(brief="Sends the bot's source")
-    async def source(self, ctx: AvimetryContext):
-        source_embed = discord.Embed(
-            title=f"{self.avi.user.name}'s source code",
-            timestamp=datetime.datetime.utcnow(),
-        )
-        if self.avi.user.id != 756257170521063444:
-            source_embed.description = "This bot is made by [avi](https://discord.com/users/750135653638865017). \
-                It is run off of this [source code](https://github.com/avimetry/avimetry).\nKeep the license in mind"
-        else:
-            source_embed.description = (
-                "Here is my [source code](https://github.com/avimetry/avimetry) made by "
-                "[avi](https://discord.com/users/750135653638865017).\nMake sure you follow the license."
-            )
-        await ctx.send(embed=source_embed)
-
-    # Invite Command
     @commands.group(invoke_without_command=True)
     async def invite(self, ctx: AvimetryContext):
         invite_embed = discord.Embed(
@@ -121,6 +105,37 @@ class BotInfo(commands.Cog, name="Bot Info"):
             bot_invite.description = "That is not a bot. Make sure you mention a bot."
         await ctx.send(embed=bot_invite)
 
+    @commands.command(aliases=["lc", "linec", "lcount"])
+    async def linecount(self, ctx):
+        path = pathlib.Path('./')
+        comment_count = corutine_count = function_count = class_count = line_count = file_count = 0
+        for files in path.rglob('*.py'):
+            if str(files).startswith("venv"):
+                continue
+            file_count += 1
+            with files.open() as of:
+                for line in of.readlines():
+                    line = line.strip()
+                    if line.startswith('class'):
+                        class_count += 1
+                    if line.startswith('def'):
+                        function_count += 1
+                    if line.startswith('async def'):
+                        corutine_count += 1
+                    if '#' in line:
+                        comment_count += 1
+                    line_count += 1
+        await ctx.send(
+            "```py\n"
+            f"Files: {file_count}\n"
+            f"Lines: {line_count}\n"
+            f"Classes: {class_count}\n"
+            f"Functions: {function_count}\n"
+            f"Coroutines: {corutine_count}\n"
+            f"Comments: {comment_count}"
+            "```"
+        )
+
     @commands.command(brief="Request a feature to be added to the bot.")
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def request(self, ctx: AvimetryContext, *, request):
@@ -133,7 +148,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         req_embed = discord.Embed(
             title="Request sent",
             description=(
-                "Thank you for your request! Join the [support](https://discord.gg/NM7E7Rxy) server to see if \n"
+                "Thank you for your request! Join the [support](https://discord.gg/KaqqPhfwS4) server to see if \n"
                 "your request has been approved.\n"
                 "Please note that spam requests will get you permanently blacklisted from this bot."
             )
@@ -143,6 +158,49 @@ class BotInfo(commands.Cog, name="Bot Info"):
             value=f"```{request}```"
         )
         await ctx.send(embed=req_embed)
+
+    @commands.command()
+    async def source(self, ctx: AvimetryContext, *, command: str = None):
+        source_embed = discord.Embed(
+                title=f"{self.avi.user.name}'s source code",
+                timestamp=datetime.datetime.utcnow()
+            )
+        if not command:
+            if self.avi.user.id != 756257170521063444:
+                source_embed.description = (
+                    "This bot is an instance of [Avimetry](https://github.com/avimetry/avimetry), "
+                    "Made by [avi](https://discord.com/users/750135653638865017). "
+                    "Remember to star and and follow the license."
+                )
+            else:
+                source_embed.description = (
+                    "Here is my [source](https://github.com/avimetry/avimetry). "
+                    "I am made by [avi](https://discord.com/users/750135653638865017)."
+                    "Remember to star and and follow the license."
+                )
+            return ctx.send(embed=source_embed)
+
+        command = ctx.bot.help_command if command.lower() == "help" else ctx.bot.get_command(command)
+        if not command:
+            return await ctx.send("Couldn't find command.")
+
+        if isinstance(command, commands.HelpCommand):
+            lines, starting_line_num = inspect.getsourcelines(type(command))
+            filepath = f"{command.__module__.replace('.', '/')}.py"
+        else:
+            lines, starting_line_num = inspect.getsourcelines(command.callback.__code__)
+            filepath = f"{command.callback.__module__.replace('.', '/')}.py"
+
+        ending_line_num = starting_line_num + len(lines) - 1
+        command = "help" if isinstance(command, commands.HelpCommand) else command
+        link = (
+            f"https://github.com/avimetry/avimetry/blob/master/bot/"
+            f"{filepath}#L{starting_line_num}-L{ending_line_num}")
+        source_embed.description = (
+            f"Here is the [source]({link}) for `{command}`. "
+            "Remember to star and follow the license."
+            )
+        await ctx.send(embed=source_embed)
 
 
 def setup(avi):
