@@ -7,6 +7,17 @@ from utils.converters import TimeConverter, TargetMemberAction
 from utils.context import AvimetryContext
 
 
+class Reason(commands.Converter):
+    async def convert(self, ctx, argument):
+        reason = f"{ctx.author}: {argument}"
+        if argument is None:
+            reason = f"{ctx.author}: No reason was provided."
+
+        if len(reason) > 512:
+            raise commands.BadArgument(f"Reason is too long ({len(reason)}/512")
+        return reason
+
+
 class Moderation(commands.Cog):
     """
     Moderation commands.
@@ -17,7 +28,7 @@ class Moderation(commands.Cog):
     @commands.command(brief="Kicks a member from the server.", usage="<member> [reason]")
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
-    async def kick(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason=None):
+    async def kick(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: Reason = None):
         if reason is None:
             reason = f"{ctx.author} ({ctx.author.id}): No reason was provided."
         else:
@@ -43,14 +54,36 @@ class Moderation(commands.Cog):
             kick_embed.description = f"**{member}** has been kicked from the server, but I could not DM them."
             await ctx.send(embed=kick_embed)
 
+    @commands.command(brief="Bans then unbans a member from the server")
+    @commands.has_permissions(kick_members=True)
+    @commands.bot_has_permissions(ban_members=True)
+    async def softban(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: Reason = None):
+        soft_ban_embed = discord.Embed(
+            title="Soft-Ban Member"
+        )
+        try:
+            dm_embed = discord.Embed(
+                title="Moderation action: Soft Ban",
+                description=(
+                    f"You were soft banned from **{ctx.guild.name}** by **{ctx.author}**.\n"
+                    f"Reason {reason}"
+                ),
+                timestamp=datetime.datetime.utcnow(),
+            )
+            await member.send(embed=dm_embed)
+            await member.ban(reason=reason)
+            soft_ban_embed.description = f"**{member}** has been soft banned from the server."
+            await ctx.send(embed=soft_ban_embed)
+        except discord.HTTPException:
+            await member.ban(reason=reason)
+            soft_ban_embed.description = f"**{member}** has been soft banned from the server, but I could not DM them."
+            await ctx.send(embed=soft_ban_embed)
+        await member.unban(reason=reason)
+
     @commands.command(brief="Bans a member from the server", usage="<member> [reason]")
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def ban(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason=None):
-        if reason is None:
-            reason = f"{ctx.author} ({ctx.author.id}): No reason was provided."
-        else:
-            reason = f"{ctx.author} ({ctx.author.id}): {reason}"
+    async def ban(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: Reason = None):
         ban_embed = discord.Embed(
             title="Ban Member"
         )
@@ -110,7 +143,8 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def mute(self, ctx: AvimetryContext, member: TargetMemberAction, duration: TimeConverter, reason=None):
+    async def mute(self, ctx: AvimetryContext, member: TargetMemberAction, duration: TimeConverter, reason: Reason = None):
+        return await ctx.send("Command is under maintenance. Sorry for the inconvenience")
         if reason is None:
             reason = f"{ctx.author} ({ctx.author.id}): No reason was provided."
         else:

@@ -3,8 +3,23 @@ import discord
 from discord.ext import commands
 from utils.context import AvimetryContext
 
-time_regex = re.compile(r"(?:(\d{1,5})(h|s|m|d))+?")
-time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400}
+time_regex = re.compile(r"(?:(\d{1,5})\s?(h|s|m|d))+?")
+time_dict = {
+    "h": 3600,
+    "hours": 3600,
+    "hour": 3600,
+    "s": 1,
+    "sec": 1,
+    "secs": 1,
+    "seconds": 1,
+    "m": 60,
+    "mins": 60,
+    "minutes": 60,
+    "min": 60,
+    "d": 86400,
+    "day": 86400,
+    "days": 86400
+}
 
 
 class TimeConverter(commands.Converter):
@@ -14,10 +29,13 @@ class TimeConverter(commands.Converter):
         time = 0
         for key, value in matches:
             try:
-                time += time_dict[value] * float(key)
+                time += time_dict[value]*float(key)
             except KeyError:
-                raise (commands.BadArgument(f"{key} is not a number!"))
-        return round(time)
+                raise commands.BadArgument(
+                    f"{value} is an invalid time-key! h/m/s/d are valid!")
+            except ValueError:
+                raise commands.BadArgument(f"{key} is not a number!")
+        return time
 
 
 class TargetMemberAction(commands.Converter):

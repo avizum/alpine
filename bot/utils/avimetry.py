@@ -32,15 +32,16 @@ BETA_BOT_ID = 787046145884291072
 
 
 async def bot_prefix(avi, message: discord.Message):
-    if not message.guild or (get_prefix := await avi.cache.get_guild_settings(message.guild.id)) is None:
+    if avi.user.id == BETA_BOT_ID:
+        command_prefix = BETA_PREFIXES
+    elif not message.guild or (get_prefix := await avi.cache.get_guild_settings(message.guild.id)) is None:
         command_prefix = DEFAULT_PREFIXES
     else:
         command_prefix = get_prefix["prefixes"]
         if not command_prefix:
             return DEFAULT_PREFIXES
     if await avi.is_owner(message.author):
-        if message.content.startswith(("jsk", "dev")):
-            return ""
+        command_prefix.append("")
     command_prefix = "|".join(map(re.escape, command_prefix))
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
     if prefix:
@@ -66,6 +67,7 @@ class AvimetryBot(commands.Bot):
             allowed_mentions=allowed_mentions,
             activity=activity,
             intents=intents,
+            strip_after_prefix=True
         )
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
         self.owner_ids = OWNER_IDS
@@ -185,7 +187,6 @@ class AvimetryBot(commands.Bot):
     def run(self):
         if platform not in ["linux", "linux2"]:
             self.devmode = True
-            self.command_prefix = "ab."
             token = tokens["AvimetryBeta"]
         else:
             token = tokens["Avimetry"]

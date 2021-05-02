@@ -72,9 +72,20 @@ class HelpEmbeded(commands.HelpCommand):
         return self.context
 
     async def send_bot_help(self, mapping):
+        bot = self.context.bot
+        total = len(bot.commands)
+        usable = 0
+        for command in bot.commands:
+            try:
+                await command.can_run(self.context)
+                usable += 1
+            except commands.CommandError:
+                pass
+        usable = f"Total Commands: {total} | Usable by you here: {usable}"
         embed = discord.Embed(
             title="Help Menu",
             description=(
+                f"{usable}"
                 f"{self.command_signature()}\nDo not put the brackets with the commands.\n"
                 f"Here are the prefixes for **{self.get_destination().guild.name}**.\n{await self.context.get_prefix}\n"
             )
@@ -235,11 +246,11 @@ class HelpCommand(commands.Cog):
         self.HCne = avi.help_command
         self.avi = avi
         self.avi.help_command = HelpEmbeded(
-            verify_checks=True,
+            verify_checks=False,
             command_attrs=dict(
                 hidden=True,
                 aliases=["halp", "helps", "hlp", "hlep", "hep"],
-                brief="Why do you need help with the help command? Oh well, Here it is anyways",
+                brief="Why do you need help with the help command?",
                 usage="[command|module]",
             )
         )
