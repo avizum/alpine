@@ -160,7 +160,9 @@ class Servers(commands.Cog, name="Servers"):
             except discord.Forbidden:
                 pass
 
-    @commands.command()
+    @commands.command(
+        hidden=True
+    )
     async def testing(self, ctx: AvimetryContext):
         if ctx.guild.id != 814206001451761664:
             return

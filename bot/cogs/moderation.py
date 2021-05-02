@@ -143,12 +143,9 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def mute(self, ctx: AvimetryContext, member: TargetMemberAction, duration: TimeConverter, reason: Reason = None):
+    async def mute(self, ctx: AvimetryContext, member: TargetMemberAction,
+                   duration: TimeConverter, reason: Reason = None):
         return await ctx.send("Command is under maintenance. Sorry for the inconvenience")
-        if reason is None:
-            reason = f"{ctx.author} ({ctx.author.id}): No reason was provided."
-        else:
-            reason = f"{ctx.author} ({ctx.author.id}): {reason}"
         role = await ctx.cache.get_guild_settings(ctx.guild.id)
         mute_role = ctx.guild.get_role(role["mute_role"])
         await member.add_roles(mute_role, reason=reason)
