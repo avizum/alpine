@@ -42,7 +42,7 @@ async def bot_prefix(avi, message: discord.Message):
             return DEFAULT_PREFIXES
     if await avi.is_owner(message.author):
         if message.content.lower().startswith(("dev", "jsk")):
-            command_prefix.append("")
+            return ""
     command_prefix = "|".join(map(re.escape, command_prefix))
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
     if prefix:
