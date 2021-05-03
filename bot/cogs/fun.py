@@ -201,6 +201,9 @@ class Fun(commands.Cog):
     @commands.cooldown(1, 60, commands.BucketType.member)
     @commands.max_concurrency(1, commands.BucketType.channel)
     async def fun_akinator(self, ctx: AvimetryContext, mode="en", child=True):
+        thing = await self.avi.topgg.get_user_vote(ctx.author.id)
+        if not thing:
+            return await ctx.send("You didn't vote. Please [vote](https://top.gg/bot/756257170521063444/vote) to use this command")
         bot_perm = ctx.me.permissions_in(ctx.channel)
         perms = True if bot_perm.manage_messages is True else False
         aki_dict = {

@@ -1,7 +1,9 @@
 import logging
 import discord
+import datetime
 from config import webhooks
 from discord.ext import commands
+from utils import AvimetryContext
 
 
 logger = logging.getLogger("discord")
@@ -18,6 +20,10 @@ class Setup(commands.Cog):
         self.avi = avi
         self.guild_webhook = discord.Webhook.from_url(
             webhooks["join_log"],
+            adapter=discord.AsyncWebhookAdapter(self.avi.session)
+        )
+        self.command_webhook = discord.Webhook.from_url(
+            webhooks["command_log"],
             adapter=discord.AsyncWebhookAdapter(self.avi.session)
         )
 
@@ -43,6 +49,16 @@ class Setup(commands.Cog):
             f"I am now in {len(self.avi.guilds)} guilds."
         ]
         await self.guild_webhook.send("\n".join(message), username="Left Guild")
+
+    @commands.Cog.listener("on_command")
+    async def on_command(self, ctx: AvimetryContext):
+        embed = discord.Embed(
+            title=f"Command: {ctx.command.name}",
+            description=f"Command was ran in {ctx.guild.name} by {ctx.author.mention}"
+        )
+        embed.timestamp = datetime.datetime.utcnow()
+        await self.command_webhook.send(embed=embed)
+        self.avi.commands_ran += 1
 
 
 def setup(avi):

@@ -1,7 +1,6 @@
 import discord
 import datetime
 from discord.ext import commands, tasks
-from utils.context import AvimetryContext
 
 
 class BotLogs(commands.Cog):
@@ -72,10 +71,6 @@ class BotLogs(commands.Cog):
         channel_id = thing["channel_id"]
         channel = discord.utils.get(before.guild.channels, id=channel_id)
         await channel.send(embed=embed)
-
-    @commands.Cog.listener("on_command")
-    async def on_command(self, ctx: AvimetryContext):
-        self.avi.commands_ran += 1
 
     @tasks.loop(minutes=30)
     async def clear_cache(self):

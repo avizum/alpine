@@ -161,6 +161,14 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=req_embed)
 
     @commands.command()
+    async def vote(self, ctx: AvimetryContext):
+        vote_embed = discord.Embed(
+            title="Vote",
+            description="Vote [here](https://top.gg/bot/756257170521063444/vote) for access to some commands and a voter cooldown!"
+        )
+        await ctx.send(embed=vote_embed)
+
+    @commands.command()
     async def source(self, ctx: AvimetryContext, *, command: str = None):
         source_embed = discord.Embed(
                 title=f"{self.avi.user.name}'s source code",
