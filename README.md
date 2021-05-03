@@ -1,5 +1,6 @@
 # Avimetry
 
+[![Discord Bots](https://top.gg/api/widget/756257170521063444.svg)](https://top.gg/bot/756257170521063444)
 
 A bot written in Python by [avi](https://discord.com/users/750135653638865017)
 
