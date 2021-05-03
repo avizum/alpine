@@ -140,27 +140,20 @@ class Moderation(commands.Cog):
                 )
                 await ctx.send(embed=unbanenmbed)
 
-    @commands.command()
+    @commands.command(
+        brief="Mutes a person indefinately"
+    )
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def mute(self, ctx: AvimetryContext, member: TargetMemberAction,
-                   duration: TimeConverter, reason: Reason = None):
-        return await ctx.send("Command is under maintenance. Sorry for the inconvenience")
+    async def mute(self, ctx: AvimetryContext, member: TargetMemberAction, reason: Reason = None):
         role = await ctx.cache.get_guild_settings(ctx.guild.id)
         mute_role = ctx.guild.get_role(role["mute_role"])
         await member.add_roles(mute_role, reason=reason)
-        await asyncio.sleep(duration)
-        await member.remove_roles(mute_role)
-
-    @commands.group(
-        enabled=False,
-        invote_without_command=True)
-    async def mass(self, ctx: AvimetryContext):
-        pass
+        await ctx.send(f"{member.mention} was muted indfinately.")
 
     @commands.group(
         invoke_without_command=True,
-        brief="Delete a number of messages in the current channel.")
+        brief="Mass delete a number of messages in the current channel.")
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
     @commands.cooldown(5, 30, commands.BucketType.member)

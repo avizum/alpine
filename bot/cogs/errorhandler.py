@@ -4,6 +4,7 @@ import traceback
 import sys
 import prettify_exceptions
 import humanize
+from config import webhooks
 from utils.errors import Blacklisted
 from utils.context import AvimetryContext
 from discord.ext import commands
@@ -13,6 +14,10 @@ from difflib import get_close_matches
 class ErrorHandler(commands.Cog):
     def __init__(self, avi):
         self.avi = avi
+        self.error_webhook = discord.Webhook.from_url(
+            webhooks["error_log"],
+            adapter=discord.AsyncWebhookAdapter(self.avi.session)
+        )
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: AvimetryContext, error):
@@ -55,7 +60,7 @@ class ErrorHandler(commands.Cog):
         elif isinstance(error, commands.CommandOnCooldown):
             cd = discord.Embed(
                 title="Slow down",
-                description=f"This command is on cooldown. Try again in {humanize.naturaldelta(error.retry_after)}.",
+                description=f"This command has a cooldown o. Try again in {humanize.naturaldelta(error.retry_after)}.",
                 color=discord.Color.red(),
             )
             await ctx.send(embed=cd)
@@ -71,7 +76,7 @@ class ErrorHandler(commands.Cog):
 
             bnp = discord.Embed(
                 title="Missing Permissions",
-                description=f"I need the following permisisons to run this command:\n`{missing_perms}`",
+                description=f"I need the following permissions to run this command:\n`{missing_perms}`",
                 color=discord.Color.red(),
             )
             await ctx.send(embed=bnp)
@@ -152,7 +157,7 @@ class ErrorHandler(commands.Cog):
 
         elif isinstance(error, commands.MaxConcurrencyReached):
             max_uses = discord.Embed(
-                title="Slow down",
+                title="Slow Down",
                 description=(
                     f"This command can only be used {error.number} "
                     f"{'time' if error.number == 1 else 'times'} per {error.per.name}."),
@@ -185,13 +190,12 @@ class ErrorHandler(commands.Cog):
             )
             ee.title = "Unknown Error"
             ee.description = (
-                "An unknown error has occured. This usually means that avi did something wrong. "
-                "The error was sent to the [support server](https://discord.gg/KaqqPhfwS4) and will be fixed soon."
+                "Uh oh, An uncaught error has occured. This normally shouldn't happen. "
+                "The error was sent to the [support server](https://discord.gg/KaqqPhfwS4)."
                 f"\n\n[Error]({myst_exception}):\n```py\n{short_exception}```"
             )
             try:
                 await ctx.send(embed=ee)
-                error_channel = self.avi.get_channel(831398201974194186)
                 embed = discord.Embed(
                     title="Uncaught Error",
                     description=f"```py\n {short_exception}```",
@@ -202,10 +206,10 @@ class ErrorHandler(commands.Cog):
                     value=(
                         f"Command: {ctx.command.name}\n"
                         f"Invoker: {ctx.author}\n"
-                        f"Link: {myst_exception}"
+                        f"Full Error: {myst_exception}"
                     )
                 )
-                await error_channel.send(embed=embed)
+                await self.error_webhook.send(embed=embed, username="Error")
             except Exception:
                 return
 

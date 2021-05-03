@@ -5,6 +5,9 @@ from utils import AvimetryBot, AvimetryContext, Prefix, preview_message
 
 
 class Settings(commands.Cog):
+    """
+    Configure bot settings.
+    """
     def __init__(self, avi):
         self.avi: AvimetryBot = avi
         self.map = {

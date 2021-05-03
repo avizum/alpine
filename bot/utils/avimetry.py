@@ -100,11 +100,11 @@ class AvimetryBot(commands.Bot):
             "cogs.images",
             "cogs.jishaku",
             "cogs.joinsandleaves",
-            "cogs.member",
             "cogs.meta",
             "cogs.moderation",
             "cogs.myservers",
             "cogs.roblox",
+            "cogs.servermanagement",
             "cogs.settings",
             "cogs.setup",
             "cogs.verification"
@@ -140,7 +140,7 @@ class AvimetryBot(commands.Bot):
             timenow = datetime.datetime.now().strftime("%I:%M %p")
             print(
                 "------\n"
-                "Succesfully logged in:\n"
+                "Successfully logged in:\n"
                 f"Username: {self.user.name}\n"
                 f"Bot ID: {self.user.id}\n"
                 f"Login Time: {datetime.date.today()} at {timenow}\n"

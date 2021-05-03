@@ -37,6 +37,20 @@ class AvimetryCache:
     async def get_guild_settings(self, guild_id: int):
         return self.guild_settings.get(guild_id, None)
 
+    async def new_user(self, user_id: int):
+        try:
+            check = self.users[user_id]
+            if check:
+                return check
+        except KeyError:
+            try:
+                query = "INSERT INTO user_settings (user_id) VALUES ($1)"
+                await self.avi.pool.execute(query, user_id)
+            except Exception:
+                pass
+            new = self.users[user_id] = {}
+        return new
+
     async def cache_new_guild(self, guild_id: int):
         try:
             await self.avi.pool.execute("INSERT INTO guild_settings VALUES ($1)", guild_id)

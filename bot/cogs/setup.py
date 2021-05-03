@@ -1,4 +1,6 @@
 import logging
+import discord
+from config import webhooks
 from discord.ext import commands
 
 
@@ -14,19 +16,33 @@ logger.addHandler(handler)
 class Setup(commands.Cog):
     def __init__(self, avi):
         self.avi = avi
+        self.guild_webhook = discord.Webhook.from_url(
+            webhooks["join_log"],
+            adapter=discord.AsyncWebhookAdapter(self.avi.session)
+        )
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         await self.avi.cache.cache_new_guild(guild.id)
         await self.avi.cache.check_for_cache()
-        channel = self.avi.get_channel(829812033946910720)
-        await channel.send(f"Joined a server named **{guild.name}** with **{guild.member_count}** members")
+        message = [
+            f"I got added to a server named {guild.name} with a total of {guild.member_count} members.",
+            f"I am now in {len(self.avi.guilds)} guilds."
+        ]
+        members = len([m for m in guild.members if not m.bot])
+        bots = len([m for m in guild.members if m.bot])
+        if bots < members:
+            message.append(f"There are more bots than members ({members}M, {bots}B), so it may be a bot farm.")
+        await self.guild_webhook.send("\n".join(message), username="Joined Guild")
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
-        channel = self.avi.get_channel(829812033946910720)
         await self.avi.cache.delete_all(guild.id)
-        await channel.send(f"Left a server named **{guild.name}** with **{guild.member_count}** members")
+        message = [
+            f"I got removed from a server named {guild.name}.",
+            f"I am now in {len(self.avi.guilds)} guilds."
+        ]
+        await self.guild_webhook.send("\n".join(message), username="Left Guild")
 
 
 def setup(avi):

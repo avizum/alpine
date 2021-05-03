@@ -5,7 +5,7 @@ from utils.context import AvimetryContext
 from roblox_py import Client
 
 
-class RobloxUpdate(commands.Cog, name="Roblox"):
+class RobloxUpdate(commands.Cog, name="Roblox", command_attrs=dict(hidden=True)):
     """
     Roblox related commands.
     """

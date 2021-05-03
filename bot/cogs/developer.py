@@ -27,7 +27,7 @@ class Owner(commands.Cog):
     async def cog_check(self, ctx: AvimetryContext):
         if await self.avi.is_owner(ctx.author) is True:
             return True
-        raise commands.NotOwner("You do not own this bot.")
+        raise commands.NotOwner("Stay away.")
 
     @commands.group(
         invoke_without_command=True,
@@ -110,10 +110,10 @@ class Owner(commands.Cog):
         sm = discord.Embed(
             description="Are you sure you want to reboot?"
         )
-        rr = await ctx.confirm(embed=sm)
-        if rr:
+        conf = await ctx.confirm(embed=sm)
+        if conf:
             await self.avi.close()
-        if not rr:
+        if not conf:
             await ctx.send("Reboot Aborted", delete_after=5)
 
     @dev.command()

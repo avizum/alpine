@@ -164,8 +164,11 @@ class Meta(commands.Cog):
         time_embed.set_footer(text=f"{member_name} timezone: {timezone}")
         await ctx.send(embed=time_embed)
 
-    @time.command(brief="Sets your timezone")
-    async def set(self, ctx: AvimetryContext, *, timezone):
+    @time.command(
+        name="set",
+        brief="Sets your timezone"
+        )
+    async def _set(self, ctx: AvimetryContext, *, timezone):
         try:
             timezones = pytz.timezone(timezone)
         except KeyError:
@@ -178,9 +181,10 @@ class Meta(commands.Cog):
         )
         await self.avi.pool.execute(query, ctx.author.id, timezone)
         try:
-            ctx.cache.users[ctx.author.id].update({"timezone": "US/Pacific"})
+            ctx.cache.users[ctx.author.id]["timezone"] = timezone
         except KeyError:
-            ctx.cache.users.update({ctx.author.id: {"timezone": "US/Pacific"}})
+            new = await ctx.cache.new_user(ctx.author.id)
+            new["timezone"] = timezone
         await ctx.send(f"Set timezone to {timezones}")
 
     @commands.command(brief="Get the jump link for the channel that you mention")
