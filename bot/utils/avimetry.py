@@ -6,8 +6,10 @@ import sr_api
 import aiohttp
 import aiozaneapi
 import mystbin
+import topgg
 import time
 import re
+
 from sys import platform
 import asyncpg
 import asyncdagpi
@@ -107,9 +109,11 @@ class AvimetryBot(commands.Bot):
             "cogs.servermanagement",
             "cogs.settings",
             "cogs.setup",
+            "cogs.topgg",
             "cogs.verification"
         ]
 
+        self.topgg = topgg.DBLClient(self, tokens["TopGG"], autopost=True, autopost_interval=1800)
         self.sr = sr_api.Client()
         self.zaneapi = aiozaneapi.Client(tokens["ZaneAPI"])
         self.dagpi = asyncdagpi.Client(tokens["DagpiAPI"])
