@@ -60,16 +60,6 @@ class Setup(commands.Cog):
         await self.command_webhook.send(embed=embed)
         self.avi.commands_ran += 1
 
-    @commands.Cog.listener()
-    async def on_dbl_vote(self, data):
-        """An event that is called whenever someone votes for the bot on top.gg."""
-        print(f"Received an upvote:\n{data}")
-
-    @commands.Cog.listener()
-    async def on_dbl_test(self, data):
-        """An event that is called whenever someone tests the webhook system for your bot on top.gg."""
-        print(f"Received a test upvote:\n{data}")
-
 
 def setup(avi):
     avi.add_cog(Setup(avi))

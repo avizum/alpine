@@ -9,10 +9,11 @@ import mystbin
 import topgg
 import time
 import re
-
-from sys import platform
+import contextlib
 import asyncpg
 import asyncdagpi
+
+from sys import platform
 from discord.ext import commands
 from utils.mongo import MongoDB
 from config import tokens, postgresql
@@ -93,7 +94,6 @@ class AvimetryBot(commands.Bot):
         }
         self.bot_cogs = [
             "cogs.botinfo",
-            "cogs.counting",
             "cogs.developer",
             "cogs.errorhandler",
             "cogs.events",
@@ -113,7 +113,7 @@ class AvimetryBot(commands.Bot):
             "cogs.verification"
         ]
 
-        self.topgg = topgg.DBLClient(self, tokens["TopGG"], autopost=False, autopost_interval=None)
+        self.topgg = topgg.DBLClient(self, tokens["TopGG"], autopost_interval=None)
         self.sr = sr_api.Client()
         self.zaneapi = aiozaneapi.Client(tokens["ZaneAPI"])
         self.dagpi = asyncdagpi.Client(tokens["DagpiAPI"])
@@ -200,14 +200,15 @@ class AvimetryBot(commands.Bot):
         super().run(token, reconnect=True)
 
     async def close(self):
-        self.mongo.close()
-        await self.sr.close()
-        await self.zaneapi.close()
-        await self.myst.close()
-        await self.session.close()
-        await self.dagpi.close()
-        await self.topgg.close()
-        await super().close()
+        with contextlib.suppress(Exception):
+            self.mongo.close()
+            await self.sr.close()
+            await self.zaneapi.close()
+            await self.myst.close()
+            await self.session.close()
+            await self.dagpi.close()
+            await self.topgg.close()
+            await super().close()
         print("\nSuccessfully closed bot", end="\n\n")
 
     async def on_message_edit(self, before: discord.Message, after: discord.Message):

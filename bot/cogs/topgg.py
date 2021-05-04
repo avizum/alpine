@@ -1,26 +1,21 @@
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 
 class TopGG(commands.Cog):
     def __init__(self, avi):
         self.avi = avi
+        self.post.start()
 
-    @commands.Cog.listener()
-    async def on_dbl_vote(self, data):
-        """An event that is called whenever someone votes for the bot on Top.gg."""
-        if data["type"] == "test":
-            # this is roughly equivalent to
-            # return await on_dbl_test(self, data) in this case
-            return self.avi.dispatch('dbl_test', data)
+    @tasks.loop(minutes=15)
+    async def post(self):
+        if self.avi.user.id != 756257170521063444:
+            return
+        await self.avi.topgg.post_guild_count(len(self.avi.guilds))
 
-        print(f"Received a vote:\n{data}")
-
-    @commands.Cog.listener()
-    async def on_dbl_test(self, data):
-        """An event that is called whenever someone tests the webhook system for your bot on Top.gg."""
-        print(f"Received a test vote:\n{data}")
+    @post.before_loop
+    async def before_post(self):
+        await self.avi.wait_until_ready()
 
 
 def setup(avi):
     avi.add_cog(TopGG(avi))
-

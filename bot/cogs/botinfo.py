@@ -163,9 +163,10 @@ class BotInfo(commands.Cog, name="Bot Info"):
     @commands.command()
     async def vote(self, ctx: AvimetryContext):
         vote_embed = discord.Embed(
-            title="Vote",
-            description="Vote [here](https://top.gg/bot/756257170521063444/vote) for access to some commands and a voter cooldown!"
+            title=f"Vote for {self.avi.user.name}",
+            description="[Vote at top.gg](https://top.gg/bot/756257170521063444/vote)!\nThank you for your support."
         )
+        vote_embed.set_thumbnail(url=str(self.avi.user.avatar_url))
         await ctx.send(embed=vote_embed)
 
     @commands.command()
@@ -187,7 +188,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
                     "I am made by [avi](https://discord.com/users/750135653638865017)."
                     "Remember to star and and follow the license."
                 )
-            return ctx.send(embed=source_embed)
+            return await ctx.send(embed=source_embed)
 
         command = ctx.bot.help_command if command.lower() == "help" else ctx.bot.get_command(command)
         if not command:

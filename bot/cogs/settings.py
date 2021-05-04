@@ -446,28 +446,6 @@ class Settings(commands.Cog):
             embed.description = "Cancelled. Goodbye."
             return await wait_message.reply(embed=embed)
 
-    @commands.group(invoke_without_command=True, brief="Configure counting settings")
-    @commands.has_permissions(administrator=True)
-    @commands.bot_has_permissions(administrator=True)
-    async def counting(self, ctx: AvimetryContext):
-        await ctx.send_help("config counting")
-
-    @counting.command(brief="Set the count in the counting channel")
-    @commands.has_permissions(administrator=True)
-    @commands.bot_has_permissions(administrator=True)
-    async def setcount(self, ctx: AvimetryContext, count: int):
-        await self.avi.config.upsert({"_id": ctx.guild.id, "current_count": count})
-        await ctx.send(f"Set the count to {count}")
-
-    @counting.command(brief="Set the channel for counting")
-    @commands.has_permissions(administrator=True)
-    @commands.bot_has_permissions(administrator=True)
-    async def channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
-        await self.avi.config.upsert(
-            {"_id": ctx.guild.id, "counting_channel": channel.id}
-        )
-        await ctx.send(f"Set the counting channel to {channel}")
-
 
 def setup(avi):
     avi.add_cog(Settings(avi))
