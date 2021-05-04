@@ -70,5 +70,6 @@ class Setup(commands.Cog):
         """An event that is called whenever someone tests the webhook system for your bot on top.gg."""
         print(f"Received a test upvote:\n{data}")
 
+
 def setup(avi):
     avi.add_cog(Setup(avi))
