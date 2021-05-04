@@ -133,7 +133,7 @@ class Meta(commands.Cog):
         ie.set_thumbnail(url=member.avatar_url)
         await ctx.send(embed=ie)
 
-    @commands.command(brief="Make a qr code ")
+    @commands.command(brief="Make a qr code")
     async def qr(self, ctx: AvimetryContext, *, content):
         qr_embed = discord.Embed()
         qr_embed.add_field(name="QR code", value="Here is your qr code")
@@ -201,8 +201,12 @@ class Meta(commands.Cog):
         )
         await ctx.send(embed=embed_message)
 
-    @commands.command()
+    @commands.command(
+        aliases=["rtfd", "rtm", "rtd", "docs"]
+    )
     async def rtfm(self, ctx: AvimetryContext, query):
+        if len(query) < 3:
+            return await ctx.send("Your search query needs to be at least 3 characters.")
         params = {
             "query": query,
             "location": "https://discordpy.readthedocs.io/en/latest"

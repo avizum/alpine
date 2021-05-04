@@ -14,6 +14,7 @@ from difflib import get_close_matches
 class ErrorHandler(commands.Cog):
     def __init__(self, avi):
         self.avi = avi
+        self.cd_mapping = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.member)
         self.error_webhook = discord.Webhook.from_url(
             webhooks["error_log"],
             adapter=discord.AsyncWebhookAdapter(self.avi.session)
@@ -37,7 +38,10 @@ class ErrorHandler(commands.Cog):
                 ),
                 color=discord.Color.red(),
             )
-            await ctx.send(embed=blacklisted, delete_after=15)
+            bucket = self.cd_mapping.get_bucket(ctx.message)
+            retry_after = bucket.update_rate_limit()
+            if not retry_after:
+                await ctx.send(embed=blacklisted, delete_after=15)
 
         elif isinstance(error, commands.CommandNotFound):
             if ctx.author.id in ctx.cache.blacklist:

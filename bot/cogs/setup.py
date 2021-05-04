@@ -38,7 +38,7 @@ class Setup(commands.Cog):
         members = len([m for m in guild.members if not m.bot])
         bots = len([m for m in guild.members if m.bot])
         if bots > members:
-            message.append(f"There are more bots than members ({members}M, {bots}B), so it may be a bot farm.")
+            message.append(f"There are {bots} bots and {members} members so it may be a bot farm.")
         await self.guild_webhook.send("\n".join(message), username="Joined Guild")
 
     @commands.Cog.listener()
