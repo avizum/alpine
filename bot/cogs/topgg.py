@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands, tasks
 
 
@@ -15,6 +16,14 @@ class TopGG(commands.Cog):
     @post.before_loop
     async def before_post(self):
         await self.avi.wait_until_ready()
+
+    @tasks.loop(minutes=30)
+    async def update(self):
+        if self.avi.user.id != 756257170521063444:
+            return
+        status = discord.Status.online
+        game = discord.Game(f"@Avimetry | {len(self.avi.guilds)} Servers")
+        await self.avi.change_presence(status=status, activity=game)
 
 
 def setup(avi):

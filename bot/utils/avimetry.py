@@ -59,7 +59,7 @@ allowed_mentions = discord.AllowedMentions(
 )
 intents = discord.Intents.default()
 intents.members = True
-activity = discord.Game("Avimetry | @Avimetry help")
+activity = discord.Game("0 Servers\n@Avimetry help")
 
 
 class AvimetryBot(commands.Bot):
