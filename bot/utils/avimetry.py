@@ -114,23 +114,6 @@ class AvimetryBot(commands.Bot):
         ]
 
         self.topgg = topgg.DBLClient(self, tokens["TopGG"], autopost=False, autopost_interval=None)
-        self.topgg_webhook = topgg.WebhookManager(self).dbl_webhook("/dblwebhook", "password")
-
-        @self.event
-        async def on_dbl_vote(data):
-            """An event that is called whenever someone votes for the bot on Top.gg."""
-            if data["type"] == "test":
-                # this is roughly equivalent to
-                # return await on_dbl_test(data) in this case
-                return self.dispatch('dbl_test', data)
-
-            print(f"Received a vote:\n{data}")
-
-        @self.event
-        async def on_dbl_test(data):
-            """An event that is called whenever someone tests the webhook system for your bot on Top.gg."""
-            print(f"Received a test vote:\n{data}")
-
         self.sr = sr_api.Client()
         self.zaneapi = aiozaneapi.Client(tokens["ZaneAPI"])
         self.dagpi = asyncdagpi.Client(tokens["DagpiAPI"])
@@ -158,7 +141,6 @@ class AvimetryBot(commands.Bot):
         @self.event
         async def on_ready():
             await self.wait_until_ready()
-            await self.topgg_webhook.run(5000)  # this method can be awaited as well
             timenow = datetime.datetime.now().strftime("%I:%M %p")
             print(
                 "------\n"

@@ -307,7 +307,10 @@ class Moderation(commands.Cog):
         if nick is None:
             await member.edit(nick=nick)
         oldnick = member.display_name
-        await member.edit(nick=nick)
+        try:
+            await member.edit(nick=nick)
+        except discord.Forbidden:
+            return await ctx.send(f"I can not change {member}'s nickname. Make sure I have permissions to edit them.")
         newnick = member.display_name
         nickembed = discord.Embed(
             title="<:yesTick:777096731438874634> Nickname Changed"

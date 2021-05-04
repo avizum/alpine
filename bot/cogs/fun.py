@@ -201,9 +201,6 @@ class Fun(commands.Cog):
     @commands.cooldown(1, 60, commands.BucketType.member)
     @commands.max_concurrency(1, commands.BucketType.channel)
     async def fun_akinator(self, ctx: AvimetryContext, mode="en", child=True):
-        thing = await self.avi.topgg.get_user_vote(ctx.author.id)
-        if not thing:
-            return await ctx.send("You didn't vote. Please [vote](https://top.gg/bot/756257170521063444/vote) to use this command")
         bot_perm = ctx.me.permissions_in(ctx.channel)
         perms = True if bot_perm.manage_messages is True else False
         aki_dict = {
@@ -508,16 +505,32 @@ class Fun(commands.Cog):
         def check(m):
             return m.author == ctx.author
 
-        wait = await self.avi.wait_for("message", check=check, timeout=60)
-        if wait.content.lower() == logo.brand.lower():
-            embed.title = "🎉 Good Job 🎉"
-            embed.description = f"The answer was {logo.brand}"
-            embed.set_image(url=logo.answer)
-            return await message.edit(embed=embed)
-        embed.title = f"{self.avi.emoji_dictionary['red_tick']} | Wrong"
-        embed.description = f"Your answer was {wait.content}.\nThe correct answer is actually {logo.brand}"
-        embed.set_image(url=logo.answer)
-        await message.edit(embed=embed)
+        try:
+            wait = await self.avi.wait_for("message", check=check, timeout=60)
+        except asyncio.TimeoutError:
+            embed.title = f"{self.avi.emoji_dictionary['red_tick']} | Time's Up!"
+            embed.description = f"You took too long. The correct answer is {logo.brand}"
+            try:
+                embed.set_image(url=logo.answer)
+            except discord.HTTPException:
+                pass
+            await message.edit(embed=embed)
+        else:
+            if wait.content.lower() == logo.brand.lower():
+                embed.title = "🎉 Good Job 🎉"
+                embed.description = f"The answer was {logo.brand}"
+                try:
+                    embed.set_image(url=logo.answer)
+                except discord.HTTPException:
+                    pass
+                return await message.edit(embed=embed)
+            embed.title = f"{self.avi.emoji_dictionary['red_tick']} | Wrong"
+            embed.description = f"Your answer was {wait.content}.\nThe correct answer is actually {logo.brand}"
+            try:
+                embed.set_image(url=logo.answer)
+            except discord.HTTPException:
+                pass
+            await message.edit(embed=embed)
 
     @commands.command(name="roast")
     async def dag_roast(self, ctx: AvimetryContext, member: discord.Member):
