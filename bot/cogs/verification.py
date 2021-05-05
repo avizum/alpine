@@ -63,9 +63,6 @@ class MemberJoin(commands.Cog):
         if dchnl in member.guild.channels:
             await dchnl.delete(reason=f"{member.name} left during verification process")
 
-    async def check_if_mobile(self, member: discord.Member):
-        return bool(member.is_on_mobile())
-
     @commands.command(brief="Verify now!", hidden=True)
     async def verify(self, ctx: AvimetryContext):
         member = ctx.author
@@ -91,7 +88,7 @@ class MemberJoin(commands.Cog):
                 name="Here is your key. Your key will expire in 60 seconds.",
                 value=f"`{randomkey}`",
             )
-            if await self.check_if_mobile(member):
+            if member.is_on_mobile():
                 await member.send("**Here is your key. Your key will expire in 1 minute.**")
                 await member.send(f"{randomkey}")
             else:
