@@ -16,7 +16,6 @@ class MemberJoin(commands.Cog):
         if member.bot:
             return
         config = await self.avi.cache.get_guild_settings(member.guild.id)
-        global pre
         pre = "a." if not config["prefixes"] else config["prefixes"][0]
 
         if config["verify"] is not True:
@@ -56,7 +55,6 @@ class MemberJoin(commands.Cog):
             ),
         )
 
-    # Leave Message
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         dchnl = discord.utils.get(member.guild.channels, name=f"{member.name.lower()}-verification")
@@ -120,7 +118,7 @@ class MemberJoin(commands.Cog):
                     title="Your Key has expired",
                     description=(
                         "Sorry, your key has expired. If you want to generate a new key, "
-                        f"use the command `{pre}.verify` to generate a new key."
+                        f"use the command `{ctx.clean_prefix}.verify` to generate a new key."
                     )
                 )
                 await ctx.author.send(embed=timeup)
