@@ -88,7 +88,7 @@ class MemberJoin(commands.Cog):
                 name="Here is your key. Your key will expire in 60 seconds.",
                 value=f"`{randomkey}`",
             )
-            if member.is_on_mobile():
+            if member.is_on_mobile() is True:
                 await member.send("**Here is your key. Your key will expire in 1 minute.**")
                 await member.send(f"{randomkey}")
             else:
