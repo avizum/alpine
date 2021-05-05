@@ -132,7 +132,7 @@ class ErrorHandler(commands.Cog):
             )
             conf = await ctx.confirm(embed=a)
             if conf:
-                await ctx.send_error_help(ctx.command)
+                await ctx.send_help(ctx.command)
             return
 
         elif isinstance(error, commands.DisabledCommand):
