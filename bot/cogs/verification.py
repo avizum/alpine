@@ -70,7 +70,7 @@ class MemberJoin(commands.Cog):
     async def verify(self, ctx: AvimetryContext):
         member = ctx.author
         try:
-            verify_config = ctx.cache.guild_settings["guild_id"]
+            verify_config = ctx.cache.guild_settings[ctx.guild.id]
         except KeyError:
             return await ctx.send("Verification has not been setup yet.")
         role_id = ctx.guild.get_role(verify_config["verify_role"])
