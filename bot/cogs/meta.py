@@ -226,7 +226,7 @@ class Meta(commands.Cog):
         brief="Make embeds. This command is not for normal members because it can be abused.")
     @commands.has_permissions(manage_messages=True)
     @commands.cooldown(5, 300, commands.BucketType.member)
-    async def embed(self, ctx, *, thing: str):
+    async def embed(self, ctx: AvimetryContext, *, thing: str):
         if '"content":' in thing or "'content':" in thing:
             return await ctx.send('Remove the "content" part from your message and try again.')
         try:
@@ -238,8 +238,7 @@ class Meta(commands.Cog):
                 description=f"The JSON input raised an error:\n```bash\n{e}```")
             return await ctx.send(embed=embed)
 
-    @commands.command(
-        hidden=True)
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def _(self, ctx):
         return

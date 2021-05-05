@@ -50,9 +50,7 @@ class HelpEmbeded(commands.HelpCommand):
             return None
 
     def gending_note(self):
-        return "Use {0}{1} [command|module] for help on a command or module.".format(
-            self.clean_prefix, self.invoked_with
-        )
+        return f"Use {self.clean_prefix}{self.invoked_with} [command|module] for help on a command or module."
 
     def command_signature(self):
         return (
@@ -119,7 +117,7 @@ class HelpEmbeded(commands.HelpCommand):
         value = [", ".join(lists) for lists in split_list]
         embed.add_field(
             name=f"Commands in {cog.qualified_name.title()}",
-            value='{}'.format(",\n".join(value)) or None,
+            value=",\n".join(value) or None,
             inline=False,
         )
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
@@ -129,19 +127,14 @@ class HelpEmbeded(commands.HelpCommand):
     async def send_group_help(self, group):
         embed = discord.Embed(
             title=f"Commands in group {group.qualified_name.title()}",
-            description=f"{group.short_doc}" or "There are no commands in this module",
-        )
+            description=f"{group.short_doc}" or "There are no commands in this module")
         embed.add_field(
             name="Base command usage",
-            value=(
-                f"`{self.clean_prefix}{group.qualified_name} {group.signature}`"
-            )
-        )
+            value=f"`{self.clean_prefix}{group.qualified_name} {group.signature}`")
         embed.add_field(
             name="Command Aliases",
             value=", ".join(group.aliases) or None,
-            inline=False
-        )
+            inline=False)
         try:
             can_run_check = await group.can_run(self.context)
             if can_run_check:
@@ -157,13 +150,10 @@ class HelpEmbeded(commands.HelpCommand):
                 f"Bot Permissions: `{await self.get_bot_perms(group)}`\n"
                 f"User Permissions: `{await self.get_user_perms(group)}`"
             ),
-            inline=False
-        )
+            inline=False)
         embed.add_field(
             name="Cooldown",
-            value=self.get_cooldown(group)
-        )
-
+            value=self.get_cooldown(group))
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
             group_commands = [command.name for command in filtered]
@@ -171,34 +161,27 @@ class HelpEmbeded(commands.HelpCommand):
             value = [", ".join(lists) for lists in split_list]
             embed.add_field(
                 name=f"Subcommands for {group.qualified_name}",
-                value='{}'.format(",\n".join(value)) or None,
-                inline=False,
-            )
+                value=",\n".join(value) or None,
+                inline=False)
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
 
     async def send_command_help(self, command):
         embed = discord.Embed(
-            title="Command: {0.qualified_name}".format(command),
-        )
+            title=f"Command: {command.qualified_name}")
 
         embed.add_field(
             name="Command Usage",
-            value=(
-                f"`{self.clean_prefix}{command.name} {command.signature}`"
-                )
-        )
+            value=f"`{self.clean_prefix}{command.name} {command.signature}`")
         embed.add_field(
             name="Command Aliases",
             value=", ".join(command.aliases) or None,
-            inline=False
-        )
+            inline=False)
         embed.add_field(
             name="Description",
             value=command.short_doc or None,
-            inline=True,
-        )
+            inline=True)
         try:
             can_run = await self.avi.can_run(self.ctx)
             print(can_run)
@@ -217,14 +200,11 @@ class HelpEmbeded(commands.HelpCommand):
             value=(
                 f"Can Use: {can_run}\n"
                 f"Bot Permissions: `{await self.get_bot_perms(command)}`\n"
-                f"User Permissions: `{await self.get_user_perms(command)}`"
-            ),
-            inline=False
-        )
+                f"User Permissions: `{await self.get_user_perms(command)}`"),
+            inline=False)
         embed.add_field(
             name="Cooldown",
-            value=self.get_cooldown(command)
-        )
+            value=self.get_cooldown(command))
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
@@ -238,12 +218,12 @@ class HelpEmbeded(commands.HelpCommand):
         return f'"{string}" is not a command/module and I couln\'t find any similar commands.'
 
     async def subcommand_not_found(self, command, string):
-        return '"{0}" is not a subcommand of "{1}".'.format(string, command)
+        return f'"{string}" is not a subcommand of "{command}".'
 
 
 class HelpCommand(commands.Cog):
     def __init__(self, avi):
-        self.HCne = avi.help_command
+        self.default = avi.help_command
         self.avi = avi
         self.avi.help_command = HelpEmbeded(
             verify_checks=False,
@@ -256,7 +236,7 @@ class HelpCommand(commands.Cog):
         )
 
     def cog_unload(self):
-        self.avi.help_command = self.HCne
+        self.avi.help_command = self.default
 
 
 def setup(avi):

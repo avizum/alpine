@@ -3,19 +3,8 @@ import asyncio
 import datetime
 import humanize
 from discord.ext import commands
-from utils.converters import TimeConverter, TargetMemberAction
+from utils.converters import TimeConverter, TargetMemberAction, FindBan, Reason
 from utils.context import AvimetryContext
-
-
-class Reason(commands.Converter):
-    async def convert(self, ctx, argument):
-        reason = f"{ctx.author}: {argument}"
-        if argument is None:
-            reason = f"{ctx.author}: No reason was provided."
-
-        if len(reason) > 512:
-            raise commands.BadArgument(f"Reason is too long ({len(reason)}/512")
-        return reason
 
 
 class Moderation(commands.Cog):
@@ -29,127 +18,76 @@ class Moderation(commands.Cog):
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
     async def kick(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: Reason = None):
-        if reason is None:
-            reason = f"{ctx.author} ({ctx.author.id}): No reason was provided."
-        else:
-            reason = f"{ctx.author} ({ctx.author.id}): {reason}"
         kick_embed = discord.Embed(
-            title="Kick Member"
+            title="Kicked Member",
+            color=discord.Color.green()
         )
-        try:
-            dm_embed = discord.Embed(
-                title="Moderation action: Kick",
-                description=(
-                    f"You were kicked from **{ctx.guild.name}** by **{ctx.author}**.\n"
-                    f"Reason {reason}"
-                ),
-                timestamp=datetime.datetime.utcnow(),
-            )
-            await member.send(embed=dm_embed)
-            await member.kick(reason=reason)
-            kick_embed.description = f"**{member}** has been kicked from the server."
-            await ctx.send(embed=kick_embed)
-        except discord.HTTPException:
-            await member.kick(reason=reason)
-            kick_embed.description = f"**{member}** has been kicked from the server, but I could not DM them."
-            await ctx.send(embed=kick_embed)
+        await member.kick(reason=reason)
+        kick_embed.description = f"**{member}** has been kicked from the server."
+        await ctx.send(embed=kick_embed)
 
     @commands.command(brief="Bans then unbans a member from the server")
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(ban_members=True)
     async def softban(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: Reason = None):
         soft_ban_embed = discord.Embed(
-            title="Soft-Ban Member"
+            title="Soft-Banned Member",
+            description=f"**{member}** has been soft banned from the server.",
+            color=discord.Color.green()
         )
-        try:
-            dm_embed = discord.Embed(
-                title="Moderation action: Soft Ban",
-                description=(
-                    f"You were soft banned from **{ctx.guild.name}** by **{ctx.author}**.\n"
-                    f"Reason {reason}"
-                ),
-                timestamp=datetime.datetime.utcnow(),
-            )
-            await member.send(embed=dm_embed)
-            await member.ban(reason=reason)
-            soft_ban_embed.description = f"**{member}** has been soft banned from the server."
-            await ctx.send(embed=soft_ban_embed)
-        except discord.HTTPException:
-            await member.ban(reason=reason)
-            soft_ban_embed.description = f"**{member}** has been soft banned from the server, but I could not DM them."
-            await ctx.send(embed=soft_ban_embed)
-        await member.unban(reason=reason)
+        await member.ban(reason=reason)
+        await ctx.send(embed=soft_ban_embed)
 
     @commands.command(brief="Bans a member from the server", usage="<member> [reason]")
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
     async def ban(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: Reason = None):
         ban_embed = discord.Embed(
-            title="Ban Member"
+            title="Banned Member",
+            color=discord.Color.green()
         )
-        ban_embed.color = discord.Color.red()
         if isinstance(member, discord.User):
-            ban_embed.color = discord.Color.green()
             await ctx.guild.ban(member, reason=reason)
             ban_embed.description = f"**{str(member)}** has been banned from the server."
-            await ctx.send(embed=ban_embed)
-        try:
-            dm_embed = discord.Embed(
-                title="Moderation action: Ban",
-                description=(
-                    f"You were banned from **{ctx.guild}** by **{ctx.author}**.\n"
-                    f"**Reason:** {reason}"
-                ),
-                timestamp=datetime.datetime.utcnow(),
-            )
-            await member.send(embed=dm_embed)
-            await member.ban(reason=reason)
-            ban_embed.description = f"**{str(member)}** has been banned from the server."
-            await ctx.send(embed=ban_embed)
-        except discord.HTTPException:
-            await member.ban(reason=reason)
-            ban_embed.description = f"**{str(member)}** has been banned from the server, but I could not DM them."
-            await ctx.send(embed=ban_embed)
+            return await ctx.send(embed=ban_embed)
+
+        await member.ban(reason=reason)
+        ban_embed.description = f"**{str(member)}** has been banned from the server."
+        await ctx.send(embed=ban_embed)
 
     @commands.command(brief="Unbans a member from the server.", usage="<member_id> [reason]")
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def unban(self, ctx: AvimetryContext, member, *, reason="No reason was provided"):
-        try:
-            some_member = discord.Object(id=member)
-            await ctx.guild.unban(some_member)
-            unbanenmbed = discord.Embed()
-            unbanenmbed.add_field(
-                name="<:yesTick:777096731438874634> Unban Member",
-                value=f"Unbanned <@{member}> ({member}) from **{ctx.guild.name}**.",
-                inline=False,
-            )
-            await ctx.send(embed=unbanenmbed)
-        except Exception:
-            banned_users = await ctx.guild.bans()
-            member_name, member_discriminator = member.split("#")
-            for ban_entry in banned_users:
-                user = ban_entry.user
-            if (user.name, user.discriminator) == (member_name, member_discriminator):
-                await ctx.guild.unban(user)
-                unbanenmbed = discord.Embed()
-                unbanenmbed.add_field(
-                    name="<:yesTick:777096731438874634> Unban Member",
-                    value=f"Unbanned **{member}** from **{ctx.guild.name}**.",
-                    inline=False,
-                )
-                await ctx.send(embed=unbanenmbed)
+    async def unban(self, ctx: AvimetryContext, member: FindBan, *, reason: Reason = None):
+        await ctx.guild.unban(member, reason=reason)
+        unban_embed = discord.Embed(
+            title="Unbanned Member",
+            description=f"**{str(member)}** has been unbanned from the server.",
+            color=discord.Color.green()
+        )
+        await ctx.send(embed=unban_embed)
 
     @commands.command(
         brief="Mutes a person indefinately"
     )
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def mute(self, ctx: AvimetryContext, member: TargetMemberAction, reason: Reason = None):
+    async def mute(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: Reason = None):
         role = await ctx.cache.get_guild_settings(ctx.guild.id)
         mute_role = ctx.guild.get_role(role["mute_role"])
         await member.add_roles(mute_role, reason=reason)
         await ctx.send(f"{member.mention} was muted indfinately.")
+
+    @commands.command(
+        brief="Temporarily mute someone for a specified amount of time."
+    )
+    @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    async def tempmute(
+        self, ctx: AvimetryContext, member: TargetMemberAction, time: TimeConverter, *, reason: Reason = None
+    ):
+        await ctx.send("Command is a WIP")
+        print(f"Mute: {member}, {time}, {reason}")
 
     @commands.group(
         invoke_without_command=True,

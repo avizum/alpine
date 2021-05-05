@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from utils.context import AvimetryContext
 
+
 time_regex = re.compile(r"(?:(\d{1,5})\s?(h|s|m|d))+?")
 time_dict = {
     "h": 3600,
@@ -23,7 +24,7 @@ time_dict = {
 
 
 class TimeConverter(commands.Converter):
-    async def convert(self, ctx, argument):
+    async def convert(self, ctx: AvimetryContext, argument):
         args = argument.lower()
         matches = re.findall(time_regex, args)
         time = 0
@@ -38,8 +39,19 @@ class TimeConverter(commands.Converter):
         return time
 
 
+class Reason(commands.Converter):
+    async def convert(self, ctx, argument):
+        reason = f"{ctx.author}: {argument}"
+        if argument is None:
+            reason = f"{ctx.author}: No reason was provided."
+
+        if len(reason) > 512:
+            raise commands.BadArgument(f"Reason is too long ({len(reason)}/512")
+        return reason
+
+
 class TargetMemberAction(commands.Converter):
-    async def convert(self, ctx, argument: discord.Member):
+    async def convert(self, ctx: AvimetryContext, argument: discord.Member):
         try:
             member = await commands.MemberConverter().convert(ctx, argument)
         except Exception:
@@ -81,12 +93,30 @@ class TargetMemberAction(commands.Converter):
         return member
 
 
+class FindBan(commands.Converter):
+    async def convert(self, ctx: AvimetryContext, argument: str):
+        try:
+            user = await commands.UserConverter().convert(ctx, argument)
+            try:
+                await ctx.guild.fetch_ban(user)
+            except discord.NotFound:
+                raise commands.BadArgument("That user isn't banned.")
+            return user
+        except commands.UserNotFound:
+            bans = await ctx.guild.bans()
+            for ban in bans:
+                if str(ban[1]).startswith(argument):
+                    return ban[1]
+
+        raise commands.BadArgument("That user isn't banned")
+
+
 PREFIX_CHAR_LIMIT = 20
 MAX_PREFIX_AMOUNT = 15
 
 
 class Prefix(commands.Converter):
-    async def convert(self, ctx, argument):
+    async def convert(self, ctx: AvimetryContext, argument):
         user_mention = re.findall(r"<@(!?)([0-9]*)>", argument)
         role_mention = re.findall(r"<@&(\d+)>", argument)
         channel_mention = re.findall(r"<#(\d+)>", argument)

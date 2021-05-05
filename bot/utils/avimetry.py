@@ -1,7 +1,6 @@
 import discord
 import os
 import datetime
-import motor.motor_asyncio
 import sr_api
 import aiohttp
 import aiozaneapi
@@ -15,7 +14,6 @@ import asyncdagpi
 
 from sys import platform
 from discord.ext import commands
-from utils.mongo import MongoDB
 from config import tokens, postgresql
 from .context import AvimetryContext
 from .errors import Blacklisted
@@ -122,14 +120,6 @@ class AvimetryBot(commands.Bot):
 
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**postgresql))
 
-        self.mongo = motor.motor_asyncio.AsyncIOMotorClient(tokens["MongoDB"])
-        self.db = self.mongo["avimetry"]
-        self.config = MongoDB(self.db, "new")
-        self.mutes = MongoDB(self.db, "mutes")
-        self.logs = MongoDB(self.db, "logging")
-        self.bot_users = MongoDB(self.db, "users")
-        self.blacklist = MongoDB(self.db, "blacklisted")
-
         @self.check
         async def check(ctx):
             if not ctx.guild:
@@ -143,12 +133,11 @@ class AvimetryBot(commands.Bot):
             await self.wait_until_ready()
             timenow = datetime.datetime.now().strftime("%I:%M %p")
             print(
-                "------\n"
                 "Successfully logged in:\n"
                 f"Username: {self.user.name}\n"
                 f"Bot ID: {self.user.id}\n"
                 f"Login Time: {datetime.date.today()} at {timenow}\n"
-                "------")
+            )
             for cog in self.bot_cogs:
                 try:
                     self.load_extension(cog)
@@ -164,8 +153,6 @@ class AvimetryBot(commands.Bot):
             return
         if message.author.bot:
             return
-        if self.devmode is True and ctx.author.id not in self.owner_ids:
-            return
         await self.invoke(ctx)
 
     async def on_message(self, message):
@@ -180,12 +167,6 @@ class AvimetryBot(commands.Bot):
     async def api_latency(self, ctx):
         start = time.perf_counter()
         await ctx.trigger_typing()
-        end = time.perf_counter()
-        return round((end - start) * 1000)
-
-    async def database_latency(self, ctx):
-        start = time.perf_counter()
-        await self.config.find({"_id": ctx.guild.id})
         end = time.perf_counter()
         return round((end - start) * 1000)
 

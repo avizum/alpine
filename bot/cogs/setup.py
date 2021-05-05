@@ -52,9 +52,11 @@ class Setup(commands.Cog):
 
     @commands.Cog.listener("on_command")
     async def on_command(self, ctx: AvimetryContext):
+        if ctx.author.id in ctx.cache.blacklist:
+            return
         embed = discord.Embed(
-            title=f"Command: {ctx.command.name}",
-            description=f"Command was ran in {ctx.guild.name} by {ctx.author.mention}"
+            description=f"The {ctx.command.qualified_name} command was used by {ctx.author.mention}",
+            color=ctx.author.color
         )
         embed.timestamp = datetime.datetime.utcnow()
         await self.command_webhook.send(embed=embed)

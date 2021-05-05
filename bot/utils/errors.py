@@ -10,6 +10,11 @@ class TimeZoneError(commands.BadArgument):
         )
 
 
+class BlacklistWarn(commands.CheckFailure):
+    def __init__(self, reason):
+        self.reason = reason
+
+
 class Blacklisted(commands.CheckFailure):
     def __init__(self, reason):
         self.reason = reason

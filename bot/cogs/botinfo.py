@@ -69,11 +69,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             value=f"`{await self.avi.api_latency(ctx)}ms`",
             inline=False)
         ping_embed.add_field(
-            name="Database Latency (Mongo)",
-            value=f"`{await self.avi.database_latency(ctx)}ms`",
-            inline=False)
-        ping_embed.add_field(
-            name="Database Latency (PostgreSQL)",
+            name="Database Latency",
             value=f"`{await self.avi.postgresql_latency()}ms`",
             inline=False)
 
