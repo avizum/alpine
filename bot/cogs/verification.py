@@ -115,34 +115,37 @@ class MemberJoin(commands.Cog):
         def check(m):
             return m.author == ctx.author and m.channel == channel
 
-        try:
-            msg = await self.avi.wait_for("message", timeout=60, check=check)
-        except asyncio.TimeoutError:
-            timeup = discord.Embed(
-                title="Your Key has expired",
-                description=(
-                    "Sorry, your key has expired. If you want to generate a new key, "
-                    f"use the command `{pre}.verify` to generate a new key."
+        while True:
+            try:
+                msg = await self.avi.wait_for("message", timeout=60, check=check)
+            except asyncio.TimeoutError:
+                timeup = discord.Embed(
+                    title="Your Key has expired",
+                    description=(
+                        "Sorry, your key has expired. If you want to generate a new key, "
+                        f"use the command `{pre}.verify` to generate a new key."
+                    )
                 )
-            )
-            await ctx.author.send(embed=timeup)
-        else:
-            if msg.content != randomkey:
-                await ctx.send("Wrong Key, Try again.")
+                await ctx.author.send(embed=timeup)
+                break
             else:
-                verembed = discord.Embed(
-                    title="Verification complete!",
-                    description="Congratulations, you have been verified! Please wait while I update your roles...",
-                )
-                await ctx.send(embed=verembed)
-                await member.add_roles(role_id)
-                cnl = discord.utils.get(
-                    ctx.guild.channels, name=f"{member.name.lower().replace(' ', '-')}-verification",
-                )
-                try:
-                    await cnl.delete(reason=f"{member.name} finished verification")
-                except Exception:
-                    pass
+                if msg.content != randomkey:
+                    await ctx.send("Wrong Key, Try again.")
+                else:
+                    verembed = discord.Embed(
+                        title="Verification complete!",
+                        description="Congratulations, you have been verified! Please wait while I update your roles...",
+                    )
+                    await ctx.send(embed=verembed)
+                    await member.add_roles(role_id)
+                    cnl = discord.utils.get(
+                        ctx.guild.channels, name=f"{member.name.lower().replace(' ', '-')}-verification",
+                    )
+                    try:
+                        await cnl.delete(reason=f"{member.name} finished verification")
+                    except Exception:
+                        pass
+                    break
 
 
 def setup(avi):
