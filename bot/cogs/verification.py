@@ -15,14 +15,13 @@ class MemberJoin(commands.Cog):
     async def on_member_join(self, member):
         if member.bot:
             return
-        prefixes = await self.avi.cache.get_guild_settings(member.guild.id)
+        config = await self.avi.cache.get_guild_settings(member.guild.id)
         global pre
-        pre = "a." if not prefixes["prefixes"] else prefixes["prefixes"][0]
-        try:
-            config = self.avi.cache["guild_id"]
-        except KeyError:
-            return
+        pre = "a." if not config["prefixes"] else config["prefixes"][0]
+
         if config["verify"] is not True:
+            return
+        if config["verify_role"] is None:
             return
 
         name = "New Members"
