@@ -2,7 +2,7 @@ import discord
 import re
 from discord.ext import commands, tasks
 from utils.errors import PrivateServer
-from utils.context import AvimetryContext
+from utils import AvimetryBot, AvimetryContext
 
 
 URL_REGEX = re.compile(
@@ -56,7 +56,7 @@ class Servers(commands.Cog, name="Servers"):
     Commands for avi's servers only.
     '''
     def __init__(self, avi):
-        self.avi = avi
+        self.avi: AvimetryBot = avi
         self.update_count.start()
         self.guild_id = [751490725555994716, 814206001451761664]
         self.joins_and_leaves = 751967006701387827

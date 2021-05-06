@@ -2,6 +2,7 @@ import discord
 import asyncio
 from discord.ext import commands, tasks
 from utils.context import AvimetryContext
+from utils import AvimetryBot
 from roblox_py import Client
 
 
@@ -10,7 +11,7 @@ class RobloxUpdate(commands.Cog, name="Roblox", command_attrs=dict(hidden=True))
     Roblox related commands.
     """
     def __init__(self, avi):
-        self.avi = avi
+        self.avi: AvimetryBot = avi
         self.update_check.start()
 
     def cog_unload(self):

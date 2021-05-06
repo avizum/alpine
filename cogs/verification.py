@@ -3,13 +3,16 @@ import string
 import random
 import asyncio
 import datetime
+from utils import AvimetryBot, AvimetryContext
 from discord.ext import commands
-from utils.context import AvimetryContext
 
 
 class MemberJoin(commands.Cog):
+    """
+    Handle Verification Feature(s)
+    """
     def __init__(self, avi):
-        self.avi = avi
+        self.avi: AvimetryBot = avi
 
     @commands.Cog.listener()
     async def on_member_join(self, member):

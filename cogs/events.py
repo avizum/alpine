@@ -1,11 +1,12 @@
 import discord
 import datetime
 from discord.ext import commands, tasks
+from utils import AvimetryBot
 
 
 class BotLogs(commands.Cog):
     def __init__(self, avi):
-        self.avi = avi
+        self.avi: AvimetryBot = avi
         self.clear_cache.start()
 
     @commands.Cog.listener("on_message_delete")

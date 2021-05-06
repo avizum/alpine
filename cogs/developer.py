@@ -5,15 +5,15 @@ import subprocess
 import asyncio
 from utils.converters import CogConverter
 from discord.ext import commands
-from utils.context import AvimetryContext
+from utils import AvimetryBot, AvimetryContext
 
 
 class Owner(commands.Cog):
-    '''
-    Commands for bot owner.
-    '''
+    """
+    Commands for the bot owners.
+    """
     def __init__(self, avi):
-        self.avi = avi
+        self.avi: AvimetryBot = avi
 
     def cog_unload(self):
         self.avi.load_extension("cogs.developer")

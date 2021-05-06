@@ -1,12 +1,12 @@
 import discord
 from typing import Union
 from discord.ext import commands
-from utils.context import AvimetryContext
+from utils import AvimetryBot, AvimetryContext
 
 
 class ServerManagement(commands.Cog, name="Server Management"):
     def __init__(self, avi):
-        self.avi = avi
+        self.avi: AvimetryBot = avi
 
     @commands.command(
         aliases=["members", "mc"], brief="Gets the members of the server and shows you."

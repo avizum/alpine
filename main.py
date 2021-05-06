@@ -1,4 +1,4 @@
-from utils.avimetry import AvimetryBot
+from utils import AvimetryBot
 
 if __name__ == "__main__":
     avi = AvimetryBot()

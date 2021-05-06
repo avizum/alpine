@@ -5,15 +5,15 @@ import humanize
 import pathlib
 import inspect
 from discord.ext import commands
-from utils.context import AvimetryContext
+from utils import AvimetryContext, AvimetryBot
 
 
 class BotInfo(commands.Cog, name="Bot Info"):
     """
-    Commands for the bot's information.
+    Commands about the bot
     """
     def __init__(self, avi):
-        self.avi = avi
+        self.avi: AvimetryBot = avi
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -151,17 +151,22 @@ class BotInfo(commands.Cog, name="Bot Info"):
             )
         )
         req_embed.add_field(
-            name="Your \"useful\" request",
+            name="Your request",
             value=f"```{request}```"
         )
         await ctx.send(embed=req_embed)
 
     @commands.command()
     async def vote(self, ctx: AvimetryContext):
+        vote_link = "https://top.gg/bot/756257170521063444/vote"
         vote_embed = discord.Embed(
             title=f"Vote for {self.avi.user.name}",
-            description="[Vote at top.gg](https://top.gg/bot/756257170521063444/vote)!\nThank you for your support."
+            description=f"[Vote Now]({vote_link}) at top.gg\nThank you for your support."
         )
+        voted = await self.avi.topgg.get_user_vote(ctx.author.id)
+        print(voted)
+        if voted:
+            vote_embed.description = f"[Already Voted.]({vote_link})\nThank you for your support."
         vote_embed.set_thumbnail(url=str(self.avi.user.avatar_url))
         await ctx.send(embed=vote_embed)
 

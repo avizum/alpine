@@ -3,12 +3,11 @@ import jishaku
 import discord
 import sys
 import psutil
-from discord.ext import commands
 from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 from jishaku import Feature
 from jishaku.flags import JISHAKU_HIDE
-from utils.context import AvimetryContext
 from utils.converters import CogConverter
+from utils import AvimetryBot, AvimetryContext
 
 
 class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
@@ -110,5 +109,5 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     pass
 
 
-def setup(avi: commands.Bot):
+def setup(avi: AvimetryBot):
     avi.add_cog(Jishaku(bot=avi))

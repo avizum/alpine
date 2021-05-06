@@ -4,7 +4,7 @@ from discord.ext import tasks
 
 class AvimetryCache:
     def __init__(self, avi):
-        self.avi = avi
+        self.avi: AvimetryBot = avi
         self.cache_loop.start()
         self.guild_settings = {}
         self.logging = {}

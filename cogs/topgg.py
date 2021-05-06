@@ -1,10 +1,11 @@
 import discord
+from utils import AvimetryBot
 from discord.ext import commands, tasks
 
 
 class TopGG(commands.Cog):
     def __init__(self, avi):
-        self.avi = avi
+        self.avi: AvimetryBot = avi
         self.post.start()
         self.update.start()
 

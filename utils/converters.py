@@ -1,7 +1,7 @@
 import re
 import discord
 from discord.ext import commands
-from utils.context import AvimetryContext
+from utils import AvimetryContext
 
 
 time_regex = re.compile(r"(?:(\d{1,5})\s?(h|s|m|d))+?")

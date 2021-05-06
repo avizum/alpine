@@ -4,7 +4,7 @@ import datetime
 import humanize
 from discord.ext import commands
 from utils.converters import TimeConverter, TargetMemberAction, FindBan, Reason
-from utils.context import AvimetryContext
+from utils import AvimetryBot, AvimetryContext
 
 
 class Moderation(commands.Cog):
@@ -12,7 +12,7 @@ class Moderation(commands.Cog):
     Moderation commands.
     """
     def __init__(self, avi):
-        self.avi = avi
+        self.avi: AvimetryBot = avi
 
     @commands.command(brief="Kicks a member from the server.", usage="<member> [reason]")
     @commands.has_permissions(kick_members=True)

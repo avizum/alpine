@@ -7,15 +7,15 @@ import pytz
 import typing
 from discord.ext import commands
 from utils.errors import TimeZoneError
-from utils.context import AvimetryContext
+from utils import AvimetryBot, AvimetryContext
 
 
 class Meta(commands.Cog):
     """
-    Commands that do not lie in any category.
+    Extra commands that do not lie in any category.
     """
     def __init__(self, avi):
-        self.avi = avi
+        self.avi: AvimetryBot = avi
 
     @commands.command(brief="Sends a poll for people to vote to.")
     @commands.cooldown(1, 300, commands.BucketType.user)

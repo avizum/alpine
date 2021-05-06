@@ -4,14 +4,14 @@ import prettify_exceptions
 import humanize
 from config import webhooks
 from utils.errors import Blacklisted
-from utils.context import AvimetryContext
+from utils import AvimetryBot, AvimetryContext
 from discord.ext import commands
 from difflib import get_close_matches
 
 
 class ErrorHandler(commands.Cog):
     def __init__(self, avi):
-        self.avi = avi
+        self.avi: AvimetryBot = avi
         self.cd_mapping = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
         self.error_webhook = discord.Webhook.from_url(
             webhooks["error_log"],

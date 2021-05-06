@@ -6,7 +6,7 @@ from discord.ext import commands
 from io import BytesIO
 from asyncdagpi import ImageFeatures
 from twemoji_parser import emoji_to_url as urlify_emoji
-from utils.context import AvimetryContext
+from utils import AvimetryBot, AvimetryContext
 
 embed = discord.Embed()
 regex_url = re.compile(
@@ -48,7 +48,7 @@ class Image(commands.Cog, name="Images"):
     Commands for image manipuation and more.
     '''
     def __init__(self, avi):
-        self.avi = avi
+        self.avi: AvimetryBot = avi
 
     async def do_dagpi(self, ctx: AvimetryContext, feature: ImageFeatures, argument, gif: bool = False):
         converter = GetAvatar()

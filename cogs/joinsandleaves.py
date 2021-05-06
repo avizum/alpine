@@ -2,6 +2,7 @@ import discord
 import json
 from discord.ext import commands
 from tagformatter import Parser
+from utils import AvimetryBot
 
 
 parser = Parser(case_insensitive=True)
@@ -62,7 +63,7 @@ class JoinsAndLeaves(commands.Cog):
     Cog for handling joins and leave messages.
     """
     def __init__(self, avi):
-        self.avi = avi
+        self.avi: AvimetryBot = avi
 
     async def convert(self, message):
         try:

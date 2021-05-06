@@ -5,15 +5,15 @@ import asyncio
 import akinator
 from discord.ext import commands
 from akinator.async_aki import Akinator
-from utils.context import AvimetryContext
+from utils import AvimetryBot, AvimetryContext
 
 
 class Fun(commands.Cog):
     """
-    Fun commands for you and your friends (if you have any) to use.
+    Fun commands for you and friends.
     """
     def __init__(self, avi):
-        self.avi = avi
+        self.avi: AvimetryBot = avi
         self._cd = commands.CooldownMapping.from_cooldown(1.0, 60.0, commands.BucketType.user)
 
     async def do_mock(self, string: str):

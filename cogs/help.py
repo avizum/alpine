@@ -3,6 +3,7 @@ import traceback
 import humanize
 from discord.ext import commands
 from difflib import get_close_matches
+from utils import AvimetryBot
 
 
 class HelpEmbeded(commands.HelpCommand):
@@ -224,7 +225,7 @@ class HelpEmbeded(commands.HelpCommand):
 class HelpCommand(commands.Cog):
     def __init__(self, avi):
         self.default = avi.help_command
-        self.avi = avi
+        self.avi: AvimetryBot = avi
         self.avi.help_command = HelpEmbeded(
             verify_checks=False,
             command_attrs=dict(
