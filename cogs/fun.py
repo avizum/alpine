@@ -212,9 +212,7 @@ class Fun(commands.Cog):
             "<:Back:815854941083664454>": "back",
             "<:Stop:815859174667452426>": "stop"
         }
-        aki_react = []
-        for emoji, answer in aki_dict.items():
-            aki_react.append(emoji)
+        aki_react = [emoji for emoji in aki_dict]
         aki_client = Akinator()
         akinator_embed = discord.Embed(
             title="Akinator",
@@ -228,7 +226,6 @@ class Fun(commands.Cog):
         async with ctx.channel.typing():
             initial_messsage = await ctx.send(embed=akinator_embed)
             game = await aki_client.start_game(mode, child)
-        game_end_early = False
         for i in aki_react:
             await initial_messsage.add_reaction(i)
         await asyncio.sleep(5)
@@ -261,12 +258,10 @@ class Fun(commands.Cog):
                 )
                 akinator_embed.set_thumbnail(url=discord.Embed.Empty)
                 await initial_messsage.edit(embed=akinator_embed)
-                game_end_early = True
-                return
+                break
             else:
                 ans = aki_dict[str(reaction.emoji)]
                 if ans == "stop":
-                    game_end_early = True
                     akinator_embed.description = "Akinator session stopped."
                     akinator_embed.set_thumbnail(url=discord.Embed.Empty)
                     await initial_messsage.edit(embed=akinator_embed)
@@ -293,19 +288,13 @@ class Fun(commands.Cog):
         except discord.Forbidden:
             await initial_messsage.delete()
             initial_messsage = await ctx.send("Processing...")
-        if game_end_early is True:
-            return
         await aki_client.win()
 
         akinator_embed.description = (
             f"I think it is {aki_client.first_guess['name']} ({aki_client.first_guess['description']})! Was I correct?"
         )
-        akinator_embed.set_thumbnail(
-            url=discord.Embed.Empty
-        )
-        akinator_embed.set_image(
-            url=f"{aki_client.first_guess['absolute_picture_path']}"
-        )
+        akinator_embed.set_thumbnail(url=discord.Embed.Empty)
+        akinator_embed.set_image(url=f"{aki_client.first_guess['absolute_picture_path']}")
         await initial_messsage.edit(embed=akinator_embed)
         reactions = ["<:greentick:777096731438874634>", "<:redtick:777096756865269760>"]
         for reaction in reactions:
@@ -314,7 +303,7 @@ class Fun(commands.Cog):
         def yes_no_check(reaction, user):
             return (
                 reaction.message.id == initial_messsage.id and
-                str(reaction.emoji) in ["<:greentick:777096731438874634>", "<:redtick:777096756865269760>"] and
+                (reaction.emoji) in ["<:greentick:777096731438874634>", "<:redtick:777096756865269760>"] and
                 user != self.avi.user and
                 user == ctx.author
             )
@@ -330,14 +319,12 @@ class Fun(commands.Cog):
                 akinator_embed.description = (
                     f"{akinator_embed.description}\n\n------\n\nYay!"
                 )
-                await initial_messsage.edit(embed=akinator_embed)
             if str(reaction.emoji) == "<:redtick:777096756865269760>":
                 akinator_embed.description = (
                     f"{akinator_embed.description}\n\n------\n\nAww, maybe next time."
                 )
-                await initial_messsage.edit(embed=akinator_embed)
+            await initial_messsage.edit(embed=akinator_embed)
 
-# Ship command
     @commands.command()
     async def ship(self, ctx: AvimetryContext, person1: discord.Member, person2: discord.Member):
         if person1.id == 750135653638865017 or person2.id == 750135653638865017:
@@ -347,7 +334,6 @@ class Fun(commands.Cog):
         percent = random.randint(0, 100)
         await ctx.send(f"{person1.mention} and {person2.mention} are {percent}% compatible with each other")
 
-# PP size command
     @commands.command()
     async def ppsize(self, ctx: AvimetryContext, member: discord.Member = None):
         pp_embed = discord.Embed(
@@ -356,7 +342,6 @@ class Fun(commands.Cog):
         )
         await ctx.send(embed=pp_embed)
 
-# 10 second command
     @commands.command(
         name="10s",
         brief="Test your reaction time!",
@@ -395,13 +380,11 @@ class Fun(commands.Cog):
                 )
                 await react_message.edit(embed=embed_10s)
 
-# Mock Command
     @commands.command()
     async def mock(self, ctx: AvimetryContext, *, text):
         send = await self.do_mock(text)
         await ctx.send(send)
 
-# Reddit Command
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.member)
     async def reddit(self, ctx: AvimetryContext, subreddit):
@@ -441,7 +424,6 @@ class Fun(commands.Cog):
                 return
         return await ctx.send(embed=embed)
 
-# Meme command
     @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.member)
     async def meme(self, ctx: AvimetryContext):
@@ -449,7 +431,6 @@ class Fun(commands.Cog):
         a = await reddit(ctx, subreddit="memes")
         print(a)
 
-# Reaction time commnad
     @commands.command()
     @commands.cooldown(1, 10, commands.BucketType.channel)
     async def reaction(self, ctx: AvimetryContext):

@@ -203,7 +203,7 @@ class Moderation(commands.Cog):
     @commands.command(brief="Sets the slowmode in the current channel.")
     @commands.has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def slowmode(self, ctx: AvimetryContext, *, seconds: TimeConverter = None):
+    async def slowmode(self, ctx: AvimetryContext, *, seconds: TimeConverter = 0):
         if seconds > 21600:
             raise commands.BadArgument("Amount should be less than or equal to 6 hours")
         await ctx.channel.edit(slowmode_delay=seconds)

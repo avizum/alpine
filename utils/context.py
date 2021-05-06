@@ -52,34 +52,32 @@ class AvimetryContext(commands.Context):
             if not self.command:
                 self.command = self.bot.get_command("_")
             if "jishaku" in self.command.qualified_name:
-                try:
-                    return await self.reply(content=content)
-                except Exception:
-                    return await super().send(content=content, embed=embed, **kwargs)
+                return await self.reply(content, **kwargs)
             embed = discord.Embed(description=content)
             content = None
         if discord.Embed:
-            try:
-                if not embed.footer:
-                    embed.set_footer(
-                        icon_url=str(self.author.avatar_url),
-                        text=f"Requested by {self.author}",
-                    )
-                    embed.timestamp = datetime.datetime.utcnow()
-                if not embed.color:
-                    embed.color = self.author.color
-                    if self.author.id in self.bot.owner_ids:
-                        embed.color = discord.Color.blurple()
-                    elif self.author.color == discord.Color(0):
-                        embed.color = discord.Color(0x2F3136)
-            except Exception:
-                pass
+            if not embed.footer:
+                embed.set_footer(
+                    icon_url=str(self.author.avatar_url),
+                    text=f"Requested by {self.author}",
+                )
+                embed.timestamp = datetime.datetime.utcnow()
+            if not embed.color:
+                embed.color = self.author.color
+                if await self.bot.is_owner(self.author):
+                    embed.color = discord.Color.blurple()
+                elif self.author.color == discord.Color(0):
+                    embed.color = discord.Color(0x2F3136)
         if self.message.id in self.bot.command_cache and self.message.edited_at:
             edited_message = self.bot.command_cache[self.message.id]
             if edited_message.reactions:
-                async with contextlib.suppress():
+                async with contextlib.suppress(Exception):
                     await edited_message.clear_reactions()
-            return await edited_message.edit(content=content, embed=embed, **kwargs)
+            try:
+                await edited_message.edit(content=content, embed=embed, **kwargs)
+                return edited_message
+            except Exception:
+                pass
         try:
             message = await self.reply(content=content, embed=embed, **kwargs)
             return message
