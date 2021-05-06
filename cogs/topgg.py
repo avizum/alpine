@@ -9,6 +9,20 @@ class TopGG(commands.Cog):
         self.post.start()
         self.update.start()
 
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        if message.channel.id != 839892190213439508:
+            return
+        try:
+            user_voted = int(message.content)
+        except Exception:
+            return
+        member = self.avi.get_user(user_voted)
+        try:
+            await member.send("Thank you for voting!")
+        except discord.Forbidden:
+            return
+
     @tasks.loop(minutes=15)
     async def post(self):
         if self.avi.user.id != 756257170521063444:
