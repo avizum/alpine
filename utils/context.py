@@ -57,9 +57,14 @@ class AvimetryContext(commands.Context):
             content = None
         if discord.Embed:
             if not embed.footer:
+                if await self.bot.is_owner(self.author):
+                    embed.set_footer(
+                        icon_url=str(self.author.avatar_url),
+                        text=f"Requested by Daddy {self.author}"
+                    )
                 embed.set_footer(
                     icon_url=str(self.author.avatar_url),
-                    text=f"Requested by Daddy {self.author}",
+                    text=f"Requested by {self.author}"
                 )
                 embed.timestamp = datetime.datetime.utcnow()
             if not embed.color:
