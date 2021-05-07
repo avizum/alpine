@@ -4,9 +4,10 @@ from discord.ext import tasks
 
 class AvimetryCache:
     def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+        self.avi = avi
         self.cache_loop.start()
         self.guild_settings = {}
+        self.verification = {}
         self.logging = {}
         self.join_leave = {}
         self.blacklist = {}
@@ -23,6 +24,7 @@ class AvimetryCache:
     async def check_for_cache(self):
         cache_list = [
             self.guild_settings,
+            self.verification,
             self.logging,
             self.join_leave
         ]
@@ -61,6 +63,7 @@ class AvimetryCache:
 
     async def cache_all(self):
         guild_settings = await self.avi.pool.fetch("SELECT * FROM guild_settings")
+        verification = await self.avi.pool.fetch("SELECT * FROM verification")
         logging = await self.avi.pool.fetch("SELECT * FROM logging")
         join_leave = await self.avi.pool.fetch("SELECT * FROM join_leave")
         users = await self.avi.pool.fetch("SELECT * FROM user_settings")
@@ -70,6 +73,11 @@ class AvimetryCache:
             settings = dict(entry)
             settings.pop("guild_id")
             self.guild_settings[entry["guild_id"]] = settings
+
+        for entry in verification:
+            verify = dict(entry)
+            verify.pop("guild_id")
+            self.verification[entry["guild_id"]] = verify
 
         for entry in users:
             check = dict(entry)

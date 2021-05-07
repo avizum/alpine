@@ -29,7 +29,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         embed = discord.Embed(title="Info about Avimetry")
         embed.add_field(
             name="Latest Updates",
-            value="New Database! Migrating will take a bit, So prefixes, configuration may be broken.",
+            value="Vote Now at (top.gg)[https://top.gg/bot/756257170521063444/vote]",
             inline=False
         )
         embed.add_field(name="Developer", value="avi#8771 (Main), Lere#3303 (Tester)")

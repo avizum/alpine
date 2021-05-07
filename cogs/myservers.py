@@ -1,8 +1,7 @@
 import discord
 import re
 from discord.ext import commands, tasks
-from utils.errors import PrivateServer
-from utils import AvimetryBot, AvimetryContext
+from utils import AvimetryBot, AvimetryContext, PrivateServer
 
 
 URL_REGEX = re.compile(
@@ -145,9 +144,9 @@ class Servers(commands.Cog, name="Servers"):
         await self.avi.wait_until_ready()
 
     @commands.Cog.listener("on_member_update")
-    async def member_update(self, before, after):
-        if after.guild.id != 751490725555994716:
-            return
+    async def member_update(self, before: discord.Member, after: discord.Member):
+        #  if after.guild.id != 751490725555994716:
+        #      return
         if not after.nick:
             return
         if "avi" in after.nick.lower():
@@ -159,6 +158,18 @@ class Servers(commands.Cog, name="Servers"):
                 return await after.edit(nick=after.name, reason="Nick can not be \"avi\"")
             except discord.Forbidden:
                 pass
+        split_after = after.nick.split()
+        print(split_after)
+        for i in split_after:
+            async with self.avi.session.get(f"https://discord.com/api/invite/{i}") as resp:
+                things = await resp.json()
+                print(things)
+                check = things.get("code")
+                if check:
+                    try:
+                        await after.edit(nick="Nope")
+                    except discord.Forbidden:
+                        pass
 
     @commands.command(
         hidden=True

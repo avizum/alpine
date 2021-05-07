@@ -1,8 +1,7 @@
 import discord
 import asyncio
 from discord.ext import commands, tasks
-from utils.context import AvimetryContext
-from utils import AvimetryBot
+from utils import AvimetryBot, AvimetryContext
 from roblox_py import Client
 
 

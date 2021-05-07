@@ -3,8 +3,8 @@ import asyncio
 import datetime
 import humanize
 from discord.ext import commands
-from utils.converters import TimeConverter, TargetMemberAction, FindBan, Reason
-from utils import AvimetryBot, AvimetryContext
+from utils import (
+    AvimetryBot, AvimetryContext, TimeConverter, TargetMemberAction, FindBan, Reason)
 
 
 class Moderation(commands.Cog):

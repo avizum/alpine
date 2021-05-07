@@ -57,16 +57,10 @@ class AvimetryContext(commands.Context):
             content = None
         if discord.Embed:
             if not embed.footer:
-                if await self.bot.is_owner(self.author):
-                    embed.set_footer(
-                        icon_url=str(self.author.avatar_url),
-                        text=f"Requested by Daddy {self.author}"
-                    )
-                else:
-                    embed.set_footer(
-                        icon_url=str(self.author.avatar_url),
-                        text=f"Requested by {self.author}"
-                    )
+                embed.set_footer(
+                    icon_url=str(self.author.avatar_url),
+                    text=f"Requested by {self.author}"
+                )
                 embed.timestamp = datetime.datetime.utcnow()
             if not embed.color:
                 embed.color = self.author.color
@@ -79,11 +73,8 @@ class AvimetryContext(commands.Context):
             if edited_message.reactions:
                 async with contextlib.suppress(Exception):
                     await edited_message.clear_reactions()
-            try:
-                await edited_message.edit(content=content, embed=embed, **kwargs)
-                return edited_message
-            except Exception:
-                pass
+            await edited_message.edit(content=content, embed=embed, **kwargs)
+            return edited_message
         try:
             message = await self.reply(content=content, embed=embed, **kwargs)
             return message

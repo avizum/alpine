@@ -3,9 +3,8 @@ import discord
 import datetime
 import subprocess
 import asyncio
-from utils.converters import CogConverter
 from discord.ext import commands
-from utils import AvimetryBot, AvimetryContext
+from utils import AvimetryBot, AvimetryContext, CogConverter
 
 
 class Owner(commands.Cog):

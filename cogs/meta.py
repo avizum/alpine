@@ -6,8 +6,7 @@ import humanize
 import pytz
 import typing
 from discord.ext import commands
-from utils.errors import TimeZoneError
-from utils import AvimetryBot, AvimetryContext
+from utils import AvimetryBot, AvimetryContext, TimeZoneError
 
 
 class Meta(commands.Cog):

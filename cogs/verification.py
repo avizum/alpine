@@ -8,9 +8,6 @@ from discord.ext import commands
 
 
 class MemberJoin(commands.Cog):
-    """
-    Handle Verification Feature(s)
-    """
     def __init__(self, avi):
         self.avi: AvimetryBot = avi
 
@@ -18,13 +15,20 @@ class MemberJoin(commands.Cog):
     async def on_member_join(self, member):
         if member.bot:
             return
-        config = await self.avi.cache.get_guild_settings(member.guild.id)
-        pre = "a." if not config["prefixes"] else config["prefixes"][0]
+        prefix = await self.avi.cache.get_guild_settings(member.guild.id)
+        pre = "a." if not prefix["prefixes"] else prefix["prefixes"][0]
 
-        if config["verify"] is not True:
+        config = self.avi.cache.verification.get(member.guild.id)
+
+        if not config["role_id"]:
             return
-        if config["verify_role"] is None:
-            return
+
+        if config["low"] is True:
+            await self.level_low()
+        if config["medium"] is True:
+            await self.level_medium()
+        if config["high"] is True:
+            await self.level_high()
 
         name = "New Members"
         category = discord.utils.get(member.guild.categories, name=name)

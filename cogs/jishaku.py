@@ -6,8 +6,7 @@ import psutil
 from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 from jishaku import Feature
 from jishaku.flags import JISHAKU_HIDE
-from utils.converters import CogConverter
-from utils import AvimetryBot, AvimetryContext
+from utils import AvimetryBot, AvimetryContext, CogConverter
 
 
 class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
