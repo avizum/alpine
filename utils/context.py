@@ -46,9 +46,9 @@ class AvimetryContext(commands.Context):
         if content:
             if len(content) > 2000:
                 return await self.post(content)
-            for key, value in tokens.items():
-                if value in content:
-                    content = str(content.replace(value, "[token omitted]"))
+            for v in tokens.values():
+                if v in content:
+                    content = str(content.replace(v, "[token omitted]"))
             if not self.command:
                 self.command = self.bot.get_command("_")
             if "jishaku" in self.command.qualified_name:
@@ -62,10 +62,11 @@ class AvimetryContext(commands.Context):
                         icon_url=str(self.author.avatar_url),
                         text=f"Requested by Daddy {self.author}"
                     )
-                embed.set_footer(
-                    icon_url=str(self.author.avatar_url),
-                    text=f"Requested by {self.author}"
-                )
+                else:
+                    embed.set_footer(
+                        icon_url=str(self.author.avatar_url),
+                        text=f"Requested by {self.author}"
+                    )
                 embed.timestamp = datetime.datetime.utcnow()
             if not embed.color:
                 embed.color = self.author.color

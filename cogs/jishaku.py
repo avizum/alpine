@@ -57,7 +57,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 try:
                     mem = proc.memory_full_info()
                     summary.append(
-                        f"{self.bot.user.name} is using {humanize.naturalsize(mem.rss)} physical memory and "
+                        f"I am using {humanize.naturalsize(mem.rss)} physical memory and "
                         f"{humanize.naturalsize(mem.vms)} virtual memory, "
                         f"{humanize.naturalsize(mem.uss)} of which is unique this this process."
                     )
@@ -69,7 +69,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                     pid = proc.pid
                     thread_count = proc.num_threads()
                     summary.append(
-                        f"{self.bot.user.name} is running on Process ID `{pid}` (`{name}`) with {thread_count} threads")
+                        f"I am running on Process ID `{pid}` (`{name}`) with {thread_count} threads")
                 except psutil.AccessDenied:
                     pass
                 summary.append("")
@@ -81,11 +81,11 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         cache_summary = f"{len(self.bot.guilds)} guild(s) and {len(self.bot.users)} user(s)"
 
         if isinstance(self.bot, discord.AutoShardedClient):
-            summary.append(f"{self.bot.user.name} is automatically sharded and can see {cache_summary}")
+            summary.append(f"I am automatically sharded and can see {cache_summary}")
         elif self.bot.shard_count:
-            summary.append(f"{self.bot.user.name} is manually sharded and can see {cache_summary}")
+            summary.append(f"I am manually sharded and can see {cache_summary}")
         else:
-            summary.append(f"{self.bot.user.name} is not sharded and can see {cache_summary}.")
+            summary.append(f"I am not sharded and can see {cache_summary}.")
 
         if self.bot._connection.max_messages:
             message_cache = f"Message cache is capped at {self.bot._connection.max_messages}"

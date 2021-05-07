@@ -44,7 +44,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         embed.add_field(name="Commands", value=f"{len(self.avi.commands)} usable")
         embed.add_field(name="Commands ran", value=self.avi.commands_ran)
-        embed.add_field(name="Credits", value="Foxi#7272 (Avatar),\nDutchy#6127 (Help Command Design)")
+        embed.add_field(name="Credits", value="Foxi#7272 (Avatar),\nDutchy#6127 (Help Command)")
         embed.set_thumbnail(url=ctx.me.avatar_url)
         await ctx.send(embed=embed)
 
