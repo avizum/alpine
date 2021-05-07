@@ -145,8 +145,8 @@ class Servers(commands.Cog, name="Servers"):
 
     @commands.Cog.listener("on_member_update")
     async def member_update(self, before: discord.Member, after: discord.Member):
-        #  if after.guild.id != 751490725555994716:
-        #      return
+        if after.guild.id != 751490725555994716:
+            return
         if not after.nick:
             return
         if "avi" in after.nick.lower():
