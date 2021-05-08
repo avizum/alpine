@@ -68,7 +68,7 @@ class Moderation(commands.Cog):
         await ctx.send(embed=unban_embed)
 
     @commands.command(
-        brief="Mutes a person indefinately"
+        brief="Mutes a person indefinitely"
     )
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_roles=True)
@@ -76,7 +76,7 @@ class Moderation(commands.Cog):
         role = await ctx.cache.get_guild_settings(ctx.guild.id)
         mute_role = ctx.guild.get_role(role["mute_role"])
         await member.add_roles(mute_role, reason=reason)
-        await ctx.send(f"{member.mention} was muted indfinately.")
+        await ctx.send(f"{member.mention} has been muted indefinitely.")
 
     @commands.command(
         brief="Temporarily mute someone for a specified amount of time."
