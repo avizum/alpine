@@ -11,6 +11,9 @@ class MemberJoin(commands.Cog):
     def __init__(self, avi):
         self.avi: AvimetryBot = avi
 
+    async def level_low(self, member: discord.Member):
+        ch = await member.guild.create_text_channel(f"{member.name.lower().replace(' ', '-')}-verification")
+
     @commands.Cog.listener()
     async def on_member_join(self, member):
         if member.bot:
@@ -24,43 +27,41 @@ class MemberJoin(commands.Cog):
             return
 
         if config["low"] is True:
-            await self.level_low()
+            return
         if config["medium"] is True:
-            await self.level_medium()
+            return
         if config["high"] is True:
-            await self.level_high()
+            name = "New Members"
+            category = discord.utils.get(member.guild.categories, name=name)
+            overwrites = {
+                member.guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                member: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True),
+            }
+            await member.guild.create_text_channel(
+                f"{member.name.lower().replace(' ', '-')}-verification",
+                category=category,
+                reason=f"Started Verification for {member.name}",
+                overwrites=overwrites,
+            )
 
-        name = "New Members"
-        category = discord.utils.get(member.guild.categories, name=name)
-        overwrites = {
-            member.guild.default_role: discord.PermissionOverwrite(read_messages=False),
-            member: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True),
-        }
-        await member.guild.create_text_channel(
-            f"{member.name.lower().replace(' ', '-')}-verification",
-            category=category,
-            reason=f"Started Verification for {member.name}",
-            overwrites=overwrites,
-        )
-
-        channel = discord.utils.get(
-            member.guild.channels, name=f"{member.name.lower().replace(' ', '-')}-verification",
-        )
-        x = discord.Embed(
-            title=f"Welcome to **{member.guild.name}**!",
-            description=(
-                f"Hey {member.mention}, welcome to the server!\n"
-                f"Please use `{pre}verify` to verify. Enter the key you recieve in your DMs here."
-            ),
-            timestamp=datetime.datetime.utcnow(),
-            color=discord.Color.green()
-        )
-        await channel.send(
-            f"{member.mention}", embed=x,
-            allowed_mentions=discord.AllowedMentions(
-                users=True
-            ),
-        )
+            channel = discord.utils.get(
+                member.guild.channels, name=f"{member.name.lower().replace(' ', '-')}-verification",
+            )
+            x = discord.Embed(
+                title=f"Welcome to **{member.guild.name}**!",
+                description=(
+                    f"Hey {member.mention}, welcome to the server!\n"
+                    f"Please use `{pre}verify` to verify. Enter the key you recieve in your DMs here."
+                ),
+                timestamp=datetime.datetime.utcnow(),
+                color=discord.Color.green()
+            )
+            await channel.send(
+                f"{member.mention}", embed=x,
+                allowed_mentions=discord.AllowedMentions(
+                    users=True
+                ),
+            )
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
