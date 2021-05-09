@@ -223,7 +223,6 @@ class Meta(commands.Cog):
 
     @commands.command(
         brief="Make embeds. This command is not for normal members because it can be abused.")
-    @commands.has_permissions(manage_messages=True)
     @commands.cooldown(5, 300, commands.BucketType.member)
     async def embed(self, ctx: AvimetryContext, *, thing: str):
         if '"content":' in thing or "'content':" in thing:
@@ -235,7 +234,7 @@ class Meta(commands.Cog):
             embed = discord.Embed(
                 title="Input Error",
                 description=f"The JSON input raised an error:\n```bash\n{e}```")
-            return await ctx.send(embed=embed)
+            return await ctx.send_raw(embed=embed)
 
     @commands.command(hidden=True)
     @commands.is_owner()
