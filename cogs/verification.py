@@ -72,11 +72,10 @@ class MemberJoin(commands.Cog):
     @commands.command(brief="Verify now!", hidden=True)
     async def verify(self, ctx: AvimetryContext):
         member = ctx.author
-        try:
-            verify_config = ctx.cache.guild_settings[ctx.guild.id]
-        except KeyError:
-            return await ctx.send("Verification has not been setup yet.")
-        role_id = ctx.guild.get_role(verify_config["verify_role"])
+        config = self.avi.cache.verification.get(member.guild.id)
+        if not config:
+            return await ctx.send("Please setup verification.")
+        role_id = ctx.guild.get_role(config["role_id"])
 
         channel = discord.utils.get(
             ctx.guild.channels,
