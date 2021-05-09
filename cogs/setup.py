@@ -29,6 +29,8 @@ class Setup(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
+        if self.avi.user.id != 756257170521063444:
+            return
         await self.avi.cache.cache_new_guild(guild.id)
         await self.avi.cache.check_for_cache()
         message = [
@@ -43,6 +45,8 @@ class Setup(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
+        if self.avi.user.id != 756257170521063444:
+            return
         await self.avi.cache.delete_all(guild.id)
         message = [
             f"I got removed from a server named {guild.name}.",
@@ -52,12 +56,18 @@ class Setup(commands.Cog):
 
     @commands.Cog.listener("on_command")
     async def on_command(self, ctx: AvimetryContext):
-        if ctx.author.id in ctx.cache.blacklist:
+        if ctx.author.id in ctx.cache.blacklist or self.avi.user.id != 756257170521063444:
             return
         embed = discord.Embed(
-            description=f"The {ctx.command.qualified_name} command was used by {ctx.author.mention}",
+            description=(
+                f"Command: {ctx.command.qualified_name}\n"
+                f"Message: {ctx.message.content}\n"
+                f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
+                f"Channel: {ctx.channel} ({ctx.channel.id})\n"
+            ),
             color=ctx.author.color
         )
+        embed.set_author(name=ctx.author, icon_url=str(ctx.author.avatar_url_as(format="png", size=512)))
         embed.timestamp = datetime.datetime.utcnow()
         await self.command_webhook.send(embed=embed)
         self.avi.commands_ran += 1

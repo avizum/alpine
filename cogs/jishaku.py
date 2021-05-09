@@ -77,7 +77,10 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             summary.append("psutil is installed but this process does not have access to display this information")
             summary.append("")
 
-        cache_summary = f"{len(self.bot.guilds)} guild(s) and {len(self.bot.users)} user(s)"
+        members = len([m for m in self.bot.users if not m.bot])
+        bots = len([m for m in self.bot.users if m.bot])
+
+        cache_summary = f"I can see {len(self.bot.guilds)} guilds, {members} users, and {bots} bots"
 
         if isinstance(self.bot, discord.AutoShardedClient):
             summary.append(f"I am automatically sharded and can see {cache_summary}")

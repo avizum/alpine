@@ -32,23 +32,24 @@ PUBLIC_BOT_ID = 756257170521063444
 BETA_BOT_ID = 787046145884291072
 
 
-async def bot_prefix(avi, message: discord.Message):
+async def bot_prefix(avi: "AvimetryBot", message: discord.Message):
+    prefix_list = [f"<@{avi.user.id}>", f"<@!{avi.user.id}>"]
     if avi.user.id == BETA_BOT_ID:
-        command_prefix = BETA_PREFIXES
+        prefix_list.extend(BETA_PREFIXES)
     elif not message.guild or (get_prefix := await avi.cache.get_guild_settings(message.guild.id)) is None:
-        command_prefix = DEFAULT_PREFIXES
+        prefix_list.extend(DEFAULT_PREFIXES)
     else:
-        command_prefix = get_prefix["prefixes"]
-        if not command_prefix:
-            return DEFAULT_PREFIXES
+        prefix_list.extend(get_prefix["prefixes"])
+        if not prefix_list:
+            prefix_list.extend(DEFAULT_PREFIXES)
     if await avi.is_owner(message.author):
         if message.content.lower().startswith(("dev", "jsk")):
-            return ""
-    command_prefix = "|".join(map(re.escape, command_prefix))
+            prefix_list.append("")
+    command_prefix = "|".join(map(re.escape, prefix_list))
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
     if prefix:
         return prefix.group(1)
-    return commands.when_mentioned(avi, message)
+    return prefix_list
 
 
 allowed_mentions = discord.AllowedMentions(
