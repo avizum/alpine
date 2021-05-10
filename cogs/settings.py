@@ -446,6 +446,22 @@ class Settings(commands.Cog):
             embed.description = "Cancelled. Goodbye."
             return await wait_message.reply(embed=embed)
 
+    @commands.command()
+    @commands.has_permissions(manage_guild=True)
+    async def screening(self, ctx: AvimetryContext, toggle: bool, role: discord.Role = None):
+        query = (
+            """
+            INSERT INTO verification (guild_id, high, role_id)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (guild_id) DO
+            UPDATE SET guild_id = $1, high = $2, role_id = $3
+            """
+        )
+        await self.avi.pool.execute(query, ctx.guild.id, toggle, role.id)
+        ctx.cache.verification[ctx.guild.id]["high"] = toggle
+        ctx.cache.verification[ctx.guild.id]["role_id"] = role.id
+        return await ctx.send(f"Set member screening to `{toggle}` and role to `{role.name}`")
+
 
 def setup(avi):
     avi.add_cog(Settings(avi))

@@ -90,7 +90,8 @@ class RobloxUpdate(commands.Cog, name="Roblox", command_attrs=dict(hidden=True))
 
     @commands.group(
         invoke_without_command=True,
-        enabled=False
+        enabled=False,
+        hidden=True
     )
     async def roblox(self, ctx: AvimetryContext):
         await ctx.send_help("roblox")

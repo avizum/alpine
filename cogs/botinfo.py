@@ -181,13 +181,13 @@ class BotInfo(commands.Cog, name="Bot Info"):
                 source_embed.description = (
                     "This bot is an instance of [Avimetry](https://github.com/avimetry/avimetry), "
                     "Made by [avi](https://discord.com/users/750135653638865017). "
-                    "Remember to star and and follow the license."
+                    "Follow the [license](https://github.com/avimetry/avimetry/blob/master/LICENSE)"
                 )
             else:
                 source_embed.description = (
                     "Here is my [source](https://github.com/avimetry/avimetry). "
                     "I am made by [avi](https://discord.com/users/750135653638865017)."
-                    "Remember to star and and follow the license."
+                    "Follow the [license](https://github.com/avimetry/avimetry/blob/master/LICENSE)"
                 )
             return await ctx.send(embed=source_embed)
 
@@ -205,7 +205,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         ending_line_num = starting_line_num + len(lines) - 1
         command = "help" if isinstance(command, commands.HelpCommand) else command
         link = (
-            f"https://github.com/avimetry/avimetry/blob/master/bot/"
+            f"https://github.com/avimetry/avimetry/blob/master/"
             f"{filepath}#L{starting_line_num}-L{ending_line_num}")
         source_embed.description = (
             f"Here is the [source]({link}) for `{command}`. "

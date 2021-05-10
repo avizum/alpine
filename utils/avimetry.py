@@ -49,6 +49,7 @@ async def bot_prefix(avi: "AvimetryBot", message: discord.Message):
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
     if prefix:
         return prefix.group(1)
+    print(prefix_list)
     return prefix_list
 
 
