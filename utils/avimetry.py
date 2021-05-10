@@ -32,25 +32,23 @@ PUBLIC_BOT_ID = 756257170521063444
 BETA_BOT_ID = 787046145884291072
 
 
-async def bot_prefix(avi: "AvimetryBot", message: discord.Message):
-    prefix_list = [f"<@{avi.user.id}>", f"<@!{avi.user.id}>"]
+async def bot_prefix(avi, message: discord.Message):
     if avi.user.id == BETA_BOT_ID:
-        prefix_list.extend(BETA_PREFIXES)
+        command_prefix = BETA_PREFIXES
     elif not message.guild or (get_prefix := await avi.cache.get_guild_settings(message.guild.id)) is None:
-        prefix_list.extend(DEFAULT_PREFIXES)
+        command_prefix = DEFAULT_PREFIXES
     else:
-        prefix_list.extend(get_prefix["prefixes"])
-        if not prefix_list:
-            prefix_list.extend(DEFAULT_PREFIXES)
+        command_prefix = get_prefix["prefixes"]
+        if not command_prefix:
+            return DEFAULT_PREFIXES
     if await avi.is_owner(message.author):
         if message.content.lower().startswith(("dev", "jsk")):
-            prefix_list.append("")
-    command_prefix = "|".join(map(re.escape, prefix_list))
+            return ""
+    command_prefix = "|".join(map(re.escape, command_prefix))
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
     if prefix:
         return prefix.group(1)
-    print(prefix_list)
-    return prefix_list
+    return commands.when_mentioned(avi, message)
 
 
 allowed_mentions = discord.AllowedMentions(
@@ -59,7 +57,7 @@ allowed_mentions = discord.AllowedMentions(
 )
 intents = discord.Intents.default()
 intents.members = True
-activity = discord.Game("@Avimetry | 0 Servers")
+activity = discord.Game("Avimetry | Loading Servers...")
 
 
 class AvimetryBot(commands.Bot):

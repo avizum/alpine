@@ -23,7 +23,7 @@ class MemberJoin(commands.Cog):
 
         config = self.avi.cache.verification.get(member.guild.id)
 
-        if not config["role_id"]:
+        if not config:
             return
 
         if config["low"] is True:
