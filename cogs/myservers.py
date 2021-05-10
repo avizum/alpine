@@ -161,6 +161,8 @@ class Servers(commands.Cog, name="Servers"):
         split_after = after.nick.split()
         print(split_after)
         for i in split_after:
+            if len(i) < 6:
+                return
             async with self.avi.session.get(f"https://discord.com/api/invite/{i}") as resp:
                 things = await resp.json()
                 print(things)
