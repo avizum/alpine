@@ -158,20 +158,6 @@ class Servers(commands.Cog, name="Servers"):
                 return await after.edit(nick=after.name, reason="Nick can not be \"avi\"")
             except discord.Forbidden:
                 pass
-        split_after = after.nick.split()
-        print(split_after)
-        for i in split_after:
-            if len(i) < 6:
-                return
-            async with self.avi.session.get(f"https://discord.com/api/invite/{i}") as resp:
-                things = await resp.json()
-                print(things)
-                check = things.get("code")
-                if check:
-                    try:
-                        await after.edit(nick="Nope")
-                    except discord.Forbidden:
-                        pass
 
     @commands.command(
         hidden=True

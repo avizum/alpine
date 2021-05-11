@@ -4,6 +4,7 @@ import datetime
 import subprocess
 import asyncio
 from discord.ext import commands
+from jishaku.codeblocks import codeblock_converter
 from utils import AvimetryBot, AvimetryContext, CogConverter
 
 
@@ -114,6 +115,11 @@ class Owner(commands.Cog):
             await self.avi.close()
         if not conf:
             await ctx.send("Reboot Aborted", delete_after=5)
+
+    @dev.command(brief="Jishaku alias")
+    async def eval(self, ctx: AvimetryContext, *, code: codeblock_converter):
+        jsk = self.avi.get_command("jsk py")
+        await jsk(ctx, argument=code)
 
     @dev.command()
     async def leave(self, ctx: AvimetryContext):

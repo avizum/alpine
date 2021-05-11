@@ -25,30 +25,31 @@ os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
 
-DEFAULT_PREFIXES = ["A.", "a."]
+DEFAULT_PREFIX = "a."
 BETA_PREFIXES = ["ab.", "ba."]
 OWNER_IDS = {750135653638865017, 547280209284562944}
 PUBLIC_BOT_ID = 756257170521063444
 BETA_BOT_ID = 787046145884291072
 
 
-async def bot_prefix(avi, message: discord.Message):
+async def bot_prefix(avi: "AvimetryBot", message: discord.Message):
+    prefixes = [f"<@{avi.user.id}>", f"<@!{avi.user.id}>"]
     if avi.user.id == BETA_BOT_ID:
-        command_prefix = BETA_PREFIXES
+        prefixes.extend(BETA_PREFIXES)
     elif not message.guild or (get_prefix := await avi.cache.get_guild_settings(message.guild.id)) is None:
-        command_prefix = DEFAULT_PREFIXES
+        prefixes.append(DEFAULT_PREFIX)
     else:
         command_prefix = get_prefix["prefixes"]
         if not command_prefix:
-            return DEFAULT_PREFIXES
+            prefixes.append(DEFAULT_PREFIX)
     if await avi.is_owner(message.author):
         if message.content.lower().startswith(("dev", "jsk")):
-            return ""
-    command_prefix = "|".join(map(re.escape, command_prefix))
+            prefixes.append("")
+    command_prefix = "|".join(map(re.escape, prefixes))
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
     if prefix:
-        return prefix.group(1)
-    return commands.when_mentioned(avi, message)
+        prefixes.append(prefix.group(1))
+    return prefixes
 
 
 allowed_mentions = discord.AllowedMentions(
