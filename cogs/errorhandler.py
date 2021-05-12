@@ -25,7 +25,6 @@ class ErrorHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: AvimetryContext, error):
-        ctx.command.reset_cooldown(ctx)
         reinvoke = (
             commands.CommandOnCooldown,
             commands.MaxConcurrencyReached,
