@@ -33,7 +33,7 @@ class ErrorHandler(commands.Cog):
             commands.MissingRole
         )
         if await self.avi.is_owner(ctx.author) and isinstance(error, reinvoke):
-            return await ctx.reinvoke
+            return await ctx.reinvoke()
 
         error = getattr(error, "original", error)
 
