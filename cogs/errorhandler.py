@@ -17,6 +17,11 @@ class ErrorHandler(commands.Cog):
             adapter=discord.AsyncWebhookAdapter(self.avi.session)
         )
 
+    def reset(self, ctx: AvimetryContext):
+        try:
+            ctx.command.reset_cooldown(ctx)
+        except Exception:
+            pass
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: AvimetryContext, error):
@@ -117,7 +122,7 @@ class ErrorHandler(commands.Cog):
             await ctx.send_error(embed=no)
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            ctx.command.reset_cooldown(ctx)
+            self.reset(ctx)
             a = discord.Embed(
                 title="Missing Arguments",
                 description=(
@@ -135,7 +140,7 @@ class ErrorHandler(commands.Cog):
                 "This command is not enabled at the moment.")
 
         elif isinstance(error, commands.BadArgument):
-            ctx.command.reset_cooldown(ctx)
+            self.reset(ctx)
             ba = discord.Embed(
                 title="Bad Argument",
                 description=str(error),
@@ -143,7 +148,7 @@ class ErrorHandler(commands.Cog):
             await ctx.send_error(embed=ba)
 
         elif isinstance(error, commands.TooManyArguments):
-            ctx.command.reset_cooldown(ctx)
+            self.reset(ctx)
             many_arguments = discord.Embed(
                 title="Too many arguments",
                 description=str(error),
@@ -153,7 +158,7 @@ class ErrorHandler(commands.Cog):
         elif isinstance(error, commands.NoPrivateMessage):
             return
         else:
-            ctx.command.reset_cooldown(ctx)
+            self.reset(ctx)
             prettify_exceptions.DefaultFormatter().theme["_ansi_enabled"] = False
             exception = "".join(
                 prettify_exceptions.DefaultFormatter().format_exception(
