@@ -517,15 +517,31 @@ class Fun(commands.Cog):
                 pass
             await message.edit(embed=embed)
 
-    @commands.command(name="roast")
+    @commands.command(
+        name="roast",
+        brief="Roasts a person. Might be NSFW")
     async def dag_roast(self, ctx: AvimetryContext, member: discord.Member):
         roast = await self.avi.dagpi.roast()
         await ctx.send(f"{member.mention}, {roast}")
 
-    @commands.command(name="funfact")
+    @commands.command(
+        name="funfact",
+        brief="Gets a random fun fact.")
     async def dag_fact(self, ctx: AvimetryContext):
         fact = await self.avi.dagpi.fact()
         await ctx.send(fact)
+
+    @commands.command(
+        brief="Checks if a person is gay"
+    )
+    async def gay(self, ctx: AvimetryContext, member: discord.Member = None):
+        if member is None:
+            member = ctx.author
+        conf = await ctx.confirm(f"Is {member.mention} gay?")
+        if conf:
+            return await ctx.send(f"{member.mention} is gay.")
+        return await ctx.send(f"{member.mention} is not gay.")
+
 
 
 def setup(avi):
