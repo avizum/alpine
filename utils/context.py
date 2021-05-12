@@ -8,6 +8,7 @@ from discord.ext import commands
 
 
 class AvimetryContext(commands.Context):
+
     @property
     def cache(self):
         return self.bot.cache
@@ -89,7 +90,8 @@ class AvimetryContext(commands.Context):
         self, message=None, embed: discord.Embed = None, confirm_message=None, *,
         timeout=60, delete_after=True, raw=False
     ):
-        yes_no = [self.bot.emoji_dictionary['green_tick'], self.bot.emoji_dictionary['red_tick']]
+        emojis = self.bot.emoji_dictionary
+        yes_no = [emojis['green_tick'], emojis['red_tick']]
         check_message = confirm_message or f"React with {yes_no[0]} to accept, or {yes_no[1]} to deny."
         if raw is True:
             send = await self.send_raw(content=message, embed=embed)

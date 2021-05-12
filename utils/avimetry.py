@@ -32,19 +32,23 @@ PUBLIC_BOT_ID = 756257170521063444
 BETA_BOT_ID = 787046145884291072
 
 
-async def bot_prefix(avi: "AvimetryBot", message: discord.Message):
+async def get_prefix(avi: "AvimetryBot", message: discord.Message):
     prefixes = [f"<@{avi.user.id}>", f"<@!{avi.user.id}>"]
+    get_prefix = await avi.cache.get_guild_settings(message.guild.id)
     if avi.user.id == BETA_BOT_ID:
         prefixes.extend(BETA_PREFIXES)
-    elif not message.guild or (get_prefix := await avi.cache.get_guild_settings(message.guild.id)) is None:
+    elif not message.guild or get_prefix is None:
         prefixes.append(DEFAULT_PREFIX)
     else:
         command_prefix = get_prefix["prefixes"]
         if not command_prefix:
             prefixes.append(DEFAULT_PREFIX)
-    if await avi.is_owner(message.author):
-        if message.content.lower().startswith(("dev", "jsk")):
-            prefixes.append("")
+        else:
+            prefixes.extend(command_prefix)
+    if await avi.is_owner(message.author) and message.content.startswith(
+        ("jsk", "dev")
+    ):
+        prefixes.append("")
     command_prefix = "|".join(map(re.escape, prefixes))
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
     if prefix:
@@ -65,7 +69,7 @@ class AvimetryBot(commands.Bot):
     def __init__(self, **kwargs):
         super().__init__(
             **kwargs,
-            command_prefix=bot_prefix,
+            command_prefix=get_prefix,
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,

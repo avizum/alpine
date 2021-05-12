@@ -11,8 +11,8 @@ class MemberJoin(commands.Cog):
     def __init__(self, avi):
         self.avi: AvimetryBot = avi
 
-    async def level_low(self, member: discord.Member):
-        ch = await member.guild.create_text_channel(f"{member.name.lower().replace(' ', '-')}-verification")
+    #  async def level_low(self, member: discord.Member):
+    #      ch = await member.guild.create_text_channel(f"{member.name.lower().replace(' ', '-')}-verification")
 
     @commands.Cog.listener()
     async def on_member_join(self, member):

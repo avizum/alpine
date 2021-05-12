@@ -17,14 +17,10 @@ class ErrorHandler(commands.Cog):
             adapter=discord.AsyncWebhookAdapter(self.avi.session)
         )
 
-    def reset(self, ctx: AvimetryContext):
-        try:
-            ctx.command.reset_cooldown(ctx)
-        except Exception:
-            pass
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: AvimetryContext, error):
+        ctx.command.reset_cooldown(ctx)
         reinvoke = (
             commands.CommandOnCooldown,
             commands.MaxConcurrencyReached,
@@ -65,14 +61,14 @@ class ErrorHandler(commands.Cog):
             if match:
                 not_found_embed.description = f'"{not_found}" was not found. Did you mean...\n`{match}`'
                 not_found_embed.set_footer(
-                    text=f"Not what you meant? Use {ctx.clean_prefix}help to see the whole list of commands."
+                    text=f"Use {ctx.clean_prefix}help to see the whole list of commands."
                 )
                 await ctx.send_error(embed=not_found_embed)
 
         elif isinstance(error, commands.CommandOnCooldown):
             cd = discord.Embed(
                 title="Slow down",
-                description=f"This command has a cooldown. Try again in {humanize.naturaldelta(error.retry_after)}."
+                description=f"This command is on cooldown. Try again in {humanize.naturaldelta(error.retry_after)}."
             )
             await ctx.send_error(embed=cd)
 
@@ -121,7 +117,7 @@ class ErrorHandler(commands.Cog):
             await ctx.send_error(embed=no)
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            self.reset(ctx)
+            ctx.command.reset_cooldown(ctx)
             a = discord.Embed(
                 title="Missing Arguments",
                 description=(
@@ -139,7 +135,7 @@ class ErrorHandler(commands.Cog):
                 "This command is not enabled at the moment.")
 
         elif isinstance(error, commands.BadArgument):
-            self.reset(ctx)
+            ctx.command.reset_cooldown(ctx)
             ba = discord.Embed(
                 title="Bad Argument",
                 description=str(error),
@@ -147,7 +143,7 @@ class ErrorHandler(commands.Cog):
             await ctx.send_error(embed=ba)
 
         elif isinstance(error, commands.TooManyArguments):
-            self.reset(ctx)
+            ctx.command.reset_cooldown(ctx)
             many_arguments = discord.Embed(
                 title="Too many arguments",
                 description=str(error),
@@ -157,7 +153,7 @@ class ErrorHandler(commands.Cog):
         elif isinstance(error, commands.NoPrivateMessage):
             return
         else:
-            self.reset(ctx)
+            ctx.command.reset_cooldown(ctx)
             prettify_exceptions.DefaultFormatter().theme["_ansi_enabled"] = False
             exception = "".join(
                 prettify_exceptions.DefaultFormatter().format_exception(

@@ -138,7 +138,7 @@ class Prefix(commands.Converter):
         if argument in guild_prefix:
             raise commands.BadArgument("That is already a prefix for this server.")
 
-        return argument
+        return argument.lower()
 
 
 class CogConverter(commands.Converter):

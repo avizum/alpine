@@ -386,6 +386,10 @@ class Fun(commands.Cog):
         await ctx.send(send)
 
     @commands.command()
+    async def copy(self, ctx: AvimetryContext, member: discord.Member, *, text):
+        pass
+
+    @commands.command()
     @commands.cooldown(1, 15, commands.BucketType.member)
     async def reddit(self, ctx: AvimetryContext, subreddit):
         async with self.avi.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:

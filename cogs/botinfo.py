@@ -186,7 +186,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             else:
                 source_embed.description = (
                     "Here is my [source](https://github.com/avimetry/avimetry). "
-                    "I am made by [avi](https://discord.com/users/750135653638865017)."
+                    "I am made by [avi](https://discord.com/users/750135653638865017).\n"
                     "Follow the [license](https://github.com/avimetry/avimetry/blob/master/LICENSE)"
                 )
             return await ctx.send(embed=source_embed)
