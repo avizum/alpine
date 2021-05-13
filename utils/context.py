@@ -71,8 +71,6 @@ class AvimetryContext(commands.Context):
 
     async def send(self, content=None, embed=None, **kwargs):
         if content:
-            if len(content) > 2000:
-                return await self.post(content)
             for v in tokens:
                 content = str(content.replace(v, "[token omitted]"))
             if not self.command:
@@ -104,6 +102,8 @@ class AvimetryContext(commands.Context):
         try:
             message = await self.reply(content=content, embed=embed, **kwargs)
             return message
+        except discord.HTTPException:
+            return await self.post(content=content)
         except Exception:
             message = await super().send(content=content, embed=embed, **kwargs)
             return message

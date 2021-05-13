@@ -41,7 +41,7 @@ class Setup(commands.Cog):
             adapter=discord.AsyncWebhookAdapter(self.avi.session)
         )
         self.command_webhook = discord.Webhook.from_url(
-            webhooks["command_log"],
+            self.avi.settings["webhooks"]["command_log"],
             adapter=discord.AsyncWebhookAdapter(self.avi.session)
         )
 

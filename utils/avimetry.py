@@ -190,9 +190,6 @@ class AvimetryBot(commands.Bot):
             return
         await self.process_commands(after)
 
-    async def wait_for(self, event, *, check, timeout):
-        return await super().wait_for(event, check=check, timeout=timeout)
-
     async def postgresql_latency(self):
         with StopWatch() as e:
             await self.pool.execute("SELECT 1")
