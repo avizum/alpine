@@ -16,6 +16,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import time
+
+
 def format_string(number, value):
     """
     "Humanizes" a name, Ex: 1 time, 2 times
@@ -37,3 +40,29 @@ def format_list(list):
     if len(list) == 2:
         return " and ".join(list)
     return f"{', '.join(str(item) for item in list[:-1])} and {list[-1]}"
+
+
+# https://github.com/PB4162/PB-Bot/blob/master/utils/utils.py#L54-L76
+class StopWatch:
+    __slots__ = ("start_time", "end_time")
+
+    def __init__(self):
+        self.start_time = None
+        self.end_time = None
+
+    def start(self):
+        self.start_time = time.perf_counter()
+
+    def stop(self):
+        self.end_time = time.perf_counter()
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.stop()
+
+    @property
+    def elapsed(self):
+        return self.end_time - self.start_time

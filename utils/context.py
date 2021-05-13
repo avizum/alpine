@@ -21,8 +21,16 @@ import discord
 import datetime
 import contextlib
 import re
-from config import tokens
+import toml
 from discord.ext import commands
+
+
+with open("config.toml") as f:
+    settings = toml.loads(f.read())
+    bot_tokens = (settings["bot_tokens"].values())
+    api_tokens = (settings["api_tokens"].values())
+    tokens = list(bot_tokens)
+    tokens.extend(api_tokens)
 
 
 class AvimetryContext(commands.Context):
@@ -65,9 +73,8 @@ class AvimetryContext(commands.Context):
         if content:
             if len(content) > 2000:
                 return await self.post(content)
-            for v in tokens.values():
-                if v in content:
-                    content = str(content.replace(v, "[token omitted]"))
+            for v in tokens:
+                content = str(content.replace(v, "[token omitted]"))
             if not self.command:
                 self.command = self.bot.get_command("_")
             if "jishaku" in self.command.qualified_name:

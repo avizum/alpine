@@ -24,7 +24,7 @@ import aiohttp
 import aiozaneapi
 import mystbin
 import topgg
-import time
+import toml
 import re
 import contextlib
 import asyncpg
@@ -32,10 +32,10 @@ import asyncdagpi
 
 from sys import platform
 from discord.ext import commands
-from config import tokens, postgresql
 from .context import AvimetryContext
 from .errors import Blacklisted
 from .cache import AvimetryCache
+from .utils import StopWatch
 
 
 os.environ["JISHAKU_HIDE"] = "True"
@@ -78,8 +78,7 @@ allowed_mentions = discord.AllowedMentions(
     everyone=False, users=False,
     roles=True, replied_user=False
 )
-intents = discord.Intents.default()
-intents.members = True
+intents = discord.Intents.all()
 activity = discord.Game("Avimetry | Loading Servers...")
 
 
@@ -115,6 +114,7 @@ class AvimetryBot(commands.Bot):
         }
         self.bot_cogs = [
             "cogs.botinfo",
+            "cogs.currency",
             "cogs.developer",
             "cogs.errorhandler",
             "cogs.events",
@@ -133,15 +133,17 @@ class AvimetryBot(commands.Bot):
             "cogs.topgg",
             "cogs.verification"
         ]
+        with open("config.toml") as f:
+            self.settings = toml.loads(f.read())
 
-        self.topgg = topgg.DBLClient(self, tokens["TopGG"], autopost_interval=None)
+        api = self.settings["api_tokens"]
+        self.topgg = topgg.DBLClient(self, api["TopGG"], autopost_interval=None)
         self.sr = sr_api.Client()
-        self.zaneapi = aiozaneapi.Client(tokens["ZaneAPI"])
-        self.dagpi = asyncdagpi.Client(tokens["DagpiAPI"])
+        self.zaneapi = aiozaneapi.Client(api["ZaneAPI"])
+        self.dagpi = asyncdagpi.Client(api["DagpiAPI"])
         self.myst = mystbin.Client()
         self.session = aiohttp.ClientSession()
-
-        self.pool = self.loop.run_until_complete(asyncpg.create_pool(**postgresql))
+        self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
 
         @self.check
         async def check(ctx):
@@ -164,7 +166,7 @@ class AvimetryBot(commands.Bot):
             for cog in self.bot_cogs:
                 try:
                     self.load_extension(cog)
-                except commands.ExtensionAlreadyLoaded:
+                except commands.ExtensionError:
                     pass
 
     async def get_context(self, message, *, cls=AvimetryContext):
@@ -181,26 +183,34 @@ class AvimetryBot(commands.Bot):
     async def on_message(self, message):
         await self.process_commands(message)
 
+    async def on_message_edit(self, before: discord.Message, after: discord.Message):
+        if before.content == after.content:
+            return
+        if after.attachments:
+            return
+        await self.process_commands(after)
+
+    async def wait_for(self, event, *, check, timeout):
+        return super().wait_for(event, check=check, timeout=timeout)
+
     async def postgresql_latency(self):
-        start = time.perf_counter()
-        await self.pool.execute("SELECT 1")
-        end = time.perf_counter()
-        return round((end - start) * 1000)
+        with StopWatch() as e:
+            await self.pool.execute("SELECT 1")
+        return round(e.elapsed * 1000)
 
     async def api_latency(self, ctx):
-        start = time.perf_counter()
-        await ctx.trigger_typing()
-        end = time.perf_counter()
-        return round((end - start) * 1000)
+        with StopWatch() as e:
+            await ctx.trigger_typing()
+        return round((e.elapsed) * 1000)
 
     def run(self):
+        tokens = self.settings["bot_tokens"]
         if platform not in ["linux", "linux2"]:
             self.devmode = True
             token = tokens["AvimetryBeta"]
         else:
             token = tokens["Avimetry"]
         self.loop.run_until_complete(self.cache.cache_all())
-        self.launch_time = datetime.datetime.utcnow()
         super().run(token, reconnect=True)
 
     async def close(self):
@@ -213,10 +223,3 @@ class AvimetryBot(commands.Bot):
             await self.topgg.close()
             await super().close()
         print("\nSuccessfully closed bot", end="\n\n")
-
-    async def on_message_edit(self, before: discord.Message, after: discord.Message):
-        if before.content == after.content:
-            return
-        if after.attachments:
-            return
-        await self.process_commands(after)
