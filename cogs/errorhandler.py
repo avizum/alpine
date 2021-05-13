@@ -180,7 +180,6 @@ class ErrorHandler(commands.Cog):
                     type(error), error, error.__traceback__
                 )
             )
-            print(exception)
             ee = discord.Embed(
                 timestamp=datetime.datetime.utcnow()
             )
@@ -209,6 +208,7 @@ class ErrorHandler(commands.Cog):
                 )
             )
             await self.error_webhook.send(embed=embed, username="Error")
+            raise error
 
 
 def setup(avi):

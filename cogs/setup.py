@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import logging
 import discord
 import datetime
-from config import webhooks
 from discord.ext import commands
 from utils import AvimetryContext, AvimetryBot
 
@@ -36,12 +35,13 @@ logger.addHandler(handler)
 class Setup(commands.Cog):
     def __init__(self, avi):
         self.avi: AvimetryBot = avi
+        self.webhooks = self.avi.settings["webhooks"]
         self.guild_webhook = discord.Webhook.from_url(
-            webhooks["join_log"],
+            self.webhooks["join_log"],
             adapter=discord.AsyncWebhookAdapter(self.avi.session)
         )
         self.command_webhook = discord.Webhook.from_url(
-            self.avi.settings["webhooks"]["command_log"],
+            self.webhooks["command_log"],
             adapter=discord.AsyncWebhookAdapter(self.avi.session)
         )
 
