@@ -22,7 +22,7 @@ import datetime
 import humanize
 from discord.ext import commands
 from utils import (
-    AvimetryBot, AvimetryContext, TimeConverter, TargetMemberAction, FindBan, Reason)
+    AvimetryBot, AvimetryContext, TimeConverter, TargetMemberAction, FindBan, ModReason)
 
 
 class Moderation(commands.Cog):
@@ -35,7 +35,7 @@ class Moderation(commands.Cog):
     @commands.command(brief="Kicks a member from the server.", usage="<member> [reason]")
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
-    async def kick(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: Reason = None):
+    async def kick(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: ModReason = None):
         kick_embed = discord.Embed(
             title="Kicked Member",
             color=discord.Color.green()
@@ -47,7 +47,7 @@ class Moderation(commands.Cog):
     @commands.command(brief="Bans then unbans a member from the server")
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def softban(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: Reason = None):
+    async def softban(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: ModReason = None):
         soft_ban_embed = discord.Embed(
             title="Soft-Banned Member",
             description=f"**{member}** has been soft banned from the server.",
@@ -59,7 +59,7 @@ class Moderation(commands.Cog):
     @commands.command(brief="Bans a member from the server", usage="<member> [reason]")
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def ban(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: Reason = None):
+    async def ban(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: ModReason = None):
         ban_embed = discord.Embed(
             title="Banned Member",
             color=discord.Color.green()
@@ -76,7 +76,7 @@ class Moderation(commands.Cog):
     @commands.command(brief="Unbans a member from the server.", usage="<member_id> [reason]")
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def unban(self, ctx: AvimetryContext, member: FindBan, *, reason: Reason = None):
+    async def unban(self, ctx: AvimetryContext, member: FindBan, *, reason: ModReason = None):
         await ctx.guild.unban(member, reason=reason)
         unban_embed = discord.Embed(
             title="Unbanned Member",
@@ -90,7 +90,7 @@ class Moderation(commands.Cog):
     )
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def mute(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: Reason = None):
+    async def mute(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: ModReason = None):
         role = await ctx.cache.get_guild_settings(ctx.guild.id)
         mute_role = ctx.guild.get_role(role["mute_role"])
         await member.add_roles(mute_role, reason=reason)
@@ -102,9 +102,8 @@ class Moderation(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_roles=True)
     async def tempmute(
-        self, ctx: AvimetryContext, member: TargetMemberAction, time: TimeConverter, *, reason: Reason = None
+        self, ctx: AvimetryContext, member: TargetMemberAction, time: TimeConverter, *, reason: ModReason = None
     ):
-        await ctx.send("Command is a WIP")
         print(f"Mute: {member}, {time}, {reason}")
 
     @commands.group(
@@ -151,7 +150,7 @@ class Moderation(commands.Cog):
             value=f"Purged {amount} messages containing {text}.",
         )
 
-    @commands.command(brief="Cleans bot messages", usage="[amount]")
+    @commands.command(brief="Delete bot messages", usage="[amount]")
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
     async def cleanup(self, ctx: AvimetryContext, amount=15):
@@ -162,8 +161,8 @@ class Moderation(commands.Cog):
         authors = {}
         messages = []
         async for message in ctx.channel.history(limit=amount*2):
-            check_prefix = await ctx.cache.get_guild_settings(ctx.guild.id)
-            prefixes = tuple(check_prefix["prefixes"])
+            check_prefix = await self.avi.get_prefix(message)
+            prefixes = tuple(check_prefix)
             if message.author == self.avi.user or message.content.lower().startswith(prefixes):
                 messages.append(message)
                 if message.author not in authors:

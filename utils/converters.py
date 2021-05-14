@@ -20,6 +20,7 @@ import re
 import discord
 from discord.ext import commands
 from utils import AvimetryContext
+from twemoji_parser import emoji_to_url as urlify_emoji
 
 
 time_regex = re.compile(r"(?:(\d{1,5})\s?(h|s|m|d))+?")
@@ -57,14 +58,14 @@ class TimeConverter(commands.Converter):
         return time
 
 
-class Reason(commands.Converter):
+class ModReason(commands.Converter):
     async def convert(self, ctx, argument):
         reason = f"{ctx.author}: {argument}"
         if argument is None:
             reason = f"{ctx.author}: No reason was provided."
 
         if len(reason) > 512:
-            raise commands.BadArgument(f"Reason is too long ({len(reason)}/512")
+            raise commands.BadArgument(f"Reason is too long ({len(reason)}/512)")
         return reason
 
 
@@ -170,3 +171,36 @@ class CogConverter(commands.Converter):
         if jsk in exts:
             exts.remove("cogs.jishaku")
         return exts
+
+
+regex_url = re.compile(
+    r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+"
+    r"[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
+)
+emoji_regex = r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>"
+
+
+class GetAvatar(commands.Converter):
+    async def convert(self, ctx: AvimetryContext, argument: str = None):
+        try:
+            member_converter = commands.MemberConverter()
+            member = await member_converter.convert(ctx, argument)
+            image = member.avatar_url_as(format="png", static_format="png", size=1024)
+            return str(image)
+        except Exception:
+            try:
+                url = await urlify_emoji(argument)
+                if re.match(regex_url, url):
+                    image = str(url)
+                    return image
+                if re.match(regex_url, argument):
+                    image = argument
+                    return image
+                if re.match(emoji_regex, argument):
+                    emoji_converter = commands.EmojiConverter()
+                    emoji = emoji_converter.convert(ctx, argument)
+                    image = emoji.url_as(format="png", static_format="png", size=1024)
+                    return image
+            except Exception:
+                return None
+        raise commands.MemberNotFound(argument)

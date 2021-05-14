@@ -18,47 +18,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import io
-import re
 import typing
 from discord.ext import commands
 from io import BytesIO
 from asyncdagpi import ImageFeatures
 from twemoji_parser import emoji_to_url as urlify_emoji
-from utils import AvimetryBot, AvimetryContext
+from utils import AvimetryBot, AvimetryContext, GetAvatar
 
 embed = discord.Embed()
-regex_url = re.compile(
-    r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+"
-    r"[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
-)
-emoji_regex = r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>"
 args = typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]
-
-
-class GetAvatar(commands.Converter):
-    async def convert(self, ctx: AvimetryContext, argument: str = None):
-        try:
-            member_converter = commands.MemberConverter()
-            member = await member_converter.convert(ctx, argument)
-            image = member.avatar_url_as(format="png", static_format="png", size=1024)
-            return str(image)
-        except Exception:
-            try:
-                url = await urlify_emoji(argument)
-                if re.match(regex_url, url):
-                    image = str(url)
-                    return image
-                if re.match(regex_url, argument):
-                    image = argument
-                    return image
-                if re.match(emoji_regex, argument):
-                    emoji_converter = commands.EmojiConverter()
-                    emoji = emoji_converter.convert(ctx, argument)
-                    image = emoji.url_as(format="png", static_format="png", size=1024)
-                    return image
-            except Exception:
-                return None
-        raise commands.MemberNotFound(argument)
 
 
 class Image(commands.Cog, name="Images"):

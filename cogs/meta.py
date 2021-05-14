@@ -24,7 +24,7 @@ import humanize
 import pytz
 import typing
 from discord.ext import commands
-from utils import AvimetryBot, AvimetryContext, TimeZoneError
+from utils import AvimetryBot, AvimetryContext, TimeZoneError, GetAvatar
 
 
 class Meta(commands.Cog):
@@ -150,14 +150,20 @@ class Meta(commands.Cog):
         ie.set_thumbnail(url=member.avatar_url)
         await ctx.send(embed=ie)
 
-    @commands.command(brief="Make a qr code")
+    @commands.group(brief="Make a QR code", invoke_without_command=True)
     async def qr(self, ctx: AvimetryContext, *, content):
         qr_embed = discord.Embed()
-        qr_embed.add_field(name="QR code", value="Here is your qr code")
+        qr_embed.add_field(name="QR code", value=f"Here is your qr code ({content})")
         qr_embed.set_image(
             url=f"https://api.qrserver.com/v1/create-qr-code/?data={content}&size=250x250"
         )
         await ctx.send(embed=qr_embed)
+
+    @qr.command(brief="Read a QR code")
+    async def read(self, ctx: AvimetryContext, *, image: GetAvatar):
+        async with self.avi.session.get(f"https://api.qrserver.com/v1/read-qr-code/?fileurl={image}") as resp:
+            thing = await resp.json()
+            await ctx.send((str(thing[0]["symbol"][0]["data"])))
 
     @commands.group(brief="Gets the time for a member", invoke_without_command=True)
     async def time(self, ctx: AvimetryContext, *, member: discord.Member = None):
@@ -172,13 +178,9 @@ class Meta(commands.Cog):
         format_time = time.strftime("%A, %B %d at %I:%M %p")
         time_embed = discord.Embed(description=format_time)
         time_embed.set_author(
-            name=f"Time for {member.display_name}", icon_url=member.avatar_url
+            name=f"{member.display_name}'s time", icon_url=member.avatar_url
         )
-        if member.display_name.endswith("s"):
-            member_name = f"{member.display_name}'"
-        else:
-            member_name = f"{member.display_name}'s"
-        time_embed.set_footer(text=f"{member_name} timezone: {timezone}")
+        time_embed.set_footer(text=f"{member.display_name}'s' timezone: {timezone}")
         await ctx.send(embed=time_embed)
 
     @time.command(

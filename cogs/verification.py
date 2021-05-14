@@ -108,11 +108,11 @@ class MemberJoin(commands.Cog):
         try:
             rkey = discord.Embed()
             rkey.add_field(
-                name="Here is your key. Your key will expire in 60 seconds.",
+                name="Here is your key. Your key will expire after 1 minute of inactivity.",
                 value=f"`{randomkey}`",
             )
             if member.is_on_mobile():
-                await member.send("**Here is your key. Your key will expire in 1 minute.**")
+                await member.send("**Here is your key. Your key will expire after 1 minute of inactivity.**")
                 await member.send(f"{randomkey}")
             else:
                 await member.send(embed=rkey)

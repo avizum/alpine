@@ -173,7 +173,7 @@ class Servers(commands.Cog, name="Servers"):
             if after.id == 750135653638865017:
                 return
             try:
-                return await after.edit(nick=after.name, reason="Nick can not be \"avi\"")
+                return await after.edit(nick=after.name, reason='Nick can not be    "avi"')
             except discord.Forbidden:
                 pass
 
