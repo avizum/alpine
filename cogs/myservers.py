@@ -153,6 +153,8 @@ class Servers(commands.Cog, name="Servers"):
         for i in guild.members:
             if role not in i.roles:
                 try:
+                    if i.bot:
+                        return
                     await i.add_roles(role)
                 except Exception:
                     pass

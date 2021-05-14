@@ -83,7 +83,7 @@ class MemberJoin(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        dchnl = discord.utils.get(member.guild.channels, name=f"{member.name.lower()}-verification")
+        dchnl = discord.utils.get(member.guild.channels, name=f"{member.name.lower().replace(' ', '-')}-verification")
         if dchnl in member.guild.channels:
             await dchnl.delete(reason=f"{member.name} left during verification process")
 
