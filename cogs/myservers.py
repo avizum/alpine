@@ -150,9 +150,8 @@ class Servers(commands.Cog, name="Servers"):
 
         role = guild.get_role(813535792655892481)
 
-        for i in guild.members:
-            if role in i.roles or i.bot:
-                return
+        members = [mem for mem in guild.members if not mem.bot]
+        for i in members:
             try:
                 await i.add_roles(role)
             except Exception:
