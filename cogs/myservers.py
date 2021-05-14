@@ -151,13 +151,12 @@ class Servers(commands.Cog, name="Servers"):
         role = guild.get_role(813535792655892481)
 
         for i in guild.members:
-            if i.bot:
+            if role in i.roles or i.bot:
                 return
-            if role not in i.roles:
-                try:
-                    await i.add_roles(role)
-                except Exception:
-                    pass
+            try:
+                await i.add_roles(role)
+            except Exception:
+                pass
 
     @update_count.before_loop
     async def before_update_count(self):
