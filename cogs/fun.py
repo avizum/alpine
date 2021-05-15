@@ -405,6 +405,7 @@ class Fun(commands.Cog):
         brief="Copies someone so it looks like a person actually sent the message."
     )
     @commands.bot_has_permissions(manage_webhooks=True)
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def copy(self, ctx: AvimetryContext, member: discord.Member, *, text):
         webhooks = await ctx.channel.webhooks()
         avimetry_webhook = discord.utils.get(webhooks, name="Avimetry")
