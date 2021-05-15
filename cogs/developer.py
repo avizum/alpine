@@ -49,13 +49,13 @@ class Owner(commands.Cog):
 
     @commands.group(
         invoke_without_command=True,
-        hidden=True
+        brief="Developer commands only."
     )
     async def dev(self, ctx: AvimetryContext):
         await ctx.send_help("dev")
 
     @dev.command(
-        brief="Load module", aliases=["l"]
+        brief="Load module(s)", aliases=["l"]
         )
     async def load(self, ctx: AvimetryContext, module: CogConverter):
         reload_list = []
@@ -69,7 +69,7 @@ class Owner(commands.Cog):
         await ctx.send(embed=embed)
 
     @dev.command(
-        brief="Unload module", aliases=["u"]
+        brief="Unload module(s)", aliases=["u"]
         )
     async def unload(self, ctx: AvimetryContext, module: CogConverter):
         unload_list = []
@@ -83,7 +83,7 @@ class Owner(commands.Cog):
         await ctx.send(embed=embed)
 
     @dev.command(
-        brief="Reloads a module if it is not working.", aliases=["r"]
+        brief="Reload module(s)", aliases=["r"]
     )
     async def reload(self, ctx: AvimetryContext, module: CogConverter):
         reload_list = []
@@ -95,11 +95,6 @@ class Owner(commands.Cog):
                 reload_list.append(f'{self.avi.emoji_dictionary["red_tick"]} | {cog}```{e}```')
         embed = discord.Embed(title="Reload", description="\n".join(reload_list))
         await ctx.send(embed=embed)
-
-    @dev.command()
-    async def prefixless(self, ctx: AvimetryContext, toggle: bool):
-        await ctx.message.add_reaction(self.avi.emoji_dictionary["green_tick"])
-        self.avi.devmode = toggle
 
     @dev.command(brief="Pulls from GitHub and then reloads all modules")
     async def sync(self, ctx: AvimetryContext):
@@ -139,13 +134,28 @@ class Owner(commands.Cog):
         jsk = self.avi.get_command("jsk py")
         await jsk(ctx, argument=code)
 
-    @dev.command()
-    async def leave(self, ctx: AvimetryContext):
-        await ctx.send("Okay bye")
-        await ctx.guild.leave()
+    @dev.command(brief="Leaves a server.")
+    async def leave(self, ctx: AvimetryContext, guild: discord.Guild):
+        conf = await ctx.confirm(f"Are you sure you want me to leave {guild.name} ({guild.id})?")
+        if conf:
+            await ctx.guild.leave()
+            return await ctx.message.add_reaction(self.avi.emoji_dictionary["green_tick"])
+        await ctx.send("Okay, Aborted.")
 
-    @dev.command()
-    async def blacklist(self, ctx: AvimetryContext, user: typing.Union[discord.User, discord.Member], *, reason):
+    @dev.group(
+        invoke_without_command=True,
+        brief="Blacklist"
+    )
+    async def blacklist(self, ctx: AvimetryContext):
+        bl_users = ctx.cache.blacklist.keys()
+        joiner = "\n"
+        await ctx.send(f"```{joiner.join(bl_users)}```")
+
+    @blacklist.command(
+        name="add",
+        brief="Adds a user to the global blacklist"
+    )
+    async def blacklist_add(self, ctx: AvimetryContext, user: typing.Union[discord.User, discord.Member], *, reason):
         try:
             ctx.cache.blacklist[user.id]
             return await ctx.send(f"{user} is already blacklisted.")
@@ -176,8 +186,11 @@ class Owner(commands.Cog):
             pass
         await ctx.send(embed=embed)
 
-    @dev.command()
-    async def unblacklist(self, ctx: AvimetryContext, user: typing.Union[discord.User, discord.Member], *, reason):
+    @blacklist.command(
+        name="remove",
+        brief="Remove a user from the blacklist."
+    )
+    async def blacklist_remove(self, ctx: AvimetryContext, user: typing.Union[discord.User, discord.Member], *, reason):
         try:
             ctx.cache.blacklist[user.id]
         except Exception:
@@ -200,7 +213,9 @@ class Owner(commands.Cog):
             pass
         await ctx.send(f"Unblacklisted {str(user)}")
 
-    @dev.command()
+    @dev.command(
+        brief="Cleans up bot messages only"
+    )
     async def cleanup(self, ctx: AvimetryContext, amount: int = 15):
         deleted = 0
         async for message in ctx.channel.history(limit=amount*2):
@@ -213,10 +228,6 @@ class Owner(commands.Cog):
                 if deleted >= amount:
                     break
         await ctx.send(f"Successfully purged `{deleted}` message(s).")
-
-    @commands.command()
-    async def error(self, ctx: AvimetryContext):
-        raise Exception
 
 
 def setup(avi):

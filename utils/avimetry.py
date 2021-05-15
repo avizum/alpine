@@ -82,7 +82,7 @@ intents = discord.Intents.all()
 activity = discord.Game("Avimetry | Loading Servers...")
 
 
-class AvimetryBot(commands.Bot):
+class AvimetryBot(commands.AutoShardedBot):
     def __init__(self, **kwargs):
         super().__init__(
             **kwargs,
@@ -166,8 +166,8 @@ class AvimetryBot(commands.Bot):
             for cog in self.bot_cogs:
                 try:
                     self.load_extension(cog)
-                except commands.ExtensionError:
-                    pass
+                except commands.ExtensionError as error:
+                    print(error)
 
     async def get_context(self, message, *, cls=AvimetryContext):
         return await super().get_context(message, cls=cls)

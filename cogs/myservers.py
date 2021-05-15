@@ -140,14 +140,6 @@ class Servers(commands.Cog, name="Servers"):
         guild: discord.Guild = self.avi.get_guild(self.guild_id[0])
         if guild is None:
             return
-        total = guild.member_count
-        members = len([m for m in guild.members if not m.bot])
-        bots = len([m for m in guild.members if m.bot])
-
-        await self.get(self.total_channel).edit(name=f"Total Members: {total}")
-        await self.get(self.member_channel).edit(name=f"Members: {members}")
-        await self.get(self.bot_channel).edit(name=f"Bots: {bots}")
-
         role = guild.get_role(813535792655892481)
 
         not_bot = [mem for mem in guild.members if not mem.bot]
@@ -173,7 +165,7 @@ class Servers(commands.Cog, name="Servers"):
             if after.id == 750135653638865017:
                 return
             try:
-                return await after.edit(nick=after.name, reason='Nick can not be    "avi"')
+                return await after.edit(nick=after.name, reason='Nick can not be "avi"')
             except discord.Forbidden:
                 pass
 

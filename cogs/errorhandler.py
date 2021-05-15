@@ -68,7 +68,7 @@ class ErrorHandler(commands.Cog):
             bucket = self.cd_mapping.get_bucket(ctx.message)
             retry_after = bucket.update_rate_limit()
             if not retry_after:
-                await ctx.send_error(embed=blacklisted, delete_after=15)
+                await ctx.send(embed=blacklisted, delete_after=15)
 
         elif isinstance(error, commands.CommandNotFound):
             if ctx.author.id in ctx.cache.blacklist:
@@ -83,14 +83,14 @@ class ErrorHandler(commands.Cog):
                 not_found_embed.set_footer(
                     text=f"Use {ctx.clean_prefix}help to see the whole list of commands."
                 )
-                await ctx.send_error(embed=not_found_embed)
+                await ctx.send(embed=not_found_embed)
 
         elif isinstance(error, commands.CommandOnCooldown):
             cd = discord.Embed(
                 title="Slow down",
                 description=f"This command is on cooldown. Try again in {humanize.naturaldelta(error.retry_after)}."
             )
-            await ctx.send_error(embed=cd)
+            await ctx.send(embed=cd)
 
         elif isinstance(error, commands.MaxConcurrencyReached):
             max_uses = discord.Embed(
@@ -99,7 +99,7 @@ class ErrorHandler(commands.Cog):
                     f"This command can only be used {error.number} "
                     f"{'time' if error.number == 1 else 'times'} per {error.per.name}."),
             )
-            await ctx.send_error(embed=max_uses)
+            await ctx.send(embed=max_uses)
 
         elif isinstance(error, commands.BotMissingPermissions):
             missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
@@ -113,7 +113,7 @@ class ErrorHandler(commands.Cog):
                 title="Missing Permissions",
                 description=f"I need the following permissions to run this command:\n{fmt}"
             )
-            await ctx.send_error(embed=bnp)
+            await ctx.send(embed=bnp)
 
         elif isinstance(error, commands.MissingPermissions):
             missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
@@ -127,14 +127,14 @@ class ErrorHandler(commands.Cog):
                 title="Missing Permissions",
                 description=f"You need the following permissions to run this command:\n{fmt}"
             )
-            await ctx.send_error(embed=np)
+            await ctx.send(embed=np)
 
         elif isinstance(error, commands.NotOwner):
             no = discord.Embed(
                 title="Missing Permissions",
                 description="You do not own this bot."
             )
-            await ctx.send_error(embed=no)
+            await ctx.send(embed=no)
 
         elif isinstance(error, commands.MissingRequiredArgument):
             self.reset(ctx)
@@ -151,7 +151,7 @@ class ErrorHandler(commands.Cog):
             return
 
         elif isinstance(error, commands.DisabledCommand):
-            await ctx.send_error(
+            await ctx.send(
                 "This command is not enabled at the moment.")
 
         elif isinstance(error, commands.BadArgument):
@@ -160,7 +160,7 @@ class ErrorHandler(commands.Cog):
                 title="Bad Argument",
                 description=str(error),
             )
-            await ctx.send_error(embed=ba)
+            await ctx.send(embed=ba)
 
         elif isinstance(error, commands.TooManyArguments):
             self.reset(ctx)
@@ -168,7 +168,7 @@ class ErrorHandler(commands.Cog):
                 title="Too many arguments",
                 description=str(error),
             )
-            await ctx.send_error(embed=many_arguments)
+            await ctx.send(embed=many_arguments)
 
         elif isinstance(error, commands.NoPrivateMessage):
             return
@@ -192,7 +192,7 @@ class ErrorHandler(commands.Cog):
                 "The error was sent to the [support server](https://discord.gg/KaqqPhfwS4)."
                 f"\n\n[Error]({myst_exception}):\n```py\n{error}```"
             )
-            await ctx.send_error(embed=ee)
+            await ctx.send(embed=ee)
             embed = discord.Embed(
                 title="Uncaught Error",
                 description=f"```py\n {exception or myst_exception}```",

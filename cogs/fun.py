@@ -135,7 +135,7 @@ class Fun(commands.Cog):
             e = discord.Embed(description=f"{member.mention} was skinned.")
             await ctx.send(embed=e)
 
-    @commands.command(aliases=["sd"], brief="Self destruct? Who put that button there?")
+    @commands.command(aliases=["sd"], brief="Self destruct? Who put that there?")
     async def selfdestruct(self, ctx: AvimetryContext):
         a = discord.Embed(
             description=f"{ctx.author.mention} self destructed due to overloaded fuel canisters")
@@ -144,10 +144,10 @@ class Fun(commands.Cog):
     @commands.command(brief="Dropkick someone")
     async def dropkick(self, ctx: AvimetryContext, *, mention: discord.Member):
         if mention == ctx.author:
-            embed = discord.Embed(description=f"{ctx.author.mention} tried dropkicking themselves")
+            embed = discord.Embed(description=f"{ctx.author.mention} tried dropkicking themselves.")
         else:
             embed = discord.Embed(
-                description=f"{ctx.author.mention} dropkicked {mention.mention}")
+                description=f"{ctx.author.mention} dropkicked {mention.mention}, killing them.")
         await ctx.send(embed=embed)
 
     @commands.command(brief="Try to get the cookie as fast as you can!")
@@ -343,7 +343,9 @@ class Fun(commands.Cog):
                 )
             await initial_messsage.edit(embed=akinator_embed)
 
-    @commands.command()
+    @commands.command(
+        brief="Check if a person is compatible with another person."
+    )
     async def ship(self, ctx: AvimetryContext, person1: discord.Member, person2: discord.Member):
         if person1.id == 750135653638865017 or person2.id == 750135653638865017:
             return await ctx.send(f"{person1.mention} and {person2.mention} are 0% compatible with each other")
@@ -352,7 +354,9 @@ class Fun(commands.Cog):
         percent = random.randint(0, 100)
         await ctx.send(f"{person1.mention} and {person2.mention} are {percent}% compatible with each other")
 
-    @commands.command()
+    @commands.command(
+        brief="Get the PP size of someone"
+    )
     async def ppsize(self, ctx: AvimetryContext, member: discord.Member = None):
         pp_embed = discord.Embed(
             title=f"{member.name}'s pp size",
@@ -363,7 +367,6 @@ class Fun(commands.Cog):
     @commands.command(
         name="10s",
         brief="Test your reaction time!",
-        disabled=True
     )
     async def _10s(self, ctx: AvimetryContext):
         embed_10s = discord.Embed(
@@ -391,23 +394,32 @@ class Fun(commands.Cog):
                 gettime = (end_time - start_time)
                 final_time = gettime
                 if final_time < 5.0:
-                    embed_10s.description = "You are supposed to wait 10 seconds to get the cookie"
+                    embed_10s.description = "Wait 10 seconds to get the cookie."
                     return await react_message.edit(embed=embed_10s)
                 embed_10s.description = (
-                    f"You got the cookie in {final_time:.2f} seconds\n"
+                    f"You got the cookie in {final_time:.2f} seconds with {final_time-10} reaction time\n"
                 )
                 await react_message.edit(embed=embed_10s)
 
-    @commands.command()
-    async def mock(self, ctx: AvimetryContext, *, text):
-        send = await self.do_mock(text)
-        await ctx.send(send)
-
-    @commands.command()
+    @commands.command(
+        brief="Copies someone so it looks like a person actually sent the message."
+    )
+    @commands.bot_has_permissions(manage_webhooks=True)
     async def copy(self, ctx: AvimetryContext, member: discord.Member, *, text):
-        pass
+        webhooks = await ctx.channel.webhooks()
+        avimetry_webhook = discord.utils.get(webhooks, name="Avimetry")
+        if not avimetry_webhook:
+            avimetry_webhook = await ctx.channel.create_webhook(
+                name="Avimetry", reason="For Avimetry copy command.",
+                avatar=await self.avi.user.avatar_url.read())
+        await avimetry_webhook.send(
+            text, username=member.display_name,
+            avatar_url=member.avatar_url_as(format="png"),
+            allowed_mentions=discord.AllowedMentions.none())
 
-    @commands.command()
+    @commands.command(
+        brief="Gets a random post from a subreddit"
+    )
     @commands.cooldown(1, 15, commands.BucketType.member)
     async def reddit(self, ctx: AvimetryContext, subreddit):
         async with self.avi.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
@@ -415,7 +427,10 @@ class Fun(commands.Cog):
         get_data = stuff["data"]["children"]
         if not get_data:
             return await ctx.send("No posts found in this subreddit.")
-        data = random.choice(get_data)["data"]
+        try:
+            data = random.choice(get_data)["data"]
+        except Exception:
+            return await ctx.send("No posts found.")
         desc = data["selftext"] if data["selftext"] is not None else ""
         if len(desc) > 2048:
             desc = f'{data["selftext"][:2045]}...'
@@ -446,14 +461,19 @@ class Fun(commands.Cog):
                 return
         return await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(
+        brief="Gets a meme from r/memes | r/meme subreddits."
+    )
     @commands.cooldown(1, 15, commands.BucketType.member)
     async def meme(self, ctx: AvimetryContext):
         reddit = self.avi.get_command("reddit")
-        a = await reddit(ctx, subreddit="memes")
+        subreddits = ["memes", "meme"]
+        a = await reddit(ctx, subreddit=random.choice(subreddits))
         print(a)
 
-    @commands.command()
+    @commands.command(
+        brief="See how fast you can react with the correct emoji."
+    )
     @commands.cooldown(1, 10, commands.BucketType.channel)
     async def reaction(self, ctx: AvimetryContext):
         emoji = ["🍪", "🎉", "🧋", "🍒", "🍑"]
@@ -493,7 +513,11 @@ class Fun(commands.Cog):
                 embed.description = f"{user.mention} got the {random_emoji} in {total_second}"
                 await first.edit(embed=embed)
 
-    @commands.command(name="guessthatlogo", aliases=["gtl"])
+    @commands.command(
+        name="guessthatlogo",
+        aliases=["gtl"],
+        brief="Try to guess the name of a logo. (Powered by Dagpi)"
+    )
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_guess_that_logo(self, ctx: AvimetryContext):
         async with ctx.channel.typing():
@@ -537,14 +561,14 @@ class Fun(commands.Cog):
 
     @commands.command(
         name="roast",
-        brief="Roasts a person. Might be NSFW")
+        brief="Roasts a person. (Powered by Dagpi)")
     async def dag_roast(self, ctx: AvimetryContext, member: discord.Member):
         roast = await self.avi.dagpi.roast()
         await ctx.send(f"{member.mention}, {roast}")
 
     @commands.command(
         name="funfact",
-        brief="Gets a random fun fact.")
+        brief="Gets a random fun fact. (Powered by Dagpi)")
     async def dag_fact(self, ctx: AvimetryContext):
         fact = await self.avi.dagpi.fact()
         await ctx.send(fact)

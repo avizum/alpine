@@ -149,11 +149,6 @@ class AvimetryContext(commands.Context):
                 pass
         return confirm
 
-    async def send_error(self, content=None, embed: discord.Embed = None, **kwargs):
-        if embed:
-            embed.color = discord.Color.red()
-        await self.send(content=content, embed=embed, **kwargs)
-
     async def delete(self, *args, **kwargs):
         emoji = self.bot.emoji_dictionary["red_tick"]
         message = await self.send(*args, **kwargs)

@@ -93,7 +93,10 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
         await ctx.send(embed=ping_embed)
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(
+        invoke_without_command=True,
+        brief="Get the invite link for the bot"
+    )
     async def invite(self, ctx: AvimetryContext):
         invite_embed = discord.Embed(
             title=f"{self.avi.user.name} Invite",
@@ -106,7 +109,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         invite_embed.set_thumbnail(url=self.avi.user.avatar_url)
         await ctx.send(embed=invite_embed)
 
-    @invite.command()
+    @invite.command(brief="Get the invite link for a bot in the server.")
     async def bot(self, ctx: AvimetryContext, bot: discord.Member):
         bot_invite = discord.Embed()
         bot_invite.set_thumbnail(url=bot.avatar_url)
@@ -120,7 +123,10 @@ class BotInfo(commands.Cog, name="Bot Info"):
             bot_invite.description = "That is not a bot. Make sure you mention a bot."
         await ctx.send(embed=bot_invite)
 
-    @commands.command(aliases=["lc", "linec", "lcount"])
+    @commands.command(
+        aliases=["lc", "linec", "lcount"],
+        brief="Gets the amount of lines this bot has."
+    )
     async def linecount(self, ctx):
         path = pathlib.Path('./')
         comment_count = corutine_count = function_count = class_count = line_count = file_count = 0
@@ -174,7 +180,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         await ctx.send(embed=req_embed)
 
-    @commands.command()
+    @commands.command(brief="Vote at top.gg!")
     async def vote(self, ctx: AvimetryContext):
         vote_link = "https://top.gg/bot/756257170521063444/vote"
         vote_embed = discord.Embed(
@@ -188,7 +194,9 @@ class BotInfo(commands.Cog, name="Bot Info"):
         vote_embed.set_thumbnail(url=str(self.avi.user.avatar_url))
         await ctx.send(embed=vote_embed)
 
-    @commands.command()
+    @commands.command(
+        brief="Get the source of a command or bot."
+    )
     async def source(self, ctx: AvimetryContext, *, command: str = None):
         source_embed = discord.Embed(
                 title=f"{self.avi.user.name}'s source code",
