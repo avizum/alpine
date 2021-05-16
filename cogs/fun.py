@@ -84,34 +84,29 @@ class Fun(commands.Cog):
         aliases=["murder"], brief="Kill some people. Make sure you don't get caught!")
     @commands.cooldown(2, 30, commands.BucketType.member)
     async def kill(self, ctx: AvimetryContext, member: discord.Member):
-        await ctx.message.delete()
         if member == self.avi.user or member.bot:
-            await ctx.send("You fool. Us bots can't die")
-
+            await ctx.send("Nope.")
         else:
             if member == ctx.author:
-                await ctx.send(
-                    f"{ctx.author.mention} tried to kill themself, but your friend caught you and decided to bring "
-                    "you to the hospital. On the way to the hospital, your friend crashed the car. They both died."
-                )
+                await ctx.send("You tried to shoot yourself in the head, but you couldn't because I won't let you :)")
             else:
                 author = ctx.author.mention
                 member = member.mention
                 kill_response = [
                     f"{author} killed {member}.",
                     f"{author} murdered {member} with a machine gun.",
-                    f"{author} accidentally shot themselves in the face while trying to load the gun",
+                    f"{author} accidentally shot themselves in the face while trying to load the gun.",
                     f"{author} died while summoning a demon to kill {member}",
-                    f"A demon killed {member} because {author} summoned a demon.",
-                    f"{author} was caught by the police because he was mumbling his plans to to kill {member}",
+                    f"{member} summoned a demon to kill {author}.",
+                    f"{author} was caught by the police because he posted his plans to kill {member}",
                     f"{author} hired a hitman to kill {member}.",
-                    f"{author} shot and killed {member} then reloaded the gun, only to shoot himself in the face.",
-                    f"{author} chopped {member}'s head off with a guillotine",
+                    f"{author} shot {member}. While reloading the gun, {author} shot themselves on the head.",
+                    f"{author} kidnapped {member} and chopped their head off with a guillotine",
                     f"{author} sniped {member} at the store.",
-                    f"{author} tried poisoned {member} but {author} forgot to wear a mask so they fainted",
+                    f"{author} tried to poison {member} but {author} put the poison in their drink.",
                     f"{author} died whilst fighting {member}.",
                     f"{member} was stoned to death by {author}.",
-                    f"{member} was almost killed by {author} but {member} took the gun from him and shot {author}",
+                    f"{member} was almost killed by {author} but {member} took the gun and shot {author}",
                 ]
                 await ctx.send(f"{random.choice(kill_response)}")
 
@@ -125,6 +120,26 @@ class Fun(commands.Cog):
     async def dsay(self, ctx: AvimetryContext, *, message):
         await ctx.message.delete()
         await ctx.send_raw(message)
+
+    @commands.command(
+        brief="Copies someone so it looks like a person actually sent the message."
+    )
+    @commands.bot_has_permissions(manage_webhooks=True)
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def copy(self, ctx: AvimetryContext, member: typing.Union[discord.User, discord.Member], *, text):
+        if member == self.avi.user:
+            say = self.avi.get_command("say")
+            return await say(ctx, message=text)
+        webhooks = await ctx.channel.webhooks()
+        avimetry_webhook = discord.utils.get(webhooks, name="Avimetry")
+        if not avimetry_webhook:
+            avimetry_webhook = await ctx.channel.create_webhook(
+                name="Avimetry", reason="For Avimetry copy command.",
+                avatar=await self.avi.user.avatar_url.read())
+        await avimetry_webhook.send(
+            text, username=member.display_name,
+            avatar_url=member.avatar_url_as(format="png"),
+            allowed_mentions=discord.AllowedMentions.none())
 
     @commands.command(brief="Remove the skin off of people that you don't like.")
     async def skin(self, ctx: AvimetryContext, member: discord.Member):
@@ -401,23 +416,6 @@ class Fun(commands.Cog):
                     f"You got the cookie in {final_time:.2f} seconds with {final_time-10} reaction time\n"
                 )
                 await react_message.edit(embed=embed_10s)
-
-    @commands.command(
-        brief="Copies someone so it looks like a person actually sent the message."
-    )
-    @commands.bot_has_permissions(manage_webhooks=True)
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def copy(self, ctx: AvimetryContext, member: typing.Union[discord.User, discord.Member], *, text):
-        webhooks = await ctx.channel.webhooks()
-        avimetry_webhook = discord.utils.get(webhooks, name="Avimetry")
-        if not avimetry_webhook:
-            avimetry_webhook = await ctx.channel.create_webhook(
-                name="Avimetry", reason="For Avimetry copy command.",
-                avatar=await self.avi.user.avatar_url.read())
-        await avimetry_webhook.send(
-            text, username=member.display_name,
-            avatar_url=member.avatar_url_as(format="png"),
-            allowed_mentions=discord.AllowedMentions.none())
 
     @commands.command(
         brief="Gets a random post from a subreddit"

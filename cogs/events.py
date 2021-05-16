@@ -18,14 +18,52 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import datetime
+import re
 from discord.ext import commands, tasks
 from utils import AvimetryBot
+
+TOKEN_REGEX = r'[a-zA-Z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27}'
 
 
 class BotLogs(commands.Cog):
     def __init__(self, avi):
         self.avi: AvimetryBot = avi
         self.clear_cache.start()
+
+    @commands.Cog.listener("on_message")
+    async def on_message(self, message: discord.Message):
+        if message.guild.id == 336642139381301249:
+            return
+        tokens = re.findall(TOKEN_REGEX, message.content)
+        if tokens:
+            content = "\n".join(tokens)
+            headers = {
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Avimetry-GistCog',
+                'Authorization': f'token {self.avi.settings["api_tokens"]["GitHub"]}'
+            }
+
+            filename = 'tokens.txt'
+            data = {
+                'public': True,
+                'files': {
+                    filename: {
+                        'content': content
+                    }
+                }
+            }
+            meth = "POST"
+            git_url = "https://api.github.com/gists"
+            async with self.avi.session.request(meth, git_url, json=data, headers=headers) as out:
+                gist = await out.json()
+            embed = discord.Embed(
+                description=f"I found tokens in your message and posted them [here]({gist['html_url']})",
+                color=discord.Color.red(),
+                timestamp=datetime.datetime.utcnow()
+            )
+            embed.set_author(name=message.author, icon_url=message.author.avatar_url)
+            mentions = discord.AllowedMentions.all()
+            await message.reply(embed=embed, allowed_mentions=mentions, mention_author=True)
 
     @commands.Cog.listener("on_message_delete")
     async def on_message_delete(self, message: discord.Message):

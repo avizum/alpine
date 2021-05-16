@@ -175,27 +175,24 @@ class ErrorHandler(commands.Cog):
         else:
             self.reset(ctx)
             prettify_exceptions.DefaultFormatter().theme["_ansi_enabled"] = False
-            exception = "".join(
-                prettify_exceptions.DefaultFormatter().format_exception(
-                    type(error), error, error.__traceback__
-                )
+            traceback = (
+             "".join(prettify_exceptions.DefaultFormatter().format_exception(type(error), error, error.__traceback__))
             )
+            if len(traceback) > 1500:
+                traceback = await ctx.post(traceback, "bash")
             ee = discord.Embed(
-                timestamp=datetime.datetime.utcnow()
-            )
-            myst_exception = await self.avi.myst.post(
-                exception, syntax="python"
-            )
-            ee.title = "Unknown Error"
-            ee.description = (
-                "Uh oh, An uncaught error has occured. This normally shouldn't happen. "
-                "The error was sent to the [support server](https://discord.gg/KaqqPhfwS4)."
-                f"\n\n[Error]({myst_exception}):\n```py\n{error}```"
-            )
+                title="Unknown Error",
+                description=(
+                    "Uh oh, An uncaught error has occured. This normally shouldn't happen. "
+                    "The error was sent to the [support server](https://discord.gg/KaqqPhfwS4)."
+                    f"\n\n[Error]({traceback}):\n```py\n{error}```"
+                ),
+                timestamp=datetime.datetime.utcnow())
             await ctx.send(embed=ee)
+
             embed = discord.Embed(
                 title="Uncaught Error",
-                description=f"```py\n {exception or myst_exception}```",
+                description=f"```py\n{traceback}```",
             )
             embed.add_field(
                 name="Error Info",
@@ -207,7 +204,7 @@ class ErrorHandler(commands.Cog):
                     f"Invoker: {ctx.author}\n"
                 )
             )
-            await self.error_webhook.send(embed=embed, username="Error")
+            await ctx.send(embed=embed, username="Error")
             raise error
 
 

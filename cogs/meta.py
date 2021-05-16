@@ -249,7 +249,7 @@ class Meta(commands.Cog):
             return await ctx.send('Remove the "content" part from your message and try again.')
         try:
             thing = json.loads(thing)
-            return await ctx.send(embed=discord.Embed.from_dict(thing))
+            return await ctx.send_raw(embed=discord.Embed.from_dict(thing))
         except Exception as e:
             embed = discord.Embed(
                 title="Input Error",

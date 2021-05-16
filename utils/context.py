@@ -58,40 +58,38 @@ class AvimetryContext(commands.Context):
         return f"`{'` | `'.join(prefix)}`"
 
     async def send_raw(self, *args, **kwargs):
-        return await super().send(*args, **kwargs)
+        await super().send(*args, **kwargs)
 
     async def post(self, content, syntax=None):
         if syntax is None:
             syntax = "python"
         link = await self.bot.myst.post(content, syntax=syntax)
         embed = discord.Embed(
-            description=f"The output from the command {self.invoked_with} is too long, so I posted it here:\n{link}"
+            description=f"Output for {self.invoked_with}: [Here]({link})"
         )
         await self.send(embed=embed)
 
-    async def send(self, content=None, embed=None, **kwargs):
+    async def send(self, content=None, embed: discord.Embed = None, **kwargs):
         if content:
-            for v in tokens:
-                content = str(content.replace(v, "[token omitted]"))
-            if not self.command:
-                self.command = self.bot.get_command("_")
-            if "jishaku" in self.command.qualified_name:
-                return await self.reply(content, **kwargs)
-            embed = discord.Embed(description=content)
-            content = None
-        if discord.Embed:
+            for token in tokens:
+                try:
+                    content = content.replace(token, "[token omitted]")
+                except Exception:
+                    content = content
+        if embed:
             if not embed.footer:
                 embed.set_footer(
-                    icon_url=str(self.author.avatar_url),
-                    text=f"Requested by {self.author}"
+                    text=f"Requested by: {self.author}",
+                    icon_url=str(self.author.avatar_url)
                 )
                 embed.timestamp = datetime.datetime.utcnow()
             if not embed.color:
-                embed.color = self.author.color
+                color = self.author.color
                 if await self.bot.is_owner(self.author):
-                    embed.color = discord.Color(0x3E70DD)
+                    color = discord.Color(0x3E70DD)
                 elif self.author.color == discord.Color(0):
-                    embed.color = discord.Color(0x2F3136)
+                    color = discord.Color(0x2F3136)
+                embed.color = color
         if self.message.id in self.bot.command_cache and self.message.edited_at:
             edited_message = self.bot.command_cache[self.message.id]
             if edited_message.reactions:
@@ -102,11 +100,13 @@ class AvimetryContext(commands.Context):
         try:
             message = await self.reply(content=content, embed=embed, **kwargs)
             return message
-        except discord.HTTPException:
-            return await self.post(content=content)
         except Exception:
-            message = await super().send(content=content, embed=embed, **kwargs)
-            return message
+            try:
+                message = await self.send_raw(content=content, embed=embed, **kwargs)
+                return message
+            except Exception:
+                message = await self.post(content=content)
+                return message
         finally:
             with contextlib.suppress(Exception):
                 self.bot.command_cache[self.message.id] = message
