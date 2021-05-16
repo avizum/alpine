@@ -162,6 +162,14 @@ class ErrorHandler(commands.Cog):
             )
             await ctx.send(embed=ba)
 
+        elif isinstance(error, commands.BadUnionArgument):
+            self.reset(ctx)
+            bad_union_arg = discord.Embed(
+                title="Bad Argument",
+                description=error
+            )
+            await ctx.send(embed=bad_union_arg)
+
         elif isinstance(error, commands.TooManyArguments):
             self.reset(ctx)
             many_arguments = discord.Embed(
@@ -204,7 +212,7 @@ class ErrorHandler(commands.Cog):
                     f"Invoker: {ctx.author}\n"
                 )
             )
-            await ctx.send(embed=embed, username="Error")
+            await self.error_webhook.send(embed=embed, username="Error")
             raise error
 
 

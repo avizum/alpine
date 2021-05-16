@@ -182,15 +182,17 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @commands.command(brief="Vote at top.gg!")
     async def vote(self, ctx: AvimetryContext):
-        vote_link = "https://top.gg/bot/756257170521063444/vote"
+        top_gg = "https://top.gg/bot/756257170521063444/vote"
+        bot_list = "https://discordbotlist.com/bots/avimetry/upvote"
         vote_embed = discord.Embed(
             title=f"Vote for {self.avi.user.name}",
-            description=f"[Vote Now]({vote_link}) at top.gg\nThank you for your support."
+            description=(
+                f"**Vote on __top.gg__**\n[__`Vote Now`__]({top_gg})\n\n"
+                f"**Vote on __discordbotlist.com__**\n[__`Vote Now`__]({bot_list})")
         )
         voted = await self.avi.topgg.get_user_vote(ctx.author.id)
-        print(voted)
         if voted:
-            vote_embed.description = f"[Already Voted.]({vote_link})\nThank you for your support."
+            vote_embed.description = f"[Already Voted.]({top_gg})\nThank you for your support."
         vote_embed.set_thumbnail(url=str(self.avi.user.avatar_url))
         await ctx.send(embed=vote_embed)
 

@@ -4,6 +4,7 @@
 
 [![Discord Bots](https://top.gg/api/widget/756257170521063444.svg)](https://top.gg/bot/756257170521063444)
 
+
 A bot written in Python by [avi](https://discord.com/users/750135653638865017)
 
 ### Bot Invite
@@ -27,7 +28,7 @@ In the help command, you can see all the commands. If you need help reading the 
 |  \<argument\>  |  required argument |
 |   [argument]   | optional arguments |
 | [arguments...] | multiple arguments |
-| ~~{--flags}~~  | ~~WIP~~            |
+| {--flags}      | Coming soon        |
 
 ## Running the bot
-Please do not run your own instance of this bot. Please use the hosted one [here](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)
+Please do not run your own instance of this bot. It is recommended to use the hosted one [here](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)

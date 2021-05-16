@@ -30,6 +30,7 @@ class AvimetryCache:
         self.join_leave = {}
         self.blacklist = {}
         self.users = {}
+        self.highlights = {}
 
     @tasks.loop(minutes=5)
     async def cache_loop(self):

@@ -114,12 +114,12 @@ class AvimetryBot(commands.AutoShardedBot):
         }
         self.bot_cogs = [
             "cogs.botinfo",
-            "cogs.currency",
             "cogs.developer",
             "cogs.errorhandler",
             "cogs.events",
             "cogs.fun",
             "cogs.help",
+            "cogs.highlight",
             "cogs.images",
             "cogs.jishaku",
             "cogs.joinsandleaves",

@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import discord
 import datetime
 import re
+import base64
 from discord.ext import commands, tasks
 from utils import AvimetryBot
 
@@ -37,6 +38,7 @@ class BotLogs(commands.Cog):
         tokens = re.findall(TOKEN_REGEX, message.content)
         if tokens:
             content = "\n".join(tokens)
+            split_token = tokens[0].split(".")
             headers = {
                 'Accept': 'application/vnd.github.v3+json',
                 'User-Agent': 'Avimetry-GistCog',
@@ -57,9 +59,16 @@ class BotLogs(commands.Cog):
             git_url = "https://api.github.com/gists"
             async with self.avi.session.request(meth, git_url, json=data, headers=headers) as out:
                 gist = await out.json()
+                user_bytes = split_token[0].encode()
+                user_id_decoded = base64.b64decode(user_bytes)
+                uid = user_id_decoded.decode("ascii")
             embed = discord.Embed(
                 description=(
-                    f"I found tokens in your message and posted them [here]({gist['html_url']}). Be careful next time!"
+                    f"Hey {message.author.name},\n"
+                    "It appears that you posted your bot's token here. I noticed it and uploaded it to a public gist.\n"
+                    f"Your token can be found [here.]({gist['html_url']})\n"
+                    "Be more careful in the future, and make sure to not accidentally send your token again!\n"
+                    f"You can obtain a new token [here.](https://discord.com/developers/applications/{uid}/bot)"
                 ),
                 color=discord.Color.red(),
                 timestamp=datetime.datetime.utcnow()
