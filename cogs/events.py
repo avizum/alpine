@@ -50,14 +50,17 @@ class BotLogs(commands.Cog):
                     filename: {
                         'content': content
                     }
-                }
+                },
+                'description': f"Tokens found in #{message.channel.name} in the {message.channel.guild.name} server."
             }
             meth = "POST"
             git_url = "https://api.github.com/gists"
             async with self.avi.session.request(meth, git_url, json=data, headers=headers) as out:
                 gist = await out.json()
             embed = discord.Embed(
-                description=f"I found tokens in your message and posted them [here]({gist['html_url']})",
+                description=(
+                    f"I found tokens in your message and posted them [here]({gist['html_url']}). Be careful next time!"
+                ),
                 color=discord.Color.red(),
                 timestamp=datetime.datetime.utcnow()
             )
