@@ -18,8 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import datetime
-import prettify_exceptions
 import humanize
+from prettify_exceptions import DefaultFormatter
 from utils import AvimetryBot, AvimetryContext, Blacklisted
 from discord.ext import commands
 from difflib import get_close_matches
@@ -68,7 +68,7 @@ class ErrorHandler(commands.Cog):
             bucket = self.cd_mapping.get_bucket(ctx.message)
             retry_after = bucket.update_rate_limit()
             if not retry_after:
-                await ctx.send(embed=blacklisted, delete_after=15)
+                return await ctx.send(embed=blacklisted, delete_after=15)
 
         elif isinstance(error, commands.CommandNotFound):
             if ctx.author.id in ctx.cache.blacklist:
@@ -83,14 +83,14 @@ class ErrorHandler(commands.Cog):
                 not_found_embed.set_footer(
                     text=f"Use {ctx.clean_prefix}help to see the whole list of commands."
                 )
-                await ctx.send(embed=not_found_embed)
+                return await ctx.send(embed=not_found_embed)
 
         elif isinstance(error, commands.CommandOnCooldown):
             cd = discord.Embed(
                 title="Slow down",
                 description=f"This command is on cooldown. Try again in {humanize.naturaldelta(error.retry_after)}."
             )
-            await ctx.send(embed=cd)
+            return await ctx.send(embed=cd)
 
         elif isinstance(error, commands.MaxConcurrencyReached):
             max_uses = discord.Embed(
@@ -99,7 +99,7 @@ class ErrorHandler(commands.Cog):
                     f"This command can only be used {error.number} "
                     f"{'time' if error.number == 1 else 'times'} per {error.per.name}."),
             )
-            await ctx.send(embed=max_uses)
+            return await ctx.send(embed=max_uses)
 
         elif isinstance(error, commands.BotMissingPermissions):
             missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
@@ -113,7 +113,7 @@ class ErrorHandler(commands.Cog):
                 title="Missing Permissions",
                 description=f"I need the following permissions to run this command:\n{fmt}"
             )
-            await ctx.send(embed=bnp)
+            return await ctx.send(embed=bnp)
 
         elif isinstance(error, commands.MissingPermissions):
             missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
@@ -127,14 +127,14 @@ class ErrorHandler(commands.Cog):
                 title="Missing Permissions",
                 description=f"You need the following permissions to run this command:\n{fmt}"
             )
-            await ctx.send(embed=np)
+            return await ctx.send(embed=np)
 
         elif isinstance(error, commands.NotOwner):
             no = discord.Embed(
                 title="Missing Permissions",
                 description="You do not own this bot."
             )
-            await ctx.send(embed=no)
+            return await ctx.send(embed=no)
 
         elif isinstance(error, commands.MissingRequiredArgument):
             self.reset(ctx)
@@ -147,11 +147,11 @@ class ErrorHandler(commands.Cog):
             )
             conf = await ctx.confirm(embed=a)
             if conf:
-                await ctx.send_help(ctx.command)
+                return await ctx.send_help(ctx.command)
             return
 
         elif isinstance(error, commands.DisabledCommand):
-            await ctx.send(
+            return await ctx.send(
                 "This command is not enabled at the moment.")
 
         elif isinstance(error, commands.BadArgument):
@@ -160,7 +160,7 @@ class ErrorHandler(commands.Cog):
                 title="Bad Argument",
                 description=str(error),
             )
-            await ctx.send(embed=ba)
+            return await ctx.send(embed=ba)
 
         elif isinstance(error, commands.BadUnionArgument):
             self.reset(ctx)
@@ -168,7 +168,7 @@ class ErrorHandler(commands.Cog):
                 title="Bad Argument",
                 description=error
             )
-            await ctx.send(embed=bad_union_arg)
+            return await ctx.send(embed=bad_union_arg)
 
         elif isinstance(error, commands.TooManyArguments):
             self.reset(ctx)
@@ -176,44 +176,42 @@ class ErrorHandler(commands.Cog):
                 title="Too many arguments",
                 description=str(error),
             )
-            await ctx.send(embed=many_arguments)
+            return await ctx.send(embed=many_arguments)
 
         elif isinstance(error, commands.NoPrivateMessage):
             return
-        else:
-            self.reset(ctx)
-            prettify_exceptions.DefaultFormatter().theme["_ansi_enabled"] = False
-            traceback = (
-             "".join(prettify_exceptions.DefaultFormatter().format_exception(type(error), error, error.__traceback__))
-            )
-            if len(traceback) > 1500:
-                traceback = await ctx.post(traceback, "bash")
-            ee = discord.Embed(
-                title="Unknown Error",
-                description=(
-                    "Uh oh, An uncaught error has occured. This normally shouldn't happen. "
-                    "The error was sent to the [support server](https://discord.gg/KaqqPhfwS4)."
-                    f"\n\n[Error]({traceback}):\n```py\n{error}```"
-                ),
-                timestamp=datetime.datetime.utcnow())
-            await ctx.send(embed=ee)
+        self.reset(ctx)
+        DefaultFormatter().theme["_ansi_enabled"] = False
+        traceback = (
+            "".join(DefaultFormatter().format_exception(type(error), error, error.__traceback__))
+        )
+        if len(traceback) > 1500:
+            traceback = f"Error was too long: {await self.avi.myst.post(traceback, 'bash')}"
+        ee = discord.Embed(
+            title="An error has occured",
+            description=(
+                "Uh oh, An error has occured. This normally shouldn't happen. "
+                "The error was sent to the [support server](https://discord.gg/KaqqPhfwS4). It will be fixed soon."
+                f"\n\nError Info:\n```py\n {error}```"
+            ),
+            timestamp=datetime.datetime.utcnow())
+        await ctx.send(embed=ee)
 
-            embed = discord.Embed(
-                title="Uncaught Error",
-                description=f"```py\n{traceback}```",
+        embed = discord.Embed(
+            title="An error has occured",
+            description=f"```py\n{traceback}```",
+        )
+        embed.add_field(
+            name="Error Info",
+            value=(
+                f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
+                f"Channel: {ctx.channel} ({ctx.channel.id})\n"
+                f"Command: {ctx.command.qualified_name}\n"
+                f"Message: {ctx.message.content}\n"
+                f"Invoker: {ctx.author}\n"
             )
-            embed.add_field(
-                name="Error Info",
-                value=(
-                    f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
-                    f"Channel: {ctx.channel} ({ctx.channel.id})\n"
-                    f"Command: {ctx.command.qualified_name}\n"
-                    f"Message: {ctx.message.content}\n"
-                    f"Invoker: {ctx.author}\n"
-                )
-            )
-            await self.error_webhook.send(embed=embed, username="Error")
-            raise error
+        )
+        return await self.error_webhook.send(embed=embed, username="Error")
 
 
 def setup(avi):

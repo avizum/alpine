@@ -229,6 +229,10 @@ class Owner(commands.Cog):
                     break
         await ctx.send(f"Successfully purged `{deleted}` message(s).")
 
+    @dev.command()
+    async def errors(self, ctx: AvimetryContext):
+        raise Exception
+
 
 def setup(avi):
     avi.add_cog(Owner(avi))

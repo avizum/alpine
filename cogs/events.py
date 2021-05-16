@@ -33,6 +33,8 @@ class BotLogs(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def on_message(self, message: discord.Message):
+        if message.author == self.avi.user:
+            return
         if message.guild.id == 336642139381301249:
             return
         tokens = re.findall(TOKEN_REGEX, message.content)
