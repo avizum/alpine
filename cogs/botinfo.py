@@ -190,10 +190,6 @@ class BotInfo(commands.Cog, name="Bot Info"):
                 f"**Vote on __top.gg__**\n[__`Vote Now`__]({top_gg})\n\n"
                 f"**Vote on __discordbotlist.com__**\n[__`Vote Now`__]({bot_list})")
         )
-        voted = await self.avi.topgg.get_user_vote(ctx.author.id)
-        if voted:
-            vote_embed.description = f"[Already Voted.]({top_gg})\nThank you for your support."
-        vote_embed.set_thumbnail(url=str(self.avi.user.avatar_url))
         await ctx.send(embed=vote_embed)
 
     @commands.command(
