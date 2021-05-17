@@ -26,7 +26,7 @@ from jishaku.codeblocks import codeblock_converter
 from utils import AvimetryBot, AvimetryContext, CogConverter
 
 
-class Owner(commands.Cog):
+class Owner(commands.Cog, command_attrs={"hidden": True}):
     """
     Commands for the bot owners.
     """

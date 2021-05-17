@@ -58,7 +58,7 @@ class AvimetryContext(commands.Context):
         return f"`{'` | `'.join(prefix)}`"
 
     async def send_raw(self, *args, **kwargs):
-        await super().send(*args, **kwargs)
+        return await super().send(*args, **kwargs)
 
     async def post(self, content, syntax=None):
         if syntax is None:
@@ -70,12 +70,12 @@ class AvimetryContext(commands.Context):
         await self.send(embed=embed)
 
     async def send(self, content=None, embed: discord.Embed = None, **kwargs):
-        if content:
-            for token in tokens:
-                try:
-                    content = content.replace(token, "[token omitted]")
-                except Exception:
-                    content = content
+        if content and not embed:
+            if "jishaku" in self.command.qualified_name:
+                message = await self.reply(content=content, embed=embed, **kwargs)
+                return message
+            embed = discord.Embed(description=content)
+            content = None
         if embed:
             if not embed.footer:
                 embed.set_footer(
@@ -92,9 +92,6 @@ class AvimetryContext(commands.Context):
                 embed.color = color
         if self.message.id in self.bot.command_cache and self.message.edited_at:
             edited_message = self.bot.command_cache[self.message.id]
-            if edited_message.reactions:
-                async with contextlib.suppress(Exception):
-                    await edited_message.clear_reactions()
             await edited_message.edit(content=content, embed=embed, **kwargs)
             return edited_message
         try:

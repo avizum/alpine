@@ -104,10 +104,11 @@ class HelpEmbeded(commands.HelpCommand):
             description=(
                 f"{usable}"
                 f"{self.command_signature()}\nDo not put the brackets with the commands.\n"
-                f"Here are the prefixes for **{self.get_destination().guild.name}**.\n{await self.context.get_prefix}\n"
+                f"Here are the prefixes for {self.get_destination().guild.name}.\n{await self.context.get_prefix}\n"
             )
         )
         modules_list = []
+        ctx = self.context
         for cog, command in mapping.items():
             name = "No Category" if cog is None else cog.qualified_name
             filtered = await self.filter_commands(command, sort=True)
@@ -115,12 +116,10 @@ class HelpEmbeded(commands.HelpCommand):
                 modules_list.append(name)
             joiner = "\n"
         embed.add_field(
-            name="Modules", value=f"{joiner.join(modules_list)}", inline=True
+            name=f"Modules\n{ctx.clean_prefix}{ctx.invoked_with} [module]",
+            value=f"{joiner.join(modules_list)}", inline=True
         )
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
-        embed.set_footer(
-            text=f"Use {self.clean_prefix}{self.invoked_with} [module|command] for help on a command or module."
-        )
         await self.get_destination().send(embed=embed)
 
     async def send_cog_help(self, cog):

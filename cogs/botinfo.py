@@ -22,6 +22,7 @@ import psutil
 import humanize
 import pathlib
 import inspect
+import os
 from discord.ext import commands
 from utils import AvimetryContext, AvimetryBot
 
@@ -47,15 +48,18 @@ class BotInfo(commands.Cog, name="Bot Info"):
         embed = discord.Embed(title="Info about Avimetry")
         embed.add_field(
             name="Latest Updates",
-            value="Vote Now at (top.gg)[https://top.gg/bot/756257170521063444/vote]",
+            value="Vote Now at [top.gg](https://top.gg/bot/756257170521063444/vote)",
             inline=False
         )
-        embed.add_field(name="Developer", value="avi#8771 (Main), Lere#3303 (Tester)")
+        pid = psutil.Process(os.getpid())
+        used = pid.memory_info().rss / 1024 ** 2
+        total = psutil.virtual_memory().total / 1024 ** 2
+        embed.add_field(name="Developer", value="avi#8771 (Main),\nLere#3303 (Tester)")
         embed.add_field(name="Ping", value=f"`{round(self.avi.latency * 1000)}ms`")
         embed.add_field(name="Guild Count", value=f"{len(self.avi.guilds)} Guilds")
         embed.add_field(name="User Count", value=f"{len(self.avi.users)} Users")
-        embed.add_field(name="CPU Usage", value=f"{psutil.cpu_percent(interval=None)}%")
-        embed.add_field(name="RAM Usage", value=f"{psutil.virtual_memory().percent}%")
+        embed.add_field(name="CPU Usage", value=f"{psutil.cpu_percent()}%")
+        embed.add_field(name="Memory Usage", value=f"{used:,.2f}/{total} MB")
         embed.add_field(
             name="Bot Invite",
             value=f"[here]({self.avi.invite})",

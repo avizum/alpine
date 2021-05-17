@@ -132,7 +132,7 @@ class ErrorHandler(commands.Cog):
         elif isinstance(error, commands.NotOwner):
             no = discord.Embed(
                 title="Missing Permissions",
-                description="You do not own this bot."
+                description="You do not own this bot. Stay away"
             )
             await ctx.send(embed=no)
 
@@ -142,7 +142,7 @@ class ErrorHandler(commands.Cog):
                 title="Missing Arguments",
                 description=(
                     f"`{error.param.name}` is a required parameter to run this command.\n"
-                    f"Send help for `{ctx.invoked_with}`?"
+                    f"Do you need help for `{ctx.invoked_with}`?"
                 )
             )
             conf = await ctx.confirm(embed=a)
@@ -213,6 +213,7 @@ class ErrorHandler(commands.Cog):
                 )
             )
             await self.error_webhook.send(embed=embed, username="Error")
+            raise error
 
 
 def setup(avi):
