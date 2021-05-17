@@ -141,7 +141,9 @@ class Fun(commands.Cog):
             avatar_url=member.avatar_url_as(format="png"),
             allowed_mentions=discord.AllowedMentions.none())
 
-    @commands.command()
+    @commands.command(
+        aliases=["fp", "facep", "fpalm"]
+    )
     async def facepalm(self, ctx: AvimetryContext, member: discord.Member = None):
         if member is None:
             return await ctx.send(f"{ctx.author.mention} hit their head")
