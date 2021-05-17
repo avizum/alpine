@@ -141,6 +141,12 @@ class Fun(commands.Cog):
             avatar_url=member.avatar_url_as(format="png"),
             allowed_mentions=discord.AllowedMentions.none())
 
+    @commands.command()
+    async def facepalm(self, ctx: AvimetryContext, member: discord.Member = None):
+        if member is None:
+            return await ctx.send(f"{ctx.author.mention} hit their head")
+        return await ctx.send(f"{ctx.author.mention} hit their head because {member.mention} was being stupid.")
+
     @commands.command(brief="Remove the skin off of people that you don't like.")
     async def skin(self, ctx: AvimetryContext, member: discord.Member):
         await ctx.message.delete()
