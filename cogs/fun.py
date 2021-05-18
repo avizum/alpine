@@ -240,9 +240,10 @@ class Fun(commands.Cog):
     @commands.command(
         name="akinator",
         aliases=["aki", "avinator"],
-        brief="Play a game of akinator If you don't put anything, then it will default to `en` and `child=True`")
+        brief="Play a game of akinator.")
     @commands.cooldown(1, 60, commands.BucketType.member)
     @commands.max_concurrency(1, commands.BucketType.channel)
+    @commands.bot_has_permissions(add_reactions=True)
     async def fun_akinator(self, ctx: AvimetryContext, mode="en", child=True):
         bot_perm = ctx.me.permissions_in(ctx.channel)
         perms = True if bot_perm.manage_messages is True else False
@@ -393,6 +394,7 @@ class Fun(commands.Cog):
         name="10s",
         brief="Test your reaction time!",
     )
+    @commands.bot_has_permissions(add_reactions=True)
     async def _10s(self, ctx: AvimetryContext):
         embed_10s = discord.Embed(
             title="10 seconds",
@@ -484,6 +486,7 @@ class Fun(commands.Cog):
         brief="See how fast you can react with the correct emoji."
     )
     @commands.cooldown(1, 10, commands.BucketType.channel)
+    @commands.bot_has_permissions(add_reactions=True)
     async def reaction(self, ctx: AvimetryContext):
         emoji = ["🍪", "🎉", "🧋", "🍒", "🍑"]
         random_emoji = random.choice(emoji)
