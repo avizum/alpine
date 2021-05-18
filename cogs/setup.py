@@ -61,7 +61,8 @@ class Setup(commands.Cog):
         if bots > members:
             message.append(f"There are {bots} bots and {members} members so it may be a bot farm.")
         await self.guild_webhook.send("\n".join(message), username="Joined Guild")
-        await guild.chunk()
+        if not guild.chunked:
+            await guild.chunk()
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):

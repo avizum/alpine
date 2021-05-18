@@ -55,7 +55,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         pid = psutil.Process(os.getpid())
         used = pid.memory_info().rss / 1024 ** 2
         total = psutil.virtual_memory().total / 1024 ** 2
-        embed.add_field(name="Developer", value="avi#8771 (Main),\nLere#3303 (Tester)")
+        embed.add_field(name="Developer", value="avi#8771 (Main)")
         embed.add_field(name="Ping", value=f"`{round(self.avi.latency * 1000)}ms`")
         embed.add_field(name="Guild Count", value=f"{len(self.avi.guilds)} Guilds")
         embed.add_field(name="User Count", value=f"{len(self.avi.users)} Users")
@@ -65,9 +65,9 @@ class BotInfo(commands.Cog, name="Bot Info"):
             name="Bot Invite",
             value=f"[here]({self.avi.invite})",
         )
-        embed.add_field(name="Commands", value=f"{len(self.avi.commands)} usable")
+        embed.add_field(name="Commands", value=f"{len(self.avi.commands)} loaded")
         embed.add_field(name="Commands ran", value=self.avi.commands_ran)
-        embed.add_field(name="Credits", value="Foxi#7272 (Avatar),\nDutchy#6127 (Help Command)")
+        embed.add_field(name="Credits", value="Foxi#6626 (Avatar),\nDutchy#6127 (Help Command)\nLere#3303 (Tester)")
         embed.set_thumbnail(url=ctx.me.avatar_url)
         await ctx.send(embed=embed)
 

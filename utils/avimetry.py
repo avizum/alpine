@@ -94,7 +94,6 @@ class AvimetryBot(commands.AutoShardedBot):
             allowed_mentions=allowed_mentions,
             activity=activity,
             intents=intents,
-            strip_after_prefix=True,
             chunk_guilds_at_startup=False
         )
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
@@ -195,6 +194,14 @@ class AvimetryBot(commands.AutoShardedBot):
         if after.attachments:
             return
         await self.process_commands(after)
+
+    async def on_message_delete(self, message: discord.Message):
+        if message.id in self.command_cache:
+            try:
+                await self.command_cache[message.id].delete()
+                self.command_cache.pop(message.id)
+            except Exception:
+                pass
 
     async def chunk_guilds(self):
         for guild in self.guilds:
