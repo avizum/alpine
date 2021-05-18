@@ -35,7 +35,7 @@ from discord.ext import commands
 from .context import AvimetryContext
 from .errors import Blacklisted
 from .cache import AvimetryCache
-from .utils import StopWatch
+from .utils import Timer
 
 
 os.environ["JISHAKU_HIDE"] = "True"
@@ -43,7 +43,7 @@ os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
 
-DEFAULT_PREFIX = "a."
+DEFAULT_PREFIXES = ["a."]
 BETA_PREFIXES = ["ab.", "ba."]
 OWNER_IDS = {750135653638865017, 547280209284562944}
 PUBLIC_BOT_ID = 756257170521063444
@@ -52,15 +52,18 @@ BETA_BOT_ID = 787046145884291072
 
 async def get_prefix(avi: "AvimetryBot", message: discord.Message):
     prefixes = [f"<@{avi.user.id}>", f"<@!{avi.user.id}>"]
+    if not message.guild:
+        prefixes.extend(DEFAULT_PREFIXES)
+        return prefixes
     get_prefix = await avi.cache.get_guild_settings(message.guild.id)
     if avi.user.id == BETA_BOT_ID:
         prefixes.extend(BETA_PREFIXES)
-    elif not message.guild or get_prefix is None:
-        prefixes.append(DEFAULT_PREFIX)
+    elif get_prefix is None:
+        prefixes.extend(DEFAULT_PREFIXES)
     else:
         command_prefix = get_prefix["prefixes"]
         if not command_prefix:
-            prefixes.append(DEFAULT_PREFIX)
+            prefixes.extend(DEFAULT_PREFIXES)
         else:
             prefixes.extend(command_prefix)
     if await avi.is_owner(message.author) and message.content.startswith(
@@ -79,7 +82,7 @@ allowed_mentions = discord.AllowedMentions(
     roles=True, replied_user=False
 )
 intents = discord.Intents.all()
-activity = discord.Game("Avimetry | Loading Servers...")
+activity = discord.Game("Loading...")
 
 
 class AvimetryBot(commands.AutoShardedBot):
@@ -91,7 +94,8 @@ class AvimetryBot(commands.AutoShardedBot):
             allowed_mentions=allowed_mentions,
             activity=activity,
             intents=intents,
-            strip_after_prefix=True
+            strip_after_prefix=True,
+            chunk_guilds_at_startup=False
         )
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
         self.owner_ids = OWNER_IDS
@@ -144,6 +148,8 @@ class AvimetryBot(commands.AutoShardedBot):
         self.myst = mystbin.Client()
         self.session = aiohttp.ClientSession()
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
+        self.loop.create_task(self.cache.cache_all())
+        self.loop.create_task(self.chunk_guilds)()
 
         @self.check
         async def check(ctx):
@@ -172,7 +178,7 @@ class AvimetryBot(commands.AutoShardedBot):
     async def get_context(self, message, *, cls=AvimetryContext):
         return await super().get_context(message, cls=cls)
 
-    async def process_commands(self, message):
+    async def process_commands(self, message: discord.Message):
         ctx = await self.get_context(message)
         if message.author == self.user:
             return
@@ -190,15 +196,20 @@ class AvimetryBot(commands.AutoShardedBot):
             return
         await self.process_commands(after)
 
+    async def chunk_guilds(self):
+        for guild in self.guilds:
+            if not guild.chunked:
+                await guild.chunk()
+
     async def postgresql_latency(self):
-        with StopWatch() as e:
+        with Timer() as e:
             await self.pool.execute("SELECT 1")
-        return round(e.elapsed * 1000)
+        return round(e.total_time * 1000)
 
     async def api_latency(self, ctx):
-        with StopWatch() as e:
+        with Timer() as e:
             await ctx.trigger_typing()
-        return round((e.elapsed) * 1000)
+        return round((e.total_time) * 1000)
 
     def run(self):
         tokens = self.settings["bot_tokens"]
@@ -207,7 +218,6 @@ class AvimetryBot(commands.AutoShardedBot):
             token = tokens["AvimetryBeta"]
         else:
             token = tokens["Avimetry"]
-        self.loop.run_until_complete(self.cache.cache_all())
         super().run(token, reconnect=True)
 
     async def close(self):

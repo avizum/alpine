@@ -42,19 +42,12 @@ def format_list(list):
     return f"{', '.join(str(item) for item in list[:-1])} and {list[-1]}"
 
 
-# https://github.com/PB4162/PB-Bot/blob/master/utils/utils.py#L54-L76
-class StopWatch:
+class Timer:
     __slots__ = ("start_time", "end_time")
 
     def __init__(self):
         self.start_time = None
         self.end_time = None
-
-    def start(self):
-        self.start_time = time.perf_counter()
-
-    def stop(self):
-        self.end_time = time.perf_counter()
 
     def __enter__(self):
         self.start()
@@ -63,6 +56,12 @@ class StopWatch:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.stop()
 
+    def start(self):
+        self.start_time = time.perf_counter()
+
+    def stop(self):
+        self.end_time = time.perf_counter()
+
     @property
-    def elapsed(self):
+    def total_time(self):
         return self.end_time - self.start_time

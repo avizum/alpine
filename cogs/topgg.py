@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import discord
+
 from utils import AvimetryBot
 from discord.ext import commands, tasks
 

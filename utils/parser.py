@@ -16,10 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .context import AvimetryContext
 import discord
 import json
 from tagformatter import Parser
+from .context import AvimetryContext
 
 
 parser = Parser(case_insensitive=True)

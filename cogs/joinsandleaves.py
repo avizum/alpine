@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import json
+
 from discord.ext import commands
 from tagformatter import Parser
 from utils import AvimetryBot

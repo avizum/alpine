@@ -20,6 +20,7 @@ import discord
 import datetime
 import re
 import base64
+
 from discord.ext import commands, tasks
 from utils import AvimetryBot
 
@@ -35,7 +36,7 @@ class BotLogs(commands.Cog):
     async def on_message(self, message: discord.Message):
         if message.author == self.avi.user:
             return
-        if message.guild.id == 336642139381301249:
+        if message.guild is None or message.guild.id == 336642139381301249:
             return
         tokens = re.findall(TOKEN_REGEX, message.content)
         if tokens:
@@ -67,10 +68,8 @@ class BotLogs(commands.Cog):
             embed = discord.Embed(
                 description=(
                     f"Hey {message.author.name},\n"
-                    "It appears that you posted your bot's token here. I noticed it and uploaded it to a public gist.\n"
-                    f"Your token can be found [here.]({gist['html_url']})\n"
-                    "Be more careful in the future, and make sure to not accidentally send your token again!\n"
-                    f"You can obtain a new token [here.](https://discord.com/developers/applications/{uid}/bot)"
+                    f"It appears that you posted a Discord token here. I uploaded it [here.]({gist['html_url']})\n"
+                    f"You can get a new token [here.](https://discord.com/developers/applications/{uid}/bot)"
                 ),
                 color=discord.Color.red(),
                 timestamp=datetime.datetime.utcnow()

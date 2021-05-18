@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import discord
 import datetime
 import humanize
+
 from prettify_exceptions import DefaultFormatter
 from utils import AvimetryBot, AvimetryContext, Blacklisted
 from discord.ext import commands

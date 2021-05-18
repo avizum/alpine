@@ -23,6 +23,7 @@ import humanize
 import pathlib
 import inspect
 import os
+
 from discord.ext import commands
 from utils import AvimetryContext, AvimetryBot
 
@@ -150,16 +151,20 @@ class BotInfo(commands.Cog, name="Bot Info"):
                     if '#' in line:
                         comment_count += 1
                     line_count += 1
-        await ctx.send(
-            "```py\n"
-            f"Files: {file_count}\n"
-            f"Lines: {line_count}\n"
-            f"Classes: {class_count}\n"
-            f"Functions: {function_count}\n"
-            f"Coroutines: {corutine_count}\n"
-            f"Comments: {comment_count}"
-            "```"
+        embed = discord.Embed(
+            title="Line Count",
+            description=(
+                "```py\n"
+                f"Files: {file_count}\n"
+                f"Lines: {line_count}\n"
+                f"Classes: {class_count}\n"
+                f"Functions: {function_count}\n"
+                f"Coroutines: {corutine_count}\n"
+                f"Comments: {comment_count}"
+                "```"
+            )
         )
+        await ctx.send(embed=embed)
 
     @commands.command(brief="Request a feature to be added to the bot.")
     @commands.cooldown(1, 300, commands.BucketType.user)
@@ -184,7 +189,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         await ctx.send(embed=req_embed)
 
-    @commands.command(brief="Vote at top.gg!")
+    @commands.command(brief="Vote Now!")
     async def vote(self, ctx: AvimetryContext):
         top_gg = "https://top.gg/bot/756257170521063444/vote"
         bot_list = "https://discordbotlist.com/bots/avimetry/upvote"
@@ -201,43 +206,48 @@ class BotInfo(commands.Cog, name="Bot Info"):
     )
     async def source(self, ctx: AvimetryContext, *, command: str = None):
         source_embed = discord.Embed(
-                title=f"{self.avi.user.name}'s source code",
+                title=f"{self.avi.user.name}'s source",
                 timestamp=datetime.datetime.utcnow()
             )
+        git_link = "https://github.com/avimetry/avimetry/blob/master/"
+        license_link = "https://github.com/avimetry/avimetry/blob/master/LICENSE"
         if not command:
             if self.avi.user.id != 756257170521063444:
                 source_embed.description = (
                     "This bot is an instance of [Avimetry](https://github.com/avimetry/avimetry), "
                     "Made by [avi](https://discord.com/users/750135653638865017). "
-                    "Follow the [license](https://github.com/avimetry/avimetry/blob/master/LICENSE)"
+                    f"Follow the [license]({license_link})"
                 )
             else:
                 source_embed.description = (
                     "Here is my [source](https://github.com/avimetry/avimetry). "
                     "I am made by [avi](https://discord.com/users/750135653638865017).\n"
-                    "Follow the [license](https://github.com/avimetry/avimetry/blob/master/LICENSE)"
+                    f"Follow the [license]({license_link})"
                 )
             return await ctx.send(embed=source_embed)
 
-        command = ctx.bot.help_command if command.lower() == "help" else ctx.bot.get_command(command)
+        if command == "help":
+            command = self.avi.help_command
+        else:
+            command = self.avi.get_command(command)
         if not command:
             return await ctx.send("Couldn't find command.")
 
         if isinstance(command, commands.HelpCommand):
-            lines, starting_line_num = inspect.getsourcelines(type(command))
-            filepath = f"{command.__module__.replace('.', '/')}.py"
+            lines, number_one = inspect.getsourcelines(type(command))
+            src = command.__module__
         else:
-            lines, starting_line_num = inspect.getsourcelines(command.callback.__code__)
-            filepath = f"{command.callback.__module__.replace('.', '/')}.py"
+            lines, number_one = inspect.getsourcelines(command.callback.__code__)
+            src = command.callback.__module__
 
-        ending_line_num = starting_line_num + len(lines) - 1
+        path = f"{src.replace('.', '/')}.py"
+
+        number_two = number_one + len(lines) - 1
         command = "help" if isinstance(command, commands.HelpCommand) else command
-        link = (
-            f"https://github.com/avimetry/avimetry/blob/master/"
-            f"{filepath}#L{starting_line_num}-L{ending_line_num}")
+        link = f"{git_link}{path}#L{number_one}-L{number_two}"
         source_embed.description = (
-            f"Here is the [source]({link}) for `{command}`. "
-            "Remember to star and follow the license."
+            f"[Here is the source]({link}) for `{command}`. "
+            f"Follow the [license]({license_link})."
             )
         await ctx.send(embed=source_embed)
 

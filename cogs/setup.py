@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import logging
 import discord
 import datetime
+
 from discord.ext import commands
 from utils import AvimetryContext, AvimetryBot
 
@@ -46,7 +47,7 @@ class Setup(commands.Cog):
         )
 
     @commands.Cog.listener()
-    async def on_guild_join(self, guild):
+    async def on_guild_join(self, guild: discord.Guild):
         if self.avi.user.id != 756257170521063444:
             return
         await self.avi.cache.cache_new_guild(guild.id)
@@ -60,6 +61,7 @@ class Setup(commands.Cog):
         if bots > members:
             message.append(f"There are {bots} bots and {members} members so it may be a bot farm.")
         await self.guild_webhook.send("\n".join(message), username="Joined Guild")
+        await guild.chunk()
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):

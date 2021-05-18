@@ -22,6 +22,7 @@ import time
 import asyncio
 import akinator
 import typing
+
 from discord.ext import commands
 from akinator.async_aki import Akinator
 from utils import AvimetryBot, AvimetryContext
