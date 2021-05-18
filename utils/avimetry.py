@@ -149,7 +149,7 @@ class AvimetryBot(commands.AutoShardedBot):
         self.session = aiohttp.ClientSession()
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
-        self.loop.create_task(self.chunk_guilds)()
+        self.loop.create_task(self.chunk_guilds())
 
         @self.check
         async def check(ctx):
