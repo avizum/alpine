@@ -422,7 +422,7 @@ class Fun(commands.Cog):
                     embed_10s.description = "Wait 10 seconds to get the cookie."
                     return await react_message.edit(embed=embed_10s)
                 embed_10s.description = (
-                    f"You got the cookie in {final_time:.2f} seconds with {round(final_time-10)} reaction time\n"
+                    f"You got the cookie in {final_time:.2f} seconds with {final_time-10:2f} reaction time\n"
                 )
                 await react_message.edit(embed=embed_10s)
 
