@@ -25,7 +25,7 @@ import typing
 
 from discord.ext import commands
 from akinator.async_aki import Akinator
-from utils import AvimetryBot, AvimetryContext
+from utils import AvimetryBot, AvimetryContext, Timer
 
 
 class Fun(commands.Cog):
@@ -396,11 +396,10 @@ class Fun(commands.Cog):
     async def _10s(self, ctx: AvimetryContext):
         embed_10s = discord.Embed(
             title="10 seconds",
-            description="Click the emoji in 10 seconds"
+            description="Click the cookie in 10 seconds"
         )
         react_message = await ctx.send(embed=embed_10s)
         await react_message.add_reaction("\U0001F36A")
-        start_time = time.perf_counter()
 
         def check_10s(reaction, user):
             return (
@@ -408,22 +407,23 @@ class Fun(commands.Cog):
             )
 
         try:
-            reaction, user = await self.avi.wait_for(
-                "reaction_add", check=check_10s, timeout=20
-            )
+            with Timer() as timer:
+                reaction, user = await self.avi.wait_for(
+                    "reaction_add", check=check_10s, timeout=20
+                )
         except asyncio.TimeoutError:
             pass
         else:
             if str(reaction.emoji) == "\U0001F36A":
-                end_time = time.perf_counter()
-                gettime = (end_time - start_time)
-                final_time = gettime
-                if final_time < 5.0:
+                final = timer.total_time
+                if final < 5.0:
                     embed_10s.description = "Wait 10 seconds to get the cookie."
                     return await react_message.edit(embed=embed_10s)
                 embed_10s.description = (
-                    f"You got the cookie in {final_time:.2f} seconds with {final_time-10*1000:.2f}ms reaction time\n"
+                    f"You got the cookie in {final:.2f} seconds with {(final-10)*1000:.2f}ms reaction time\n"
                 )
+                if final < 9.99:
+                    embed_10s.description = f"You got the cookie in {final:.2f} seconds"
                 await react_message.edit(embed=embed_10s)
 
     @commands.command(
