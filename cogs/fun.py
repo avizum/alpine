@@ -597,8 +597,10 @@ class Fun(commands.Cog):
 
     @commands.command()
     async def height(self, ctx: AvimetryContext):
+        await ctx.send("How tall are you?")
+
         def check(message: discord.Message):
-            return message.author == ctx.author and not self.avi.user
+            return message.author == ctx.author and message.channel == ctx.channel
         try:
             height = await self.avi.wait_for("message", check=check, timeout=60)
         except asyncio.TimeoutError:
