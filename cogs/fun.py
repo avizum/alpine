@@ -493,7 +493,7 @@ class Fun(commands.Cog):
         random.shuffle(emoji)
         embed = discord.Embed(
             title="Reaction time",
-            description=f"After 1-30 seconds, a reaction ({random_emoji}) will be added to this message. "
+            description=f"After 1-30 seconds, the {random_emoji} emoji will be added to this message. "
         )
         first = await ctx.send(embed=embed)
         await asyncio.sleep(2.5)
@@ -508,17 +508,17 @@ class Fun(commands.Cog):
         def check(reaction, user):
             return(
                 reaction.message.id == first.id and str(reaction.emoji) == random_emoji and user != self.avi.user)
-        start = time.perf_counter()
-        try:
-            reaction, user = await self.avi.wait_for("reaction_add", check=check, timeout=15)
-        except asyncio.TimeoutError:
-            print("timeout")
-        else:
 
+        try:
+            with Timer() as timer:
+                reaction, user = await self.avi.wait_for("reaction_add", check=check, timeout=15)
+        except asyncio.TimeoutError:
+            embed.description = "Timeout"
+            await first.edit(embed=embed)
+        else:
             if str(reaction.emoji) == random_emoji:
-                end = time.perf_counter()
-                gettime = (end - start) * 1000
-                total_second = f"**{round(gettime)}ms**"
+                gettime = timer.total_time * 1000
+                total_second = f"**{gettime:.2f}ms**"
                 if gettime > 1000:
                     gettime = gettime / 1000
                     total_second = f"**{gettime:.2f}s**"
