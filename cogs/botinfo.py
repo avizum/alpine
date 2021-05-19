@@ -40,9 +40,15 @@ class BotInfo(commands.Cog, name="Bot Info"):
         ctx = await self.avi.get_context(message, cls=AvimetryContext)
         if message.author == self.avi.user:
             return
-        if message.content == f"<@!{self.avi.user.id}>":
-            prefix = self.avi.get_command("prefix")
-            await prefix(ctx)
+        if message.content.startswith((f"<@{self.avi.user.id}>", f"<@!{self.avi.user.id}>")):
+            prefix = await ctx.cache.get_guild_settings(ctx.guild.id)
+            if not prefix["prefixes"]:
+                return await ctx.send("This server doesn't have a custom prefix set yet. The default prefix is `a.`")
+            else:
+                guild_prefix = prefix["prefixes"]
+            if len(guild_prefix) == 1:
+                return await ctx.send(f"The prefix for this server is `{guild_prefix[0]}`")
+            await ctx.send(f"Here are my prefixes for this server: \n`{'` | `'.join(guild_prefix)}`")
 
     @commands.command()
     async def about(self, ctx: AvimetryContext):
