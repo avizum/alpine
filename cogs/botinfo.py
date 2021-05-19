@@ -25,7 +25,7 @@ import inspect
 import os
 
 from discord.ext import commands
-from utils import AvimetryContext, AvimetryBot
+from utils import AvimetryContext, AvimetryBot, Timer
 
 
 class BotInfo(commands.Cog, name="Bot Info"):
@@ -40,15 +40,9 @@ class BotInfo(commands.Cog, name="Bot Info"):
         ctx = await self.avi.get_context(message, cls=AvimetryContext)
         if message.author == self.avi.user:
             return
-        if message.content.startswith((f"<@{self.avi.user.id}>", f"<@!{self.avi.user.id}>")):
-            prefix = await ctx.cache.get_guild_settings(ctx.guild.id)
-            if not prefix["prefixes"]:
-                return await ctx.send("This server doesn't have a custom prefix set yet. The default prefix is `a.`")
-            else:
-                guild_prefix = prefix["prefixes"]
-            if len(guild_prefix) == 1:
-                return await ctx.send(f"The prefix for this server is `{guild_prefix[0]}`")
-            await ctx.send(f"Here are my prefixes for this server: \n`{'` | `'.join(guild_prefix)}`")
+        if message.content.lower == ((f"<@{self.avi.user.id}>", f"<@!{self.avi.user.id}>")):
+            command = self.avi.get_command("prefix")
+            await command(ctx)
 
     @commands.command()
     async def about(self, ctx: AvimetryContext):
@@ -88,18 +82,22 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @commands.command(brief="Gets the bot's ping.")
     async def ping(self, ctx: AvimetryContext):
+        with Timer() as api:
+            await ctx.trigger_typing()
+        with Timer() as db:
+            await self.avi.pool.execute("SELECT 1")
         ping_embed = discord.Embed(title="🏓 Pong!")
         ping_embed.add_field(
             name="Websocket Latency",
-            value=f"`{round(self.avi.latency * 1000)}ms`",
+            value=f"`{self.avi.latency * 1000:.2f} ms`",
             inline=False)
         ping_embed.add_field(
             name="API Latency",
-            value=f"`{await self.avi.api_latency(ctx)}ms`",
+            value=f"`{api.total_time * 1000:.2f} ms`",
             inline=False)
         ping_embed.add_field(
             name="Database Latency",
-            value=f"`{await self.avi.postgresql_latency()}ms`",
+            value=f"`{db.total_time * 1000:.2f} ms`",
             inline=False)
 
         await ctx.send(embed=ping_embed)

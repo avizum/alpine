@@ -35,7 +35,6 @@ from discord.ext import commands
 from .context import AvimetryContext
 from .errors import Blacklisted
 from .cache import AvimetryCache
-from .utils import Timer
 
 
 os.environ["JISHAKU_HIDE"] = "True"
@@ -66,9 +65,7 @@ async def get_prefix(avi: "AvimetryBot", message: discord.Message):
             prefixes.extend(DEFAULT_PREFIXES)
         else:
             prefixes.extend(command_prefix)
-    if await avi.is_owner(message.author) and message.content.startswith(
-        ("jsk", "dev")
-    ):
+    if await avi.is_owner(message.author) and message.content.startswith(("jsk", "dev")):
         prefixes.append("")
     command_prefix = "|".join(map(re.escape, prefixes))
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
@@ -94,6 +91,7 @@ class AvimetryBot(commands.AutoShardedBot):
             allowed_mentions=allowed_mentions,
             activity=activity,
             intents=intents,
+            strip_after_prefix=True,
             chunk_guilds_at_startup=False
         )
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
@@ -207,16 +205,6 @@ class AvimetryBot(commands.AutoShardedBot):
         for guild in self.guilds:
             if not guild.chunked:
                 await guild.chunk()
-
-    async def postgresql_latency(self):
-        with Timer() as e:
-            await self.pool.execute("SELECT 1")
-        return round(e.total_time * 1000)
-
-    async def api_latency(self, ctx):
-        with Timer() as e:
-            await ctx.trigger_typing()
-        return round((e.total_time) * 1000)
 
     def run(self):
         tokens = self.settings["bot_tokens"]

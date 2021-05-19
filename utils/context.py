@@ -71,6 +71,8 @@ class AvimetryContext(commands.Context):
         await self.send(embed=embed)
 
     async def send(self, content=None, embed: discord.Embed = None, **kwargs):
+        if not self.command:
+            self.command = self.bot.get_command("_")
         if content and not embed:
             if "jishaku" in self.command.qualified_name:
                 message = await self.reply(content=content, embed=embed, **kwargs)

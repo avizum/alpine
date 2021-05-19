@@ -109,7 +109,6 @@ class HelpEmbeded(commands.HelpCommand):
             )
         )
         modules_list = []
-        ctx = self.context
         for cog, command in mapping.items():
             name = "No Category" if cog is None else cog.qualified_name
             filtered = await self.filter_commands(command, sort=True)
@@ -117,9 +116,10 @@ class HelpEmbeded(commands.HelpCommand):
                 modules_list.append(name)
             joiner = "\n"
         embed.add_field(
-            name=f"Modules\n{ctx.clean_prefix}{ctx.invoked_with} [module]",
+            name="Modules",
             value=f"{joiner.join(modules_list)}", inline=True
         )
+        embed.set_footer(text=self.gending_note(), icon_url=str(self.context.author.avatar_url))
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
         await self.get_destination().send(embed=embed)
 
