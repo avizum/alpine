@@ -90,7 +90,7 @@ class AvimetryContext(commands.Context):
                 color = self.author.color
                 if await self.bot.is_owner(self.author):
                     color = discord.Color(0x3E70DD)
-                elif self.author.color == discord.Color(0):
+                elif self.author.color == discord.Color(0) or discord.Color(0xFFFFFF):
                     color = discord.Color(0x2F3136)
                 embed.color = color
         if self.message.id in self.bot.command_cache and self.message.edited_at:

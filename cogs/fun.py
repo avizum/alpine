@@ -216,8 +216,7 @@ class Fun(commands.Cog):
             await cd_cookie.clear_reactions()
         else:
             if str(reaction.emoji) == "\U0001F36A":
-
-                thing = reaction_time.total_time * 1000
+                thing = reaction_time.total_time * 0
                 total_second = f"**{thing:.2f}ms**"
                 if thing > 1000:
                     gettime = thing / 1000
