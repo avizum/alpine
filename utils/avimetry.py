@@ -172,6 +172,15 @@ class AvimetryBot(commands.AutoShardedBot):
                 except commands.ExtensionError as error:
                     print(error)
 
+    async def wait_for(self, event, *, check=None, timeout=None):
+        if event.lower() == "message":
+            def bl_check(*args):
+                return args[0].id not in self.cache.blacklist and check(*args)
+        elif event.lower() in ("reaction_add", "reaction_remove"):
+            def bl_check(*args):
+                return args[1].id not in self.cache.blacklist and check(*args)
+        return await super().wait_for(event, check=bl_check, timeout=timeout)
+
     async def get_context(self, message, *, cls=AvimetryContext):
         return await super().get_context(message, cls=cls)
 
