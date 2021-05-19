@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import random
-import time
 import asyncio
 import akinator
 import typing
@@ -181,24 +180,23 @@ class Fun(commands.Cog):
         )
     @commands.cooldown(1, 30, commands.BucketType.member)
     async def cookie(self, ctx: AvimetryContext):
-        cookie_embed = discord.Embed()
-        cookie_embed.add_field(
-            name="Get the cookie!",
-            value="Who has the fastest reaction time? Get ready to grab the cookie!")
+        cookie_embed = discord.Embed(
+            title="Get the cookie!",
+            description="Get ready to grab the cookie!")
         cd_cookie = await ctx.send(embed=cookie_embed)
         await asyncio.sleep(5)
-        cookie_embed.set_field_at(
-            0, name="Ready Up!", value="Get ready to get the cookie!")
+        cookie_embed.title = "Ready Up!"
+        cookie_embed.description = "Get ready to get the cookie!"
         await cd_cookie.edit(embed=cookie_embed)
         cntdown = (random.randint(1, 8))
         while cntdown > 0:
             await asyncio.sleep(1)
             cntdown -= 1
         await asyncio.sleep(1)
-        cookie_embed.set_field_at(0, name="NOW!", value="Get the cookie now!")
+        cookie_embed.title = "GO!"
+        cookie_embed.description = "GET THE COOKIE NOW!"
         await cd_cookie.edit(embed=cookie_embed)
         await cd_cookie.add_reaction("\U0001F36A")
-        start = time.perf_counter()
 
         def check(reaction, user):
             return (
@@ -206,9 +204,10 @@ class Fun(commands.Cog):
             )
 
         try:
-            reaction, user = await self.avi.wait_for(
-                "reaction_add" or "reaction_remove", check=check, timeout=10
-            )
+            with Timer() as reaction_time:
+                reaction, user = await self.avi.wait_for(
+                    "reaction_add", check=check, timeout=10
+                )
         except asyncio.TimeoutError:
             cookie_embed.set_field_at(
                 0, name="Game over!", value="Nobody got the cookie :("
@@ -217,17 +216,14 @@ class Fun(commands.Cog):
             await cd_cookie.clear_reactions()
         else:
             if str(reaction.emoji) == "\U0001F36A":
-                end = time.perf_counter()
-                gettime = (end - start) * 1000
-                total_second = f"**{round(gettime)}ms**"
-                if gettime > 1000:
-                    gettime = gettime / 1000
+
+                thing = reaction_time.total_time * 1000
+                total_second = f"**{thing:.2f}ms**"
+                if thing > 1000:
+                    gettime = thing / 1000
                     total_second = f"**{gettime:.2f}s**"
-                cookie_embed.set_field_at(
-                    0,
-                    name="Good job!",
-                    value=f"{user.mention} got the cookie in **{total_second}**",
-                )
+                cookie_embed.title = "Good Job!"
+                cookie_embed.description = f"{user.mention} got the cookie in **{total_second}**"
                 await cd_cookie.remove_reaction("\U0001F36A", ctx.me)
                 return await cd_cookie.edit(embed=cookie_embed)
 
