@@ -225,6 +225,7 @@ class Fun(commands.Cog):
                     name="Good job!",
                     value=f"{user.mention} got the cookie in **{total_second}**",
                 )
+                await cd_cookie.remove_reaction("\U0001F36A", ctx.me)
                 return await cd_cookie.edit(embed=cookie_embed)
 
     async def remove(self, message: discord.Message, emoji, user, perm: bool):
