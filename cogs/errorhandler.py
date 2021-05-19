@@ -29,7 +29,7 @@ from difflib import get_close_matches
 class ErrorHandler(commands.Cog):
     def __init__(self, avi):
         self.avi: AvimetryBot = avi
-        self.cd_mapping = commands.CooldownMapping.from_cooldown(2, 300, commands.BucketType.user)
+        self.cd_mapping = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
         self.error_webhook = discord.Webhook.from_url(
             self.avi.settings["webhooks"]["error_log"],
             adapter=discord.AsyncWebhookAdapter(self.avi.session)
@@ -69,7 +69,7 @@ class ErrorHandler(commands.Cog):
             bucket = self.cd_mapping.get_bucket(ctx.message)
             retry_after = bucket.update_rate_limit()
             if not retry_after:
-                await ctx.send(embed=blacklisted, delete_after=15)
+                await ctx.send(embed=blacklisted, delete_after=60)
 
         elif isinstance(error, commands.CommandNotFound):
             if ctx.author.id in ctx.cache.blacklist:

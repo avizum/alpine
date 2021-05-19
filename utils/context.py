@@ -95,6 +95,10 @@ class AvimetryContext(commands.Context):
                 embed.color = color
         if self.message.id in self.bot.command_cache and self.message.edited_at:
             edited_message = self.bot.command_cache[self.message.id]
+            try:
+                await edited_message.clear_reactions()
+            except Exception:
+                pass
             await edited_message.edit(content=content, embed=embed, **kwargs)
             return edited_message
         try:

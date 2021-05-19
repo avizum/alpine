@@ -145,15 +145,21 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
 
     @dev.group(
         invoke_without_command=True,
-        brief="Blacklist"
+        brief="Blacklist users from the bot",
+        aliases=["bl"]
     )
     async def blacklist(self, ctx: AvimetryContext):
         bl_users = ctx.cache.blacklist.keys()
         joiner = "\n"
-        await ctx.send(f"```{joiner.join(bl_users)}```")
+        embed = discord.Embed(
+            title=f"List of blacklisted users ({len(bl_users)})",
+            description=f"```\n{joiner.join([str(bl) for bl in bl_users])}```"
+        )
+        await ctx.send(embed=embed)
 
     @blacklist.command(
         name="add",
+        aliases=["a"],
         brief="Adds a user to the global blacklist"
     )
     async def blacklist_add(self, ctx: AvimetryContext, user: typing.Union[discord.User, discord.Member], *, reason):
@@ -189,6 +195,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
 
     @blacklist.command(
         name="remove",
+        aliases=["r"],
         brief="Remove a user from the blacklist."
     )
     async def blacklist_remove(self, ctx: AvimetryContext, user: typing.Union[discord.User, discord.Member], *, reason):

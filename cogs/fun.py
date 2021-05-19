@@ -175,7 +175,10 @@ class Fun(commands.Cog):
                 description=f"{ctx.author.mention} dropkicked {mention.mention}, killing them.")
         await ctx.send(embed=embed)
 
-    @commands.command(brief="Try to get the cookie as fast as you can!")
+    @commands.command(
+        brief="Try to get the cookie as fast as you can!",
+        aliases=["\U0001F36A", "vookir", "kookie"]
+        )
     @commands.cooldown(1, 30, commands.BucketType.member)
     async def cookie(self, ctx: AvimetryContext):
         cookie_embed = discord.Embed()
