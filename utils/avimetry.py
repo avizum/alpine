@@ -29,6 +29,7 @@ import re
 import contextlib
 import asyncpg
 import asyncdagpi
+import logging
 
 from sys import platform
 from discord.ext import commands
@@ -47,6 +48,15 @@ BETA_PREFIXES = ["ab.", "ba."]
 OWNER_IDS = {750135653638865017, 547280209284562944}
 PUBLIC_BOT_ID = 756257170521063444
 BETA_BOT_ID = 787046145884291072
+
+
+logger = logging.getLogger("discord")
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
+handler.setFormatter(
+    logging.Formatter("%(levelname)s:%(name)s: %(message)s")
+)
+logger.addHandler(handler)
 
 
 async def get_prefix(avi: "AvimetryBot", message: discord.Message):

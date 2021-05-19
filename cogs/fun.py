@@ -595,6 +595,22 @@ class Fun(commands.Cog):
             return await ctx.send(f"{member.mention} is gay.")
         return await ctx.send(f"{member.mention} is not gay.")
 
+    @commands.command()
+    async def height(self, ctx: AvimetryContext):
+        def check(message: discord.Message):
+            return message.author == ctx.author and not self.avi.user
+        try:
+            height = await self.avi.wait_for("message", check=check, timeout=60)
+        except asyncio.TimeoutError:
+            await ctx.send("You didn't respond in time!")
+        else:
+            embed = discord.Embed(
+                title="Height",
+                description=f"You are {height.content}!"
+            )
+            embed.set_footer(text="No need to thank me.")
+            await ctx.send(embed=embed)
+
 
 def setup(avi):
     avi.add_cog(Fun(avi))
