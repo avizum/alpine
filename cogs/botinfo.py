@@ -268,7 +268,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             title="Delete user data",
             description=(
                 "Are you sure you want to delete all your user data?\n"
-                "This will delete **everything** and it is **unrecoverable"
+                "This will delete **everything** and it is **unrecoverable**."
             ),
             color=discord.Color.red()
         )
@@ -283,7 +283,8 @@ class BotInfo(commands.Cog, name="Bot Info"):
             )
             await self.avi.pool.execute(query, ctx.author.id)
             self.avi.cache.users.pop(ctx.author.id)
-            await ctx.send("Okay, I deleted all your data.")
+            return await ctx.send("Okay, I deleted all your data.")
+        return await ctx.send("Aborted.")
 
 
 def setup(avi):
