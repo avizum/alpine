@@ -597,7 +597,7 @@ class Fun(commands.Cog):
 
     @commands.command()
     async def height(self, ctx: AvimetryContext):
-        await ctx.send("How tall are you?")
+        await ctx.send("How tall are you? (inches)")
 
         def check(message: discord.Message):
             return message.author == ctx.author and message.channel == ctx.channel

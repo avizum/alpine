@@ -35,7 +35,7 @@ class Meta(commands.Cog):
     def __init__(self, avi):
         self.avi: AvimetryBot = avi
 
-    @commands.command(brief="Sends a poll for people to vote to.")
+    @commands.command(brief="Sends a poll in the current channel for people to vote to.")
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def poll(self, ctx: AvimetryContext, question, *options: str):
         if len(options) < 2:
@@ -43,8 +43,7 @@ class Meta(commands.Cog):
                 "You need to have at least two options in the poll."
             )
         if len(options) > 10:
-            raise commands.BadArgument("You can only have ten options in a poll")
-        await ctx.message.delete()
+            raise commands.BadArgument("You can only have twenty options in a poll")
         if len(options) == 3 and options[0] == "yes" and options[1] == "maybe" and options[2] == "no":
             reactions = [
                 self.avi.emoji_dictionary["green_tick"],

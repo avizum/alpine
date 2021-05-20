@@ -255,6 +255,36 @@ class BotInfo(commands.Cog, name="Bot Info"):
             )
         await ctx.send(embed=source_embed)
 
+    @commands.command(
+        aliases=[
+            "deleteallmydata", "clearalldata",
+            "trashmydata", "deletaalldata",
+            "databegone", "burnmydata",
+            "byebyedata"
+        ]
+    )
+    async def deletemydata(self, ctx: AvimetryContext):
+        embed = discord.Embed(
+            title="Delete user data",
+            description=(
+                "Are you sure you want to delete all your user data?\n"
+                "This will delete **everything** and it is **unrecoverable"
+            ),
+            color=discord.Color.red()
+        )
+        conf = await ctx.confirm(embed=embed)
+        if conf:
+            user_settings = self.avi.cache.users.get(ctx.author.id)
+            if not user_settings:
+                return await ctx.send("You are not in my database.")
+            query = (
+                "DELETE FROM user_settings "
+                "WHERE user_id=$1"
+            )
+            await self.avi.pool.execute(query, ctx.author.id)
+            self.avi.cache.users.pop(ctx.author.id)
+            await ctx.send("Okay, I deleted all your data.")
+
 
 def setup(avi):
     avi.add_cog(BotInfo((avi)))

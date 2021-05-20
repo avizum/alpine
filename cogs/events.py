@@ -56,7 +56,7 @@ class BotLogs(commands.Cog):
                         'content': content
                     }
                 },
-                'description': f"Tokens found in #{message.channel.name} in the {message.channel.guild.name} server."
+                'description': f"Tokens found in #{message.channel.name}"
             }
             meth = "POST"
             git_url = "https://api.github.com/gists"
