@@ -22,7 +22,7 @@ import typing
 
 from discord.ext import commands
 from io import BytesIO
-from asyncdagpi import ImageFeatures
+from asyncdagpi import ImageFeatures, Image
 from twemoji_parser import emoji_to_url as urlify_emoji
 from utils import AvimetryBot, AvimetryContext, GetAvatar
 
@@ -50,8 +50,7 @@ class Image(commands.Cog, name="Images"):
             image = image
         async with ctx.channel.typing():
             image = await self.avi.dagpi.image_process(feature, image)
-        file = discord.File(fp=image.image, filename=f"{ctx.command.name}.{'gif' if gif is True else 'png'}")
-        return file
+        return image
 
     async def do_zane(self, ctx: AvimetryContext, method, argument, gif: bool = False):
         converter = GetAvatar()
@@ -68,6 +67,19 @@ class Image(commands.Cog, name="Images"):
         file = discord.File(fp=image, filename=f"{ctx.command.name}.{'gif' if gif is True else 'png'}")
         return file
 
+    async def dag_embed(self, ctx: AvimetryContext, image: Image, title: str):
+        embed = discord.Embed(
+            title=title.title(),
+            description=(
+                f"Process time: `{float(image.process_time) * 1000:.2f} ms`\n"
+                "This command is powered by the [Dagpi API.](https://dagpi.xyz)"
+            )
+        )
+        dag_image = discord.File(fp=image.image, filename=f"{title}.{image.format}")
+        url = f"attachment://{dag_image.filename}"
+        embed.set_image(url=url)
+        await ctx.send(file=dag_image, embed=embed)
+
     async def do_embed(self, ctx, file: discord.File):
         url = f"attachment://{file.filename}"
         embed.set_image(url=url)
@@ -77,37 +89,34 @@ class Image(commands.Cog, name="Images"):
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_pixel(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.pixel(), item, False)
-        await self.do_embed(ctx, meth)
+        await self.dag_embed(ctx, meth, ctx.command.name)
 
     @commands.command(name="triggered")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_triggered(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.triggered(), item, True)
-        await self.do_embed(ctx, meth)
+        await self.dag_embed(ctx, meth, ctx.command.name)
 
     @commands.command(name="5g1g")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_5g1g(self, ctx, item1: GetAvatar, item2: GetAvatar):
         async with ctx.channel.typing():
             image = await self.avi.dagpi.image_process(ImageFeatures.five_guys_one_girl(), url=item1, url2=item2)
-        file = discord.File(fp=image.image, filename="5g1g.png")
-        await self.do_embed(ctx, file)
+        await self.dag_embed(ctx, image, ctx.command.name)
 
     @commands.command(name="whyareyougay", aliases=["wayg"])
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_wayg(self, ctx, item1: GetAvatar, item2: GetAvatar):
         async with ctx.channel.typing():
             image = await self.avi.dagpi.image_process(ImageFeatures.why_are_you_gay(), url=item1, url2=item2)
-        file = discord.File(fp=image.image, filename="why_are_you_gay.png")
-        await self.do_embed(ctx, file)
+        await self.dag_embed(ctx, image, ctx.command.name)
 
     @commands.command(name="tweet")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_tweet(self, ctx, user: GetAvatar, username: str, *, text: str):
         async with ctx.channel.typing():
             image = await self.avi.dagpi.image_process(ImageFeatures.tweet(), text=text, url=user, username=username)
-        file = discord.File(fp=image.image, filename="tweet.png")
-        await self.do_embed(ctx, file)
+        await self.dag_embed(ctx, image, ctx.command.name)
 
     @commands.command(name="discord")
     @commands.cooldown(2, 10, commands.BucketType.member)
@@ -123,8 +132,7 @@ class Image(commands.Cog, name="Images"):
             image = await self.avi.dagpi.image_process(
                 ImageFeatures.discord(), text=text, url=url,
                 username=user.name if user_name is None else user_name)
-        file = discord.File(fp=image.image, filename="discord.png")
-        await self.do_embed(ctx, file)
+        await self.dag_embed(ctx, image, ctx.command.name)
 
     @commands.command(name="youtube")
     @commands.cooldown(2, 10, commands.BucketType.member)
@@ -140,68 +148,67 @@ class Image(commands.Cog, name="Images"):
             image = await self.avi.dagpi.image_process(
                 ImageFeatures.youtube(), text=text, url=url,
                 username=user.name if user_name is None else user_name)
-        file = discord.File(fp=image.image, filename="youtube.png")
-        await self.do_embed(ctx, file)
+        await self.dag_embed(ctx, image, ctx.command.name)
 
     @commands.command(name="america")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_america(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.america(), item, True)
-        await self.do_embed(ctx, meth)
+        await self.dag_embed(ctx, meth, ctx.command.name)
 
     @commands.command(name="communism")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_communism(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.communism(), item, True)
-        await self.do_embed(ctx, meth)
+        await self.dag_embed(ctx, meth, ctx.command.name)
 
     @commands.command(name="colors")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_colors(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.colors(), item)
-        await self.do_embed(ctx, meth)
+        await self.dag_embed(ctx, meth, ctx.command.name)
 
     @commands.command(name="wasted")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_wasted(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.wasted(), item)
-        await self.do_embed(ctx, meth)
+        await self.dag_embed(ctx, meth, ctx.command.name)
 
     @commands.command(name="hitler")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_hitler(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.hitler(), item)
-        await self.do_embed(ctx, meth)
+        await self.dag_embed(ctx, meth, ctx.command.name)
 
     @commands.command(name="satan")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_satan(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.satan(), item)
-        await self.do_embed(ctx, meth)
+        await self.dag_embed(ctx, meth, ctx.command.name)
 
     @commands.command(name="delete")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_delete(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.delete(), item)
-        await self.do_embed(ctx, meth)
+        await self.dag_embed(ctx, meth, ctx.command.name)
 
     @commands.command(name="wanted")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_wanted(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.wanted(), item)
-        await self.do_embed(ctx, meth)
+        await self.dag_embed(ctx, meth, ctx.command.name)
 
     @commands.command(name="jail")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_jail(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.jail(), item)
-        await self.do_embed(ctx, meth)
+        await self.dag_embed(ctx, meth, ctx.command.name)
 
     @commands.command(name="ascii")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_ascii(self, ctx, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.ascii(), item)
-        await self.do_embed(ctx, meth)
+        await self.dag_embed(ctx, meth, ctx.command.name)
 
     # Magic Command
     @commands.command(

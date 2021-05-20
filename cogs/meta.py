@@ -87,8 +87,11 @@ class Meta(commands.Cog):
 
         return await ctx.send(random.choice(opt))
 
-    @commands.command(brief="Gets a member's information")
-    async def uinfo(self, ctx: AvimetryContext, *, member: typing.Union[discord.Member, discord.User] = None):
+    @commands.command(
+        brief="Gets a member's information",
+        aliases=["uinfo", "whois"]
+    )
+    async def userinfo(self, ctx: AvimetryContext, *, member: typing.Union[discord.Member, discord.User] = None):
         if member is None:
             member = ctx.author
         if isinstance(member, discord.User):
@@ -149,6 +152,16 @@ class Meta(commands.Cog):
             )
         ie.set_thumbnail(url=member.avatar_url)
         await ctx.send(embed=ie)
+
+    @commands.command()
+    async def avatar(self, ctx: AvimetryContext, member: discord.Member = None):
+        if member is None:
+            member = ctx.author
+        embed = discord.Embed(
+            title=f"{member}'s avatar"
+        )
+        embed.set_image(url=str(member.avatar_url))
+        await ctx.send(embed=embed)
 
     @commands.group(brief="Make a QR code", invoke_without_command=True)
     async def qr(self, ctx: AvimetryContext, *, content):

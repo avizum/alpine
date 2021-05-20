@@ -132,7 +132,7 @@ class HelpEmbeded(commands.HelpCommand):
             embed.description = cog.description
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
         command_list = [command.name for command in filtered]
-        split_list = [command_list[i:i+3]for i in range(0, len(command_list), 3)]
+        split_list = [command_list[i:i+4]for i in range(0, len(command_list), 4)]
         value = [", ".join(lists) for lists in split_list]
         embed.add_field(
             name=f"Commands in {cog.qualified_name.title()}",
@@ -176,7 +176,7 @@ class HelpEmbeded(commands.HelpCommand):
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
             group_commands = [command.name for command in filtered]
-            split_list = [group_commands[i:i+3]for i in range(0, len(group_commands), 3)]
+            split_list = [group_commands[i:i+4]for i in range(0, len(group_commands), 4)]
             value = [", ".join(lists) for lists in split_list]
             embed.add_field(
                 name=f"Subcommands for {group.qualified_name}",

@@ -167,7 +167,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
             ctx.cache.blacklist[user.id]
             return await ctx.send(f"{user} is already blacklisted.")
         except Exception:
-            query = "INSERT INTO user_settings VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET blacklist = $2"
+            query = "INSERT INTO blacklist  VALUES ($1, $2)"
             await self.avi.pool.execute(query, user.id, reason)
             ctx.cache.blacklist[user.id] = reason
 
@@ -182,7 +182,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
             dm_embed = discord.Embed(
                 title="Bot Moderator Action: Blacklist",
                 description=(
-                    f"You were __**blacklisted**__ from using this bot by `{ctx.author}`.\n"
+                    f"You have been __**blacklisted**__ from this bot by `{ctx.author}`.\n"
                     f"Reason: `{reason}`\n"
                     f"You can appeal at the Support Server."
                 ),
@@ -203,9 +203,9 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
             ctx.cache.blacklist[user.id]
         except Exception:
             return await ctx.send(f"{user} is not blacklisted")
-        query = "UPDATE user_settings SET blacklist = $1 WHERE user_id = $2"
-        await self.avi.pool.execute(query, None, user.id)
-        del ctx.cache.blacklist[user.id]
+        query = "DELETE FROM blacklist WHERE user_id=$1"
+        await self.avi.pool.execute(query, user.id)
+        self.avi.cache.blacklist.pop(user.id)
         try:
             dm_embed = discord.Embed(
                 title="Bot Moderator Action: Unblacklist",

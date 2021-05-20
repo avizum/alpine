@@ -86,6 +86,7 @@ class AvimetryCache:
         logging = await self.avi.pool.fetch("SELECT * FROM logging")
         join_leave = await self.avi.pool.fetch("SELECT * FROM join_leave")
         users = await self.avi.pool.fetch("SELECT * FROM user_settings")
+        blacklist = await self.avi.pool.fetch("SELECT * FROM blacklist")
 
         print("(Re)Caching...")
         for entry in guild_settings:
@@ -98,10 +99,8 @@ class AvimetryCache:
             verify.pop("guild_id")
             self.verification[entry["guild_id"]] = verify
 
-        for entry in users:
-            check = dict(entry)
-            if check["user_id"] and check["blacklist"]:
-                self.blacklist[entry["user_id"]] = entry["blacklist"]
+        for entry in blacklist:
+            self.blacklist[entry["user_id"]] = entry["reason"]
 
         for entry in users:
             user = dict(entry)
