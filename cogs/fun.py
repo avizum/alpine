@@ -444,7 +444,13 @@ class Fun(commands.Cog):
     )
     @commands.cooldown(1, 15, commands.BucketType.member)
     async def reddit(self, ctx: AvimetryContext, subreddit):
+        if subreddit.startswith("r/"):
+            subreddit = subreddit.replace("r/", "")
         async with self.avi.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
+            if content.status == 404:
+                return await ctx.send("This subreddit does not exist. Please check your spelling and try again.")
+            elif content.status != 200:
+                return await ctx.send("There has been a problem at Reddit. Please try again later.")
             stuff = await content.json()
         get_data = stuff["data"]["children"]
         if not get_data:
@@ -513,16 +519,18 @@ class Fun(commands.Cog):
         await asyncio.sleep(random.randint(1, 30))
         embed.description = "GO!!"
         await first.edit(embed=embed)
-        for emojis in emoji:
-            await first.add_reaction(emojis)
 
         def check(reaction, user):
             return(
-                reaction.message.id == first.id and str(reaction.emoji) == random_emoji and user != self.avi.user)
+                reaction.message.id == first.id and str(reaction.emoji) == random_emoji and user != self.avi.user
+                )
 
         try:
             with Timer() as timer:
                 reaction, user = await self.avi.wait_for("reaction_add", check=check, timeout=15)
+            for emojis in emoji:
+                await first.add_reaction(emojis)
+
         except asyncio.TimeoutError:
             embed.description = "Timeout"
             await first.edit(embed=embed)
