@@ -510,27 +510,26 @@ class Fun(commands.Cog):
         random.shuffle(emoji)
         embed = discord.Embed(
             title="Reaction time",
-            description=f"After 1-30 seconds, the {random_emoji} emoji will be added to this message. "
+            description="After 1-30 seconds I will reveal the emoji."
         )
         first = await ctx.send(embed=embed)
         await asyncio.sleep(2.5)
-        embed.description = f"Get ready to get the emoji ({random_emoji})!"
+        embed.description = "Get ready!"
         await first.edit(embed=embed)
+
         await asyncio.sleep(random.randint(1, 30))
-        embed.description = "GO!!"
+        for react in emoji:
+            await first.add_reaction(react)
+        embed.description = f"GET THE {random_emoji}!"
         await first.edit(embed=embed)
 
         def check(reaction, user):
             return(
-                reaction.message.id == first.id and str(reaction.emoji) == random_emoji and user != self.avi.user
-                )
-
+                reaction.message.id == first.id and str(reaction.emoji) == random_emoji and user != self.avi.user)
+        
         try:
             with Timer() as timer:
                 reaction, user = await self.avi.wait_for("reaction_add", check=check, timeout=15)
-            for emojis in emoji:
-                await first.add_reaction(emojis)
-
         except asyncio.TimeoutError:
             embed.description = "Timeout"
             await first.edit(embed=embed)
@@ -542,7 +541,7 @@ class Fun(commands.Cog):
                     gettime = gettime / 1000
                     total_second = f"**{gettime:.2f}s**"
                 embed.description = f"{user.mention} got the {random_emoji} in {total_second}"
-                await first.edit(embed=embed)
+                return await first.edit(embed=embed)
 
     @commands.command(
         name="guessthatlogo",
