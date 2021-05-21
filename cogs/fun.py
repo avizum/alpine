@@ -179,6 +179,7 @@ class Fun(commands.Cog):
         aliases=["\U0001F36A", "vookir", "kookie"]
         )
     @commands.cooldown(5, 10, commands.BucketType.member)
+    @commands.max_concurrency(2, commands.BucketType.channel)
     async def cookie(self, ctx: AvimetryContext):
         cookie_embed = discord.Embed(
             title="Get the cookie!",
