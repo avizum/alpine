@@ -175,7 +175,8 @@ class Fun(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(
-        brief="Try to get the cookie as fast as you can!",
+        brief=(
+            "Get the cookie! (If you mention a user, I will listen to you and the member that you mentioned.)"),
         aliases=["\U0001F36A", "vookir", "kookie"]
         )
     @commands.cooldown(5, 10, commands.BucketType.member)
@@ -202,13 +203,16 @@ class Fun(commands.Cog):
         if member:
             def check(reaction, user):
                 return(
-                    reaction.message.id == cd_cookie.id and str(reaction.emoji) == "\U0001F36A" and user in [ctx.author, member]
+                    reaction.message.id == cd_cookie.id and
+                    str(reaction.emoji) == "\U0001F36A" and
+                    user in [ctx.author, member]
                 )
-
         else:
             def check(reaction, user):
                 return (
-                    reaction.message.id == cd_cookie.id and str(reaction.emoji) in "\U0001F36A" and user != self.avi.user
+                    reaction.message.id == cd_cookie.id and
+                    str(reaction.emoji) in "\U0001F36A" and
+                    user != self.avi.user
                 )
 
         try:
