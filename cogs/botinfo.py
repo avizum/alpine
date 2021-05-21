@@ -85,19 +85,19 @@ class BotInfo(commands.Cog, name="Bot Info"):
         with Timer() as api:
             await ctx.trigger_typing()
         with Timer() as db:
-            await self.avi.pool.execute("SELECT 1")
+            await self.avi.pool.fetch("SELECT 1")
         ping_embed = discord.Embed(title="🏓 Pong!")
         ping_embed.add_field(
             name="Websocket Latency",
-            value=f"`{self.avi.latency * 1000:.2f} ms`",
+            value=f"`{self.avi.latency * 1000:,.2f} ms`",
             inline=False)
         ping_embed.add_field(
-            name="API Latency",
-            value=f"`{api.total_time * 1000:.2f} ms`",
+            name="Typing Latency",
+            value=f"`{api.total_time * 1000:,.2f} ms`",
             inline=False)
         ping_embed.add_field(
             name="Database Latency",
-            value=f"`{db.total_time * 1000:.2f} ms`",
+            value=f"`{db.total_time * 1000:,.2f} ms`",
             inline=False)
 
         await ctx.send(embed=ping_embed)

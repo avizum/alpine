@@ -178,7 +178,7 @@ class Fun(commands.Cog):
         brief="Try to get the cookie as fast as you can!",
         aliases=["\U0001F36A", "vookir", "kookie"]
         )
-    @commands.cooldown(1, 30, commands.BucketType.member)
+    @commands.cooldown(5, 10, commands.BucketType.member)
     async def cookie(self, ctx: AvimetryContext):
         cookie_embed = discord.Embed(
             title="Get the cookie!",
