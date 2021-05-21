@@ -180,7 +180,7 @@ class Fun(commands.Cog):
         )
     @commands.cooldown(5, 10, commands.BucketType.member)
     @commands.max_concurrency(2, commands.BucketType.channel)
-    async def cookie(self, ctx: AvimetryContext):
+    async def cookie(self, ctx: AvimetryContext, member: typing.Optional[discord.Member] = None):
         cookie_embed = discord.Embed(
             title="Get the cookie!",
             description="Get ready to grab the cookie!")
@@ -199,10 +199,17 @@ class Fun(commands.Cog):
         await cd_cookie.edit(embed=cookie_embed)
         await cd_cookie.add_reaction("\U0001F36A")
 
-        def check(reaction, user):
-            return (
-                reaction.message.id == cd_cookie.id and str(reaction.emoji) in "\U0001F36A" and user != self.avi.user
-            )
+        if member:
+            def check(reaction, user):
+                return(
+                    reaction.message.id == cd_cookie.id and str(reaction.emoji) == "\U0001F36A" and user in [ctx.author, member]
+                )
+
+        else:
+            def check(reaction, user):
+                return (
+                    reaction.message.id == cd_cookie.id and str(reaction.emoji) in "\U0001F36A" and user != self.avi.user
+                )
 
         try:
             with Timer() as reaction_time:
