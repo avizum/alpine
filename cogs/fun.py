@@ -508,16 +508,15 @@ class Fun(commands.Cog):
         random.shuffle(emoji)
         embed = discord.Embed(
             title="Reaction time",
-            description="After 1-30 seconds I will reveal the emoji."
+            description="After 1-15 seconds I will reveal the emoji."
         )
         first = await ctx.send(embed=embed)
+        for react in emoji:
+            await first.add_reaction(react)
         await asyncio.sleep(2.5)
         embed.description = "Get ready!"
         await first.edit(embed=embed)
-
-        await asyncio.sleep(random.randint(1, 30))
-        for react in emoji:
-            await first.add_reaction(react)
+        await asyncio.sleep(random.randint(1, 15))
         embed.description = f"GET THE {random_emoji} EMOJI!"
         await first.edit(embed=embed)
 

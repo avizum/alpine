@@ -101,8 +101,11 @@ class AvimetryContext(commands.Context):
                 await edited_message.clear_reactions()
             except Exception:
                 pass
-            await edited_message.edit(content=content, embed=embed, **kwargs)
-            return edited_message
+            try:
+                await edited_message.edit(content=content, embed=embed, **kwargs)
+                return edited_message
+            except Exception:
+                pass
         try:
             message = await self.reply(content=content, embed=embed, **kwargs)
             return message
