@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import datetime
+from discord import guild
 
 from discord.ext import commands
 from utils import AvimetryContext, AvimetryBot
@@ -81,6 +82,8 @@ class Setup(commands.Cog):
         embed.set_author(name=ctx.author, icon_url=str(ctx.author.avatar_url_as(format="png", size=512)))
         embed.timestamp = datetime.datetime.utcnow()
         await self.command_webhook.send(embed=embed)
+        if ctx.guild.chunked:
+            await guild.chunk()
         self.avi.commands_ran += 1
 
 

@@ -102,7 +102,7 @@ class AvimetryBot(commands.AutoShardedBot):
             activity=activity,
             intents=intents,
             strip_after_prefix=True,
-            chunk_guilds_at_startup=False
+            chunk_guilds_at_startup=True
         )
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
         self.owner_ids = OWNER_IDS
@@ -226,11 +226,6 @@ class AvimetryBot(commands.AutoShardedBot):
                 self.command_cache.pop(message.id)
             except Exception:
                 pass
-
-    async def chunk_guilds(self):
-        for guild in self.guilds:
-            if not guild.chunked:
-                await guild.chunk()
 
     def run(self):
         tokens = self.settings["bot_tokens"]

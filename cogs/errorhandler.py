@@ -52,7 +52,8 @@ class ErrorHandler(commands.Cog):
             commands.MaxConcurrencyReached,
             commands.MissingAnyRole,
             commands.MissingPermissions,
-            commands.MissingRole
+            commands.MissingRole,
+            Blacklisted
         )
         if await self.avi.is_owner(ctx.author) and isinstance(error, reinvoke):
             return await ctx.reinvoke()
