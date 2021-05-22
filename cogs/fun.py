@@ -182,6 +182,8 @@ class Fun(commands.Cog):
     @commands.cooldown(5, 10, commands.BucketType.member)
     @commands.max_concurrency(2, commands.BucketType.channel)
     async def cookie(self, ctx: AvimetryContext, member: typing.Optional[discord.Member] = None):
+        if member == ctx.author:
+            return await ctx.send("You can't play against yourself.")
         cookie_embed = discord.Embed(
             title="Get the cookie!",
             description="Get ready to grab the cookie!")
@@ -191,10 +193,7 @@ class Fun(commands.Cog):
         cookie_embed.description = "Get ready to get the cookie!"
         await cd_cookie.edit(embed=cookie_embed)
         cntdown = (random.randint(1, 8))
-        while cntdown > 0:
-            await asyncio.sleep(1)
-            cntdown -= 1
-        await asyncio.sleep(1)
+        await asyncio.sleep(cntdown)
         cookie_embed.title = "GO!"
         cookie_embed.description = "GET THE COOKIE NOW!"
         await cd_cookie.edit(embed=cookie_embed)
@@ -221,11 +220,10 @@ class Fun(commands.Cog):
                     "reaction_add", check=check, timeout=10
                 )
         except asyncio.TimeoutError:
-            cookie_embed.set_field_at(
-                0, name="Game over!", value="Nobody got the cookie :("
-            )
+            cookie_embed.title = "Game over!"
+            cookie_embed.description = "Nobody got the cookie :("
             await cd_cookie.edit(embed=cookie_embed)
-            await cd_cookie.clear_reactions()
+            await cd_cookie.remove_reaction("\U0001F36A", ctx.me)
         else:
             if str(reaction.emoji) == "\U0001F36A":
                 thing = reaction_time.total_time * 1000
@@ -520,13 +518,13 @@ class Fun(commands.Cog):
         await asyncio.sleep(random.randint(1, 30))
         for react in emoji:
             await first.add_reaction(react)
-        embed.description = f"GET THE {random_emoji}!"
+        embed.description = f"GET THE {random_emoji} EMOJI!"
         await first.edit(embed=embed)
 
         def check(reaction, user):
             return(
                 reaction.message.id == first.id and str(reaction.emoji) == random_emoji and user != self.avi.user)
-        
+
         try:
             with Timer() as timer:
                 reaction, user = await self.avi.wait_for("reaction_add", check=check, timeout=15)
