@@ -269,6 +269,13 @@ class Meta(commands.Cog):
                 description=f"The JSON input raised an error:\n```bash\n{e}```")
             return await ctx.send_raw(embed=embed)
 
+    @commands.command(
+        brief="Check what website a url redirects to"
+    )
+    async def redirectcheck(self, ctx: AvimetryContext, url: str):
+        async with self.avi.session.get(url) as f:
+            await ctx.send_raw(f"This url redirects to:\n\n{f.real_url}")
+
     @commands.command(hidden=True)
     @commands.is_owner()
     async def _(self, ctx):
