@@ -157,7 +157,7 @@ class AvimetryBot(commands.AutoShardedBot):
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
         self.topgg_webhook = topgg.WebhookManager(self).dbl_webhook("/dblwebhook", "password")
-        self.topgg_webhook.run(5000)
+        self.loop.create_task(self.topgg_webhook.run(5000))
 
         @self.check
         async def check(ctx):
@@ -232,7 +232,7 @@ class AvimetryBot(commands.AutoShardedBot):
         tokens = self.settings["bot_tokens"]
         if platform not in ["linux", "linux2"]:
             self.devmode = True
-            token = tokens["AvimetryBeta"]
+            token = tokens["Avimetry"]
         else:
             token = tokens["Avimetry"]
         super().run(token, reconnect=True)
