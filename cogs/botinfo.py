@@ -286,6 +286,21 @@ class BotInfo(commands.Cog, name="Bot Info"):
             return await ctx.send("Okay, I deleted all your data.")
         return await ctx.send("Aborted.")
 
+    @commands.group(invoke_without_command=True)
+    async def error(self, ctx: AvimetryContext, error_id: int = None):
+        if error_id is None:
+            return await ctx.send_help("error")
+        query = "SELECT * FROM command_errors WHERE id=$1"
+        error_info = await self.avi.pool.fetchrow(query, error_id)
+        if not error_info:
+            return await ctx.send("That is not a valid error id.")
+        embed = discord.Embed(
+            title=f"Error `#{error_info['id']}`",
+            description=f"Error Information:```py\n{error_info['error']}```"
+        )
+        embed.add_field(name="Error status", value="Fixed" if error_info["fixed"] is True else "Not Fixed")
+        await ctx.send(embed=embed)
+
 
 def setup(avi):
     avi.add_cog(BotInfo((avi)))

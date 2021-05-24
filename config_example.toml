@@ -1,0 +1,21 @@
+[bot_tokens]
+    Main = ""
+    Testing = ""
+
+[api_tokens]
+    ZaneAPI = ""
+    DagpiAPI = ""
+    TopGG = ""
+    GitHub = ""
+
+[webhooks]
+    join_log = ""
+    error_log = ""
+    command_log = ""
+
+[postgresql]  
+    host = ""
+    port = 5432
+    user = ""
+    database = ""
+    password = ""

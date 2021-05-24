@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import json
+import aiohttp
 import discord
 import datetime
 import random
@@ -273,8 +274,19 @@ class Meta(commands.Cog):
         brief="Check what website a url redirects to"
     )
     async def redirectcheck(self, ctx: AvimetryContext, url: str):
+        url = url.strip("<>")
         async with self.avi.session.get(url) as f:
             await ctx.send_raw(f"This url redirects to:\n\n{f.real_url}")
+
+    @redirectcheck.error
+    async def redirectcheck_error(self, ctx: AvimetryContext, error):
+        if isinstance(error, aiohttp.InvalidURL):
+            return await ctx.send("This is not a valid url. Make sure you start links with `http://` or `https://`.")
+        elif isinstance(error, aiohttp.ClientConnectorError):
+            return await ctx.send("I wasn't able to connect to this website.")
+        else:
+            await ctx.send("An error occured while checking the link, Please try another link or try again later.")
+            raise error
 
     @commands.command(hidden=True)
     @commands.is_owner()

@@ -167,7 +167,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
             ctx.cache.blacklist[user.id]
             return await ctx.send(f"{user} is already blacklisted.")
         except Exception:
-            query = "INSERT INTO blacklist  VALUES ($1, $2)"
+            query = "INSERT INTO blacklist VALUES ($1, $2)"
             await self.avi.pool.execute(query, user.id, reason)
             ctx.cache.blacklist[user.id] = reason
 
