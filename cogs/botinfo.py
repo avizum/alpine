@@ -312,6 +312,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             return await ctx.send("That is not a valid error id")
         query = "UPDATE command_errors SET fixed=$1 WHERE id=$2"
         await self.avi.pool.execute(query, True, error_id)
+        await ctx.send("Changed error status to fixed")
 
 
 def setup(avi):

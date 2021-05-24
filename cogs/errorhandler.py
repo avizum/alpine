@@ -18,6 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import humanize
+import sys
+import traceback as tb
 
 from prettify_exceptions import DefaultFormatter
 from utils import AvimetryBot, AvimetryContext, Blacklisted
@@ -232,7 +234,8 @@ class ErrorHandler(commands.Cog):
                 return await ctx.send(embed=error_embed)
             await ctx.send(embed=error_embed)
             await self.error_webhook.send(embed=webhook_error_embed, username="Command Error")
-            raise error
+            print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+            tb.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 
 def setup(avi):

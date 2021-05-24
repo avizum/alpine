@@ -42,6 +42,19 @@ class TopGG(commands.Cog):
         except discord.Forbidden:
             return
 
+    @commands.Cog.listener()
+    async def on_dbl_vote(self, data):
+        if data["type"] == "test":
+            # this is roughly equivalent to
+            # return await on_dbl_test(data) in this case
+            return self.avi.dispatch('dbl_test', data)
+        print(f"Received a vote:\n{data}")
+
+    @commands.Cog.listener()
+    async def on_dbl_test(self, data):
+        """An event that is called whenever someone tests the webhook system for your bot on Top.gg."""
+        print(f"Received a test vote:\n{data}")
+
     @tasks.loop(minutes=15)
     async def post(self):
         if self.avi.user.id != 756257170521063444:

@@ -156,6 +156,8 @@ class AvimetryBot(commands.AutoShardedBot):
         self.session = aiohttp.ClientSession()
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
+        self.topgg_webhook = topgg.WebhookManager(self).dbl_webhook("/dblwebhook", "password")
+        self.topgg_webhook.run(5000)
 
         @self.check
         async def check(ctx):
