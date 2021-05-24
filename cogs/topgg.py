@@ -48,12 +48,12 @@ class TopGG(commands.Cog):
             # this is roughly equivalent to
             # return await on_dbl_test(data) in this case
             return self.avi.dispatch('dbl_test', data)
-        print(f"Received a vote:\n{data}")
+        await self.avi.get_channel(831278962226626581).send(f"Received a vote:\n{data}")
 
     @commands.Cog.listener()
     async def on_dbl_test(self, data):
         """An event that is called whenever someone tests the webhook system for your bot on Top.gg."""
-        print(f"Received a test vote:\n{data}")
+        await self.avi.get_channel(831278962226626581).send(f"Received a test vote:\n{data}")
 
     @tasks.loop(minutes=15)
     async def post(self):
