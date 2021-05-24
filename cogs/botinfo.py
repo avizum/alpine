@@ -301,6 +301,18 @@ class BotInfo(commands.Cog, name="Bot Info"):
         embed.add_field(name="Error status", value="Fixed" if error_info["fixed"] is True else "Not Fixed")
         await ctx.send(embed=embed)
 
+    @error.command()
+    @commands.is_owner()
+    async def fix(self, ctx: AvimetryContext, error_id: int = None):
+        if error_id is None:
+            return await ctx.send_help("error")
+        query = "SELECT * FROM command_errors WHERE id=$1"
+        error_info = await self.avi.pool.fetchrow(query, error_id)
+        if not error_info:
+            return await ctx.send("That is not a valid error id")
+        query = "UPDATE command_errors SET fixed=$1 WHERE id=$2"
+        await self.avi.pool.execute(query, True, error_id)
+
 
 def setup(avi):
     avi.add_cog(BotInfo((avi)))
