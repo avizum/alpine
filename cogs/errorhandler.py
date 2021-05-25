@@ -226,18 +226,15 @@ class ErrorHandler(commands.Cog):
                 )
                 insert = await self.avi.pool.fetchrow(insert_query, ctx.command.qualified_name, str(error))
                 error_embed.description = (
-                    "An unknown error was raised while running this command. I logged it and "
-                    f"you can track this error using `{ctx.prefix}error {insert['id']}`\n"
-                    "[Join the support server for updates.](https://discord.gg/KaqqPhfwS4)\n\n"
-                    f"Error Information:```py\n{error}```"
+                    "An unknown error was raised while running this command. The error has been logged and "
+                    f"you can track this error using `{ctx.prefix}error {insert['id']}\n\n"
+                    f"Error:```py\n{error}```"
                 )
             elif check["error"] == str(error):
-                error_embed.title = f"Error `{check['id']}`"
                 error_embed.description = (
-                    "While executing this command, A known error was raised.\n"
-                    f"You can track this error using `{ctx.prefix}error {check['id']}`\n"
-                    "[Join the support server for updates.](https://discord.gg/KaqqPhfwS4)\n\n"
-                    f"Error Information:```py\n{error}```"
+                    "A known error was raised while running this command and hasn't been fixed."
+                    f"You can check the error status using `{ctx.prefix}error {check['id']}`\n\n"
+                    f"Error:```py\n{error}```"
                 )
                 return await ctx.send(embed=error_embed)
             await ctx.send(embed=error_embed)
