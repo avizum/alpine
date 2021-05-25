@@ -232,7 +232,7 @@ class ErrorHandler(commands.Cog):
                 )
             elif check["error"] == str(error):
                 error_embed.description = (
-                    "A known error was raised while running this command and hasn't been fixed."
+                    "A known error was raised while running this command and hasn't been fixed.\n"
                     f"You can check the error status using `{ctx.prefix}error {check['id']}`\n\n"
                     f"Error:```py\n{error}```"
                 )
