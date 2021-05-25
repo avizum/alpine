@@ -28,33 +28,6 @@ class TopGG(commands.Cog):
         self.post.start()
         self.update.start()
 
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
-        if message.channel.id != 839892190213439508:
-            return
-        try:
-            user_voted = int(message.content)
-        except Exception:
-            return
-        member = self.avi.get_user(user_voted)
-        try:
-            await member.send("Thank you for voting!")
-        except discord.Forbidden:
-            return
-
-    @commands.Cog.listener()
-    async def on_dbl_vote(self, data):
-        if data["type"] == "test":
-            # this is roughly equivalent to
-            # return await on_dbl_test(data) in this case
-            return self.avi.dispatch('dbl_test', data)
-        await self.avi.get_channel(831278962226626581).send(f"Received a vote:\n{data}")
-
-    @commands.Cog.listener()
-    async def on_dbl_test(self, data):
-        """An event that is called whenever someone tests the webhook system for your bot on Top.gg."""
-        await self.avi.get_channel(831278962226626581).send(f"Received a test vote:\n{data}")
-
     @tasks.loop(minutes=15)
     async def post(self):
         if self.avi.user.id != 756257170521063444:

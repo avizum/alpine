@@ -89,9 +89,16 @@ class ErrorHandler(commands.Cog):
                 return await ctx.send(embed=not_found_embed)
 
         elif isinstance(error, commands.CommandOnCooldown):
+            rate = error.cooldown.rate
+            per = error.cooldown.per
+            cd_type = str(error.cooldown.type).replace("BucketType.", "")
             cd = discord.Embed(
                 title="Slow down",
-                description=f"This command is on cooldown. Try again in {humanize.naturaldelta(error.retry_after)}."
+                description=(
+                    f"This command has reached its cooldown. It can be used {rate} {'time' if rate == 1 else 'times'} "
+                    f"every {per} seconds per {cd_type}.\n"
+                    f"Try again in {humanize.naturaldelta(error.retry_after)}."
+                )
             )
             return await ctx.send(embed=cd)
 
@@ -99,7 +106,7 @@ class ErrorHandler(commands.Cog):
             max_uses = discord.Embed(
                 title="Slow Down",
                 description=(
-                    f"This command can only be used {error.number} "
+                    f"This command has reached its max concurrency.\nIt can only be used {error.number} "
                     f"{'time' if error.number == 1 else 'times'} per {error.per.name}."),
             )
             return await ctx.send(embed=max_uses)
@@ -225,8 +232,9 @@ class ErrorHandler(commands.Cog):
                     f"Error Information:```py\n{error}```"
                 )
             elif check["error"] == str(error):
+                error_embed.title = f"Error `{check['id']}`"
                 error_embed.description = (
-                    "A known error was raised while running this command.\n"
+                    "While executing this command, A known error was raised.\n"
                     f"You can track this error using `{ctx.prefix}error {check['id']}`\n"
                     "[Join the support server for updates.](https://discord.gg/KaqqPhfwS4)\n\n"
                     f"Error Information:```py\n{error}```"

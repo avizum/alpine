@@ -110,7 +110,6 @@ class AvimetryBot(commands.AutoShardedBot):
         self.launch_time = datetime.datetime.utcnow()
         self.commands_ran = 0
         self.command_cache = {}
-        self.devmode = False
         self.cache = AvimetryCache(self)
         self.invite = str(discord.utils.oauth_url(PUBLIC_BOT_ID, discord.Permissions(2147483647)))
         self.emoji_dictionary = {
@@ -156,8 +155,6 @@ class AvimetryBot(commands.AutoShardedBot):
         self.session = aiohttp.ClientSession()
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
-        self.topgg_webhook = topgg.WebhookManager(self).dbl_webhook("/dblwebhook", "password")
-        self.loop.create_task(self.topgg_webhook.run(5000))
 
         @self.check
         async def check(ctx):
@@ -231,8 +228,7 @@ class AvimetryBot(commands.AutoShardedBot):
     def run(self):
         tokens = self.settings["bot_tokens"]
         if platform not in ["linux", "linux2"]:
-            self.devmode = True
-            token = tokens["Avimetry"]
+            token = tokens["AvimetryBeta"]
         else:
             token = tokens["Avimetry"]
         super().run(token, reconnect=True)

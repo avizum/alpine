@@ -385,7 +385,7 @@ class Fun(commands.Cog):
         if person1.id == 750135653638865017 or person2.id == 750135653638865017:
             return await ctx.send(f"{person1.mention} and {person2.mention} are 0% compatible with each other")
         elif person1 == person2:
-            return await ctx.send("Thats not how that works")
+            return await ctx.send("That's not how that works")
         percent = random.randint(0, 100)
         await ctx.send(f"{person1.mention} and {person2.mention} are {percent}% compatible with each other")
 
