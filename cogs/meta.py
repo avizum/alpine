@@ -115,8 +115,6 @@ class Meta(commands.Cog):
                 userroles.append(roles.mention)
                 if ctx.guild.default_role.mention in userroles:
                     userroles.remove(ctx.guild.default_role.mention)
-            if len(userroles) < 1024:
-                userroles = "Too many roles."
             ie = discord.Embed(
                 title="User Information",
                 timestamp=datetime.datetime.utcnow(),
@@ -150,7 +148,7 @@ class Meta(commands.Cog):
             ie.add_field(name="Top Role", value=top_role, inline=False)
             ie.add_field(
                 name=f"Roles [{len(userroles)}]",
-                value=", ".join(userroles),
+                value=", ".join(userroles) or "Too many roles",
                 inline=False,
             )
         ie.set_thumbnail(url=member.avatar_url)
