@@ -113,8 +113,7 @@ class Meta(commands.Cog):
             userroles = ["@everyone"]
             for roles in member.roles:
                 userroles.append(roles.mention)
-                if ctx.guild.default_role.mention in userroles:
-                    userroles.remove(ctx.guild.default_role.mention)
+            userroles.remove(ctx.guild.default_role.mention)
             ie = discord.Embed(
                 title="User Information",
                 timestamp=datetime.datetime.utcnow(),
@@ -148,7 +147,7 @@ class Meta(commands.Cog):
             ie.add_field(name="Top Role", value=top_role, inline=False)
             ie.add_field(
                 name=f"Roles [{len(userroles)}]",
-                value=", ".join(userroles) or "Too many roles",
+                value=", ".join(userroles) if len(userroles) > 1024 else "Too many to show",
                 inline=False,
             )
         ie.set_thumbnail(url=member.avatar_url)
