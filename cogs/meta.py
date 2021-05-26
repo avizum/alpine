@@ -147,7 +147,7 @@ class Meta(commands.Cog):
             ie.add_field(name="Top Role", value=top_role, inline=False)
             ie.add_field(
                 name=f"Roles [{len(userroles)}]",
-                value=", ".join(userroles) if len(userroles) > 1024 else "Too many to show",
+                value=", ".join(userroles) if len(userroles) < 1024 else "Too many to show",
                 inline=False,
             )
         ie.set_thumbnail(url=member.avatar_url)
