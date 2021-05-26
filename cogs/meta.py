@@ -144,10 +144,9 @@ class Meta(commands.Cog):
             top_role = member.top_role.mention
             if top_role == ctx.guild.default_role.mention:
                 top_role = "@everyone"
+            userroles = ", ".join(userroles)
             if len(userroles) > 1024:
-                userroles = f"{str(member.display_name)} many roles to show here."
-            else:
-                userroles = ", ".join(userroles)
+                userroles = f"{str(member.display_name)} has too many roles to show here."
             ie.add_field(name="Top Role", value=top_role, inline=False)
             ie.add_field(
                 name=f"Roles [{len(member.roles)}]",
