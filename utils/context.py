@@ -1,5 +1,5 @@
 """
-Command context
+Subclassed Command context
 Copyright (C) 2021 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -166,3 +166,11 @@ class AvimetryContext(commands.Context):
         reaction, user = await self.bot.wait_for("reaction_add", check=check)
         if str(reaction.emoji) == emoji:
             await message.delete()
+
+
+def setup(avi):
+    avi.context = AvimetryContext
+
+
+def teardown(avi):
+    avi.context = commands.Context

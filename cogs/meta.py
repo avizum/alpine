@@ -115,6 +115,8 @@ class Meta(commands.Cog):
                 userroles.append(roles.mention)
                 if ctx.guild.default_role.mention in userroles:
                     userroles.remove(ctx.guild.default_role.mention)
+            if len(userroles) < 1024:
+                userroles = "Too many roles."
             ie = discord.Embed(
                 title="User Information",
                 timestamp=datetime.datetime.utcnow(),

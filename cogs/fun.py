@@ -192,8 +192,7 @@ class Fun(commands.Cog):
         cookie_embed.title = "Ready Up!"
         cookie_embed.description = "Get ready to get the cookie!"
         await cd_cookie.edit(embed=cookie_embed)
-        cntdown = (random.randint(1, 8))
-        await asyncio.sleep(cntdown)
+        await asyncio.sleep(random.randint(1, 8))
         cookie_embed.title = "GO!"
         cookie_embed.description = "GET THE COOKIE NOW!"
         await cd_cookie.edit(embed=cookie_embed)

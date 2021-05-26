@@ -33,7 +33,7 @@ class ErrorHandler(commands.Cog):
         self.cd_mapping = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
         self.error_webhook = discord.Webhook.from_url(
             self.avi.settings["webhooks"]["error_log"],
-            adapter=discord.AsyncWebhookAdapter(self.avi.session)
+            adapter=discord.AsyncWebhookAdapter(self.avi.session),
         )
 
     def reset(self, ctx: AvimetryContext):
@@ -227,7 +227,7 @@ class ErrorHandler(commands.Cog):
                 insert = await self.avi.pool.fetchrow(insert_query, ctx.command.qualified_name, str(error))
                 error_embed.description = (
                     "An unknown error was raised while running this command. The error has been logged and "
-                    f"you can track this error using `{ctx.prefix}error {insert['id']}\n\n"
+                    f"you can track this error using `{ctx.prefix}error {insert['id']}`\n\n"
                     f"Error:```py\n{error}```"
                 )
             elif check["error"] == str(error):

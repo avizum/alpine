@@ -1,8 +1,5 @@
-/cogs/__pycache__
 .DS_Store
 discord.log
 *__pycache__
 .vscode
-config.py
-todos
 config.toml

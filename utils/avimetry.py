@@ -141,7 +141,8 @@ class AvimetryBot(commands.AutoShardedBot):
             "cogs.settings",
             "cogs.setup",
             "cogs.topgg",
-            "cogs.verification"
+            "cogs.verification",
+            "utils.context"
         ]
         with open("config.toml") as f:
             self.settings = toml.loads(f.read())
@@ -196,8 +197,8 @@ class AvimetryBot(commands.AutoShardedBot):
             bl_check = check
         return await super().wait_for(event, check=bl_check, timeout=timeout)
 
-    async def get_context(self, message, *, cls=AvimetryContext):
-        return await super().get_context(message, cls=cls)
+    async def get_context(self, message, *, cls=None):
+        return await super().get_context(message, cls=self.context)
 
     async def process_commands(self, message: discord.Message):
         ctx = await self.get_context(message)
