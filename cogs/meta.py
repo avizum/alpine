@@ -147,10 +147,10 @@ class Meta(commands.Cog):
             if len(userroles) > 1024:
                 userroles = f"{str(member.display_name)} many roles to show here."
             else:
-                userroles = "\n".join(userroles)
+                userroles = ", ".join(userroles)
             ie.add_field(name="Top Role", value=top_role, inline=False)
             ie.add_field(
-                name=f"Roles [{len(userroles)}]",
+                name=f"Roles [{len(member.roles)}]",
                 value=userroles,
                 inline=False,
             )
