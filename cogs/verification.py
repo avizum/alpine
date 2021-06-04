@@ -30,13 +30,7 @@ class MemberJoin(commands.Cog):
     def __init__(self, avi):
         self.avi: AvimetryBot = avi
 
-    #  async def level_low(self, member: discord.Member):
-    #      ch = await member.guild.create_text_channel(f"{member.name.lower().replace(' ', '-')}-verification")
-
-    @commands.Cog.listener()
-    async def on_member_join(self, member):
-        if member.bot:
-            return
+    async def do_verify(self, member):
         prefix = await self.avi.cache.get_guild_settings(member.guild.id)
         pre = "a." if not prefix["prefixes"] else prefix["prefixes"][0]
 
@@ -83,10 +77,23 @@ class MemberJoin(commands.Cog):
             )
 
     @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        if member.bot:
+            return
+        if member.pending:
+            return
+        await self.do_verify(member)
+
+    @commands.Cog.listener()
+    async def on_member_update(self, before: discord.Member, after: discord.Member):
+        if before.pending is True and after.pending is False:
+            await self.do_verify(after)
+
+    @commands.Cog.listener()
     async def on_member_remove(self, member):
         dchnl = discord.utils.get(member.guild.channels, name=f"{member.name.lower().replace(' ', '-')}-verification")
         if dchnl in member.guild.channels:
-            await dchnl.delete(reason=f"{member.name} left during verification process")
+            await dchnl.delete(reason=f"{member.name} left during verification")
 
     @commands.command(brief="Verify now!", hidden=True)
     async def verify(self, ctx: AvimetryContext):

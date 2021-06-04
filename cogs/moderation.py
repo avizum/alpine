@@ -98,7 +98,8 @@ class Moderation(commands.Cog):
         await ctx.send(f"{member.mention} has been muted indefinitely.")
 
     @commands.command(
-        brief="Temporarily mute someone for a specified amount of time."
+        brief="Temporarily mute someone for a specified amount of time.",
+        enabled=False
     )
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_roles=True)
@@ -259,14 +260,11 @@ class Moderation(commands.Cog):
 
     @commands.command(brief="Changes a member's nickname.")
     @commands.has_permissions(kick_members=True)
-    async def nick(self, ctx: AvimetryContext, member: discord.Member, *, nick=None):
+    async def nick(self, ctx: AvimetryContext, member: TargetMemberAction, *, nick=None):
         if nick is None:
             await member.edit(nick=nick)
         oldnick = member.display_name
-        try:
-            await member.edit(nick=nick)
-        except discord.Forbidden:
-            return await ctx.send(f"I can not change {member}'s nickname. Make sure I have permissions to edit them.")
+        await member.edit(nick=nick)
         newnick = member.display_name
         nickembed = discord.Embed(
             title="<:yesTick:777096731438874634> Nickname Changed"
@@ -274,6 +272,20 @@ class Moderation(commands.Cog):
         nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
+
+    @commands.command()
+    @commands.cooldown(1, 60, commands.BucketType.member)
+    async def selfban(self, ctx: AvimetryContext):
+        conf = await ctx.confirm("Are you sure you want to ban yourself?")
+        if conf:
+            return await ctx.send("Sike")
+
+    @commands.command()
+    @commands.cooldown(1, 60, commands.BucketType.member)
+    async def selfkick(self, ctx: AvimetryContext):
+        conf = await ctx.confirm("Are you sure you want to kick yourself?")
+        if conf:
+            return await ctx.send("Sike")
 
 
 def setup(avi):

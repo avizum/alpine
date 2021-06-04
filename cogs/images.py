@@ -71,8 +71,8 @@ class Image(commands.Cog, name="Images"):
         embed = discord.Embed(
             title=title.title(),
             description=(
-                f"Process time: `{float(image.process_time) * 1000:.2f} ms`\n"
-                "This command is powered by the [Dagpi API.](https://dagpi.xyz)"
+                f"Image processed in `{float(image.process_time) * 1000:.2f}ms`\n"
+                "This command is powered by [Dagpi](https://dagpi.xyz)"
             )
         )
         dag_image = discord.File(fp=image.image, filename=f"{title}.{image.format}")
@@ -406,18 +406,3 @@ class Image(commands.Cog, name="Images"):
 
 def setup(avi):
     avi.add_cog(Image(avi))
-
-
-"""todo
-        import io
-        floor=bot.sr.filter("triggered", str(ctx.author.avatar_url_as(format="png")))
-        file=discord.File(io.BytesIO(await floor.read()), filename="magic.gif")
-        await ctx.send(file=file)
-
-
-
-        import io
-        floor=bot.sr.youtube_comment(str(ctx.author.avatar_url_as(format="png")), ctx.author.name, "asd")
-        file=discord.File(io.BytesIO(await floor.read()), filename="magic.png")
-        await ctx.send(file=file)
-"""

@@ -92,7 +92,7 @@ intents = discord.Intents.all()
 activity = discord.Game("Loading...")
 
 
-class AvimetryBot(commands.AutoShardedBot):
+class AvimetryBot(commands.Bot):
     def __init__(self, **kwargs):
         super().__init__(
             **kwargs,
@@ -129,17 +129,17 @@ class AvimetryBot(commands.AutoShardedBot):
             "cogs.events",
             "cogs.fun",
             "cogs.help",
-            "cogs.highlight",
+            # "cogs.highlight",
             "cogs.images",
             "cogs.jishaku",
             "cogs.joinsandleaves",
             "cogs.meta",
             "cogs.moderation",
-            "cogs.myservers",
             "cogs.roblox",
             "cogs.servermanagement",
             "cogs.settings",
             "cogs.setup",
+            "cogs.supportserver",
             "cogs.topgg",
             "cogs.verification",
             "utils.context"
@@ -165,23 +165,22 @@ class AvimetryBot(commands.AutoShardedBot):
                 raise Blacklisted(reason=self.cache.blacklist[ctx.author.id])
             return True
 
-        @self.event
-        async def on_ready():
-            await self.wait_until_ready()
-            timenow = datetime.datetime.now().strftime("%I:%M %p")
-            print(
-                "Successfully logged in:\n"
-                f"Username: {self.user.name}\n"
-                f"Bot ID: {self.user.id}\n"
-                f"Login Time: {datetime.date.today()} at {timenow}\n"
-            )
-            for cog in self.bot_cogs:
-                try:
-                    self.load_extension(cog)
-                except commands.ExtensionAlreadyLoaded:
-                    pass
-                except commands.ExtensionError as error:
-                    print(error)
+    async def on_ready(self):
+        await self.wait_until_ready()
+        timenow = datetime.datetime.now().strftime("%I:%M %p")
+        print(
+            "Successfully logged in:\n"
+            f"Username: {self.user.name}\n"
+            f"Bot ID: {self.user.id}\n"
+            f"Login Time: {datetime.date.today()} at {timenow}\n"
+        )
+        for cog in self.bot_cogs:
+            try:
+                self.load_extension(cog)
+            except commands.ExtensionAlreadyLoaded:
+                pass
+            except commands.ExtensionError as error:
+                print(error)
 
     async def wait_for(self, event, *, check=None, timeout=None):
         try:
@@ -191,14 +190,12 @@ class AvimetryBot(commands.AutoShardedBot):
             elif event.lower() in ("reaction_add", "reaction_remove"):
                 def bl_check(*args):
                     return args[1].id not in self.cache.blacklist and check(*args)
-            else:
-                bl_check = check
         except Exception:
             bl_check = check
         return await super().wait_for(event, check=bl_check, timeout=timeout)
 
-    async def get_context(self, message, *, cls=None):
-        return await super().get_context(message, cls=self.context)
+    async def get_context(self, message, *, cls=AvimetryContext):
+        return await super().get_context(message, cls=cls)
 
     async def process_commands(self, message: discord.Message):
         ctx = await self.get_context(message)

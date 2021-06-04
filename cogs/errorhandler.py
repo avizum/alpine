@@ -78,15 +78,22 @@ class ErrorHandler(commands.Cog):
                 return
             not_found_embed = discord.Embed(title="Invalid Command")
             not_found = ctx.invoked_with
+            all_commands = []
+            for cmd in self.avi.commands:
+                try:
+                    await cmd.can_run(ctx)
+                    all_commands.append(cmd.name)
+                except commands.CommandError:
+                    continue
             match = "\n".join(
-                get_close_matches(not_found, [i.name for i in ctx.bot.commands])
+                get_close_matches(not_found, all_commands)
             )
             if match:
                 not_found_embed.description = f'"{not_found}" was not found. Did you mean...\n`{match}`'
                 not_found_embed.set_footer(
                     text=f"Use {ctx.clean_prefix}help to see the whole list of commands."
                 )
-                return await ctx.send(embed=not_found_embed)
+                await ctx.send(embed=not_found_embed)
 
         elif isinstance(error, commands.CommandOnCooldown):
             rate = error.cooldown.rate
@@ -236,7 +243,6 @@ class ErrorHandler(commands.Cog):
                     f"You can check the error status using `{ctx.prefix}error {check['id']}`\n\n"
                     f"Error:```py\n{error}```"
                 )
-                return await ctx.send(embed=error_embed)
             await ctx.send(embed=error_embed)
             await self.error_webhook.send(embed=webhook_error_embed, username="Command Error")
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)

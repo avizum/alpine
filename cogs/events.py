@@ -147,7 +147,7 @@ class BotLogs(commands.Cog):
         self.avi.command_cache.clear()
 
     @clear_cache.before_loop
-    async def before_clear_cahce(self):
+    async def before_clear_cache(self):
         await self.avi.wait_until_ready()
 
 

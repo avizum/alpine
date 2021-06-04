@@ -182,6 +182,12 @@ class Servers(commands.Cog, name="Servers"):
         await ctx.author.add_roles(role, reason="Public testing")
         await ctx.message.add_reaction(self.avi.emoji_dictionary["green_tick"])
 
+    @testing.error
+    async def testing_error(self, ctx: AvimetryContext, error):
+        if isinstance(error, PrivateServer):
+            return
+        raise error
+
 
 def setup(avi):
     avi.add_cog(Servers(avi))

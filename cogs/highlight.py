@@ -1,4 +1,5 @@
 import discord
+import re
 
 from discord.ext import commands
 from utils import AvimetryBot
@@ -10,12 +11,21 @@ class Highlight(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def on_message(self, message: discord.Message):
-        highlight = ["asd", "dsa"]
-        for word in highlight:
-            if word in message.content.lower():
-                await message.channel.send("Highlight word")
-                break
+        if not message.guild:
+            return
+        if message.author.bot:
+            return
+        words = "avi|asd|lol|stupid"
+        match = re.findall(rf"({words}\s*)", message.content, flags=re.IGNORECASE)
+        if match:
+            match_embed = discord.Embed(
+                title="Highlight detected",
+                description=f"In {message.channel.mention}, you were highlighted with the word(s) `{', '.join(match)}`"
+            )
+            match_embed.add_field(name="Message content:", value=message.content)
+            await message.channel.send(embed=match_embed)
+        return
 
 
 def setup(avi: AvimetryBot):
-    return
+    avi.add_cog(Highlight(avi))

@@ -1,5 +1,4 @@
 
-import discord
 from utils import AvimetryBot, AvimetryContext
 from discord.ext import commands
 
@@ -9,8 +8,13 @@ class Testing(commands.Cog):
         self.avi: AvimetryBot = avi
 
     @commands.command()
-    async def message(self, ctx: AvimetryContext, message: discord.Message):
-        await message.reply("asd")
+    async def checks(self, ctx: AvimetryContext):
+        c = self.avi.get_command("ban")
+        for check in c.checks:
+            try:
+                check(ctx)
+            except Exception as e:
+                print(e)
 
 
 def setup(avi: AvimetryBot):

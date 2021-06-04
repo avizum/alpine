@@ -44,6 +44,8 @@ class TopGG(commands.Cog):
             return
         status = discord.Status.online
         game = discord.Game(f"@Avimetry | {len(self.avi.guilds)} Servers")
+        if game == self.avi.activity:
+            return
         await self.avi.change_presence(status=status, activity=game)
 
     @update.before_loop

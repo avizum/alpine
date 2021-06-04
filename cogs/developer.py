@@ -34,9 +34,6 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
     def __init__(self, avi):
         self.avi: AvimetryBot = avi
 
-    def cog_unload(self):
-        self.avi.load_extension("cogs.developer")
-
     def cleanup_code(self, content):
         if content.startswith('```') and content.endswith('```'):
             return '\n'.join(content.split('\n')[1:-1])
@@ -44,7 +41,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
         return content.strip('` \n')
 
     async def cog_check(self, ctx: AvimetryContext):
-        if await self.avi.is_owner(ctx.author) is True:
+        if await self.avi.is_owner(ctx.author):
             return True
         raise commands.NotOwner("Stay away.")
 
@@ -91,10 +88,13 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
         for cog in module:
             try:
                 self.avi.reload_extension(cog)
-                reload_list.append(f'{self.avi.emoji_dictionary["green_tick"]} | {cog}')
             except Exception as e:
                 reload_list.append(f'{self.avi.emoji_dictionary["red_tick"]} | {cog}```{e}```')
-        embed = discord.Embed(title="Reload", description="\n".join(reload_list))
+        if not reload_list:
+            description = "All modules were reloaded successfully"
+        else:
+            description = "\n".join(reload_list)
+        embed = discord.Embed(title="Reload", description=description)
         await ctx.send(embed=embed)
 
     @dev.command(brief="Pulls from GitHub and then reloads all modules")
@@ -113,10 +113,13 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
         for cog in modules:
             try:
                 self.avi.reload_extension(cog)
-                reload_list.append(f'{self.avi.emoji_dictionary["green_tick"]} | {cog}')
             except Exception as e:
                 reload_list.append(f'{self.avi.emoji_dictionary["red_tick"]} | {cog}```{e}```')
-        sync_embed.add_field(name="Reloaded Modules", value="\n".join(reload_list))
+        if not reload_list:
+            value = "All modules were reloaded successfully"
+        else:
+            value = "\n".join(reload_list)
+        sync_embed.add_field(name="Reloaded Modules", value=value)
         await edit_sync.edit(embed=sync_embed)
 
     @dev.command(brief="Reboot the bot")
@@ -243,4 +246,8 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
 
 
 def setup(avi):
+    avi.add_cog(Owner(avi))
+
+
+def teardown(avi):
     avi.add_cog(Owner(avi))

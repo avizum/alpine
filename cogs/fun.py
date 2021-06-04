@@ -252,7 +252,7 @@ class Fun(commands.Cog):
     @commands.cooldown(1, 60, commands.BucketType.member)
     @commands.max_concurrency(1, commands.BucketType.channel)
     @commands.bot_has_permissions(add_reactions=True)
-    async def fun_akinator(self, ctx: AvimetryContext, mode="en", child=True):
+    async def fun_akinator(self, ctx: AvimetryContext, mode="en"):
         bot_perm = ctx.me.permissions_in(ctx.channel)
         perms = True if bot_perm.manage_messages is True else False
         aki_dict = {
@@ -271,15 +271,14 @@ class Fun(commands.Cog):
             description=(
                 "Current Settings:\n"
                 f"Mode: `{mode}`\n"
-                f"Child Mode: {child}\n"
                 "[Here](https://gist.github.com/jbkn/8a5b9887d49a1d2740d0b6ad0176dbdb) are all the options for akinator"
             )
         )
         async with ctx.channel.typing():
             initial_messsage = await ctx.send(embed=akinator_embed)
-            game = await aki_client.start_game(mode, child)
-        for i in aki_react:
-            await initial_messsage.add_reaction(i)
+            game = await aki_client.start_game(mode)
+        for reaction in aki_react:
+            await initial_messsage.add_reaction(reaction)
         await asyncio.sleep(5)
         akinator_embed.set_thumbnail(url="https://i.imgur.com/JMso9Kf.png")
 
