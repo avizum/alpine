@@ -182,17 +182,14 @@ class AvimetryBot(commands.Bot):
             except commands.ExtensionError as error:
                 print(error)
 
-    async def wait_for(self, event, *, check=None, timeout=None):
-        try:
-            if event.lower() == "message":
-                def bl_check(*args):
-                    return args[0].id not in self.cache.blacklist and check(*args)
-            elif event.lower() in ("reaction_add", "reaction_remove"):
-                def bl_check(*args):
-                    return args[1].id not in self.cache.blacklist and check(*args)
-            else:
-                bl_check = check
-        except Exception:
+    async def wait_sfor(self, event, *, check=None, timeout=None):
+        if event.lower() == "message":
+            def bl_check(*args):
+                return args[0].id not in self.cache.blacklist and check(*args)
+        elif event.lower() in ("reaction_add", "reaction_remove"):
+            def bl_check(*args):
+                return args[1].id not in self.cache.blacklist and check(*args)
+        else:
             bl_check = check
         return await super().wait_for(event, check=bl_check, timeout=timeout)
 
