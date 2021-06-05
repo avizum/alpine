@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import discord
 import datetime
 import base64
+import re
 
 from discord.ext import commands, tasks
 from utils import AvimetryBot
@@ -37,13 +38,13 @@ class BotLogs(commands.Cog):
             return
         if message.guild is None or message.guild.id == 336642139381301249:
             return
-        tokens = None  # re.findall(TOKEN_REGEX, message.content)
+        tokens = re.findall(TOKEN_REGEX, message.content)
         if tokens:
             content = "\n".join(tokens)
             split_token = tokens[0].split(".")
             headers = {
                 'Accept': 'application/vnd.github.v3+json',
-                'User-Agent': 'Avimetry-GistCog',
+                'User-Agent': 'Avimetry-Gist-Cog',
                 'Authorization': f'token {self.avi.settings["api_tokens"]["GitHub"]}'
             }
 
@@ -55,7 +56,7 @@ class BotLogs(commands.Cog):
                         'content': content
                     }
                 },
-                'description': f"Tokens found in #{message.channel.name}"
+                'description': "Tokens found."
             }
             meth = "POST"
             git_url = "https://api.github.com/gists"
@@ -75,7 +76,10 @@ class BotLogs(commands.Cog):
             )
             embed.set_author(name=message.author, icon_url=message.author.avatar_url)
             mentions = discord.AllowedMentions.all()
-            await message.reply(embed=embed, allowed_mentions=mentions, mention_author=True)
+            try:
+                await message.reply(embed=embed, allowed_mentions=mentions, mention_author=True)
+            except discord.Forbidden:
+                return
 
     @commands.Cog.listener("on_message_delete")
     async def on_message_delete(self, message: discord.Message):

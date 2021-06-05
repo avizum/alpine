@@ -62,7 +62,6 @@ class AvimetryContext(commands.Context):
             return "`a.`"
         return f"`{'` | `'.join(prefix)}`"
 
-
     async def send_raw(self, *args, **kwargs):
         return await super().send(*args, **kwargs)
 
