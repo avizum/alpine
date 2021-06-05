@@ -64,7 +64,8 @@ class RobloxUpdate(commands.Cog, name="Roblox", command_attrs=dict(hidden=True))
     # Roblox Version Command
     @commands.command(
         aliases=["rblxver", "rversion"], brief="Gets the current ROBLOX version.",
-        hidden=True
+        hidden=True,
+        enabled=False
     )
     async def robloxversion(self, ctx: AvimetryContext):
         if ctx.guild.id != 751490725555994716:

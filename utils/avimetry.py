@@ -190,6 +190,8 @@ class AvimetryBot(commands.Bot):
             elif event.lower() in ("reaction_add", "reaction_remove"):
                 def bl_check(*args):
                     return args[1].id not in self.cache.blacklist and check(*args)
+            else:
+                bl_check = check
         except Exception:
             bl_check = check
         return await super().wait_for(event, check=bl_check, timeout=timeout)

@@ -50,6 +50,10 @@ class AvimetryContext(commands.Context):
         return prefix
 
     @property
+    def content(self):
+        return self.message.content
+
+    @property
     async def get_prefix(self):
         get_prefix = await self.cache.get_guild_settings(self.guild.id)
         if get_prefix:
@@ -57,6 +61,7 @@ class AvimetryContext(commands.Context):
         if not prefix:
             return "`a.`"
         return f"`{'` | `'.join(prefix)}`"
+
 
     async def send_raw(self, *args, **kwargs):
         return await super().send(*args, **kwargs)

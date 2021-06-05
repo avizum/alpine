@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import datetime
-import re
 import base64
 
 from discord.ext import commands, tasks
@@ -38,7 +37,7 @@ class BotLogs(commands.Cog):
             return
         if message.guild is None or message.guild.id == 336642139381301249:
             return
-        tokens = re.findall(TOKEN_REGEX, message.content)
+        tokens = None  # re.findall(TOKEN_REGEX, message.content)
         if tokens:
             content = "\n".join(tokens)
             split_token = tokens[0].split(".")
