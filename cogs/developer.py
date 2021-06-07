@@ -247,7 +247,3 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
 
 def setup(avi):
     avi.add_cog(Owner(avi))
-
-
-def teardown(avi):
-    avi.add_cog(Owner(avi))

@@ -146,27 +146,6 @@ class Settings(commands.Cog):
         await ctx.send(f"{self.map[toggle]} message edit logs")
 
     @commands.group(
-        brief="Verify system configuration for this server",
-        invoke_without_command=True)
-    @commands.has_permissions(administrator=True)
-    @commands.bot_has_permissions(administrator=True)
-    async def verification(self, ctx: AvimetryContext, toggle: bool = None):
-        if toggle is None:
-            return await ctx.send_help("settings verify")
-        await self.avi.config.upsert(
-            {"_id": ctx.guild.id, "verification_gate": toggle}
-        )
-        await ctx.send(f"Set verify system is set to {toggle}")
-
-    @verification.command(
-        brief="Set the role to give when a member finishes verification.")
-    @commands.has_permissions(administrator=True)
-    @commands.bot_has_permissions(administrator=True)
-    async def role(self, ctx: AvimetryContext, role: discord.Role):
-        await self.avi.config.upsert({"_id": ctx.guild.id, "gate_role": role.id})
-        await ctx.send(f"The verify role is set to {role}")
-
-    @commands.group(
         name="join-message",
         invoke_without_command=True
         )

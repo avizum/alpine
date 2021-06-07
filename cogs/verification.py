@@ -40,10 +40,12 @@ class MemberJoin(commands.Cog):
             return
 
         if config["low"] is True:
-            return
-        if config["medium"] is True:
-            return
-        if config["high"] is True:
+            print("doing some other stuff")
+        elif config["medium"] is True:
+            print("Doing stuff")
+        elif config["high"] is True:
+            if config["role_id"] is None:
+                return
             name = "New Members"
             category = discord.utils.get(member.guild.categories, name=name)
             overwrites = {

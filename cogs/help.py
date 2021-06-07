@@ -98,7 +98,7 @@ class HelpEmbeded(commands.HelpCommand):
                 await command.can_run(self.context)
                 usable += 1
             except commands.CommandError:
-                pass
+                continue
         usable = f"Total Commands: {total} | Usable by you here: {usable}"
         embed = discord.Embed(
             title="Help Menu",
