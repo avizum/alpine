@@ -114,9 +114,9 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             message_cache = "Message cache is not enabled"
 
         if discord.version_info >= (1, 5, 0):
-            prescence_intent = f"`presence` intent is `{'enabled' if self.bot.intents.presences else 'disabled'}`"
-            members_intent = f"`members` intent is `{'enabled' if self.bot.intents.members else 'disabled'}`"
-            summary.append(f"{message_cache}, {prescence_intent} and {members_intent}")
+            presence_intent = f"presences `{'enabled' if self.bot.intents.presences else 'disabled'}`"
+            members_intent = f"members `{'enabled' if self.bot.intents.members else 'disabled'}`"
+            summary.append(f"Intents: {presence_intent} and {members_intent}")
         else:
             guild_subs = self.bot._connection.guild_subscriptions
             guild_subscriptions = f"`guild subscriptions` are `{'enabled' if guild_subs else 'disabled'}`"

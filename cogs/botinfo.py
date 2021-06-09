@@ -106,31 +106,34 @@ class BotInfo(commands.Cog, name="Bot Info"):
         invoke_without_command=True,
         brief="Get the invite link for the bot"
     )
-    async def invite(self, ctx: AvimetryContext):
-        invite_embed = discord.Embed(
-            title=f"{self.avi.user.name} Invite",
-            description=(
-                "Invite me to your server! Here is the invite link.\n"
-                f"[Here]({str(discord.utils.oauth_url(self.avi.user.id, discord.Permissions(2147483647)))}) "
-                "is the invite link."
-            ),
-        )
-        invite_embed.set_thumbnail(url=self.avi.user.avatar_url)
-        await ctx.send(embed=invite_embed)
-
-    @invite.command(brief="Get the invite link for a bot in the server.")
-    async def bot(self, ctx: AvimetryContext, bot: discord.Member):
-        bot_invite = discord.Embed()
-        bot_invite.set_thumbnail(url=bot.avatar_url)
-        bot_invite.title = f"{bot.name} Invite"
-        if bot.bot:
-            bot_invite.description = (
-                f"Invite {bot.name} to your server! Here is the invite link.\n"
-                f"Click [here]({str(discord.utils.oauth_url(bot.id, discord.Permissions(2147483647)))}) for the invite!"
+    async def invite(self, ctx: AvimetryContext, bot: discord.Member = None):
+        if bot is None:
+            invite_embed = discord.Embed(
+                title=f"{self.avi.user.name} Invite",
+                description=(
+                    "Invite me to your server! Here is the invite link.\n"
+                    f"[Here]({str(discord.utils.oauth_url(self.avi.user.id, discord.Permissions(2147483647)))}) "
+                    "is the invite link."
+                ),
             )
+            invite_embed.set_thumbnail(url=self.avi.user.avatar_url)
+            await ctx.send(embed=invite_embed)
+        elif bot.bot:
+            invite_embed = discord.Embed(title=f"{bot.name} Invite")
+            try:
+                await self.avi.topgg.get_bot_info(bot.id)
+                invite_embed.description = (
+                    f"Invite {bot.name} to your server! Here is the invite link.\n"
+                    f"[Click here!](https://top.gg/bot/{bot.id})"
+                )
+            except Exception:
+                invite_embed.description = (
+                    f"Invite {bot.name} to your server! Here is the invite link.\n"
+                    f"[Click here!]({str(discord.utils.oauth_url(bot.id, discord.Permissions(2147483647)))})"
+                )
+            await ctx.send(embed=invite_embed)
         else:
-            bot_invite.description = "That is not a bot. Make sure you mention a bot."
-        await ctx.send(embed=bot_invite)
+            await ctx.send("That is not a bot.")
 
     @commands.command(
         aliases=["lc", "linec", "lcount"],

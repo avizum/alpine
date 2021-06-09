@@ -9,20 +9,7 @@ class Testing(commands.Cog):
 
     @commands.command()
     async def checks(self, ctx: AvimetryContext):
-        c = self.avi.get_command("ban")
-        for check in c.checks:
-            try:
-                check(ctx)
-            except Exception as e:
-                print(e)
-
-    @commands.command(aliases=["connect"])
-    async def join(self, ctx):
-        if ctx.author.voice:
-            channel = ctx.message. author. voice.channel
-            await channel.connect()
-        else:
-            await ctx.send("Please join a voice channel")
+        await ctx.send("check")
 
 
 def setup(avi: AvimetryBot):

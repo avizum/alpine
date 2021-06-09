@@ -29,7 +29,7 @@ from utils import AvimetryBot, AvimetryContext, CogConverter
 
 class Owner(commands.Cog, command_attrs={"hidden": True}):
     """
-    Commands for the bot owners.
+    Commands for the bot developers.
     """
     def __init__(self, avi):
         self.avi: AvimetryBot = avi

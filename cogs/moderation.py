@@ -119,15 +119,15 @@ class Moderation(commands.Cog):
         if amount < 1:
             return
         authors = {}
-        async for message in ctx.channel.history(limit=amount):
+        purged = await ctx.channel.purge(limit=amount)
+        for message in purged:
             if message.author not in authors:
                 authors[message.author] = 1
             else:
                 authors[message.author] += 1
         await asyncio.sleep(0.1)
-        await ctx.channel.purge(limit=amount)
         msg = "\n".join(
-            f"{author.mention}: {amount} {'message' if amount==1 else 'messages'}"
+            f"{author.mention}: {amount} {'message' if amount == 1 else 'messages'}"
             for author, amount in authors.items()
         )
 
