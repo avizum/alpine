@@ -62,9 +62,12 @@ class BotLogs(commands.Cog):
             git_url = "https://api.github.com/gists"
             async with self.avi.session.request(meth, git_url, json=data, headers=headers) as out:
                 gist = await out.json()
-                user_bytes = split_token[0].encode()
-                user_id_decoded = base64.b64decode(user_bytes)
-                uid = user_id_decoded.decode("ascii")
+                try:
+                    user_bytes = split_token[0].encode()
+                    user_id_decoded = base64.b64decode(user_bytes)
+                    uid = user_id_decoded.decode("ascii")
+                except Exception:
+                    uid = 0
             embed = discord.Embed(
                 description=(
                     f"Hey {message.author.name},\n"
