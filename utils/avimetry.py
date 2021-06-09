@@ -33,7 +33,6 @@ import logging
 
 from sys import platform
 from discord.ext import commands
-from .context import AvimetryContext
 from .errors import Blacklisted
 from .cache import AvimetryCache
 
@@ -144,8 +143,10 @@ class AvimetryBot(commands.Bot):
             "cogs.verification",
             "utils.context"
         ]
-        with open("config.toml") as f:
-            self.settings = toml.loads(f.read())
+        with open("config.toml") as token:
+            self.settings = toml.loads(token.read())
+        with open("pg_config.toml") as pg:
+            self.pg = toml.loads(pg.read())
 
         api = self.settings["api_tokens"]
         self.topgg = topgg.DBLClient(self, api["TopGG"], autopost_interval=None)
@@ -154,7 +155,7 @@ class AvimetryBot(commands.Bot):
         self.dagpi = asyncdagpi.Client(api["DagpiAPI"])
         self.myst = mystbin.Client()
         self.session = aiohttp.ClientSession()
-        self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
+        self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.pg["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
 
         @self.check
@@ -197,8 +198,8 @@ class AvimetryBot(commands.Bot):
             bl_check = check
         return await super().wait_for(event, check=bl_check, timeout=timeout)
 
-    async def get_context(self, message, *, cls=AvimetryContext):
-        return await super().get_context(message, cls=cls)
+    async def get_context(self, message, *, cls=None):
+        return await super().get_context(message, cls=cls or self.context)
 
     async def process_commands(self, message: discord.Message):
         ctx = await self.get_context(message)

@@ -3,3 +3,4 @@ discord.log
 *__pycache__
 .vscode
 config.toml
+pg_config.toml

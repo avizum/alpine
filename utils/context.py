@@ -21,20 +21,17 @@ import discord
 import datetime
 import contextlib
 import re
-import toml
 
 from discord.ext import commands
 
 
-with open("config.toml") as f:
-    settings = toml.loads(f.read())
-    bot_tokens = (settings["bot_tokens"].values())
-    api_tokens = (settings["api_tokens"].values())
-    tokens = list(bot_tokens)
-    tokens.extend(api_tokens)
-
-
 class AvimetryContext(commands.Context):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.tokens = []
+        self.tokens.extend(self.bot.settings['bot_tokens'].values())
+        self.tokens.extend(self.bot.settings['api_tokens'].values())
+        self.tokens.extend(self.bot.settings['webhooks'].values())
 
     @property
     def cache(self):
@@ -75,7 +72,10 @@ class AvimetryContext(commands.Context):
         await self.send(embed=embed)
 
     async def send(self, content=None, embed: discord.Embed = None, **kwargs):
-        content = str(content) if content is not None else None
+        if content:
+            for token in self.tokens:
+                content = content.replace(token, "[Config omitted]")
+
         if not self.command:
             self.command = self.bot.get_command("_")
         if content and not embed:

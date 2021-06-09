@@ -115,11 +115,14 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(manage_messages=True)
     @commands.cooldown(5, 30, commands.BucketType.member)
     async def purge(self, ctx: AvimetryContext, amount: int):
-        await ctx.message.delete()
         if amount < 1:
             return
         authors = {}
-        purged = await ctx.channel.purge(limit=amount)
+
+        def check(message: discord.Message):
+            return not message.pinned
+
+        purged = await ctx.channel.purge(limit=amount, check=check, before=ctx.message)
         for message in purged:
             if message.author not in authors:
                 authors[message.author] = 1
@@ -156,32 +159,30 @@ class Moderation(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
     async def cleanup(self, ctx: AvimetryContext, amount=15):
-        try:
-            await ctx.message.delete()
-        except Exception:
-            pass
         authors = {}
-        messages = []
-        async for message in ctx.channel.history(limit=amount*2):
-            check_prefix = await self.avi.get_prefix(message)
-            prefixes = tuple(check_prefix)
-            if message.author == self.avi.user or message.content.lower().startswith(prefixes):
-                messages.append(message)
-                if message.author not in authors:
-                    authors[message.author] = 1
-                else:
-                    authors[message.author] += 1
-                if len(messages) == amount:
-                    break
-        await ctx.channel.delete_messages(messages)
+        prefixes = tuple(await self.avi.get_prefix(ctx.message))
+
+        def check(message: discord.Message):
+            return message.content.startswith(prefixes) or message.author == self.avi.user
+
+        purged = await ctx.channel.purge(limit=amount, check=check, before=ctx.message)
+
+        authors = {}
+        for message in purged:
+            if message.author not in authors:
+                authors[message.author] = 1
+            else:
+                authors[message.author] += 1
+        await asyncio.sleep(0.1)
         msg = "\n".join(
-            f"{author.mention}: {amount} {'message' if amount==1 else 'messages'}"
-            for author, amount in authors.items())
+            f"{author.mention}: {amount} {'message' if amount == 1 else 'messages'}"
+            for author, amount in authors.items()
+        )
 
         pe = discord.Embed(
             title="Affected Messages",
             description=f"{msg}")
-        await ctx.delete(embed=pe)
+        await ctx.send(embed=pe)
 
     @commands.command(
         brief="Locks the mentioned channel.",
