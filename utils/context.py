@@ -73,9 +73,9 @@ class AvimetryContext(commands.Context):
 
     async def send(self, content=None, embed: discord.Embed = None, **kwargs):
         if content:
-            cont = str(content)
+            content = str(content)
             for token in self.tokens:
-                content = cont.replace(token, "[Config omitted]")
+                content = content.replace(token, "[Config omitted]")
 
         if not self.command:
             self.command = self.bot.get_command("_")
