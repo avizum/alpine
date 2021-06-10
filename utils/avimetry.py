@@ -87,7 +87,15 @@ allowed_mentions = discord.AllowedMentions(
     everyone=False, users=False,
     roles=True, replied_user=False
 )
-intents = discord.Intents.all()
+intents = discord.Intents(
+    bans=True,
+    emojis=True,
+    guilds=True,
+    messages=True,
+    members=True,
+    reactions=True,
+    webhooks=True
+)
 activity = discord.Game("Loading...")
 
 

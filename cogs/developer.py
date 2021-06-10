@@ -64,7 +64,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
             except Exception as e:
                 reload_list.append(f'{self.avi.emoji_dictionary["red_tick"]} | {cog}```{e}```')
         embed = discord.Embed(title="Load", description="\n".join(reload_list))
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, delete_after=15)
 
     @dev.command(
         brief="Unload module(s)", aliases=["u"]
@@ -78,7 +78,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
             except Exception as e:
                 unload_list.append(f'{self.avi.emoji_dictionary["red_tick"]} | {cog}```{e}```')
         embed = discord.Embed(title="Unload", description="\n".join(unload_list))
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, delete_after=15)
 
     @dev.command(
         brief="Reload module(s)", aliases=["r"]
@@ -88,14 +88,12 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
         for cog in module:
             try:
                 self.avi.reload_extension(cog)
+                reload_list.append(f'{self.avi.emoji_dictionary["green_tick"]} | {cog}')
             except Exception as e:
                 reload_list.append(f'{self.avi.emoji_dictionary["red_tick"]} | {cog}```{e}```')
-        if not reload_list:
-            description = "All modules were reloaded successfully"
-        else:
-            description = "\n".join(reload_list)
+        description = "\n".join(reload_list)
         embed = discord.Embed(title="Reload", description=description)
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, delete_after=15)
 
     @dev.command(brief="Pulls from GitHub and then reloads all modules")
     async def sync(self, ctx: AvimetryContext):
@@ -120,7 +118,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
         else:
             value = "\n".join(reload_list)
         sync_embed.add_field(name="Reloaded Modules", value=value)
-        await edit_sync.edit(embed=sync_embed)
+        await edit_sync.edit(embed=sync_embed, delete_after=15)
 
     @dev.command(brief="Reboot the bot")
     async def reboot(self, ctx: AvimetryContext):
