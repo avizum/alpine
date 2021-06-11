@@ -447,6 +447,13 @@ class Settings(commands.Cog):
     @commands.group()
     @commands.has_permissions(manage_guild=True)
     async def screening(self, ctx: AvimetryContext, toggle: bool = None):
+        if toggle is None:
+            embed = discord.Embed(description=(
+                f"Role: {ctx.cache.verification[ctx.guild.id]['high']}\n"
+                f"Toggle: {ctx.cache.verification[ctx.guild.id]['role']}"
+            )
+        )
+            return await ctx.send()
         query = (
             """
             INSERT INTO verification (guild_id, high)
