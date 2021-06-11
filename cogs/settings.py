@@ -444,21 +444,35 @@ class Settings(commands.Cog):
             embed.description = "Cancelled. Goodbye."
             return await wait_message.reply(embed=embed)
 
-    @commands.command()
+    @commands.group()
     @commands.has_permissions(manage_guild=True)
-    async def screening(self, ctx: AvimetryContext, toggle: bool, role: discord.Role = None):
+    async def screening(self, ctx: AvimetryContext, toggle: bool = None):
         query = (
             """
-            INSERT INTO verification (guild_id, high, role_id)
-            VALUES ($1, $2, $3)
+            INSERT INTO verification (guild_id, high)
+            VALUES ($1, $2)
             ON CONFLICT (guild_id) DO
-            UPDATE SET guild_id = $1, high = $2, role_id = $3
+            UPDATE SET guild_id = $1, high = $2
             """
         )
-        await self.avi.pool.execute(query, ctx.guild.id, toggle, role.id)
+        await self.avi.pool.execute(query, ctx.guild.id, toggle)
         ctx.cache.verification[ctx.guild.id]["high"] = toggle
-        ctx.cache.verification[ctx.guild.id]["role_id"] = role.id
-        return await ctx.send(f"Set member screening to `{toggle}` and role to `{role.name}`")
+        return await ctx.send(f"{self.map[toggle]} member screening")
+
+    @screening.command(name="role")
+    @commands.has_permissions(manage_guild=True)
+    async def screening_role(self, ctx: AvimetryContext, role: discord.Role):
+        query = (
+            """
+            INSERT INTO VERIFICATION (guild_id, role_id)
+            VALUES ($1, $2)
+            ON CONFLICT (guild_id) DO
+            UPDATE SET role_id = $2
+            """
+        )
+        await self.avi.pool.execute(query, ctx.guild.id, role.id)
+        ctx.cache.verifiction[ctx.guild.id]["role"] = role.id
+        return await ctx.send(f"Set screening role to `{role.mention}.`")
 
 
 def setup(avi):
