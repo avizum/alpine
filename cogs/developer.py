@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import typing
 import discord
 import datetime
-import subprocess
 import asyncio
 
 from discord.ext import commands
@@ -101,9 +100,19 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
             title="Syncing with GitHub", description="Please Wait..."
         )
         edit_sync = await ctx.send(embed=sync_embed)
-        await asyncio.sleep(2)
-        output = [f'```{subprocess.getoutput("git pull")}```']
-        sync_embed.description = "\n".join(output)
+        proc = await asyncio.create_subprocess_shell(
+            'git pull',
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE)
+
+        stdout, stderr = await proc.communicate()
+
+        if stdout:
+            output = f'[stdout]\n{stdout.decode()}'
+        elif stderr:
+            output = f'[stderr]\n{stderr.decode()}'
+
+        sync_embed.description = f"```bash\n{output}\n```"
         sync_embed.timestamp = datetime.datetime.utcnow()
         sync_embed.title = "Synced With GitHub"
         modules = await CogConverter().convert(ctx, "~")
