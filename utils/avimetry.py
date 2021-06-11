@@ -130,6 +130,7 @@ class AvimetryBot(commands.Bot):
             "status_streaming": '<:status_streaming:810683604812169276>'
         }
         self.bot_cogs = [
+            "cogs.animals"
             "cogs.botinfo",
             "cogs.developer",
             "cogs.errorhandler",
