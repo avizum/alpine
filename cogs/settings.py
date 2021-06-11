@@ -450,10 +450,10 @@ class Settings(commands.Cog):
         if toggle is None:
             embed = discord.Embed(description=(
                 f"Role: {ctx.cache.verification[ctx.guild.id]['high']}\n"
-                f"Toggle: {ctx.cache.verification[ctx.guild.id]['role']}"
+                f"Toggle: {ctx.cache.verification[ctx.guild.id]['role_id']}"
+                )
             )
-        )
-            return await ctx.send()
+            return await ctx.send(embed=embed)
         query = (
             """
             INSERT INTO verification (guild_id, high)
@@ -478,7 +478,7 @@ class Settings(commands.Cog):
             """
         )
         await self.avi.pool.execute(query, ctx.guild.id, role.id)
-        ctx.cache.verifiction[ctx.guild.id]["role"] = role.id
+        ctx.cache.verifiction[ctx.guild.id]["role_id"] = role.id
         return await ctx.send(f"Set screening role to `{role.mention}.`")
 
 
