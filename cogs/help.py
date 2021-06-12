@@ -117,7 +117,7 @@ class HelpEmbeded(commands.HelpCommand):
             joiner = "\n"
         embed.add_field(
             name="Modules",
-            value=f"{joiner.join(modules_list)}", inline=True
+            value=f"{joiner.join(modules_list)}", inline=False
         )
         embed.set_footer(text=self.gending_note(), icon_url=str(self.context.author.avatar_url))
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
@@ -126,17 +126,15 @@ class HelpEmbeded(commands.HelpCommand):
     async def send_cog_help(self, cog):
         embed = discord.Embed(
             title=f"{cog.qualified_name.title()} Commands",
-            description=cog.description or "No description was provided",
+            description=cog.description or "Module description is not provided",
         )
-        if cog.description:
-            embed.description = cog.description
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
         command_list = [command.name for command in filtered]
-        split_list = [command_list[i:i+4]for i in range(0, len(command_list), 4)]
+        split_list = [command_list[item:item+4] for item in range(0, len(command_list), 4)]
         value = [", ".join(lists) for lists in split_list]
         embed.add_field(
             name=f"Commands in {cog.qualified_name.title()}",
-            value=",\n".join(value) or None,
+            value=",\n".join(value) or "No commands.",
             inline=False,
         )
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
@@ -150,10 +148,11 @@ class HelpEmbeded(commands.HelpCommand):
         embed.add_field(
             name="Base command usage",
             value=f"`{self.clean_prefix}{group.qualified_name} {group.signature}`")
-        embed.add_field(
-            name="Command Aliases",
-            value=", ".join(group.aliases) or None,
-            inline=False)
+        if group.aliases:
+            embed.add_field(
+                name="Command Aliases",
+                value=", ".join(group.aliases),
+                inline=False)
         try:
             can_run_check = await group.can_run(self.context)
             if can_run_check:
@@ -170,9 +169,11 @@ class HelpEmbeded(commands.HelpCommand):
                 f"User Permissions: `{await self.get_user_perms(group)}`"
             ),
             inline=False)
-        embed.add_field(
-            name="Cooldown",
-            value=self.get_cooldown(group))
+        cooldown = self.get_cooldown(group)
+        if cooldown:
+            embed.add_field(
+                name="Cooldown",
+                value=cooldown)
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
             group_commands = [command.name for command in filtered]
@@ -193,14 +194,15 @@ class HelpEmbeded(commands.HelpCommand):
         embed.add_field(
             name="Command Usage",
             value=f"`{self.clean_prefix}{command.name} {command.signature}`")
-        embed.add_field(
-            name="Command Aliases",
-            value=", ".join(command.aliases) or None,
-            inline=False)
+        if command.aliases:
+            embed.add_field(
+                name="Command Aliases",
+                value=", ".join(command.aliases),
+                inline=False)
         embed.add_field(
             name="Description",
-            value=command.short_doc or None,
-            inline=True)
+            value=command.short_doc or "No help was provided.",
+            inline=False)
         try:
             can_run = await self.avi.can_run(self.ctx)
             print(can_run)
@@ -221,9 +223,11 @@ class HelpEmbeded(commands.HelpCommand):
                 f"Bot Permissions: `{await self.get_bot_perms(command)}`\n"
                 f"User Permissions: `{await self.get_user_perms(command)}`"),
             inline=False)
-        embed.add_field(
-            name="Cooldown",
-            value=self.get_cooldown(command))
+        cooldown = self.get_cooldown(command)
+        if cooldown:
+            embed.add_field(
+                name="Cooldown",
+                value=cooldown)
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
         embed.set_footer(text=self.gending_note())
         await self.get_destination().send(embed=embed)
