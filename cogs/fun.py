@@ -263,7 +263,7 @@ class Fun(commands.Cog):
             "<:Back:815854941083664454>": "back",
             "<:Stop:815859174667452426>": "stop"
         }
-        aki_react = [emoji for emoji in aki_dict]
+        aki_react = list(aki_dict)
         aki_client = Akinator()
         akinator_embed = discord.Embed(
             title="Akinator",
