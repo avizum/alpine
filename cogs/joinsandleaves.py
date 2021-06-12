@@ -108,7 +108,7 @@ class JoinsAndLeaves(commands.Cog):
         }
         message = parser.parse(join_message, env=env)
         final = await self.convert(message)
-        if type(final) == discord.Embed:
+        if type(final) is discord.Embed:
             return await join_channel.send(embed=final)
         return await join_channel.send(final)
 
@@ -128,7 +128,7 @@ class JoinsAndLeaves(commands.Cog):
         }
         message = parser.parse(leave_message, env=env)
         final = await self.convert(message)
-        if type(final) == discord.Embed:
+        if type(final) is discord.Embed:
             return await leave_channel.send(embed=final)
         return await leave_channel.send(final)
 

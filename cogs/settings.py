@@ -196,7 +196,7 @@ class Settings(commands.Cog):
     async def join_message_set(self, ctx: AvimetryContext, *, message: str):
         conf_message = "Does this look good to you?"
         thing = await preview_message(message, ctx)
-        if type(thing) == discord.Embed:
+        if type(thing) is discord.Embed:
             conf = await ctx.confirm(conf_message, embed=thing, raw=True)
         else:
             conf = await ctx.confirm(f"{conf_message}\n\n{thing}", raw=True)
@@ -276,7 +276,7 @@ class Settings(commands.Cog):
             message = wait_message.content
             conf_message = "Does this look good to you?"
             preview = await preview_message(message, ctx)
-            if type(preview) == discord.Embed:
+            if type(preview) is discord.Embed:
                 conf = await ctx.confirm(conf_message, embed=preview, raw=True)
             else:
                 conf = await ctx.confirm(f"{conf_message}\n=====\n{preview}", raw=True)
@@ -342,7 +342,7 @@ class Settings(commands.Cog):
     async def leave_message_set(self, ctx: AvimetryContext, *, message: str):
         conf_message = "Does this look good to you?"
         thing = await preview_message(message, ctx)
-        if type(thing) == discord.Embed:
+        if type(thing) is discord.Embed:
             conf = await ctx.confirm(conf_message, embed=thing, raw=True)
         else:
             conf = await ctx.confirm(f"{conf_message}\n\n{thing}", raw=True)
@@ -422,7 +422,7 @@ class Settings(commands.Cog):
             message = wait_message.content
             conf_message = "Does this look good to you?"
             preview = await preview_message(message, ctx)
-            if type(preview) == discord.Embed:
+            if type(preview) is discord.Embed:
                 conf = await ctx.confirm(conf_message, embed=preview, raw=True)
             else:
                 conf = await ctx.confirm(f"{conf_message}\n=====\n{preview}", raw=True)
