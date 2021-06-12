@@ -150,7 +150,6 @@ class AvimetryContext(commands.Context):
             reaction, user = await self.bot.wait_for('reaction_add', check=check, timeout=timeout)
         except asyncio.TimeoutError:
             confirm = False
-            pass
         else:
             if str(reaction.emoji) == yes_no[0]:
                 confirm = True
