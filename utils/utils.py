@@ -25,8 +25,7 @@ def format_string(number, value):
     """
     if number == 1:
         return f"{number} {value}"
-    else:
-        return f"{number} {value}s"
+    return f"{number} {value}s"
 
 
 def format_list(list):

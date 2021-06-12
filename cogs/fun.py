@@ -381,7 +381,7 @@ class Fun(commands.Cog):
     async def ship(self, ctx: AvimetryContext, person1: discord.Member, person2: discord.Member):
         if person1.id == 750135653638865017 or person2.id == 750135653638865017:
             return await ctx.send(f"{person1.mention} and {person2.mention} are 0% compatible with each other")
-        elif person1 == person2:
+        if person1 == person2:
             return await ctx.send("That's not how that works")
         percent = random.randint(0, 100)
         await ctx.send(f"{person1.mention} and {person2.mention} are {percent}% compatible with each other")
@@ -444,7 +444,7 @@ class Fun(commands.Cog):
         async with self.avi.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
             if content.status == 404:
                 return await ctx.send("This subreddit does not exist. Please check your spelling and try again.")
-            elif content.status != 200:
+            if content.status != 200:
                 return await ctx.send("There has been a problem at Reddit. Please try again later.")
             stuff = await content.json()
         get_data = stuff["data"]["children"]

@@ -284,11 +284,10 @@ class Meta(commands.Cog):
     async def redirectcheck_error(self, ctx: AvimetryContext, error):
         if isinstance(error, aiohttp.InvalidURL):
             return await ctx.send("This is not a valid url. Make sure you start links with `http://` or `https://`.")
-        elif isinstance(error, aiohttp.ClientConnectorError):
+        if isinstance(error, aiohttp.ClientConnectorError):
             return await ctx.send("I wasn't able to connect to this website.")
-        else:
-            await ctx.send("An error occured while checking the link, Please try another link or try again later.")
-            raise error
+        await ctx.send("An error occured while checking the link, Please try another link or try again later.")
+        raise error
 
     @commands.command(hidden=True)
     @commands.is_owner()

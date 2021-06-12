@@ -91,11 +91,11 @@ class BotLogs(commands.Cog):
         thing = self.avi.cache.logging.get(message.guild.id)
         if not thing:
             return
-        elif thing["enabled"] is not True:
+        if thing["enabled"] is not True:
             return
-        elif thing["message_delete"] is False:
+        if thing["message_delete"] is False:
             return
-        elif message.author == self.avi.user or message.author.bot:
+        if message.author == self.avi.user or message.author.bot:
             return
         embed = discord.Embed(
             title="Message Delete", timestamp=datetime.datetime.utcnow(),
@@ -127,13 +127,13 @@ class BotLogs(commands.Cog):
         thing = self.avi.cache.logging.get(before.guild.id)
         if not thing:
             return
-        elif thing["enabled"] is not True:
+        if thing["enabled"] is not True:
             return
-        elif thing["message_edit"] is False:
+        if thing["message_edit"] is False:
             return
-        elif before.author == self.avi.user or before.author.bot:
+        if before.author == self.avi.user or before.author.bot:
             return
-        elif before.content == after.content:
+        if before.content == after.content:
             return
         bef_con = f"{str(before.content[:1017])}..." if len(before.content) > 1024 else before.content
         aft_con = f"{str(after.content[:1017])}..." if len(after.content) > 1024 else after.content
