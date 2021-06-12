@@ -86,29 +86,28 @@ class Fun(commands.Cog):
     async def kill(self, ctx: AvimetryContext, member: discord.Member):
         if member == self.avi.user or member.bot:
             await ctx.send("Nope.")
+        elif member == ctx.author:
+            await ctx.send("You tried to shoot yourself in the head, but you couldn't because I won't let you :)")
         else:
-            if member == ctx.author:
-                await ctx.send("You tried to shoot yourself in the head, but you couldn't because I won't let you :)")
-            else:
-                author = ctx.author.mention
-                member = member.mention
-                kill_response = [
-                    f"{author} killed {member}.",
-                    f"{author} murdered {member} with a machine gun.",
-                    f"{author} accidentally shot themselves in the face while trying to load the gun.",
-                    f"{author} died while summoning a demon to kill {member}",
-                    f"{member} summoned a demon to kill {author}.",
-                    f"{author} was caught by the police because he posted his plans to kill {member}",
-                    f"{author} hired a hitman to kill {member}.",
-                    f"{author} shot {member}. While reloading the gun, {author} shot themselves on the head.",
-                    f"{author} kidnapped {member} and chopped their head off with a guillotine",
-                    f"{author} sniped {member} at the store.",
-                    f"{author} tried to poison {member} but {author} put the poison in their drink.",
-                    f"{author} died whilst fighting {member}.",
-                    f"{member} was stoned to death by {author}.",
-                    f"{member} was almost killed by {author} but {member} took the gun and shot {author}",
-                ]
-                await ctx.send(f"{random.choice(kill_response)}")
+            author = ctx.author.mention
+            member = member.mention
+            kill_response = [
+                f"{author} killed {member}.",
+                f"{author} murdered {member} with a machine gun.",
+                f"{author} accidentally shot themselves in the face while trying to load the gun.",
+                f"{author} died while summoning a demon to kill {member}",
+                f"{member} summoned a demon to kill {author}.",
+                f"{author} was caught by the police because he posted his plans to kill {member}",
+                f"{author} hired a hitman to kill {member}.",
+                f"{author} shot {member}. While reloading the gun, {author} shot themselves on the head.",
+                f"{author} kidnapped {member} and chopped their head off with a guillotine",
+                f"{author} sniped {member} at the store.",
+                f"{author} tried to poison {member} but {author} put the poison in their drink.",
+                f"{author} died whilst fighting {member}.",
+                f"{member} was stoned to death by {author}.",
+                f"{member} was almost killed by {author} but {member} took the gun and shot {author}",
+            ]
+            await ctx.send(f"{random.choice(kill_response)}")
 
     @commands.command(brief="Makes me say a message")
     @commands.cooldown(1, 120, commands.BucketType.member)

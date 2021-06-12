@@ -48,6 +48,14 @@ class Animals(commands.Cog):
     async def kangaroo(self, ctx: AvimetryContext):
         await self.do_animal(ctx, "kangaroo")
 
+    @commands.command()
+    async def duck(self, ctx: AvimetryContext):
+        async with self.avi.session.get("https://random-d.uk/api/v2/random") as resp:
+            image = await resp.json()
+        embed = discord.Embed(title="Here is a duck")
+        embed.set_image(url=image['url'])
+        await ctx.send(embed=embed)
+
 
 def setup(avi: AvimetryBot):
     avi.add_cog(Animals(avi))

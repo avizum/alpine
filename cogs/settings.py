@@ -449,8 +449,8 @@ class Settings(commands.Cog):
     async def screening(self, ctx: AvimetryContext, toggle: bool = None):
         if toggle is None:
             embed = discord.Embed(description=(
-                f"Role: {ctx.cache.verification[ctx.guild.id]['high']}\n"
-                f"Toggle: {ctx.cache.verification[ctx.guild.id]['role_id']}"
+                f"Role: {ctx.cache.verification[ctx.guild.id]['role_id']}\n"
+                f"Toggle: {ctx.cache.verification[ctx.guild.id]['high']}"
                 )
             )
             return await ctx.send(embed=embed)
