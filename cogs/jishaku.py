@@ -127,7 +127,6 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
         jishaku_embed = discord.Embed(description="\n".join(summary))
         await ctx.send(embed=jishaku_embed)
-    pass
 
 
 def setup(avi: AvimetryBot):
