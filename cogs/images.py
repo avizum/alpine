@@ -45,8 +45,6 @@ class Image(commands.Cog, name="Images"):
                 image = img.url
             else:
                 image = str(ctx.author.avatar_url_as(format="png", static_format="png", size=1024))
-        else:
-            image = image
         async with ctx.channel.typing():
             image = await self.avi.dagpi.image_process(feature, image)
         return image
@@ -60,8 +58,6 @@ class Image(commands.Cog, name="Images"):
                 image = img.url
             else:
                 image = str(ctx.author.avatar_url_as(format="png", static_format="png", size=1024))
-        else:
-            image = image
         image = await method(argument)
         file = discord.File(fp=image, filename=f"{ctx.command.name}.{'gif' if gif is True else 'png'}")
         return file

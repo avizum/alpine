@@ -25,6 +25,7 @@ import inspect
 import os
 
 from discord.ext import commands
+from topgg import NotFound
 from utils import AvimetryContext, AvimetryBot, Timer
 
 
@@ -40,8 +41,9 @@ class BotInfo(commands.Cog, name="Bot Info"):
         ctx = await self.avi.get_context(message, cls=AvimetryContext)
         if message.author == self.avi.user:
             return
-        if message.content.lower == ((f"<@{self.avi.user.id}>", f"<@!{self.avi.user.id}>")):
+        if message.content == self.avi.user.mention:
             command = self.avi.get_command("prefix")
+            ctx.command = command
             await command(ctx)
 
     @commands.command()
@@ -126,7 +128,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
                     f"Invite {bot.name} to your server! Here is the invite link.\n"
                     f"[Click here!](https://top.gg/bot/{bot.id})"
                 )
-            except Exception:
+            except NotFound:
                 invite_embed.description = (
                     f"Invite {bot.name} to your server! Here is the invite link.\n"
                     f"[Click here!]({str(discord.utils.oauth_url(bot.id, discord.Permissions(2147483647)))})"

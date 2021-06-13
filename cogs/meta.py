@@ -146,7 +146,7 @@ class Meta(commands.Cog):
                 value=userroles,
                 inline=False,
             )
-            if member.public_flags:
+            if member.public_flags.value > 0:
                 flags = [
                     key.replace("_", " ").title()
                     for key, val in member.public_flags

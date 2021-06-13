@@ -379,7 +379,7 @@ class Fun(commands.Cog):
         brief="Check if a person is compatible with another person."
     )
     async def ship(self, ctx: AvimetryContext, person1: discord.Member, person2: discord.Member):
-        if person1.id == 750135653638865017 or person2.id == 750135653638865017:
+        if 750135653638865017 in (person1.id, person2.id):
             return await ctx.send(f"{person1.mention} and {person2.mention} are 0% compatible with each other")
         if person1 == person2:
             return await ctx.send("That's not how that works")
