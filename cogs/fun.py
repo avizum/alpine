@@ -353,7 +353,7 @@ class Fun(commands.Cog):
         def yes_no_check(reaction, user):
             return (
                 reaction.message.id == initial_messsage.id and
-                (reaction.emoji) in ["<:greentick:777096731438874634>", "<:redtick:777096756865269760>"] and
+                str(reaction.emoji) in ["<:greentick:777096731438874634>", "<:redtick:777096756865269760>"] and
                 user != self.avi.user and
                 user == ctx.author
             )
@@ -625,6 +625,21 @@ class Fun(commands.Cog):
             )
             embed.set_footer(text="No need to thank me.")
             await ctx.send(embed=embed)
+
+    @commands.command()
+    async def clap(self, ctx: AvimetryContext, *, words):
+        input = words.split(" ")
+        output = f"👏 {' 👏 '.join(input)} 👏"
+        await ctx.send(output)
+
+    @commands.command()
+    async def recursion(self, ctx: AvimetryContext):
+        embed = discord.Embed(
+            title="Invalid Command",
+            description='"recursion" was not found. Did you mean...\n`recursion`'
+        )
+        embed.set_footer(text=f'Use {ctx.prefix}help to see the whole list of commands.')
+        await ctx.send(embed=embed)
 
 
 def setup(avi):

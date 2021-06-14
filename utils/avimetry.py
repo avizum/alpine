@@ -108,6 +108,7 @@ class AvimetryBot(commands.Bot):
             allowed_mentions=allowed_mentions,
             activity=activity,
             intents=intents,
+            status=discord.Status.idle,
             strip_after_prefix=True,
             chunk_guilds_at_startup=True
         )

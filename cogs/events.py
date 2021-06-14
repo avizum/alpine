@@ -156,6 +156,11 @@ class BotLogs(commands.Cog):
     async def before_clear_cache(self):
         await self.avi.wait_until_ready()
 
+    @commands.Cog.listener("on_reaction_add")
+    async def on_react(self, reaction, member):
+        print(reaction)
+        print(member)
+
 
 def setup(avi):
     avi.add_cog(BotLogs(avi))

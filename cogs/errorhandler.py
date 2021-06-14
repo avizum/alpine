@@ -50,6 +50,7 @@ class ErrorHandler(commands.Cog):
 
         reinvoke = (
             commands.CommandOnCooldown,
+            commands.NoPrivateMessage,
             commands.MaxConcurrencyReached,
             commands.MissingAnyRole,
             commands.MissingPermissions,
