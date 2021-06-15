@@ -68,7 +68,7 @@ class Meta(commands.Cog):
         embed.set_footer(text=f"Poll from: {str(ctx.author)}")
         if ctx.guild.id == 751490725555994716:
             embed.color = ctx.author.color
-            channel = discord.utils.get(ctx.guild.channels, id=774075297142013972)
+            channel = discord.utils.get(ctx.guild.channels, id=853767310736359444)
             react_message = await channel.send(embed=embed)
         else:
             react_message = await ctx.send(embed=embed)

@@ -85,8 +85,8 @@ async def get_prefix(avi: "AvimetryBot", message: discord.Message):
 
 allowed_mentions = discord.AllowedMentions(
     everyone=False, users=False,
-    roles=True, replied_user=False
-)
+    roles=True, replied_user=False)
+
 intents = discord.Intents(
     bans=True,
     emojis=True,
@@ -94,8 +94,8 @@ intents = discord.Intents(
     messages=True,
     members=True,
     reactions=True,
-    webhooks=True
-)
+    webhooks=True)
+
 activity = discord.Game("Loading...")
 
 
