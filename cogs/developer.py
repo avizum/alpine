@@ -1,5 +1,5 @@
 """
-Commands for me and other owners
+Commands for developers
 Copyright (C) 2021 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -60,7 +60,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
             try:
                 self.avi.load_extension(cog)
                 reload_list.append(f'{self.avi.emoji_dictionary["green_tick"]} | {cog}')
-            except Exception as e:
+            except commands.ExtensionError as e:
                 reload_list.append(f'{self.avi.emoji_dictionary["red_tick"]} | {cog}```{e}```')
         embed = discord.Embed(title="Load", description="\n".join(reload_list))
         await ctx.send(embed=embed, delete_after=15)
@@ -74,7 +74,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
             try:
                 self.avi.unload_extension(cog)
                 unload_list.append(f'{self.avi.emoji_dictionary["green_tick"]} | {cog}')
-            except Exception as e:
+            except commands.ExtensionError as e:
                 unload_list.append(f'{self.avi.emoji_dictionary["red_tick"]} | {cog}```{e}```')
         embed = discord.Embed(title="Unload", description="\n".join(unload_list))
         await ctx.send(embed=embed, delete_after=15)
@@ -88,7 +88,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
             try:
                 self.avi.reload_extension(cog)
                 reload_list.append(f'{self.avi.emoji_dictionary["green_tick"]} | {cog}')
-            except Exception as e:
+            except commands.ExtensionError as e:
                 reload_list.append(f'{self.avi.emoji_dictionary["red_tick"]} | {cog}```{e}```')
         description = "\n".join(reload_list)
         embed = discord.Embed(title="Reload", description=description)
@@ -120,7 +120,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
         for cog in modules:
             try:
                 self.avi.reload_extension(cog)
-            except Exception as e:
+            except commands.ExtensionError as e:
                 reload_list.append(f'{self.avi.emoji_dictionary["red_tick"]} | {cog}```{e}```')
         if not reload_list:
             value = "All modules were reloaded successfully"
@@ -176,7 +176,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
         try:
             ctx.cache.blacklist[user.id]
             return await ctx.send(f"{user} is already blacklisted.")
-        except Exception:
+        except commands.ExtensionError:
             query = "INSERT INTO blacklist VALUES ($1, $2)"
             await self.avi.pool.execute(query, user.id, reason)
             ctx.cache.blacklist[user.id] = reason
@@ -211,7 +211,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
     async def blacklist_remove(self, ctx: AvimetryContext, user: typing.Union[discord.User, discord.Member], *, reason):
         try:
             ctx.cache.blacklist[user.id]
-        except Exception:
+        except commands.ExtensionError:
             return await ctx.send(f"{user} is not blacklisted")
         query = "DELETE FROM blacklist WHERE user_id=$1"
         await self.avi.pool.execute(query, user.id)
@@ -240,7 +240,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
             if message.author.id == ctx.bot.user.id:
                 try:
                     await message.delete()
-                except Exception:
+                except commands.ExtensionError:
                     pass
                 deleted += 1
                 if deleted >= amount:
@@ -249,7 +249,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
 
     @dev.command()
     async def errors(self, ctx: AvimetryContext):
-        raise Exception
+        raise commands.ExtensionError
 
 
 def setup(avi):

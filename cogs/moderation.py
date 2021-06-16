@@ -240,6 +240,7 @@ class Moderation(commands.Cog):
         await ctx.send_help("role")
 
     @role.command(brief="Give a role to a member.")
+    @commands.has_permissions(manage_roles=True)
     async def add(self, ctx: AvimetryContext, member: discord.Member, role: discord.Role):
         await member.add_roles(role)
         ra = discord.Embed()
@@ -250,6 +251,7 @@ class Moderation(commands.Cog):
         await ctx.send(embed=ra)
 
     @role.command(brief="Remove a role from a member.")
+    @commands.has_permissions(manage_roles=True)
     async def remove(self, ctx: AvimetryContext, member: discord.Member, role: discord.Role):
         await member.remove_roles(role)
         rr = discord.Embed()
