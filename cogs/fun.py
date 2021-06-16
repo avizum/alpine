@@ -276,7 +276,6 @@ class Fun(commands.Cog):
         for reaction in aki_react:
             await initial_messsage.add_reaction(reaction)
         await asyncio.sleep(5)
-        akinator_embed.set_thumbnail(url="https://i.imgur.com/JMso9Kf.png")
 
         while aki_client.progression <= 80:
             akinator_embed.description = game
@@ -304,7 +303,7 @@ class Fun(commands.Cog):
                     "Akinator session closed because you took too long to answer."
                 )
                 ended = True
-                akinator_embed.set_thumbnail(url=discord.Embed.Empty)
+
                 await initial_messsage.edit(embed=akinator_embed)
                 break
             else:
@@ -312,7 +311,6 @@ class Fun(commands.Cog):
                 if ans == "stop":
                     ended = True
                     akinator_embed.description = "Akinator session stopped."
-                    akinator_embed.set_thumbnail(url=discord.Embed.Empty)
                     await initial_messsage.edit(embed=akinator_embed)
                     await self.clear(initial_messsage, perms)
                     break
@@ -344,7 +342,6 @@ class Fun(commands.Cog):
         akinator_embed.description = (
             f"I think it is {aki_client.first_guess['name']} ({aki_client.first_guess['description']})! Was I correct?"
         )
-        akinator_embed.set_thumbnail(url=discord.Embed.Empty)
         akinator_embed.set_image(url=f"{aki_client.first_guess['absolute_picture_path']}")
         await initial_messsage.edit(embed=akinator_embed)
         reactions = ["<:greentick:777096731438874634>", "<:redtick:777096756865269760>"]
