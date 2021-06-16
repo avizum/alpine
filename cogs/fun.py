@@ -252,14 +252,15 @@ class Fun(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.channel)
     @commands.bot_has_permissions(add_reactions=True)
     async def fun_akinator(self, ctx: AvimetryContext, mode="en"):
+        ended = False
         bot_perm = ctx.me.permissions_in(ctx.channel)
         perms = True if bot_perm.manage_messages is True else False
         aki_dict = {
-            "<:Yes:812133712967761951>": "yes",
-            "<:No:812133712946528316>": "no",
-            "<:IDontKnow:812133713046405230>": "idk",
-            "<:Probably:812133712962519100>": "probably",
-            "<:ProbablyNot:812133712665772113>": "probably not",
+            "<:greentick:777096731438874634>": "yes",
+            "<:redtick:777096756865269760>": "no",
+            "\U0001f937": "idk",
+            "\U0001f914": "probably",
+            "\U0001f614": "probably not",
             "<:Back:815854941083664454>": "back",
             "<:Stop:815859174667452426>": "stop"
         }
@@ -267,11 +268,7 @@ class Fun(commands.Cog):
         aki_client = Akinator()
         akinator_embed = discord.Embed(
             title="Akinator",
-            description=(
-                "Current Settings:\n"
-                f"Mode: `{mode}`\n"
-                "[Here](https://gist.github.com/jbkn/8a5b9887d49a1d2740d0b6ad0176dbdb) are all the options for akinator"
-            )
+            description="Starting Game..."
         )
         async with ctx.channel.typing():
             initial_messsage = await ctx.send(embed=akinator_embed)
@@ -306,12 +303,14 @@ class Fun(commands.Cog):
                 akinator_embed.description = (
                     "Akinator session closed because you took too long to answer."
                 )
+                ended = True
                 akinator_embed.set_thumbnail(url=discord.Embed.Empty)
                 await initial_messsage.edit(embed=akinator_embed)
                 break
             else:
                 ans = aki_dict[str(reaction.emoji)]
                 if ans == "stop":
+                    ended = True
                     akinator_embed.description = "Akinator session stopped."
                     akinator_embed.set_thumbnail(url=discord.Embed.Empty)
                     await initial_messsage.edit(embed=akinator_embed)
@@ -338,6 +337,8 @@ class Fun(commands.Cog):
         except discord.Forbidden:
             await initial_messsage.delete()
             initial_messsage = await ctx.send("Processing...")
+        if ended:
+            return
         await aki_client.win()
 
         akinator_embed.description = (

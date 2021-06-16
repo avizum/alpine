@@ -176,7 +176,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
         try:
             ctx.cache.blacklist[user.id]
             return await ctx.send(f"{user} is already blacklisted.")
-        except commands.ExtensionError:
+        except KeyError:
             query = "INSERT INTO blacklist VALUES ($1, $2)"
             await self.avi.pool.execute(query, user.id, reason)
             ctx.cache.blacklist[user.id] = reason
@@ -211,7 +211,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
     async def blacklist_remove(self, ctx: AvimetryContext, user: typing.Union[discord.User, discord.Member], *, reason):
         try:
             ctx.cache.blacklist[user.id]
-        except commands.ExtensionError:
+        except KeyError:
             return await ctx.send(f"{user} is not blacklisted")
         query = "DELETE FROM blacklist WHERE user_id=$1"
         await self.avi.pool.execute(query, user.id)
