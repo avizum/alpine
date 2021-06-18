@@ -25,7 +25,7 @@ from difflib import get_close_matches
 from utils import AvimetryBot
 
 
-class HelpEmbeded(commands.HelpCommand):
+class AvimetryHelp(commands.HelpCommand):
     async def get_bot_perms(self, command):
         user_perms = []
         try:
@@ -248,7 +248,7 @@ class HelpCommand(commands.Cog):
     def __init__(self, avi):
         self.default = avi.help_command
         self.avi: AvimetryBot = avi
-        self.avi.help_command = HelpEmbeded(
+        self.avi.help_command = AvimetryHelp(
             verify_checks=False,
             command_attrs=dict(
                 hidden=True,
