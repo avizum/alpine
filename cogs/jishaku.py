@@ -126,7 +126,6 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         summary.append(f"Websocket latency: `{round(self.bot.latency * 1000)}ms`")
 
         jishaku_embed = discord.Embed(description="\n".join(summary))
-        jishaku_embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/831278962226626581/855718619978661908/unknown.png')
         await ctx.send(embed=jishaku_embed)
 
 
