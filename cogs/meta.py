@@ -109,6 +109,9 @@ class Meta(commands.Cog):
                 value=f"{humanize.naturaldate(member.created_at)} ({humanize.naturaltime(member.created_at)})",
                 inline=False,
             )
+        elif member == self.avi.user:
+            about = self.avi.get_command("about")
+            return await about(ctx)
         else:
             userroles = ["@everyone"]
             for roles in member.roles:
@@ -133,7 +136,7 @@ class Meta(commands.Cog):
                 value=f"{humanize.naturaldate(member.created_at)} ({humanize.naturaltime(member.created_at)})",
                 inline=False,
             )
-            ie.add_field(name="Shared Servers", value=len(member.mutual_guilds))
+            ie.add_field(name="Shared Servers", value=len(member.mutual_guilds) or 0)
             top_role = member.top_role.mention
             if top_role == ctx.guild.default_role.mention:
                 top_role = "@everyone"

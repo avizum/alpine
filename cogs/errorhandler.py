@@ -211,16 +211,6 @@ class ErrorHandler(commands.Cog):
                 title="An error has occured",
                 description=f"```py\n{traceback}```",
             )
-            webhook_error_embed.add_field(
-                name="Error Info",
-                value=(
-                    f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
-                    f"Channel: {ctx.channel} ({ctx.channel.id})\n"
-                    f"Command: {ctx.command.qualified_name}\n"
-                    f"Message: {ctx.message.content}\n"
-                    f"Invoker: {ctx.author}\n"
-                )
-            )
             error_embed = discord.Embed(title="An error has occured")
 
             query = "SELECT * FROM command_errors WHERE command=$1 and error=$2"
@@ -237,6 +227,16 @@ class ErrorHandler(commands.Cog):
                     "An unknown error was raised while running this command. The error has been logged and "
                     f"you can track this error using `{ctx.prefix}error {insert['id']}`\n\n"
                     f"Error:```py\n{error}```"
+                )
+                webhook_error_embed.add_field(
+                    name="Error Info",
+                    value=(
+                        f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
+                        f"Channel: {ctx.channel} ({ctx.channel.id})\n"
+                        f"Command: {ctx.command.qualified_name}\n"
+                        f"Message: {ctx.message.content}\n"
+                        f"Invoker: {ctx.author}\n"
+                    )
                 )
             elif check["error"] == str(error):
                 error_embed.description = (
