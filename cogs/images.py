@@ -22,7 +22,7 @@ import typing
 from discord.ext import commands
 from io import BytesIO
 from asyncdagpi import ImageFeatures, Image
-from twemoji_parser import emoji_to_url as urlify_emoji
+from twemoji_parser import emoji_to_url
 from utils import AvimetryBot, AvimetryContext, GetAvatar
 
 embed = discord.Embed()
@@ -387,7 +387,7 @@ class Image(commands.Cog, name="Images"):
 
     @commands.command(brief="Convert emoji to url so you can download them")
     async def emojiurl(self, ctx: AvimetryContext, emoji):
-        result = await urlify_emoji(emoji)
+        result = await emoji_to_url(emoji)
         await ctx.send(result)
 
 

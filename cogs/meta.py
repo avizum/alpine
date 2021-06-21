@@ -93,8 +93,7 @@ class Meta(commands.Cog):
         aliases=["uinfo", "whois"]
     )
     async def userinfo(self, ctx: AvimetryContext, *, member: typing.Union[discord.Member, discord.User] = None):
-        if member is None:
-            member = ctx.author
+        member = member or ctx.author
         if isinstance(member, discord.User):
             ie = discord.Embed(
                 title="User Information",
@@ -226,6 +225,7 @@ class Meta(commands.Cog):
         await ctx.send(f"Set timezone to {timezones}")
 
     @commands.command(brief="Get the jump link for the channel that you mention")
+    @commands.cooldown(1, 15, commands.BucketType.guild)
     async def firstmessage(self, ctx: AvimetryContext, *, channel: discord.TextChannel = None):
         if channel is None:
             channel = ctx.channel

@@ -79,12 +79,6 @@ class AvimetryContext(commands.Context):
 
         if not self.command:
             self.command = self.bot.get_command("_")
-        if content and not embed:
-            if "jishaku" in self.command.qualified_name:
-                message = await self.reply(content=content, embed=embed, **kwargs)
-                return message
-            embed = discord.Embed(description=content)
-            content = None
         if embed:
             if not embed.footer:
                 embed.set_footer(
