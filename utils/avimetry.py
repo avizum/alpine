@@ -74,7 +74,9 @@ async def get_prefix(avi: "AvimetryBot", message: discord.Message):
             prefixes.extend(DEFAULT_PREFIXES)
         else:
             prefixes.extend(command_prefix)
-    if await avi.is_owner(message.author) and message.content.startswith(("jsk", "dev")):
+    if await avi.is_owner(message.author) and (
+        message.content.startswith(("jsk", "dev")) or avi.prefixless
+    ):
         prefixes.append("")
     command_prefix = "|".join(map(re.escape, prefixes))
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
@@ -119,6 +121,7 @@ class AvimetryBot(commands.Bot):
         self.commands_ran = 0
         self.command_cache = {}
         self.cache = AvimetryCache(self)
+        self.prefixless = False
         self.invite = str(discord.utils.oauth_url(PUBLIC_BOT_ID, discord.Permissions(2147483647)))
         self.emoji_dictionary = {
             "red_tick": '<:redtick:777096756865269760>',

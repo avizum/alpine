@@ -40,7 +40,7 @@ class AvimetryHelp(commands.HelpCommand):
                     user_perms.append(i)
                 return ", ".join(user_perms).replace("_", " ").title()
             except KeyError:
-                return None
+                return "Permissions not found"
 
     async def get_user_perms(self, command):
         user_perms = []
@@ -56,7 +56,7 @@ class AvimetryHelp(commands.HelpCommand):
                     user_perms.append(i)
                 return ", ".join(user_perms).replace("_", " ").title()
             except KeyError:
-                return None
+                return "Permissions not found"
 
     def get_cooldown(self, command):
         try:
