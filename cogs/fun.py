@@ -643,11 +643,12 @@ class Fun(commands.Cog):
     
     @commands.command()
     async def tts(self, ctx: AvimetryContext, *, text):
-        aiogtts = aiogTTS()
-        buffer = BytesIO()
-        await aiogtts.write_to_fp(text, buffer, lang='en')
-        buffer.seek(0)
-        file = discord.File(buffer, f"{ctx.author.name}-tts.mp3")
+        async with ctx.channel.typing():
+            aiogtts = aiogTTS()
+            buffer = BytesIO()
+            await aiogtts.write_to_fp(text, buffer, lang='en')
+            buffer.seek(0)
+            file = discord.File(buffer, f"{ctx.author.name}-tts.mp3")
         await ctx.send(file=file)
 
 
