@@ -22,6 +22,8 @@ import asyncio
 import akinator
 import typing
 
+from aiogtts import aiogTTS  
+from io import BytesIO
 from discord.ext import commands
 from akinator.async_aki import Akinator
 from utils import AvimetryBot, AvimetryContext, Timer
@@ -638,6 +640,15 @@ class Fun(commands.Cog):
         )
         embed.set_footer(text=f'Use {ctx.prefix}help to see the whole list of commands.')
         await ctx.send(embed=embed)
+    
+    @commands.command()
+    async def tts(self, ctx: AvimetryContext, *, text):
+        aiogtts = aiogTTS()
+        buffer = BytesIO()
+        await aiogtts.write_to_fp(text, buffer, lang='en')
+        buffer.seek(0)
+        file = discord.File(buffer, f"{ctx.author.name}-tts.mp3")
+        await ctx.send(file=file)
 
 
 def setup(avi):

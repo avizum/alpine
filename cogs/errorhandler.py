@@ -59,6 +59,8 @@ class ErrorHandler(commands.Cog):
         )
         if await self.avi.is_owner(ctx.author) and isinstance(error, reinvoke):
             return await ctx.reinvoke()
+        if await self.avi.is_owner(ctx.author) and isinstance(error, commands.CommandNotFound):
+            return
 
         if isinstance(error, Blacklisted):
             blacklisted = discord.Embed(
