@@ -248,6 +248,13 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
         await ctx.send(f"Successfully purged `{deleted}` message(s).")
 
     @dev.command()
+    async def prefixless(self, ctx: AvimetryContext, toggle: bool):
+        self.avi.prefixless = toggle
+        if toggle:
+            return await ctx.send("Enabled prefixless")
+        return await ctx.send("Disabled prefixless")
+
+    @dev.command()
     async def errors(self, ctx: AvimetryContext):
         raise commands.ExtensionError
 

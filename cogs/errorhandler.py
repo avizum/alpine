@@ -59,7 +59,7 @@ class ErrorHandler(commands.Cog):
         )
         if await self.avi.is_owner(ctx.author) and isinstance(error, reinvoke):
             return await ctx.reinvoke()
-        if await self.avi.is_owner(ctx.author) and isinstance(error, commands.CommandNotFound):
+        if await self.avi.is_owner(ctx.author) and self.avi.prefixless and isinstance(error, commands.CommandNotFound):
             return
 
         if isinstance(error, Blacklisted):
