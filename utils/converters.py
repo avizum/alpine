@@ -24,7 +24,7 @@ from utils import AvimetryContext
 from twemoji_parser import emoji_to_url as urlify_emoji
 
 
-time_regex = re.compile(r"(?:(\d{1,5})\s?(h|s|m|d))+?")
+time_regex = re.compile(r"(?:(\d{1,5})\s?(h|s|m|d|w|y))+?")
 time_dict = {
     "h": 3600,
     "hours": 3600,
@@ -39,7 +39,13 @@ time_dict = {
     "min": 60,
     "d": 86400,
     "day": 86400,
-    "days": 86400
+    "days": 86400,
+    "w": 604800,
+    "week": 604800,
+    "weeks": 604800,
+    "y": 31557600,
+    "year": 31557600,
+    "years": 31557600
 }
 
 
@@ -53,7 +59,7 @@ class TimeConverter(commands.Converter):
                 time += time_dict[value]*float(key)
             except KeyError:
                 raise commands.BadArgument(
-                    f"{value} is an invalid time-key! h/m/s/d are valid!")
+                    f"{value} is an invalid time-key!")
             except ValueError:
                 raise commands.BadArgument(f"{key} is not a number!")
         return time
