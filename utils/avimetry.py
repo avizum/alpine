@@ -30,10 +30,11 @@ import contextlib
 import asyncpg
 import asyncdagpi
 import logging
+import obsidian
 
 from sys import platform
 from discord.ext import commands
-from .errors import Blacklisted
+from .errors import Blacklisted, Maintenance
 from .cache import AvimetryCache
 
 
@@ -74,9 +75,7 @@ async def get_prefix(avi: "AvimetryBot", message: discord.Message):
             prefixes.extend(DEFAULT_PREFIXES)
         else:
             prefixes.extend(command_prefix)
-    if await avi.is_owner(message.author) and (
-        message.content.startswith(("jsk", "dev")) or avi.prefixless
-    ):
+    if await avi.is_owner(message.author) and message.content.startswith(("jsk", "dev")):
         prefixes.append("")
     command_prefix = "|".join(map(re.escape, prefixes))
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
@@ -96,7 +95,8 @@ intents = discord.Intents(
     messages=True,
     members=True,
     reactions=True,
-    webhooks=True)
+    webhooks=True,
+    voice_states=True)
 
 activity = discord.Game("Loading...")
 
@@ -118,10 +118,11 @@ class AvimetryBot(commands.Bot):
         self.owner_ids = OWNER_IDS
         self.bot_id = PUBLIC_BOT_ID
         self.launch_time = datetime.datetime.utcnow()
+        self.maintenance = False
         self.commands_ran = 0
+        self.command_usage = {}
         self.command_cache = {}
         self.cache = AvimetryCache(self)
-        self.prefixless = False
         self.invite = str(discord.utils.oauth_url(PUBLIC_BOT_ID, discord.Permissions(2147483647)))
         self.emoji_dictionary = {
             "red_tick": '<:redtick:777096756865269760>',
@@ -150,6 +151,7 @@ class AvimetryBot(commands.Bot):
             "cogs.roblox",
             "cogs.servermanagement",
             "cogs.settings",
+            # "cogs.music",
             "cogs.setup",
             "cogs.supportserver",
             "cogs.topgg",
@@ -170,6 +172,7 @@ class AvimetryBot(commands.Bot):
         self.session = aiohttp.ClientSession()
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.pg["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
+        # self.loop.create_task(self.initiate_obsidian())
 
         @self.check
         async def check(ctx):
@@ -177,7 +180,12 @@ class AvimetryBot(commands.Bot):
                 raise commands.NoPrivateMessage()
             if ctx.author.id in self.cache.blacklist:
                 raise Blacklisted(reason=self.cache.blacklist[ctx.author.id])
+            if ctx.bot.maintenance is True:
+                raise Maintenance()
             return True
+
+    async def initiate_obsidian(self):
+        self.obsidian = await obsidian.initiate_node(self)
 
     async def on_ready(self):
         await self.wait_until_ready()
@@ -251,6 +259,7 @@ class AvimetryBot(commands.Bot):
     async def close(self):
         with contextlib.suppress(Exception):
             await self.sr.close()
+            await self.obsidian()
             await self.zaneapi.close()
             await self.myst.close()
             await self.session.close()

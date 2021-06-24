@@ -26,7 +26,7 @@ import pytz
 import typing
 
 from discord.ext import commands
-from utils import AvimetryBot, AvimetryContext, TimeZoneError, GetAvatar
+from utils import AvimetryBot, AvimetryContext, TimeZoneError, GetAvatar, timestamp
 
 
 class Meta(commands.Cog):
@@ -105,7 +105,7 @@ class Meta(commands.Cog):
             ie.add_field(name="User ID", value=member.id)
             ie.add_field(
                 name="Creation Date",
-                value=f"{humanize.naturaldate(member.created_at)} ({humanize.naturaltime(member.created_at)})",
+                value=f"{timestamp(member.created_at)} ({timestamp(member.created_at, 'R')})",
                 inline=False,
             )
         elif member == self.avi.user:
@@ -125,9 +125,12 @@ class Meta(commands.Cog):
             ie.add_field(name="User ID", value=member.id)
             if member.nick:
                 ie.add_field(name="Nickname", value=member.nick)
+
+            sort = sorted(ctx.guild.members, key=lambda m: m.joined_at)
+            pos = f"{sort.index(member) + 1}/{len(ctx.guild.members)}"
             ie.add_field(
                 name="Join Date",
-                value=f"{humanize.naturaldate(member.joined_at)} ({humanize.naturaltime(member.joined_at)})",
+                value=f"{timestamp(member.joined_at)} ({timestamp(member.joined_at, 'R')})",
                 inline=False,
             )
             ie.add_field(

@@ -67,6 +67,10 @@ class Setup(commands.Cog):
 
     @commands.Cog.listener("on_command")
     async def on_command(self, ctx: AvimetryContext):
+        try:
+            self.avi.command_usage[ctx.command] += 1
+        except KeyError:
+            self.avi.command_usage[ctx.command] = 1
         if ctx.author.id in ctx.cache.blacklist or self.avi.user.id != 756257170521063444:
             return
         embed = discord.Embed(

@@ -40,3 +40,6 @@ class Blacklisted(commands.CheckFailure):
 
 class PrivateServer(commands.CheckFailure):
     pass
+
+class Maintenance(commands.CheckFailure):
+    pass

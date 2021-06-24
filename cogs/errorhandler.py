@@ -16,13 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+
 import discord
 import humanize
 import sys
 import traceback as tb
 
 from prettify_exceptions import DefaultFormatter
-from utils import AvimetryBot, AvimetryContext, Blacklisted
+from utils import AvimetryBot, AvimetryContext, Blacklisted, Maintenance
 from discord.ext import commands
 from difflib import get_close_matches
 
@@ -55,12 +56,11 @@ class ErrorHandler(commands.Cog):
             commands.MissingAnyRole,
             commands.MissingPermissions,
             commands.MissingRole,
-            Blacklisted
+            Blacklisted,
+            Maintenance
         )
         if await self.avi.is_owner(ctx.author) and isinstance(error, reinvoke):
             return await ctx.reinvoke()
-        if await self.avi.is_owner(ctx.author) and self.avi.prefixless and isinstance(error, commands.CommandNotFound):
-            return
 
         if isinstance(error, Blacklisted):
             blacklisted = discord.Embed(
@@ -75,6 +75,9 @@ class ErrorHandler(commands.Cog):
             retry_after = bucket.update_rate_limit()
             if not retry_after:
                 return await ctx.send(embed=blacklisted, delete_after=60)
+        
+        if isinstance(error, Maintenance):
+            return await ctx.send('Maintenance mode enabled. Please try again later')
 
         elif isinstance(error, commands.CommandNotFound):
             if ctx.author.id in ctx.cache.blacklist:
