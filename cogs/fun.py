@@ -472,8 +472,11 @@ class Fun(commands.Cog):
                 f"Upvote ratio: {data['upvote_ratio']}\n"
             )
         )
-        if data["over_18"] and ctx.channel.is_nsfw():
-            return await ctx.send(embed=embed)
+        if data["over_18"]:
+            if ctx.channel.is_nsfw():
+                return await ctx.send(embed=embed)
+            else:
+                return await ctx.send("NSFW posts can't be send in non-nsfw channels.")
         return await ctx.send(embed=embed)
 
     @commands.command(
