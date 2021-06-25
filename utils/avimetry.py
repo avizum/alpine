@@ -259,7 +259,6 @@ class AvimetryBot(commands.Bot):
     async def close(self):
         with contextlib.suppress(Exception):
             await self.sr.close()
-            await self.obsidian()
             await self.zaneapi.close()
             await self.myst.close()
             await self.session.close()

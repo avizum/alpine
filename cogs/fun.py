@@ -472,16 +472,8 @@ class Fun(commands.Cog):
                 f"Upvote ratio: {data['upvote_ratio']}\n"
             )
         )
-        if data["over_18"]:
-            new_embed = discord.Embed(
-                title="NSFW Post",
-                description="Are you sure you want to view it?\nIf you accept, It will be sent to your DMs."
-            )
-            res = await ctx.confirm(embed=new_embed)
-            if res:
-                return await ctx.author.send(embed=embed)
-            if not res:
-                return
+        if data["over_18"] and ctx.channel.is_nsfw():
+            return await ctx.send(embed=embed)
         return await ctx.send(embed=embed)
 
     @commands.command(
