@@ -264,7 +264,7 @@ class Meta(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(
-        brief="Make embeds. This command is not for normal members because it can be abused.")
+        brief="Make embeds.")
     @commands.cooldown(5, 300, commands.BucketType.member)
     async def embed(self, ctx: AvimetryContext, *, thing: str):
         if '"content":' in thing or "'content':" in thing:
