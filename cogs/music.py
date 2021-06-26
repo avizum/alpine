@@ -27,6 +27,7 @@ class Music(commands.Cog):
     def __init__(self, avi):
         self.avi: AvimetryBot = avi
 
+
     @commands.command()
     async def join(self, ctx: AvimetryContext, *, channel: discord.VoiceChannel = None):
         if channel is None:
@@ -35,7 +36,7 @@ class Music(commands.Cog):
 
             channel = ctx.author.voice.channel
 
-        player = ctx.bot.obsidian.get_player(ctx.guild)
+        player = ctx.bot.obsidian.get_player(ctx.guild, cls=obsidian.PresetPlayer)
         try:
             await player.connect(channel)
         except discord.HTTPException:
@@ -45,7 +46,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def play(self, ctx: AvimetryContext, *, song: str):
-        player = ctx.bot.obsidian.get_player(ctx.guild)
+        player = ctx.bot.obsidian.get_player(ctx.guild, cls=obsidian.PresetPlayer)
         if not player.connected:
             join = ctx.bot.get_command('join')
             await join(ctx)
@@ -68,7 +69,7 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['resume'])
     async def pause(self, ctx: AvimetryContext):
-        player = ctx.bot.obsidian.get_player(ctx.guild)
+        player = ctx.bot.obsidian.get_player(ctx.guild, cls=obsidian.PresetPlayer)
         if not player.connected:
             return
 

@@ -39,7 +39,7 @@ class Setup(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
         if self.avi.user.id != 756257170521063444:
-            return
+            print('as')
         await self.avi.cache.cache_new_guild(guild.id)
         await self.avi.cache.check_for_cache()
         message = [
@@ -53,6 +53,13 @@ class Setup(commands.Cog):
         await self.guild_webhook.send("\n".join(message), username="Joined Guild")
         if not guild.chunked:
             await guild.chunk()
+        channel = discord.utils.get(guild.text_channels, name='general')
+        if not channel:
+            channel = guild.text_channels[0]
+        try:
+            await channel.send('Thank you for adding me to your server! To get started use `a.help`')
+        except discord.Forbidden:
+            return
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):

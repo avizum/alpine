@@ -9,6 +9,7 @@ class Highlight(commands.Cog):
     def __init__(self, avi):
         self.avi: AvimetryBot = avi
 
+
     @commands.Cog.listener("on_message")
     async def on_message(self, message: discord.Message):
         if not message.guild:

@@ -114,7 +114,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
                 title=f"{self.avi.user.name} Invite",
                 description=(
                     "Invite me to your server! Here is the invite link.\n"
-                    f"[Here]({str(discord.utils.oauth_url(self.avi.user.id, discord.Permissions(2147483647)))}) "
+                    f"[Here]({str(discord.utils.oauth_url(self.avi.user.id, discord.Permissions(8)))}) "
                     "is the invite link."
                 ),
             )
@@ -131,7 +131,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             except NotFound:
                 invite_embed.description = (
                     f"Invite {bot.name} to your server! Here is the invite link.\n"
-                    f"[Click here!]({str(discord.utils.oauth_url(bot.id, discord.Permissions(2147483647)))})"
+                    f"[Click here!]({str(discord.utils.oauth_url(bot.id, discord.Permissions(8)))})"
                 )
             await ctx.send(embed=invite_embed)
         else:
