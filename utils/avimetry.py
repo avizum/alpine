@@ -66,9 +66,9 @@ async def get_prefix(avi: "AvimetryBot", message: discord.Message):
         return prefixes
     get_prefix = await avi.cache.get_prefix(message.guild.id)
     print(get_prefix)
-    # if avi.user.id == BETA_BOT_ID:
-        # prefixes.extend(BETA_PREFIXES)
-    if get_prefix is None:
+    if avi.user.id == BETA_BOT_ID:
+        prefixes.extend(BETA_PREFIXES)
+    elif not get_prefix:
         prefixes.extend(DEFAULT_PREFIXES)
     else:
         prefixes.extend(get_prefix)
