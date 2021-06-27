@@ -137,7 +137,7 @@ class Moderation(commands.Cog):
         pe = discord.Embed(
             title="Affected Messages",
             description=f"{msg}")
-        await ctx.delete(embed=pe)
+        await ctx.trash(embed=pe)
 
     @purge.command()
     @commands.has_permissions(manage_messages=True)
@@ -182,7 +182,7 @@ class Moderation(commands.Cog):
         pe = discord.Embed(
             title="Affected Messages",
             description=f"{msg}")
-        await ctx.delete(embed=pe)
+        await ctx.trash(embed=pe)
 
     @commands.command(
         brief="Locks the mentioned channel.",

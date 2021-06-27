@@ -153,7 +153,7 @@ class AvimetryContext(commands.Context):
             await send.delete()
         return confirm
 
-    async def delete(self, *args, **kwargs):
+    async def trash(self, *args, **kwargs):
         emoji = self.bot.emoji_dictionary["red_tick"]
         message = await self.send(*args, **kwargs)
         await message.add_reaction(emoji)
