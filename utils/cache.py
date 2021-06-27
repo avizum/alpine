@@ -57,6 +57,10 @@ class AvimetryCache:
 
     async def get_guild_settings(self, guild_id: int):
         return self.guild_settings.get(guild_id)
+    
+    async def get_prefix(self, guild_id: int):
+        guild = self.guild_settings.get(guild_id)
+        return guild.get('prefixes') if guild else None
 
     async def new_user(self, user_id: int):
         try:
@@ -76,9 +80,9 @@ class AvimetryCache:
         try:
             await self.avi.pool.execute("INSERT INTO guild_settings VALUES ($1)", guild_id)
         except Exception:
-            return
-        self.guild_settings[guild_id] = deepcopy({"prefixes": []})
-        return self.guild_settings[guild_id]
+            pass
+        new = self.guild_settings[guild_id] = deepcopy({"prefixes": []})
+        return new
 
     async def cache_all(self):
         guild_settings = await self.avi.pool.fetch("SELECT * FROM guild_settings")

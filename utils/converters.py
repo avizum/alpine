@@ -148,7 +148,8 @@ class Prefix(commands.Converter):
         channel_mention = re.findall(r"<#(\d+)>", argument)
         guild_cache = await ctx.cache.get_guild_settings(ctx.guild.id)
         if not guild_cache:
-            await ctx.cache.cache_new_guild(ctx.guild.id)
+            g = await ctx.cache.cache_new_guild(ctx.guild.id)
+            guild_prefix = g["prefixes"]
         else:
             guild_prefix = guild_cache["prefixes"]
         if user_mention:

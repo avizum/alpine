@@ -64,17 +64,14 @@ async def get_prefix(avi: "AvimetryBot", message: discord.Message):
     if not message.guild:
         prefixes.extend(DEFAULT_PREFIXES)
         return prefixes
-    get_prefix = await avi.cache.get_guild_settings(message.guild.id)
-    if avi.user.id == BETA_BOT_ID:
-        prefixes.extend(BETA_PREFIXES)
-    elif get_prefix is None:
+    get_prefix = await avi.cache.get_prefix(message.guild.id)
+    print(get_prefix)
+    # if avi.user.id == BETA_BOT_ID:
+        # prefixes.extend(BETA_PREFIXES)
+    if get_prefix is None:
         prefixes.extend(DEFAULT_PREFIXES)
     else:
-        command_prefix = get_prefix["prefixes"]
-        if not command_prefix:
-            prefixes.extend(DEFAULT_PREFIXES)
-        else:
-            prefixes.extend(command_prefix)
+        prefixes.extend(get_prefix)
     if await avi.is_owner(message.author) and message.content.startswith(("jsk", "dev")):
         prefixes.append("")
     command_prefix = "|".join(map(re.escape, prefixes))

@@ -38,7 +38,7 @@ class Settings(commands.Cog):
         case_insensitive=True,
         invoke_without_command=True)
     async def prefix(self, ctx: AvimetryContext):
-        prefix = await ctx.cache.get_guild_settings(ctx.guild.id)
+        prefix = ctx.cache.guild_settings.get(ctx.guild.id)
         if not prefix["prefixes"]:
             return await ctx.send("This server doesn't have a custom prefix set yet. The default prefix is always `a.`")
         guild_prefix = prefix["prefixes"]
