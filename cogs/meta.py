@@ -256,10 +256,7 @@ class Meta(commands.Cog):
             response = await resp.json()
         if not response["nodes"]:
             return await ctx.send("Nothing found. Sorry.")
-        listed = []
-        for word, link in response["nodes"].items():
-            word = word.replace("discord.", "")
-            listed.append(f"[`{word}`]({link})")
+        listed = [f"[`{word}`]({link})" for word, link in response["nodes"].items()]
         embed = discord.Embed(description="\n".join(listed))
         await ctx.send(embed=embed)
 
