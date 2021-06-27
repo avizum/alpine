@@ -41,7 +41,10 @@ class BotInfo(commands.Cog, name="Bot Info"):
         ctx = await self.avi.get_context(message, cls=AvimetryContext)
         if message.author == self.avi.user:
             return
-        if message.content == self.avi.user.mention:
+        if message.content in [
+            f"<@{self.avi.user.id}>",
+            f"<@!{self.avi.user.id}>",
+        ]:
             command = self.avi.get_command("prefix")
             ctx.command = command
             await command(ctx)

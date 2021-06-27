@@ -67,7 +67,7 @@ class AvimetryContext(commands.Context):
             syntax = "python"
         link = await self.bot.myst.post(content, syntax=syntax)
         embed = discord.Embed(
-            description=f"Output for {self.command}: [Here]({link})"
+            description=f"Output for {self.command.qualified_name}: [Here]({link})"
         )
         await self.send(embed=embed)
 
