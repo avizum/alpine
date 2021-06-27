@@ -153,7 +153,7 @@ class AvimetryContext(commands.Context):
             await send.delete()
         return confirm
     
-    async def ask(
+    async def prompt(
         self, message=None, embed: discord.Embed = None, *,
         timeout=60, delete_after=True, raw=False
     ):
