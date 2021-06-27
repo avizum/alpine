@@ -152,6 +152,33 @@ class AvimetryContext(commands.Context):
         if delete_after:
             await send.delete()
         return confirm
+    
+    async def ask(
+        self, message=None, embed: discord.Embed = None, *,
+        timeout=60, delete_after=True, raw=False
+    ):
+        if raw is True:
+            send = await self.send_raw(content=message, embed=embed)
+        elif message:
+            message = f"{message}"
+            send = await self.send(message)
+        elif embed:
+            embed.description = f"{embed.description}\n\n{message or ''}"
+            send = await self.send(embed=embed)
+
+        def check(message: discord.Message):
+            return self.author == message.author and self.channel == message.channel
+
+        try:
+            msg = await self.bot.wait_for('message', check=check, timeout=timeout)
+        except asyncio.TimeoutError:
+            confirm = False
+            pass
+        else:
+            return msg.content
+        if delete_after:
+            await send.delete()
+        return confirm
 
     async def trash(self, *args, **kwargs):
         emoji = self.bot.emoji_dictionary["red_tick"]
