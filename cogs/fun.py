@@ -390,9 +390,10 @@ class Fun(commands.Cog):
         brief="Get the PP size of someone"
     )
     async def ppsize(self, ctx: AvimetryContext, member: discord.Member = None):
+        member = member or ctx.author
         pp_embed = discord.Embed(
             title=f"{member.name}'s pp size",
-            description=f"8{''.join('=' for i in range(random.randint(0, 12)))}D"
+            description=f"8{'=' * random.randint(0, 12)}D"
         )
         await ctx.send(embed=pp_embed)
 
