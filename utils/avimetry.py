@@ -180,10 +180,6 @@ class AvimetryBot(commands.Bot):
             if ctx.bot.maintenance is True:
                 raise Maintenance()
             return True
-    
-    @property
-    def latency(self):
-        return 0.0001
 
     async def initiate_obsidian(self):
         self.obsidian = await obsidian.initiate_node(self)
