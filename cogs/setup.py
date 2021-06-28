@@ -39,7 +39,7 @@ class Setup(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
         if self.avi.user.id != 756257170521063444:
-            print('as')
+            return
         await self.avi.cache.cache_new_guild(guild.id)
         await self.avi.cache.check_for_cache()
         message = [

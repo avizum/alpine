@@ -62,6 +62,8 @@ class TimeConverter(commands.Converter):
                     f"{value} is an invalid time-key!")
             except ValueError:
                 raise commands.BadArgument(f"{key} is not a number!")
+        if time < 0:
+            raise commands.BadArgument("Time can not be under 1 second")
         return time
 
 

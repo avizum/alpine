@@ -486,8 +486,7 @@ class Fun(commands.Cog):
     async def meme(self, ctx: AvimetryContext):
         reddit = self.avi.get_command("reddit")
         subreddits = ["memes", "meme"]
-        a = await reddit(ctx, subreddit=random.choice(subreddits))
-        print(a)
+        await reddit(ctx, subreddit=random.choice(subreddits))
 
     @commands.command(
         brief="See how fast you can react with the correct emoji."

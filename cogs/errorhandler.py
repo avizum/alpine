@@ -220,7 +220,6 @@ class ErrorHandler(commands.Cog):
 
             query = "SELECT * FROM command_errors WHERE command=$1 and error=$2"
             check = await self.avi.pool.fetchrow(query, ctx.command.qualified_name, str(error))
-            print(check)
             if not check:
                 insert_query = (
                     "INSERT INTO command_errors (command, error) "
