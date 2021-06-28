@@ -245,11 +245,17 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
                 deleted += 1
                 if deleted >= amount:
                     break
-        await ctx.send(f"Successfully purged `{deleted}` message(s).")
+        await ctx.delete(f"Deleted {deleted} messages")
 
     @dev.command()
     async def errors(self, ctx: AvimetryContext):
-        raise commands.ExtensionError
+        errors = await self.avi.pool.fetch('SELECT * FROM command_errors WHERE fixed = false')
+        embed = discord.Embed(title="Errors")
+        for error in errors:
+            embed.add_field(name=f"{error['command']} | `{error['id']}`", value=f"```py\n{error['error']}```", inline=False)
+        if not errors:
+            embed.add_field(name='No errors found', value='Nice :)')
+        await ctx.send(embed=embed)
 
 
 def setup(avi):
