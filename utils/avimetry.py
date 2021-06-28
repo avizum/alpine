@@ -83,7 +83,7 @@ async def get_prefix(avi: "AvimetryBot", message: discord.Message):
 
 allowed_mentions = discord.AllowedMentions(
     everyone=False, users=False,
-    roles=True, replied_user=False)
+    roles=False, replied_user=False)
 
 intents = discord.Intents(
     bans=True,
