@@ -58,6 +58,11 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     async def jsk_reload(self, ctx: AvimetryContext, module: CogConverter):
         command = self.bot.get_command("dev reload")
         await command(ctx, module=module)
+    
+    @Feature.Command(parent="jsk", name="sync", aliases=["pull"])
+    async def jsk_sync(self, ctx:AvimetryContext):
+        command = self.bot.get_command("dev sync")
+        await command(ctx)
 
     @Feature.Command(name="jishaku", aliases=["jsk"], hidden=JISHAKU_HIDE,
                      invoke_without_command=True, ignore_extra=False)
