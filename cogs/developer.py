@@ -188,19 +188,6 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
                 f"Reason: `{reason}`"
             )
         )
-        try:
-            dm_embed = discord.Embed(
-                title="Bot Moderator Action: Blacklist",
-                description=(
-                    f"You have been __**blacklisted**__ from this bot by `{ctx.author}`.\n"
-                    f"Reason: `{reason}`\n"
-                    f"You can appeal at the Support Server."
-                ),
-                timestamp=datetime.datetime.utcnow(),
-            )
-            await user.send(embed=dm_embed)
-        except discord.Forbidden:
-            pass
         await ctx.send(embed=embed)
 
     @blacklist.command(
@@ -216,19 +203,6 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
         query = "DELETE FROM blacklist WHERE user_id=$1"
         await self.avi.pool.execute(query, user.id)
         self.avi.cache.blacklist.pop(user.id)
-        try:
-            dm_embed = discord.Embed(
-                title="Bot Moderator Action: Unblacklist",
-                description=(
-                    f"You have __**unblacklisted**__ from using this bot by `{ctx.author}`.\n"
-                    f"Reason: `{reason}`\n"
-                    f"You can get blacklisted again at the Support Server."
-                ),
-                timestamp=datetime.datetime.utcnow(),
-            )
-            await user.send(embed=dm_embed)
-        except discord.Forbidden:
-            pass
         await ctx.send(f"Unblacklisted {str(user)}")
 
     @dev.command(
