@@ -183,7 +183,7 @@ class AvimetryBot(commands.Bot):
     
     @property
     def latency(self):
-        return 0.1
+        return 0.0001
 
     async def initiate_obsidian(self):
         self.obsidian = await obsidian.initiate_node(self)
