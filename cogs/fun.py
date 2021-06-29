@@ -274,10 +274,9 @@ class Fun(commands.Cog):
         )
         async with ctx.channel.typing():
             initial_messsage = await ctx.send(embed=akinator_embed)
+            for reaction in aki_react:
+                await initial_messsage.add_reaction(reaction)
             game = await aki_client.start_game(mode)
-        for reaction in aki_react:
-            await initial_messsage.add_reaction(reaction)
-        await asyncio.sleep(5)
 
         while aki_client.progression <= 80:
             akinator_embed.description = game
@@ -335,8 +334,10 @@ class Fun(commands.Cog):
         try:
             await initial_messsage.clear_reactions()
         except discord.Forbidden:
+            if ended:
+                return
             await initial_messsage.delete()
-            initial_messsage = await ctx.send("Processing...")
+            initial_messsage = await ctx.send("...")
         if ended:
             return
         await aki_client.win()
