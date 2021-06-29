@@ -219,7 +219,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
                 deleted += 1
                 if deleted >= amount:
                     break
-        await ctx.delete(f"Deleted {deleted} messages")
+        await ctx.trash(f"Deleted {deleted} messages")
 
     @dev.command()
     async def errors(self, ctx: AvimetryContext):
