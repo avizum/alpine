@@ -75,6 +75,14 @@ class BotInfo(commands.Cog, name="Bot Info"):
         embed.add_field(name="Credits", value="Foxi#6626 (Avatar),\nDutchy#6127 (Help Command)\nLere#3303 (Tester)")
         embed.set_thumbnail(url=ctx.me.avatar_url)
         await ctx.send(embed=embed)
+    
+    @commands.command()
+    async def credits(self, ctx: AvimetryContext):
+        embed = discord.Embed(
+            title="Credits",
+            description="avizum#8771: Main Developer"
+        )
+        await ctx.send(embed=embed)
 
     @commands.command(brief="Get the bot's uptime")
     async def uptime(self, ctx: AvimetryContext):

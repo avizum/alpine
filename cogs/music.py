@@ -23,6 +23,21 @@ from discord.ext import commands
 from utils import AvimetryBot, AvimetryContext
 
 
+class AvimetryPlayer(obsidian.PresetPlayer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    async def enqueue(self, track):
+        super().enqueue(track)
+        if not self.playing:
+            await self.do_next()
+    
+    async def on_obsidian_track_end(self, _player, _event):
+        print('Done.')
+        await self.do_next()
+        
+
+
 class Music(commands.Cog):
     def __init__(self, avi):
         self.avi: AvimetryBot = avi
@@ -32,35 +47,36 @@ class Music(commands.Cog):
     async def join(self, ctx: AvimetryContext, *, channel: discord.VoiceChannel = None):
         if channel is None:
             if not ctx.author.voice:
-                return await ctx.send('Please join a voice channel.')
-
+                return await ctx.send('You are not in a voice channel.')
             channel = ctx.author.voice.channel
 
-        player = ctx.bot.obsidian.get_player(ctx.guild, cls=obsidian.PresetPlayer)
+        player = ctx.bot.obsidian.get_player(ctx.guild, cls=AvimetryPlayer)
         try:
             await player.connect(channel)
         except discord.HTTPException:
-            return await ctx.send('I may not have permissions to join VC.')
+            return await ctx.send('I lack permissions to join this voice channel.')
         else:
-            await ctx.send('Connected')
+            await ctx.send(f'Joined {channel.mention}.')
 
     @commands.command()
     async def play(self, ctx: AvimetryContext, *, song: str):
-        player = ctx.bot.obsidian.get_player(ctx.guild, cls=obsidian.PresetPlayer)
+        player = ctx.bot.obsidian.get_player(ctx.guild, cls=AvimetryPlayer)
         if not player.connected:
             join = ctx.bot.get_command('join')
             await join(ctx)
 
-        # Check a second time
         if not player.connected:
-            return
+            return await ctx.send('I can not connect. Try again later')
 
         track = await ctx.bot.obsidian.search_track(song, source=obsidian.Source.YOUTUBE)
         if not track:
             return await ctx.send('No songs were found.')
 
-        await player.play(track)
-        await ctx.send(f'Now playing: {track.title}')
+        await player.enqueue(track)
+        if isinstance(track, obsidian.Track):
+            await ctx.send(f'Added to queue: {track.title}')
+        elif isinstance(track, obsidian.Playlist):
+            await ctx.send(f'Added to queue: {track.name}')
 
     @commands.command(aliases=['disconnect'])
     async def leave(self, ctx: AvimetryContext):

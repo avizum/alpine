@@ -147,6 +147,13 @@ class BotLogs(commands.Cog):
         channel_id = thing["channel_id"]
         channel = discord.utils.get(before.guild.channels, id=channel_id)
         await channel.send(embed=embed)
+    
+    # @commands.Cog.listener("on_member_ban")
+    # async def on_member_ban(self, guild: discord.Guild, user: discord.User):
+    #     entry = (await guild.audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten())[0]
+    #     if entry.target == user:
+    #         channel = self.avi.get_channel(831278962226626581)
+    #         await channel.send(f'{user} has been banned by {entry.user} with reason {entry.reason}. Noob')
 
     @tasks.loop(minutes=30)
     async def clear_cache(self):

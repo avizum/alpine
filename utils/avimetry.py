@@ -21,7 +21,6 @@ import os
 import datetime
 import sr_api
 import aiohttp
-import aiozaneapi
 import mystbin
 import topgg
 import toml
@@ -163,13 +162,12 @@ class AvimetryBot(commands.Bot):
         api = self.settings["api_tokens"]
         self.topgg = topgg.DBLClient(self, api["TopGG"], autopost_interval=None)
         self.sr = sr_api.Client()
-        self.zaneapi = aiozaneapi.Client(api["ZaneAPI"])
         self.dagpi = asyncdagpi.Client(api["DagpiAPI"])
         self.myst = mystbin.Client()
         self.session = aiohttp.ClientSession()
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.pg["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
-        # self.loop.create_task(self.initiate_obsidian())
+        self.loop.create_task(self.initiate_obsidian())
 
         @self.check
         async def check(ctx):
@@ -256,7 +254,6 @@ class AvimetryBot(commands.Bot):
     async def close(self):
         with contextlib.suppress(Exception):
             await self.sr.close()
-            await self.zaneapi.close()
             await self.myst.close()
             await self.session.close()
             await self.dagpi.close()

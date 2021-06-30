@@ -3,7 +3,6 @@
     Testing = ""
 
 [api_tokens]
-    ZaneAPI = ""
     DagpiAPI = ""
     TopGG = ""
     GitHub = ""

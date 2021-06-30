@@ -90,7 +90,7 @@ class Meta(commands.Cog):
 
     @commands.command(
         brief="Gets a member's information",
-        aliases=["uinfo", "whois"]
+        aliases=["ui", "uinfo", "whois"]
     )
     async def userinfo(self, ctx: AvimetryContext, *, member: typing.Union[discord.Member, discord.User] = None):
         member = member or ctx.author
@@ -135,7 +135,7 @@ class Meta(commands.Cog):
             )
             ie.add_field(
                 name="Account Creation Date",
-                value=f"{humanize.naturaldate(member.created_at)} ({humanize.naturaltime(member.created_at)})",
+                value=f"{timestamp(member.created_at)} ({timestamp(member.created_at, 'R')})",
                 inline=False,
             )
             ie.add_field(name="Shared Servers", value=len(member.mutual_guilds) or 0)
