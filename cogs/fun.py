@@ -603,6 +603,13 @@ class Fun(commands.Cog):
         if conf:
             return await ctx.send(f"{member.mention} is gay.")
         return await ctx.send(f"{member.mention} is not gay.")
+    
+    @commands.command(
+        brief="Check how gay a person is"
+    )
+    async def gayrate(self, ctx: AvimetryContext, member: discord.Member = None):
+        if member is None: member = ctx.author
+        return await ctx.send(f"{member.mention} is **{random.randint(10, 100)}%** gay :rainbow:")
 
     @commands.command()
     async def height(self, ctx: AvimetryContext):
