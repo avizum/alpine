@@ -116,7 +116,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
     
     @commands.command()
     async def hello(self, ctx: AvimetryContext):
-        await ctx.send(f'Hello, {ctx.author}, I am a bot made my avi#8771')
+        await ctx.send(f'Hello, {ctx.author}, I am a bot made my avizum#8771!')
 
     @commands.group(
         invoke_without_command=True,

@@ -190,8 +190,6 @@ class Fun(commands.Cog):
             description="Get ready to grab the cookie!")
         cd_cookie = await ctx.send(embed=cookie_embed)
         await asyncio.sleep(5)
-        cookie_embed.title = "Ready Up!"
-        cookie_embed.description = "Get ready to get the cookie!"
         await cd_cookie.edit(embed=cookie_embed)
         await asyncio.sleep(random.randint(1, 8))
         cookie_embed.title = "GO!"
@@ -231,7 +229,7 @@ class Fun(commands.Cog):
                 if thing > 1000:
                     gettime = thing / 1000
                     total_second = f"**{gettime:.2f}s**"
-                cookie_embed.title = "Good Job!"
+                cookie_embed.title = "Nice!"
                 cookie_embed.description = f"{user.mention} got the cookie in **{total_second}**"
                 await cd_cookie.remove_reaction("\U0001F36A", ctx.me)
                 return await cd_cookie.edit(embed=cookie_embed)
