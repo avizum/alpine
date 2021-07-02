@@ -76,9 +76,6 @@ class AvimetryContext(commands.Context):
             content = str(content)
             for token in self.tokens:
                 content = content.replace(token, "[config token omitted]")
-
-        if not self.command:
-            self.command = self.bot.get_command("_")
         if embed:
             if not embed.footer:
                 embed.set_footer(

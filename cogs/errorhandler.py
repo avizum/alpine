@@ -56,7 +56,6 @@ class ErrorHandler(commands.Cog):
             commands.MissingAnyRole,
             commands.MissingPermissions,
             commands.MissingRole,
-            Blacklisted,
             Maintenance
         )
         if await self.avi.is_owner(ctx.author) and isinstance(error, reinvoke):
