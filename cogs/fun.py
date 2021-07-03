@@ -189,9 +189,8 @@ class Fun(commands.Cog):
             title="Get the cookie!",
             description="Get ready to grab the cookie!")
         cd_cookie = await ctx.send(embed=cookie_embed)
-        await asyncio.sleep(5)
         await cd_cookie.edit(embed=cookie_embed)
-        await asyncio.sleep(random.randint(1, 8))
+        await asyncio.sleep(random.randint(1, 12))
         cookie_embed.title = "GO!"
         cookie_embed.description = "GET THE COOKIE NOW!"
         await cd_cookie.edit(embed=cookie_embed)
