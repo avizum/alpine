@@ -209,17 +209,10 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
         brief="Cleans up bot messages only"
     )
     async def cleanup(self, ctx: AvimetryContext, amount: int = 15):
-        deleted = 0
-        async for message in ctx.channel.history(limit=amount*2):
-            if message.author.id == ctx.bot.user.id:
-                try:
-                    await message.delete()
-                except commands.ExtensionError:
-                    pass
-                deleted += 1
-                if deleted >= amount:
-                    break
-        await ctx.trash(f"Deleted {deleted} messages")
+        def check(m: discord.Message):
+            return m.author == self.avi.user
+        perms = ctx.channel.permissions_for(ctx.me).manage_messsages
+        await ctx.channel.purge(limit=amount, check=check, bulk=perms)
 
     @dev.command()
     async def errors(self, ctx: AvimetryContext):

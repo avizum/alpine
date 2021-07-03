@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 import discord
+from discord.ext.commands.errors import CommandNotFound
 import humanize
 import sys
 import traceback as tb
@@ -60,8 +61,11 @@ class ErrorHandler(commands.Cog):
         )
         if await self.avi.is_owner(ctx.author) and isinstance(error, reinvoke):
             return await ctx.reinvoke()
+        
+        elif await self.avi.is_owner(ctx.author) and ctx.prefix == '' and isinstance(error, CommandNotFound):
+            return
 
-        if isinstance(error, Blacklisted):
+        elif isinstance(error, Blacklisted):
             blacklisted = discord.Embed(
                 title=f"You are globally blacklisted from {self.avi.user.name}",
                 description=(
