@@ -212,7 +212,8 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
         def check(m: discord.Message):
             return m.author == self.avi.user
         perms = ctx.channel.permissions_for(ctx.me).manage_messages
-        await ctx.channel.purge(limit=amount, check=check, bulk=perms)
+        purged = await ctx.channel.purge(limit=amount, check=check, bulk=perms)
+        await ctx.trash(f'Purged {len(purged)} messages')
 
     @dev.command()
     async def errors(self, ctx: AvimetryContext):
