@@ -211,7 +211,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
     async def cleanup(self, ctx: AvimetryContext, amount: int = 15):
         def check(m: discord.Message):
             return m.author == self.avi.user
-        perms = ctx.channel.permissions_for(ctx.me).manage_messsages
+        perms = ctx.channel.permissions_for(ctx.me).manage_messages
         await ctx.channel.purge(limit=amount, check=check, bulk=perms)
 
     @dev.command()
