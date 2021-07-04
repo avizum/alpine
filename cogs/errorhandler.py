@@ -78,6 +78,8 @@ class ErrorHandler(commands.Cog):
             retry_after = bucket.update_rate_limit()
             if not retry_after:
                 return await ctx.send(embed=blacklisted, delete_after=60)
+            else:
+                return
         
         if isinstance(error, Maintenance):
             return await ctx.send('Maintenance mode enabled. Please try again later')

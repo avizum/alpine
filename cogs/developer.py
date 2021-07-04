@@ -26,7 +26,7 @@ from jishaku.codeblocks import codeblock_converter
 from utils import AvimetryBot, AvimetryContext, CogConverter
 
 
-class Owner(commands.Cog, command_attrs={"hidden": True}):
+class Owner(commands.Cog):
     """
     Commands for the bot developers.
     """
@@ -140,7 +140,7 @@ class Owner(commands.Cog, command_attrs={"hidden": True}):
         if not conf:
             await ctx.send("Reboot Aborted", delete_after=5)
 
-    @dev.command(brief="Jishaku alias")
+    @dev.command(brief="Evaluate python code.")
     async def eval(self, ctx: AvimetryContext, *, code: codeblock_converter):
         jsk = self.avi.get_command("jsk py")
         await jsk(ctx, argument=code)
