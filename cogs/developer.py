@@ -215,15 +215,34 @@ class Owner(commands.Cog):
         purged = await ctx.channel.purge(limit=amount, check=check, bulk=perms)
         await ctx.trash(f'Purged {len(purged)} messages')
 
-    @dev.command()
+    @dev.group()
     async def errors(self, ctx: AvimetryContext):
         errors = await self.bot.pool.fetch('SELECT * FROM command_errors WHERE fixed = false')
         embed = discord.Embed(title="Errors")
         for error in errors:
-            embed.add_field(name=f"{error['command']} | `{error['id']}`", value=f"```py\n{error['error']}```", inline=False)
+            embed.add_field(
+                name=f"{error['command']} | `{error['id']}`",
+                value=f"```py\n{error['error']}```", inline=False
+            )
         if not errors:
             embed.add_field(name='No errors found', value='Nice :)')
         await ctx.send(embed=embed)
+
+    @errors.command()
+    @commands.is_owner()
+    async def fix(self, ctx: AvimetryContext, error_id: int = None):
+        if error_id is None:
+            return await ctx.send_help("error")
+        query = "SELECT * FROM command_errors WHERE id=$1"
+        error_info = await self.bot.pool.fetchrow(query, error_id)
+        if not error_info:
+            return await ctx.send("That is not a valid error id")
+        elif error_info['fixed'] is True:
+            return await ctx.send('This error is already fixed.')
+        query = "UPDATE command_errors SET fixed=$1 WHERE id=$2"
+        await self.bot.pool.execute(query, True, error_id)
+        await ctx.send("Changed error status to fixed")
+
 
 
 def setup(bot):

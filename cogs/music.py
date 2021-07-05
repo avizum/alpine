@@ -22,10 +22,11 @@ import obsidian
 from discord.ext import commands
 from utils import AvimetryBot, AvimetryContext
 
+
 class AvimetryPlayer(obsidian.PresetPlayer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-    
+
     async def enqueue(self, track):
         super().enqueue(track)
         if not self.is_playing():
@@ -39,7 +40,6 @@ class AvimetryPlayer(obsidian.PresetPlayer):
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot: AvimetryBot = bot
-
 
     @commands.command()
     async def join(self, ctx: AvimetryContext, *, channel: discord.VoiceChannel = None):

@@ -172,7 +172,6 @@ class AvimetryBot(commands.Bot):
         self.loop.create_task(self.load_extensions())
         # self.loop.create_task(self.initiate_obsidian())
 
-
         @self.check
         async def check(ctx):
             if not ctx.guild:
@@ -182,7 +181,7 @@ class AvimetryBot(commands.Bot):
             if ctx.bot.maintenance is True:
                 raise Maintenance()
             return True
-    
+
     async def load_extensions(self):
         for ext in self.primary_extensions:
             try:

@@ -43,7 +43,7 @@ class Setup(commands.Cog):
         await self.bot.cache.cache_new_guild(guild.id)
         await self.bot.cache.check_for_cache()
         message = [
-            f"I got added to a server named {guild.name} with a total of {guild.member_count} members.",
+            f"I got added to a server named {guild.name} ({guild.id}) with a total of {guild.member_count} members.",
             f"I am now in {len(self.bot.guilds)} guilds."
         ]
         members = len([m for m in guild.members if not m.bot])

@@ -25,42 +25,30 @@ import psutil
 from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 from jishaku import Feature
 from jishaku.flags import JISHAKU_HIDE
-from utils import AvimetryBot, AvimetryContext, CogConverter
+from utils import AvimetryBot, AvimetryContext, CogConverter, timestamp
 
 
 class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     """
     Advanced debug cog.
     """
-    @Feature.Command(
-        parent="jsk",
-        name="load",
-        aliases=["l"]
-    )
+    @Feature.Command(parent="jsk", name="load", aliases=["l"])
     async def jsk_load(self, ctx: AvimetryContext, module: CogConverter):
         command = self.bot.get_command("dev load")
         await command(ctx, module=module)
 
-    @Feature.Command(
-        parent="jsk",
-        name="unload",
-        aliases=["u"]
-    )
+    @Feature.Command(parent="jsk", name="unload", aliases=["u"])
     async def jsk_unload(self, ctx: AvimetryContext, module: CogConverter):
         command = self.bot.get_command("dev unload")
         await command(ctx, module=module)
 
-    @Feature.Command(
-        parent="jsk",
-        name="reload",
-        aliases=["r"]
-    )
+    @Feature.Command(parent="jsk", name="reload", aliases=["r"])
     async def jsk_reload(self, ctx: AvimetryContext, module: CogConverter):
         command = self.bot.get_command("dev reload")
         await command(ctx, module=module)
-    
+
     @Feature.Command(parent="jsk", name="sync", aliases=["pull"])
-    async def jsk_sync(self, ctx:AvimetryContext):
+    async def jsk_sync(self, ctx: AvimetryContext):
         command = self.bot.get_command("dev sync")
         await command(ctx)
 
@@ -70,8 +58,8 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         summary = [
             f"Jishaku `v{jishaku.__version__}`, discord.py `v{discord.__version__}`, "
             f"Python `{sys.version}` on `{sys.platform}`, ".replace("\n", ""),
-            f"Jishaku was loaded {humanize.naturaltime(self.load_time)} and "
-            f"Jishaku cog was loaded {humanize.naturaltime(self.start_time)}.",
+            f"Jishaku was loaded {timestamp(self.load_time, 'R')} and "
+            f"Jishaku cog was loaded {timestamp(self.start_time, 'R')}.",
             ""
         ]
         try:
@@ -134,5 +122,5 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.send(embed=jishaku_embed)
 
 
-def setup(bot: AvimetryBot):
-    bot.add_cog(Jishaku(bot=bot))
+def setup(avi: AvimetryBot):
+    avi.add_cog(Jishaku(bot=avi))

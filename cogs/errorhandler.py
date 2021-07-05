@@ -78,7 +78,7 @@ class ErrorHandler(commands.Cog):
                 return await ctx.send(embed=blacklisted, delete_after=60)
             else:
                 return
-        
+
         if isinstance(error, Maintenance):
             return await ctx.send('Maintenance mode enabled. Please try again later')
 

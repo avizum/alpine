@@ -305,7 +305,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             return await ctx.send("Okay, I deleted all your data.")
         return await ctx.send("Aborted.")
 
-    @commands.group(invoke_without_command=True)
+    @commands.command()
     async def error(self, ctx: AvimetryContext, error_id: int = None):
         if error_id is None:
             return await ctx.send_help("error")
@@ -319,19 +319,6 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         embed.add_field(name="Error status", value="Fixed" if error_info["fixed"] is True else "Not Fixed")
         await ctx.send(embed=embed)
-
-    @error.command()
-    @commands.is_owner()
-    async def fix(self, ctx: AvimetryContext, error_id: int = None):
-        if error_id is None:
-            return await ctx.send_help("error")
-        query = "SELECT * FROM command_errors WHERE id=$1"
-        error_info = await self.bot.pool.fetchrow(query, error_id)
-        if not error_info:
-            return await ctx.send("That is not a valid error id")
-        query = "UPDATE command_errors SET fixed=$1 WHERE id=$2"
-        await self.bot.pool.execute(query, True, error_id)
-        await ctx.send("Changed error status to fixed")
 
 
 def setup(bot):
