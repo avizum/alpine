@@ -28,13 +28,13 @@ TOKEN_REGEX = r'[a-zA-Z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27}'
 
 
 class BotLogs(commands.Cog):
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
         self.clear_cache.start()
 
     @commands.Cog.listener("on_message")
     async def on_message(self, message: discord.Message):
-        if message.author == self.avi.user:
+        if message.author == self.bot.user:
             return
         if message.guild is None or message.guild.id == 336642139381301249:
             return
@@ -45,7 +45,7 @@ class BotLogs(commands.Cog):
             headers = {
                 'Accept': 'application/vnd.github.v3+json',
                 'User-Agent': 'Avimetry-Gist-Cog',
-                'Authorization': f'token {self.avi.settings["api_tokens"]["GitHub"]}'
+                'Authorization': f'token {self.bot.settings["api_tokens"]["GitHub"]}'
             }
 
             filename = 'tokens.txt'
@@ -60,7 +60,7 @@ class BotLogs(commands.Cog):
             }
             meth = "POST"
             git_url = "https://api.github.com/gists"
-            async with self.avi.session.request(meth, git_url, json=data, headers=headers) as out:
+            async with self.bot.session.request(meth, git_url, json=data, headers=headers) as out:
                 gist = await out.json()
                 try:
                     user_bytes = split_token[0].encode()
@@ -88,14 +88,14 @@ class BotLogs(commands.Cog):
     async def on_message_delete(self, message: discord.Message):
         if not message.guild:
             return
-        thing = self.avi.cache.logging.get(message.guild.id)
+        thing = self.bot.cache.logging.get(message.guild.id)
         if not thing:
             return
         if thing["enabled"] is not True:
             return
         if thing["message_delete"] is False:
             return
-        if message.author == self.avi.user or message.author.bot:
+        if message.author == self.bot.user or message.author.bot:
             return
         embed = discord.Embed(
             title="Message Delete", timestamp=datetime.datetime.utcnow(),
@@ -124,14 +124,14 @@ class BotLogs(commands.Cog):
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
         if before.guild is None and after.guild is None:
             return
-        thing = self.avi.cache.logging.get(before.guild.id)
+        thing = self.bot.cache.logging.get(before.guild.id)
         if not thing:
             return
         if thing["enabled"] is not True:
             return
         if thing["message_edit"] is False:
             return
-        if before.author == self.avi.user or before.author.bot:
+        if before.author == self.bot.user or before.author.bot:
             return
         if before.content == after.content:
             return
@@ -152,17 +152,17 @@ class BotLogs(commands.Cog):
     # async def on_member_ban(self, guild: discord.Guild, user: discord.User):
     #     entry = (await guild.audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten())[0]
     #     if entry.target == user:
-    #         channel = self.avi.get_channel(831278962226626581)
+    #         channel = self.bot.get_channel(831278962226626581)
     #         await channel.send(f'{user} has been banned by {entry.user} with reason {entry.reason}. Noob')
 
     @tasks.loop(minutes=30)
     async def clear_cache(self):
-        self.avi.command_cache.clear()
+        self.bot.command_cache.clear()
 
     @clear_cache.before_loop
     async def before_clear_cache(self):
-        await self.avi.wait_until_ready()
+        await self.bot.wait_until_ready()
 
 
-def setup(avi):
-    avi.add_cog(BotLogs(avi))
+def setup(bot):
+    bot.add_cog(BotLogs(bot))

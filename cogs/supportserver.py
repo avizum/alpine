@@ -71,10 +71,10 @@ ROLE_MAP = {
 
 class Servers(commands.Cog, name="Servers"):
     '''
-    Commands for avi's servers only.
+    Commands for bot's servers only.
     '''
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
         self.update_count.start()
         self.guild_id = [751490725555994716, 814206001451761664]
         self.joins_and_leaves = 751967006701387827
@@ -88,7 +88,7 @@ class Servers(commands.Cog, name="Servers"):
         return True
 
     def get(self, channel_id: int):
-        return self.avi.get_channel(channel_id)
+        return self.bot.get_channel(channel_id)
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -96,7 +96,7 @@ class Servers(commands.Cog, name="Servers"):
             emojis = ROLE_MAP[payload.message_id]
         except KeyError:
             return
-        guild = self.avi.get_guild(payload.guild_id)
+        guild = self.bot.get_guild(payload.guild_id)
         if guild is None:
             return
         try:
@@ -118,7 +118,7 @@ class Servers(commands.Cog, name="Servers"):
             emojis = ROLE_MAP[payload.message_id]
         except KeyError:
             return
-        guild = self.avi.get_guild(payload.guild_id)
+        guild = self.bot.get_guild(payload.guild_id)
         if guild is None:
             return
         try:
@@ -138,7 +138,7 @@ class Servers(commands.Cog, name="Servers"):
 
     @tasks.loop(minutes=5)
     async def update_count(self):
-        guild: discord.Guild = self.avi.get_guild(self.guild_id[0])
+        guild: discord.Guild = self.bot.get_guild(self.guild_id[0])
         if guild is None:
             return
         role = guild.get_role(813535792655892481)
@@ -152,7 +152,7 @@ class Servers(commands.Cog, name="Servers"):
 
     @update_count.before_loop
     async def before_update_count(self):
-        await self.avi.wait_until_ready()
+        await self.bot.wait_until_ready()
 
     @commands.Cog.listener("on_member_update")
     async def member_update(self, before: discord.Member, after: discord.Member):
@@ -160,13 +160,13 @@ class Servers(commands.Cog, name="Servers"):
             return
         if not after.nick:
             return
-        if "avi" in after.nick.lower():
-            if after == self.avi.user:
+        if "bot" in after.nick.lower():
+            if after == self.bot.user:
                 return
             if after.id == 750135653638865017:
                 return
             try:
-                return await after.edit(nick=after.name, reason='Nick can not be "avi"')
+                return await after.edit(nick=after.name, reason='Nick can not be "bot"')
             except discord.Forbidden:
                 pass
 
@@ -178,9 +178,9 @@ class Servers(commands.Cog, name="Servers"):
             return
         role = ctx.guild.get_role(836105548457574410)
         if role in ctx.author.roles:
-            return await ctx.message.add_reaction(self.avi.emoji_dictionary["red_tick"])
+            return await ctx.message.add_reaction(self.bot.emoji_dictionary["red_tick"])
         await ctx.author.add_roles(role, reason="Public testing")
-        await ctx.message.add_reaction(self.avi.emoji_dictionary["green_tick"])
+        await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
 
     @testing.error
     async def testing_error(self, ctx: AvimetryContext, error):
@@ -189,5 +189,5 @@ class Servers(commands.Cog, name="Servers"):
         raise error
 
 
-def setup(avi):
-    avi.add_cog(Servers(avi))
+def setup(bot):
+    bot.add_cog(Servers(bot))

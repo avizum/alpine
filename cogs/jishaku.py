@@ -134,5 +134,5 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.send(embed=jishaku_embed)
 
 
-def setup(avi: AvimetryBot):
-    avi.add_cog(Jishaku(bot=avi))
+def setup(bot: AvimetryBot):
+    bot.add_cog(Jishaku(bot=bot))

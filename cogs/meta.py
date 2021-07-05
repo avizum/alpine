@@ -33,8 +33,8 @@ class Meta(commands.Cog):
     """
     Extra commands that do not lie in any category.
     """
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
 
     @commands.command(brief="Sends a poll in the current channel for people to vote to.")
     @commands.cooldown(1, 300, commands.BucketType.user)
@@ -47,14 +47,14 @@ class Meta(commands.Cog):
             raise commands.BadArgument("You can only have twenty options in a poll")
         if len(options) == 3 and options[0] == "yes" and options[1] == "maybe" and options[2] == "no":
             reactions = [
-                self.avi.emoji_dictionary["green_tick"],
-                self.avi.emoji_dictionary["gray_tick"],
-                self.avi.emoji_dictionary["red_tick"]
+                self.bot.emoji_dictionary["green_tick"],
+                self.bot.emoji_dictionary["gray_tick"],
+                self.bot.emoji_dictionary["red_tick"]
             ]
         elif len(options) == 2 and options[0].lower() == "yes" and options[1].lower() == "no":
             reactions = [
-                self.avi.emoji_dictionary["green_tick"],
-                self.avi.emoji_dictionary["red_tick"]
+                self.bot.emoji_dictionary["green_tick"],
+                self.bot.emoji_dictionary["red_tick"]
             ]
         else:
             reactions = [
@@ -108,8 +108,8 @@ class Meta(commands.Cog):
                 value=f"{timestamp(member.created_at)} ({timestamp(member.created_at, 'R')})",
                 inline=False,
             )
-        elif member == self.avi.user:
-            about = self.avi.get_command("about")
+        elif member == self.bot.user:
+            about = self.bot.get_command("about")
             return await about(ctx)
         else:
             userroles = ["@everyone"]
@@ -182,7 +182,7 @@ class Meta(commands.Cog):
 
     @qr.command(brief="Read a QR code")
     async def read(self, ctx: AvimetryContext, *, image: GetAvatar):
-        async with self.avi.session.get(f"https://api.qrserver.com/v1/read-qr-code/?fileurl={image}") as resp:
+        async with self.bot.session.get(f"https://api.qrserver.com/v1/read-qr-code/?fileurl={image}") as resp:
             thing = await resp.json()
             await ctx.send((str(thing[0]["symbol"][0]["data"])))
 
@@ -219,7 +219,7 @@ class Meta(commands.Cog):
                 "ON CONFLICT (user_id) DO "
                 "UPDATE SET timezone = $2"
         )
-        await self.avi.pool.execute(query, ctx.author.id, timezone)
+        await self.bot.pool.execute(query, ctx.author.id, timezone)
         try:
             ctx.cache.users[ctx.author.id]["timezone"] = timezone
         except KeyError:
@@ -252,7 +252,7 @@ class Meta(commands.Cog):
             "query": query,
             "location": "https://discordpy.readthedocs.io/en/latest"
         }
-        async with self.avi.session.get("https://idevision.net/api/public/rtfm", params=params) as resp:
+        async with self.bot.session.get("https://idevision.net/api/public/rtfm", params=params) as resp:
             response = await resp.json()
         if not response["nodes"]:
             return await ctx.send("Nothing found. Sorry.")
@@ -280,7 +280,7 @@ class Meta(commands.Cog):
     )
     async def redirectcheck(self, ctx: AvimetryContext, url: str):
         url = url.strip("<>")
-        async with self.avi.session.get(url) as f:
+        async with self.bot.session.get(url) as f:
             await ctx.send_raw(f"This url redirects to:\n\n{f.real_url}")
 
     @redirectcheck.error
@@ -298,5 +298,5 @@ class Meta(commands.Cog):
         return
 
 
-def setup(avi):
-    avi.add_cog(Meta(avi))
+def setup(bot):
+    bot.add_cog(Meta(bot))

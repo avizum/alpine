@@ -190,9 +190,9 @@ class AvimetryContext(commands.Context):
             await message.delete()
 
 
-def setup(avi):
-    avi.context = AvimetryContext
+def setup(bot):
+    bot.context = AvimetryContext
 
 
-def teardown(avi):
-    avi.context = commands.Context
+def teardown(bot):
+    bot.context = commands.Context

@@ -23,35 +23,35 @@ from discord.ext import commands, tasks
 
 
 class TopGG(commands.Cog):
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
         self.post.start()
         self.update.start()
 
     @tasks.loop(minutes=15)
     async def post(self):
-        if self.avi.user.id != 756257170521063444:
+        if self.bot.user.id != 756257170521063444:
             return
-        await self.avi.topgg.post_guild_count(len(self.avi.guilds))
+        await self.bot.topgg.post_guild_count(len(self.bot.guilds))
 
     @post.before_loop
     async def before_post(self):
-        await self.avi.wait_until_ready()
+        await self.bot.wait_until_ready()
 
     @tasks.loop(minutes=30)
     async def update(self):
-        if self.avi.user.id != 756257170521063444:
+        if self.bot.user.id != 756257170521063444:
             return
         status = discord.Status.online
-        game = discord.Game(f"@Avimetry | {len(self.avi.guilds)} Servers")
-        if game == self.avi.activity:
+        game = discord.Game(f"@Avimetry | {len(self.bot.guilds)} Servers")
+        if game == self.bot.activity:
             return
-        await self.avi.change_presence(status=status, activity=game)
+        await self.bot.change_presence(status=status, activity=game)
 
     @update.before_loop
     async def before_update(self):
-        await self.avi.wait_until_ready()
+        await self.bot.wait_until_ready()
 
 
-def setup(avi):
-    avi.add_cog(TopGG(avi))
+def setup(bot):
+    bot.add_cog(TopGG(bot))

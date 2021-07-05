@@ -24,27 +24,27 @@ from utils import AvimetryContext, AvimetryBot
 
 
 class Setup(commands.Cog):
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
-        self.webhooks = self.avi.settings["webhooks"]
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
+        self.webhooks = self.bot.settings["webhooks"]
         self.guild_webhook = discord.Webhook.from_url(
             self.webhooks["join_log"],
-            adapter=discord.AsyncWebhookAdapter(self.avi.session)
+            adapter=discord.AsyncWebhookAdapter(self.bot.session)
         )
         self.command_webhook = discord.Webhook.from_url(
             self.webhooks["command_log"],
-            adapter=discord.AsyncWebhookAdapter(self.avi.session)
+            adapter=discord.AsyncWebhookAdapter(self.bot.session)
         )
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
-        if self.avi.user.id != 756257170521063444:
+        if self.bot.user.id != 756257170521063444:
             return
-        await self.avi.cache.cache_new_guild(guild.id)
-        await self.avi.cache.check_for_cache()
+        await self.bot.cache.cache_new_guild(guild.id)
+        await self.bot.cache.check_for_cache()
         message = [
             f"I got added to a server named {guild.name} with a total of {guild.member_count} members.",
-            f"I am now in {len(self.avi.guilds)} guilds."
+            f"I am now in {len(self.bot.guilds)} guilds."
         ]
         members = len([m for m in guild.members if not m.bot])
         bots = len([m for m in guild.members if m.bot])
@@ -63,22 +63,22 @@ class Setup(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
-        if self.avi.user.id != 756257170521063444:
+        if self.bot.user.id != 756257170521063444:
             return
-        await self.avi.cache.delete_all(guild.id)
+        await self.bot.cache.delete_all(guild.id)
         message = [
             f"I got removed from a server named {guild.name}.",
-            f"I am now in {len(self.avi.guilds)} guilds."
+            f"I am now in {len(self.bot.guilds)} guilds."
         ]
         await self.guild_webhook.send("\n".join(message), username="Left Guild")
 
     @commands.Cog.listener("on_command")
     async def on_command(self, ctx: AvimetryContext):
         try:
-            self.avi.command_usage[ctx.command] += 1
+            self.bot.command_usage[ctx.command] += 1
         except KeyError:
-            self.avi.command_usage[ctx.command] = 1
-        if ctx.author.id in ctx.cache.blacklist or self.avi.user.id != 756257170521063444:
+            self.bot.command_usage[ctx.command] = 1
+        if ctx.author.id in ctx.cache.blacklist or self.bot.user.id != 756257170521063444:
             return
         embed = discord.Embed(
             description=(
@@ -94,8 +94,8 @@ class Setup(commands.Cog):
         await self.command_webhook.send(embed=embed)
         if ctx.guild.chunked:
             await ctx.guild.chunk()
-        self.avi.commands_ran += 1
+        self.bot.commands_ran += 1
 
 
-def setup(avi):
-    avi.add_cog(Setup(avi))
+def setup(bot):
+    bot.add_cog(Setup(bot))

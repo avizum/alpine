@@ -33,19 +33,19 @@ class BotInfo(commands.Cog, name="Bot Info"):
     """
     Commands about the bot
     """
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        ctx = await self.avi.get_context(message, cls=AvimetryContext)
-        if message.author == self.avi.user:
+        ctx = await self.bot.get_context(message, cls=AvimetryContext)
+        if message.author == self.bot.user:
             return
         if message.content in [
-            f"<@{self.avi.user.id}>",
-            f"<@!{self.avi.user.id}>",
+            f"<@{self.bot.user.id}>",
+            f"<@!{self.bot.user.id}>",
         ]:
-            command = self.avi.get_command("prefix")
+            command = self.bot.get_command("prefix")
             ctx.command = command
             await command(ctx)
 
@@ -60,18 +60,18 @@ class BotInfo(commands.Cog, name="Bot Info"):
         pid = psutil.Process(os.getpid())
         used = pid.memory_info().rss / 1024 ** 2
         total = psutil.virtual_memory().total / 1024 ** 2
-        embed.add_field(name="Developer", value="avi#8771 (Main)")
-        embed.add_field(name="Ping", value=f"`{round(self.avi.latency * 1000)}ms`")
-        embed.add_field(name="Guild Count", value=f"{len(self.avi.guilds)} Guilds")
-        embed.add_field(name="User Count", value=f"{len(self.avi.users)} Users")
+        embed.add_field(name="Developer", value="bot#8771 (Main)")
+        embed.add_field(name="Ping", value=f"`{round(self.bot.latency * 1000)}ms`")
+        embed.add_field(name="Guild Count", value=f"{len(self.bot.guilds)} Guilds")
+        embed.add_field(name="User Count", value=f"{len(self.bot.users)} Users")
         embed.add_field(name="CPU Usage", value=f"{psutil.cpu_percent()}%")
         embed.add_field(name="Memory Usage", value=f"{used:,.2f}/{total} MB")
         embed.add_field(
             name="Bot Invite",
-            value=f"[here]({self.avi.invite})",
+            value=f"[here]({self.bot.invite})",
         )
-        embed.add_field(name="Commands", value=f"{len(self.avi.commands)} loaded")
-        embed.add_field(name="Commands ran", value=self.avi.commands_ran)
+        embed.add_field(name="Commands", value=f"{len(self.bot.commands)} loaded")
+        embed.add_field(name="Commands ran", value=self.bot.commands_ran)
         embed.add_field(name="Credits", value="Foxi#6626 (Avatar),\nDutchy#6127 (Help Command)\nLere#3303 (Tester)")
         embed.set_thumbnail(url=ctx.me.avatar_url)
         await ctx.send(embed=embed)
@@ -86,7 +86,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @commands.command(brief="Get the bot's uptime")
     async def uptime(self, ctx: AvimetryContext):
-        delta_uptime = datetime.datetime.utcnow() - self.avi.launch_time
+        delta_uptime = datetime.datetime.utcnow() - self.bot.launch_time
         ue = discord.Embed(
             title="Current Uptime",
             description=humanize.precisedelta(delta_uptime, format="%.2g"),
@@ -98,11 +98,11 @@ class BotInfo(commands.Cog, name="Bot Info"):
         with Timer() as api:
             await ctx.trigger_typing()
         with Timer() as db:
-            await self.avi.pool.fetch("SELECT 1")
+            await self.bot.pool.fetch("SELECT 1")
         ping_embed = discord.Embed(title="🏓 Pong!")
         ping_embed.add_field(
             name="Websocket Latency",
-            value=f"`{self.avi.latency * 1000:,.2f} ms`",
+            value=f"`{self.bot.latency * 1000:,.2f} ms`",
             inline=False)
         ping_embed.add_field(
             name="Typing Latency",
@@ -125,19 +125,19 @@ class BotInfo(commands.Cog, name="Bot Info"):
     async def invite(self, ctx: AvimetryContext, bot: discord.Member = None):
         if bot is None:
             invite_embed = discord.Embed(
-                title=f"{self.avi.user.name} Invite",
+                title=f"{self.bot.user.name} Invite",
                 description=(
                     "Invite me to your server! Here is the invite link.\n"
-                    f"[Here]({str(discord.utils.oauth_url(self.avi.user.id, discord.Permissions(8)))}) "
+                    f"[Here]({str(discord.utils.oauth_url(self.bot.user.id, discord.Permissions(8)))}) "
                     "is the invite link."
                 ),
             )
-            invite_embed.set_thumbnail(url=self.avi.user.avatar_url)
+            invite_embed.set_thumbnail(url=self.bot.user.avatar_url)
             await ctx.send(embed=invite_embed)
         elif bot.bot:
             invite_embed = discord.Embed(title=f"{bot.name} Invite")
             try:
-                await self.avi.topgg.get_bot_info(bot.id)
+                await self.bot.topgg.get_bot_info(bot.id)
                 invite_embed.description = (
                     f"Invite {bot.name} to your server! Here is the invite link.\n"
                     f"[Click here!](https://top.gg/bot/{bot.id})"
@@ -192,7 +192,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
     @commands.command(brief="Request a feature to be added to the bot.")
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def request(self, ctx: AvimetryContext, *, request):
-        request_channel = self.avi.get_channel(817093957322407956)
+        request_channel = self.bot.get_channel(817093957322407956)
         req_send = discord.Embed(
             title=f"Request from {str(ctx.author)}",
             description=f"```{request}```"
@@ -217,7 +217,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         top_gg = "https://top.gg/bot/756257170521063444/vote"
         bot_list = "https://discordbotlist.com/bots/avimetry/upvote"
         vote_embed = discord.Embed(
-            title=f"Vote for {self.avi.user.name}",
+            title=f"Vote for {self.bot.user.name}",
             description=(
                 f"**Vote on __top.gg__**\n[__`Vote Now`__]({top_gg})\n\n"
                 f"**Vote on __discordbotlist.com__**\n[__`Vote Now`__]({bot_list})")
@@ -229,30 +229,30 @@ class BotInfo(commands.Cog, name="Bot Info"):
     )
     async def source(self, ctx: AvimetryContext, *, command: str = None):
         source_embed = discord.Embed(
-                title=f"{self.avi.user.name}'s source",
+                title=f"{self.bot.user.name}'s source",
                 timestamp=datetime.datetime.utcnow()
             )
         git_link = "https://github.com/avimetry/avimetry/blob/master/"
         license_link = "https://github.com/avimetry/avimetry/blob/master/LICENSE"
         if not command:
-            if self.avi.user.id != 756257170521063444:
+            if self.bot.user.id != 756257170521063444:
                 source_embed.description = (
                     "This bot is an instance of [Avimetry](https://github.com/avimetry/avimetry), "
-                    "Made by [avi](https://discord.com/users/750135653638865017). "
+                    "Made by [bot](https://discord.com/users/750135653638865017). "
                     f"Follow the [license]({license_link})"
                 )
             else:
                 source_embed.description = (
                     "Here is my [source](https://github.com/avimetry/avimetry). "
-                    "I am made by [avi](https://discord.com/users/750135653638865017).\n"
+                    "I am made by [bot](https://discord.com/users/750135653638865017).\n"
                     f"Follow the [license]({license_link})"
                 )
             return await ctx.send(embed=source_embed)
 
         if command == "help":
-            command = self.avi.help_command
+            command = self.bot.help_command
         else:
-            command = self.avi.get_command(command)
+            command = self.bot.get_command(command)
         if not command:
             return await ctx.send("Couldn't find command.")
 
@@ -293,15 +293,15 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         conf = await ctx.confirm(embed=embed)
         if conf:
-            user_settings = self.avi.cache.users.get(ctx.author.id)
+            user_settings = self.bot.cache.users.get(ctx.author.id)
             if not user_settings:
                 return await ctx.send("You are not in my database.")
             query = (
                 "DELETE FROM user_settings "
                 "WHERE user_id=$1"
             )
-            await self.avi.pool.execute(query, ctx.author.id)
-            self.avi.cache.users.pop(ctx.author.id)
+            await self.bot.pool.execute(query, ctx.author.id)
+            self.bot.cache.users.pop(ctx.author.id)
             return await ctx.send("Okay, I deleted all your data.")
         return await ctx.send("Aborted.")
 
@@ -310,7 +310,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         if error_id is None:
             return await ctx.send_help("error")
         query = "SELECT * FROM command_errors WHERE id=$1"
-        error_info = await self.avi.pool.fetchrow(query, error_id)
+        error_info = await self.bot.pool.fetchrow(query, error_id)
         if not error_info:
             return await ctx.send("That is not a valid error id.")
         embed = discord.Embed(
@@ -326,13 +326,13 @@ class BotInfo(commands.Cog, name="Bot Info"):
         if error_id is None:
             return await ctx.send_help("error")
         query = "SELECT * FROM command_errors WHERE id=$1"
-        error_info = await self.avi.pool.fetchrow(query, error_id)
+        error_info = await self.bot.pool.fetchrow(query, error_id)
         if not error_info:
             return await ctx.send("That is not a valid error id")
         query = "UPDATE command_errors SET fixed=$1 WHERE id=$2"
-        await self.avi.pool.execute(query, True, error_id)
+        await self.bot.pool.execute(query, True, error_id)
         await ctx.send("Changed error status to fixed")
 
 
-def setup(avi):
-    avi.add_cog(BotInfo((avi)))
+def setup(bot):
+    bot.add_cog(BotInfo((bot)))

@@ -81,8 +81,8 @@ class JoinsAndLeaves(commands.Cog):
     """
     Cog for handling joins and leave messages.
     """
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
 
     async def convert(self, message):
         try:
@@ -94,7 +94,7 @@ class JoinsAndLeaves(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
-        config = self.avi.cache.join_leave.get(member.guild.id)
+        config = self.bot.cache.join_leave.get(member.guild.id)
         if not config:
             return
         join_channel = discord.utils.get(member.guild.channels, id=config["join_channel"])
@@ -114,7 +114,7 @@ class JoinsAndLeaves(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
-        config = self.avi.cache.join_leave.get(member.guild.id)
+        config = self.bot.cache.join_leave.get(member.guild.id)
         if not config:
             return
         leave_channel = discord.utils.get(member.guild.channels, id=config["leave_channel"])
@@ -133,5 +133,5 @@ class JoinsAndLeaves(commands.Cog):
         return await leave_channel.send(final)
 
 
-def setup(avi):
-    avi.add_cog(JoinsAndLeaves(avi))
+def setup(bot):
+    bot.add_cog(JoinsAndLeaves(bot))

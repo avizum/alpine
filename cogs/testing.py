@@ -7,5 +7,5 @@ class Test(commands.Cog):
     async def jalksdja(self, ctx):
         await ctx.send('a')
 
-def setup(avi):
-    avi.add_cog(Test(avi))
+def setup(bot):
+    bot.add_cog(Test(bot))

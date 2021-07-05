@@ -27,14 +27,14 @@ from discord.ext import commands
 
 
 class MemberJoin(commands.Cog):
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
 
     async def do_verify(self, member):
-        prefix = await self.avi.cache.get_guild_settings(member.guild.id)
+        prefix = await self.bot.cache.get_guild_settings(member.guild.id)
         pre = "a." if not prefix["prefixes"] else prefix["prefixes"][0]
 
-        config = self.avi.cache.verification.get(member.guild.id)
+        config = self.bot.cache.verification.get(member.guild.id)
 
         if not config:
             return
@@ -100,7 +100,7 @@ class MemberJoin(commands.Cog):
     @commands.command(brief="Verify now!", hidden=True)
     async def verify(self, ctx: AvimetryContext):
         member = ctx.author
-        config = self.avi.cache.verification.get(member.guild.id)
+        config = self.bot.cache.verification.get(member.guild.id)
         if not config:
             return await ctx.send("Please setup verification.")
         role_id = ctx.guild.get_role(config["role_id"])
@@ -147,7 +147,7 @@ class MemberJoin(commands.Cog):
 
         while True:
             try:
-                msg = await self.avi.wait_for("message", timeout=60, check=check)
+                msg = await self.bot.wait_for("message", timeout=60, check=check)
             except asyncio.TimeoutError:
                 timeup = discord.Embed(
                     title="Your Key has expired",
@@ -178,5 +178,5 @@ class MemberJoin(commands.Cog):
                     break
 
 
-def setup(avi):
-    avi.add_cog(MemberJoin(avi))
+def setup(bot):
+    bot.add_cog(MemberJoin(bot))

@@ -204,7 +204,7 @@ class AvimetryHelp(commands.HelpCommand):
             value=command.short_doc or "No help was provided.",
             inline=False)
         try:
-            can_run = await self.avi.can_run(self.ctx)
+            can_run = await self.bot.can_run(self.ctx)
             print(can_run)
         except Exception:
             pass
@@ -245,10 +245,10 @@ class AvimetryHelp(commands.HelpCommand):
 
 
 class HelpCommand(commands.Cog):
-    def __init__(self, avi):
-        self.default = avi.help_command
-        self.avi: AvimetryBot = avi
-        self.avi.help_command = AvimetryHelp(
+    def __init__(self, bot):
+        self.default = bot.help_command
+        self.bot: AvimetryBot = bot
+        self.bot.help_command = AvimetryHelp(
             verify_checks=False,
             command_attrs=dict(
                 hidden=True,
@@ -259,8 +259,8 @@ class HelpCommand(commands.Cog):
         )
 
     def cog_unload(self):
-        self.avi.help_command = self.default
+        self.bot.help_command = self.default
 
 
-def setup(avi):
-    avi.add_cog(HelpCommand(avi))
+def setup(bot):
+    bot.add_cog(HelpCommand(bot))

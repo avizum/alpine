@@ -22,39 +22,37 @@ import obsidian
 from discord.ext import commands
 from utils import AvimetryBot, AvimetryContext
 
-
 class AvimetryPlayer(obsidian.PresetPlayer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
+    
     async def enqueue(self, track):
         super().enqueue(track)
-        if not self.playing:
+        if not self.is_playing():
             await self.do_next()
-    
+
     async def on_obsidian_track_end(self, _player, _event):
-        print('Done.')
-        await self.do_next()
-        
+        print('end')
+        return await super().on_obsidian_track_end(_player, _event)
 
 
 class Music(commands.Cog):
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
 
 
     @commands.command()
     async def join(self, ctx: AvimetryContext, *, channel: discord.VoiceChannel = None):
         if channel is None:
             if not ctx.author.voice:
-                return await ctx.send('You are not in a voice channel.')
+                return await ctx.send('You are not in a channel.')
             channel = ctx.author.voice.channel
 
         player = ctx.bot.obsidian.get_player(ctx.guild, cls=AvimetryPlayer)
         try:
             await player.connect(channel)
         except discord.HTTPException:
-            return await ctx.send('I lack permissions to join this voice channel.')
+            return await ctx.send('No permissions to join this channel.')
         else:
             await ctx.send(f'Joined {channel.mention}.')
 
@@ -66,7 +64,7 @@ class Music(commands.Cog):
             await join(ctx)
 
         if not player.connected:
-            return await ctx.send('I can not connect. Try again later')
+            return
 
         track = await ctx.bot.obsidian.search_track(song, source=obsidian.Source.YOUTUBE)
         if not track:
@@ -81,17 +79,16 @@ class Music(commands.Cog):
     @commands.command(aliases=['disconnect'])
     async def leave(self, ctx: AvimetryContext):
         ctx.bot.obsidian.destroy_player(ctx.guild)
-        await ctx.send('Goodbye...')
+        await ctx.send('Left the channel.')
 
     @commands.command(aliases=['resume'])
     async def pause(self, ctx: AvimetryContext):
         player = ctx.bot.obsidian.get_player(ctx.guild, cls=obsidian.PresetPlayer)
         if not player.connected:
             return
-
-        new_pause = await player.set_pause()  # Let pause be handled automatically
+        new_pause = await player.set_pause()
         await ctx.send(f'Set pause to {new_pause}.')
 
 
-def setup(avi: AvimetryBot):
-    avi.add_cog(Music(avi))
+def setup(bot: AvimetryBot):
+    bot.add_cog(Music(bot))

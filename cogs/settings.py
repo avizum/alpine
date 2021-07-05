@@ -27,8 +27,8 @@ class Settings(commands.Cog):
     """
     Configure bot settings.
     """
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
         self.map = {
             True: "Enabled",
             False: "Disabled"}
@@ -53,7 +53,7 @@ class Settings(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     async def prefix_add(self, ctx: AvimetryContext, prefix: Prefix):
         query = "UPDATE guild_settings SET prefixes = ARRAY_APPEND(prefixes, $2) WHERE guild_id = $1"
-        await self.avi.pool.execute(query, ctx.guild.id, prefix)
+        await self.bot.pool.execute(query, ctx.guild.id, prefix)
         ctx.cache.guild_settings[ctx.guild.id]["prefixes"].append(prefix)
         await ctx.send(f"Appended `{prefix}` to the list of prefixes.")
 
@@ -74,9 +74,9 @@ class Settings(commands.Cog):
             return await ctx.send(f"`{prefix}` is not a prefix of this server.")
 
         query = "UPDATE guild_settings SET prefixes = ARRAY_REMOVE(prefixes, $2) WHERE guild_id = $1"
-        await self.avi.pool.execute(query, ctx.guild.id, prefix)
+        await self.bot.pool.execute(query, ctx.guild.id, prefix)
 
-        self.avi.cache.guild_settings[ctx.guild.id]["prefixes"].remove(prefix)
+        self.bot.cache.guild_settings[ctx.guild.id]["prefixes"].remove(prefix)
         await ctx.send(f"Removed `{prefix}` from the list of prefixes")
 
     @commands.command()
@@ -84,8 +84,8 @@ class Settings(commands.Cog):
     @commands.bot_has_permissions(manage_roles=True)
     async def muterole(self, ctx: AvimetryContext, role: discord.Role):
         query = "UPDATE guild_settings SET mute_role = $1 WHERE guild_id = $2"
-        await self.avi.pool.execute(query, role.id, ctx.guild.id)
-        self.avi.cache.guild_settings[ctx.guild.id]["mute_role"] = role.id
+        await self.bot.pool.execute(query, role.id, ctx.guild.id)
+        self.bot.cache.guild_settings[ctx.guild.id]["mute_role"] = role.id
         for channel in ctx.guild.channels:
             perms = channel.overwrites_for(role)
             perms.update(send_messages=False)
@@ -111,7 +111,7 @@ class Settings(commands.Cog):
                     f"Message Edit: {config['message_edit']}```"))
             return await ctx.send(embed=embed)
         query = "UPDATE logging SET enabled = $1 WHERE guild_id = $2"
-        await self.avi.pool.execute(query, toggle, ctx.guild.id)
+        await self.bot.pool.execute(query, toggle, ctx.guild.id)
         ctx.cache.logging[ctx.guild.id]["enabled"] = toggle
         await ctx.send(f"{self.map[toggle]} logging")
 
@@ -119,7 +119,7 @@ class Settings(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     async def logging_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
         query = "UPDATE logging SET channel_id = $1 WHERE guild_id = $2"
-        await self.avi.pool.execute(query, channel.id, ctx.guild.id)
+        await self.bot.pool.execute(query, channel.id, ctx.guild.id)
         ctx.cache.logging[ctx.guild.id]["channel_id"] = channel.id
 
     @logging.command(
@@ -129,7 +129,7 @@ class Settings(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     async def message_delete(self, ctx: AvimetryContext, toggle: bool):
         query = "UPDATE logging SET message_delete = $1 WHERE guild_id = $2"
-        await self.avi.pool.execute(query, toggle, ctx.guild.id)
+        await self.bot.pool.execute(query, toggle, ctx.guild.id)
         ctx.cache.logging[ctx.guild.id]["message_delete"] = toggle
         await ctx.send(f"{self.map[toggle]} message delete logs")
 
@@ -140,7 +140,7 @@ class Settings(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def edit(self, ctx: AvimetryContext, toggle: bool):
         query = "UPDATE logging SET message_edit = $1 WHERE guild_id = $2"
-        await self.avi.pool.execute(query, toggle, ctx.guild.id)
+        await self.bot.pool.execute(query, toggle, ctx.guild.id)
         ctx.cache.logging[ctx.guild.id]["message_edit"] = toggle
         await ctx.send(f"{self.map[toggle]} message edit logs")
 
@@ -172,7 +172,7 @@ class Settings(commands.Cog):
                 )
                 confirm = await ctx.confirm(embed=embed)
                 if confirm:
-                    command = self.avi.get_command("join-message setup")
+                    command = self.bot.get_command("join-message setup")
                     await command(ctx)
                 return
         query = (
@@ -183,7 +183,7 @@ class Settings(commands.Cog):
             UPDATE SET join_enabled = $2
             """
         )
-        await self.avi.pool.execute(query, ctx.guild.id, toggle)
+        await self.bot.pool.execute(query, ctx.guild.id, toggle)
         ctx.cache.join_leave[ctx.guild.id]["join_enabled"] = toggle
         await ctx.send(f"{self.map[toggle]} join message")
 
@@ -208,7 +208,7 @@ class Settings(commands.Cog):
                 UPDATE SET join_message = $2
                 """
             )
-            await self.avi.pool.execute(query, ctx.guild.id, message)
+            await self.bot.pool.execute(query, ctx.guild.id, message)
             ctx.cache.join_leave[ctx.guild.id]["join_message"] = message
             return await ctx.send("Succesfully set the join message.")
         return await ctx.send("Cancelled")
@@ -227,7 +227,7 @@ class Settings(commands.Cog):
             UPDATE SET join_channel = $2
             """
         )
-        await self.avi.pool.execute(query, channel.id, ctx.guild.id)
+        await self.bot.pool.execute(query, channel.id, ctx.guild.id)
         ctx.cache.join_leave[ctx.guild.id]["join_channel"] = channel.id
         await ctx.send(f"Set the join message channel to {channel.mention}")
 
@@ -246,7 +246,7 @@ class Settings(commands.Cog):
         def check(m):
             return m.author == ctx.author
         try:
-            wait_channel = await self.avi.wait_for("message", check=check, timeout=300)
+            wait_channel = await self.bot.wait_for("message", check=check, timeout=300)
         except asyncio.TimeoutError:
             embed.description = "Cancelling due to timeout."
             await ctx.send(embed=embed)
@@ -265,7 +265,7 @@ class Settings(commands.Cog):
                     "What should the join message be? (5 minutes)")
                 await wait_channel.reply(embed=embed)
         try:
-            wait_message = await self.avi.wait_for("message", check=check, timeout=300)
+            wait_message = await self.bot.wait_for("message", check=check, timeout=300)
         except asyncio.TimeoutError:
             embed.description = "Cancelling due to timeout."
             return await ctx.send(embed=embed)
@@ -288,7 +288,7 @@ class Settings(commands.Cog):
                     UPDATE SET guild_id = $1, join_enabled = $2, join_message = $3, join_channel = $4
                     """
                 )
-                await self.avi.pool.execute(query, ctx.guild.id, True, message, channel.id)
+                await self.bot.pool.execute(query, ctx.guild.id, True, message, channel.id)
                 ctx.cache.join_leave[ctx.guild.id]["join_enabled"] = True
                 ctx.cache.join_leave[ctx.guild.id]["join_message"] = message
                 ctx.cache.join_leave[ctx.guild.id]["join_channel"] = channel.id
@@ -325,11 +325,11 @@ class Settings(commands.Cog):
                 )
                 confirm = await ctx.confirm(embed=embed)
                 if confirm:
-                    command = self.avi.get_command("leave-message setup")
+                    command = self.bot.get_command("leave-message setup")
                     await command(ctx)
                 return
         query = "UPDATE join_leave SET leave_enabled = $1 WHERE guild_id = $2"
-        await self.avi.pool.execute(query, toggle, ctx.guild.id)
+        await self.bot.pool.execute(query, toggle, ctx.guild.id)
         ctx.cache.join_leave[ctx.guild.id]["leave_enabled"] = toggle
         await ctx.send(f"{self.map[toggle]} leave message")
 
@@ -354,7 +354,7 @@ class Settings(commands.Cog):
                 UPDATE SET leave_message = $2
                 """
             )
-            await self.avi.pool.execute(query, ctx.guild.id, message)
+            await self.bot.pool.execute(query, ctx.guild.id, message)
             ctx.cache.join_leave[ctx.guild.id]["leave_message"] = message
             return await ctx.send("Succesfully set leave message.")
         return await ctx.send("Aborted set leave message.")
@@ -373,7 +373,7 @@ class Settings(commands.Cog):
             UPDATE SET join_channel = $2
             """
         )
-        await self.avi.pool.execute(query, channel.id, ctx.guild.id)
+        await self.bot.pool.execute(query, channel.id, ctx.guild.id)
         ctx.cache.join_leave[ctx.guild.id]["leave_channel"] = channel.id
         await ctx.send(f"Set the leave message channel to {channel.mention}")
 
@@ -392,7 +392,7 @@ class Settings(commands.Cog):
         def check(m):
             return m.author == ctx.author
         try:
-            wait_channel = await self.avi.wait_for("message", check=check, timeout=300)
+            wait_channel = await self.bot.wait_for("message", check=check, timeout=300)
         except asyncio.TimeoutError:
             embed.description = "Cancelling due to timeout."
             await ctx.send(embed=embed)
@@ -411,7 +411,7 @@ class Settings(commands.Cog):
                     "What should the leave message be? (5 minutes)")
                 await wait_channel.reply(embed=embed)
         try:
-            wait_message = await self.avi.wait_for("message", check=check, timeout=300)
+            wait_message = await self.bot.wait_for("message", check=check, timeout=300)
         except asyncio.TimeoutError:
             embed.description = "Cancelling due to timeout."
             return await ctx.send(embed=embed)
@@ -434,7 +434,7 @@ class Settings(commands.Cog):
                     UPDATE SET guild_id = $1, leave_enabled = $2, leave_message = $3, leave_channel = $4
                     """
                 )
-                await self.avi.pool.execute(query, ctx.guild.id, True, message, channel.id)
+                await self.bot.pool.execute(query, ctx.guild.id, True, message, channel.id)
                 ctx.cache.join_leave[ctx.guild.id]["leave_enabled"] = True
                 ctx.cache.join_leave[ctx.guild.id]["leave_message"] = message
                 ctx.cache.join_leave[ctx.guild.id]["leave_channel"] = channel.id
@@ -461,7 +461,7 @@ class Settings(commands.Cog):
             UPDATE SET guild_id = $1, high = $2
             """
         )
-        await self.avi.pool.execute(query, ctx.guild.id, toggle)
+        await self.bot.pool.execute(query, ctx.guild.id, toggle)
         ctx.cache.verification[ctx.guild.id]["high"] = toggle
         return await ctx.send(f"{self.map[toggle]} member screening")
 
@@ -476,10 +476,10 @@ class Settings(commands.Cog):
             UPDATE SET role_id = $2
             """
         )
-        await self.avi.pool.execute(query, ctx.guild.id, role.id)
+        await self.bot.pool.execute(query, ctx.guild.id, role.id)
         ctx.cache.verifiction[ctx.guild.id]["role_id"] = role.id
         return await ctx.send(f"Set screening role to `{role.mention}.`")
 
 
-def setup(avi):
-    avi.add_cog(Settings(avi))
+def setup(bot):
+    bot.add_cog(Settings(bot))

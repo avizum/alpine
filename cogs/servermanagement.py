@@ -24,8 +24,8 @@ from utils import AvimetryBot, AvimetryContext
 
 
 class ServerManagement(commands.Cog, name="Server Management"):
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
 
     @commands.command(
         aliases=["members", "mc"], brief="Gets the members of the server and shows you."
@@ -79,5 +79,5 @@ class ServerManagement(commands.Cog, name="Server Management"):
         return
 
 
-def setup(avi):
-    avi.add_cog(ServerManagement(avi))
+def setup(bot):
+    bot.add_cog(ServerManagement(bot))

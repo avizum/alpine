@@ -30,8 +30,8 @@ class Moderation(commands.Cog):
     """
     Moderation commands.
     """
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
 
     @commands.command(brief="Kicks a member from the server.", usage="<member> [reason]")
     @commands.has_permissions(kick_members=True)
@@ -159,11 +159,10 @@ class Moderation(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
     async def cleanup(self, ctx: AvimetryContext, amount=15):
-        authors = {}
-        prefixes = tuple(await self.avi.get_prefix(ctx.message))
+        prefixes = tuple(await self.bot.get_prefix(ctx.message))
 
         def check(message: discord.Message):
-            return message.content.startswith(prefixes) or message.author == self.avi.user
+            return message.content.startswith(prefixes) or message.author == self.bot.user
 
         purged = await ctx.channel.purge(limit=amount, check=check, before=ctx.message)
 
@@ -291,5 +290,5 @@ class Moderation(commands.Cog):
             return await ctx.send("Sike")
 
 
-def setup(avi):
-    avi.add_cog(Moderation(avi))
+def setup(bot):
+    bot.add_cog(Moderation(bot))

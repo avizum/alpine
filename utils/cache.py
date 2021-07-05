@@ -21,8 +21,8 @@ from discord.ext import tasks
 
 
 class AvimetryCache:
-    def __init__(self, avi):
-        self.avi = avi
+    def __init__(self, bot):
+        self.bot = bot
         self.cache_loop.start()
         self.guild_settings = {}
         self.verification = {}
@@ -38,7 +38,7 @@ class AvimetryCache:
 
     @cache_loop.before_loop
     async def before_cache_loop(self):
-        await self.avi.wait_until_ready()
+        await self.bot.wait_until_ready()
 
     async def check_for_cache(self):
         cache_list = [
@@ -47,13 +47,13 @@ class AvimetryCache:
             self.logging,
             self.join_leave
         ]
-        for guild in self.avi.guilds:
+        for guild in self.bot.guilds:
             for cache in cache_list:
                 if guild.id not in cache:
                     cache[guild.id] = {}
 
     async def delete_all(self, gid):
-        await self.avi.pool.execute("DELETE FROM guild_settings WHERE guild_id = $1", gid)
+        await self.bot.pool.execute("DELETE FROM guild_settings WHERE guild_id = $1", gid)
 
     async def get_guild_settings(self, guild_id: int):
         return self.guild_settings.get(guild_id)
@@ -70,7 +70,7 @@ class AvimetryCache:
         except KeyError:
             try:
                 query = "INSERT INTO user_settings (user_id) VALUES ($1)"
-                await self.avi.pool.execute(query, user_id)
+                await self.bot.pool.execute(query, user_id)
             except Exception:
                 pass
             new = self.users[user_id] = {}
@@ -78,19 +78,19 @@ class AvimetryCache:
 
     async def cache_new_guild(self, guild_id: int):
         try:
-            await self.avi.pool.execute("INSERT INTO guild_settings VALUES ($1)", guild_id)
+            await self.bot.pool.execute("INSERT INTO guild_settings VALUES ($1)", guild_id)
         except Exception:
             pass
         new = self.guild_settings[guild_id] = deepcopy({"prefixes": []})
         return new
 
     async def cache_all(self):
-        guild_settings = await self.avi.pool.fetch("SELECT * FROM guild_settings")
-        verification = await self.avi.pool.fetch("SELECT * FROM verification")
-        logging = await self.avi.pool.fetch("SELECT * FROM logging")
-        join_leave = await self.avi.pool.fetch("SELECT * FROM join_leave")
-        users = await self.avi.pool.fetch("SELECT * FROM user_settings")
-        blacklist = await self.avi.pool.fetch("SELECT * FROM blacklist")
+        guild_settings = await self.bot.pool.fetch("SELECT * FROM guild_settings")
+        verification = await self.bot.pool.fetch("SELECT * FROM verification")
+        logging = await self.bot.pool.fetch("SELECT * FROM logging")
+        join_leave = await self.bot.pool.fetch("SELECT * FROM join_leave")
+        users = await self.bot.pool.fetch("SELECT * FROM user_settings")
+        blacklist = await self.bot.pool.fetch("SELECT * FROM blacklist")
 
         print("(Re)Caching...")
         for entry in guild_settings:

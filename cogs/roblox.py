@@ -28,8 +28,8 @@ class RobloxUpdate(commands.Cog, name="Roblox", command_attrs=dict(hidden=True))
     """
     Roblox related commands.
     """
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
         self.update_check.start()
 
     def cog_unload(self):
@@ -37,14 +37,14 @@ class RobloxUpdate(commands.Cog, name="Roblox", command_attrs=dict(hidden=True))
 
     @tasks.loop(seconds=59)
     async def update_check(self):
-        async with self.avi.session.get("http://setup.roblox.com/version") as old_version:
+        async with self.bot.session.get("http://setup.roblox.com/version") as old_version:
             a = await old_version.text()
         await asyncio.sleep(10)
-        async with self.avi.session.get("http://setup.roblox.com/version") as new_version:
+        async with self.bot.session.get("http://setup.roblox.com/version") as new_version:
             b = await new_version.text()
         if b not in a:
             channel = discord.utils.get(
-                self.avi.get_all_channels(), name="gaming-announcements"
+                self.bot.get_all_channels(), name="gaming-announcements"
             )
             embed = discord.Embed(
                 title="<:roblox:829232494401683457> A ROBLOX update has been detected.",
@@ -59,7 +59,7 @@ class RobloxUpdate(commands.Cog, name="Roblox", command_attrs=dict(hidden=True))
 
     @update_check.before_loop
     async def before_status_task(self):
-        await self.avi.wait_until_ready()
+        await self.bot.wait_until_ready()
 
     # Roblox Version Command
     @commands.command(
@@ -71,7 +71,7 @@ class RobloxUpdate(commands.Cog, name="Roblox", command_attrs=dict(hidden=True))
         if ctx.guild.id != 751490725555994716:
             return await ctx.send("This command is for a private server.")
 
-        async with self.avi.session.get("http://setup.roblox.com/version") as resp:
+        async with self.bot.session.get("http://setup.roblox.com/version") as resp:
             a = await resp.text()
         rverembed = discord.Embed()
         rverembed.add_field(
@@ -131,5 +131,5 @@ class RobloxUpdate(commands.Cog, name="Roblox", command_attrs=dict(hidden=True))
         await ctx.send(embed=user_embed)
 
 
-def setup(avi):
-    avi.add_cog(RobloxUpdate(avi))
+def setup(bot):
+    bot.add_cog(RobloxUpdate(bot))

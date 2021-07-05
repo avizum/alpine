@@ -58,20 +58,20 @@ handler.setFormatter(
 logger.addHandler(handler)
 
 
-async def get_prefix(avi: "AvimetryBot", message: discord.Message):
-    prefixes = [f"<@{avi.user.id}>", f"<@!{avi.user.id}>"]
+async def get_prefix(bot: "AvimetryBot", message: discord.Message):
+    prefixes = [f"<@{bot.user.id}>", f"<@!{bot.user.id}>"]
     if not message.guild:
         prefixes.extend(DEFAULT_PREFIXES)
         return prefixes
-    get_prefix = await avi.cache.get_prefix(message.guild.id)
+    get_prefix = await bot.cache.get_prefix(message.guild.id)
 
-    if avi.user.id == BETA_BOT_ID:
+    if bot.user.id == BETA_BOT_ID:
         prefixes.extend(BETA_PREFIXES)
     elif not get_prefix:
         prefixes.extend(DEFAULT_PREFIXES)
     else:
         prefixes.extend(get_prefix)
-    if await avi.is_owner(message.author) and message.content.startswith(("jsk", "dev")):
+    if await bot.is_owner(message.author) and message.content.startswith(("jsk", "dev")):
         prefixes.append("")
     command_prefix = "|".join(map(re.escape, prefixes))
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)

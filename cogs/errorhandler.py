@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 import discord
-from discord.ext.commands.errors import CommandNotFound
 import humanize
 import sys
 import traceback as tb
@@ -30,12 +29,12 @@ from difflib import get_close_matches
 
 
 class ErrorHandler(commands.Cog):
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
         self.cd_mapping = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
         self.error_webhook = discord.Webhook.from_url(
-            self.avi.settings["webhooks"]["error_log"],
-            adapter=discord.AsyncWebhookAdapter(self.avi.session),
+            self.bot.settings["webhooks"]["error_log"],
+            adapter=discord.AsyncWebhookAdapter(self.bot.session),
         )
 
     def reset(self, ctx: AvimetryContext):
@@ -59,15 +58,14 @@ class ErrorHandler(commands.Cog):
             commands.MissingRole,
             Maintenance
         )
-        if await self.avi.is_owner(ctx.author) and isinstance(error, reinvoke):
+        if await self.bot.is_owner(ctx.author) and isinstance(error, reinvoke):
             return await ctx.reinvoke()
-        
-        elif await self.avi.is_owner(ctx.author) and ctx.prefix == '' and isinstance(error, CommandNotFound):
+        elif await self.bot.is_owner(ctx.author) and ctx.prefix == '' and isinstance(error, commands.CommandNotFound):
             return
 
         elif isinstance(error, Blacklisted):
             blacklisted = discord.Embed(
-                title=f"You are globally blacklisted from {self.avi.user.name}",
+                title=f"You are globally blacklisted from {self.bot.user.name}",
                 description=(
                     f"Blacklist reason: `{error.reason}`\n"
                     "If you think this message is an error, "
@@ -90,7 +88,7 @@ class ErrorHandler(commands.Cog):
             not_found_embed = discord.Embed(title="Invalid Command")
             not_found = ctx.invoked_with
             all_commands = []
-            for cmd in self.avi.commands:
+            for cmd in self.bot.commands:
                 try:
                     await cmd.can_run(ctx)
                     all_commands.append(cmd.name)
@@ -215,7 +213,7 @@ class ErrorHandler(commands.Cog):
                 "".join(DefaultFormatter().format_exception(type(error), error, error.__traceback__))
             )
             if len(traceback) > 2000:
-                traceback = f"Error was too long: {await self.avi.myst.post(traceback, 'bash')}"
+                traceback = f"Error was too long: {await self.bot.myst.post(traceback, 'bash')}"
 
             webhook_error_embed = discord.Embed(
                 title="An error has occured",
@@ -224,14 +222,14 @@ class ErrorHandler(commands.Cog):
             error_embed = discord.Embed(title="An error has occured")
 
             query = "SELECT * FROM command_errors WHERE command=$1 and error=$2"
-            check = await self.avi.pool.fetchrow(query, ctx.command.qualified_name, str(error))
+            check = await self.bot.pool.fetchrow(query, ctx.command.qualified_name, str(error))
             if not check:
                 insert_query = (
                     "INSERT INTO command_errors (command, error) "
                     "VALUES ($1, $2) "
                     "RETURNING *"
                 )
-                insert = await self.avi.pool.fetchrow(insert_query, ctx.command.qualified_name, str(error))
+                insert = await self.bot.pool.fetchrow(insert_query, ctx.command.qualified_name, str(error))
                 error_embed.description = (
                     "An unknown error was raised while running this command. The error has been logged and "
                     f"you can track this error using `{ctx.prefix}error {insert['id']}`\n\n"
@@ -259,5 +257,5 @@ class ErrorHandler(commands.Cog):
             tb.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 
-def setup(avi):
-    avi.add_cog(ErrorHandler(avi))
+def setup(bot):
+    bot.add_cog(ErrorHandler(bot))

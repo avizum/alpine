@@ -33,8 +33,8 @@ class Fun(commands.Cog):
     """
     Fun commands for you and friends.
     """
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
         self._cd = commands.CooldownMapping.from_cooldown(1.0, 60.0, commands.BucketType.user)
 
     async def do_mock(self, string: str):
@@ -58,7 +58,7 @@ class Fun(commands.Cog):
             "Without a doubt.", "Yes.",
             "Yes – definitely.", "You may rely on it.",
         ]
-        if ctx.author.id in self.avi.owner_ids and question.lower().endswith(
+        if ctx.author.id in self.bot.owner_ids and question.lower().endswith(
             "\u200b"
         ):
             responses = [
@@ -86,7 +86,7 @@ class Fun(commands.Cog):
         aliases=["murder"], brief="Kill some people. Make sure you don't get caught!")
     @commands.cooldown(2, 30, commands.BucketType.member)
     async def kill(self, ctx: AvimetryContext, member: discord.Member):
-        if member == self.avi.user or member.bot:
+        if member == self.bot.user or member.bot:
             await ctx.send("Nope.")
         elif member == ctx.author:
             await ctx.send("You tried to shoot yourself in the head, but you couldn't because I won't let you :)")
@@ -128,15 +128,15 @@ class Fun(commands.Cog):
     @commands.bot_has_permissions(manage_webhooks=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def copy(self, ctx: AvimetryContext, member: typing.Union[discord.User, discord.Member], *, text):
-        if member == self.avi.user:
-            say = self.avi.get_command("say")
+        if member == self.bot.user:
+            say = self.bot.get_command("say")
             return await say(ctx, message=text)
         webhooks = await ctx.channel.webhooks()
         avimetry_webhook = discord.utils.get(webhooks, name="Avimetry")
         if not avimetry_webhook:
             avimetry_webhook = await ctx.channel.create_webhook(
                 name="Avimetry", reason="For Avimetry copy command.",
-                avatar=await self.avi.user.avatar_url.read())
+                avatar=await self.bot.user.avatar_url.read())
         await avimetry_webhook.send(
             text, username=member.display_name,
             avatar_url=member.avatar_url_as(format="png"),
@@ -208,12 +208,12 @@ class Fun(commands.Cog):
                 return (
                     reaction.message.id == cd_cookie.id and
                     str(reaction.emoji) in "\U0001F36A" and
-                    user != self.avi.user
+                    user != self.bot.user
                 )
 
         try:
             with Timer() as reaction_time:
-                reaction, user = await self.avi.wait_for(
+                reaction, user = await self.bot.wait_for(
                     "reaction_add", check=check, timeout=10
                 )
         except asyncio.TimeoutError:
@@ -284,12 +284,12 @@ class Fun(commands.Cog):
                     reaction.message.id == initial_messsage.id and
                     str(reaction.emoji) in aki_react and
                     user == ctx.author and
-                    user != self.avi.user
+                    user != self.bot.user
                 )
 
             done, pending = await asyncio.wait([
-                self.avi.wait_for("reaction_remove", check=check, timeout=20),
-                self.avi.wait_for("reaction_add", check=check, timeout=20)
+                self.bot.wait_for("reaction_remove", check=check, timeout=20),
+                self.bot.wait_for("reaction_add", check=check, timeout=20)
             ], return_when=asyncio.FIRST_COMPLETED)
 
             try:
@@ -352,11 +352,11 @@ class Fun(commands.Cog):
             return (
                 reaction.message.id == initial_messsage.id and
                 str(reaction.emoji) in ["<:greentick:777096731438874634>", "<:redtick:777096756865269760>"] and
-                user != self.avi.user and
+                user != self.bot.user and
                 user == ctx.author
             )
         try:
-            reaction, user = await self.avi.wait_for(
+            reaction, user = await self.bot.wait_for(
                 "reaction_add", check=yes_no_check, timeout=60
             )
         except asyncio.TimeoutError:
@@ -415,7 +415,7 @@ class Fun(commands.Cog):
 
         try:
             with Timer() as timer:
-                reaction, user = await self.avi.wait_for(
+                reaction, user = await self.bot.wait_for(
                     "reaction_add", check=check_10s, timeout=20
                 )
         except asyncio.TimeoutError:
@@ -440,7 +440,7 @@ class Fun(commands.Cog):
     async def reddit(self, ctx: AvimetryContext, subreddit):
         if subreddit.startswith("r/"):
             subreddit = subreddit.replace("r/", "")
-        async with self.avi.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
+        async with self.bot.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
             if content.status == 404:
                 return await ctx.send("This subreddit does not exist. Please check your spelling and try again.")
             if content.status != 200:
@@ -483,7 +483,7 @@ class Fun(commands.Cog):
     )
     @commands.cooldown(1, 15, commands.BucketType.member)
     async def meme(self, ctx: AvimetryContext):
-        reddit = self.avi.get_command("reddit")
+        reddit = self.bot.get_command("reddit")
         subreddits = ["memes", "meme"]
         await reddit(ctx, subreddit=random.choice(subreddits))
 
@@ -512,11 +512,11 @@ class Fun(commands.Cog):
 
         def check(reaction, user):
             return(
-                reaction.message.id == first.id and str(reaction.emoji) == random_emoji and user != self.avi.user)
+                reaction.message.id == first.id and str(reaction.emoji) == random_emoji and user != self.bot.user)
 
         try:
             with Timer() as timer:
-                reaction, user = await self.avi.wait_for("reaction_add", check=check, timeout=15)
+                reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=15)
         except asyncio.TimeoutError:
             embed.description = "Timeout"
             await first.edit(embed=embed)
@@ -538,7 +538,7 @@ class Fun(commands.Cog):
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_guess_that_logo(self, ctx: AvimetryContext):
         async with ctx.channel.typing():
-            logo = await self.avi.dagpi.logo()
+            logo = await self.bot.dagpi.logo()
         embed = discord.Embed(
             title="Which logo is this?",
             description=f"{logo.clue}"
@@ -550,9 +550,9 @@ class Fun(commands.Cog):
             return m.author == ctx.author
 
         try:
-            wait = await self.avi.wait_for("message", check=check, timeout=60)
+            wait = await self.bot.wait_for("message", check=check, timeout=60)
         except asyncio.TimeoutError:
-            embed.title = f"{self.avi.emoji_dictionary['red_tick']} | Time's Up!"
+            embed.title = f"{self.bot.emoji_dictionary['red_tick']} | Time's Up!"
             embed.description = f"You took too long. The correct answer is {logo.brand}"
             try:
                 embed.set_image(url=logo.answer)
@@ -568,7 +568,7 @@ class Fun(commands.Cog):
                 except discord.HTTPException:
                     pass
                 return await message.edit(embed=embed)
-            embed.title = f"{self.avi.emoji_dictionary['red_tick']} | Wrong"
+            embed.title = f"{self.bot.emoji_dictionary['red_tick']} | Wrong"
             embed.description = f"Your answer was {wait.content}.\nThe correct answer is actually {logo.brand}"
             try:
                 embed.set_image(url=logo.answer)
@@ -580,14 +580,14 @@ class Fun(commands.Cog):
         name="roast",
         brief="Roasts a person. (Powered by Dagpi)")
     async def dag_roast(self, ctx: AvimetryContext, member: discord.Member):
-        roast = await self.avi.dagpi.roast()
+        roast = await self.bot.dagpi.roast()
         await ctx.send(f"{member.mention}, {roast}")
 
     @commands.command(
         name="funfact",
         brief="Gets a random fun fact. (Powered by Dagpi)")
     async def dag_fact(self, ctx: AvimetryContext):
-        fact = await self.avi.dagpi.fact()
+        fact = await self.bot.dagpi.fact()
         await ctx.send(fact)
 
     @commands.command(
@@ -615,7 +615,7 @@ class Fun(commands.Cog):
         def check(message: discord.Message):
             return message.author == ctx.author and message.channel == ctx.channel
         try:
-            height = await self.avi.wait_for("message", check=check, timeout=60)
+            height = await self.bot.wait_for("message", check=check, timeout=60)
         except asyncio.TimeoutError:
             await ctx.send("You didn't respond in time!")
         else:
@@ -652,5 +652,5 @@ class Fun(commands.Cog):
         await ctx.send(file=file)
 
 
-def setup(avi):
-    avi.add_cog(Fun(avi))
+def setup(bot):
+    bot.add_cog(Fun(bot))

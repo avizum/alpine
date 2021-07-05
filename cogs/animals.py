@@ -6,11 +6,11 @@ from discord.ext import commands
 
 
 class Animals(commands.Cog):
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
 
     async def do_animal(self, ctx: AvimetryContext, animal: str):
-        e = await self.avi.sr.get_image(animal)
+        e = await self.bot.sr.get_image(animal)
         file = discord.File(BytesIO(await e.read()), filename=f"{animal}.png")
         embed = discord.Embed(title=f"Here is {animal}", description="Powered by Some Random API")
         embed.set_image(url=f"attachment://{animal}.png")
@@ -50,12 +50,12 @@ class Animals(commands.Cog):
 
     @commands.command()
     async def duck(self, ctx: AvimetryContext):
-        async with self.avi.session.get("https://random-d.uk/api/v2/random") as resp:
+        async with self.bot.session.get("https://random-d.uk/api/v2/random") as resp:
             image = await resp.json()
         embed = discord.Embed(title="Here is a duck")
         embed.set_image(url=image['url'])
         await ctx.send(embed=embed)
 
 
-def setup(avi: AvimetryBot):
-    avi.add_cog(Animals(avi))
+def setup(bot: AvimetryBot):
+    bot.add_cog(Animals(bot))

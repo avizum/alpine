@@ -6,8 +6,8 @@ from utils import AvimetryBot
 
 
 class Highlight(commands.Cog):
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
 
 
     @commands.Cog.listener("on_message")
@@ -16,7 +16,7 @@ class Highlight(commands.Cog):
             return
         if message.author.bot:
             return
-        words = "avi|asd|lol|stupid"
+        words = "bot|asd|lol|stupid"
         match = re.findall(rf"({words}\s*)", message.content, flags=re.IGNORECASE)
         if match:
             match_embed = discord.Embed(
@@ -28,5 +28,5 @@ class Highlight(commands.Cog):
         return
 
 
-def setup(avi: AvimetryBot):
-    avi.add_cog(Highlight(avi))
+def setup(bot: AvimetryBot):
+    bot.add_cog(Highlight(bot))

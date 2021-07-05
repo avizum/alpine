@@ -33,8 +33,8 @@ class Image(commands.Cog, name="Images"):
     '''
     Commands for image manipuation and more.
     '''
-    def __init__(self, avi):
-        self.avi: AvimetryBot = avi
+    def __init__(self, bot):
+        self.bot: AvimetryBot = bot
 
     async def do_dagpi(self, ctx: AvimetryContext, feature: ImageFeatures, argument, gif: bool = False):
         converter = GetAvatar()
@@ -46,7 +46,7 @@ class Image(commands.Cog, name="Images"):
             else:
                 image = str(ctx.author.avatar_url_as(format="png", static_format="png", size=1024))
         async with ctx.channel.typing():
-            image = await self.avi.dagpi.image_process(feature, image)
+            image = await self.bot.dagpi.image_process(feature, image)
         return image
 
     async def dag_embed(self, ctx: AvimetryContext, image: Image, title: str):
@@ -288,14 +288,14 @@ class Image(commands.Cog, name="Images"):
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_5g1g(self, ctx, item1: GetAvatar, item2: GetAvatar):
         async with ctx.channel.typing():
-            image = await self.avi.dagpi.image_process(ImageFeatures.five_guys_one_girl(), url=item1, url2=item2)
+            image = await self.bot.dagpi.image_process(ImageFeatures.five_guys_one_girl(), url=item1, url2=item2)
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @commands.command(name="whyareyougay", aliases=["wayg"])
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_wayg(self, ctx, item1: GetAvatar, item2: GetAvatar):
         async with ctx.channel.typing():
-            image = await self.avi.dagpi.image_process(ImageFeatures.why_are_you_gay(), url=item1, url2=item2)
+            image = await self.bot.dagpi.image_process(ImageFeatures.why_are_you_gay(), url=item1, url2=item2)
         await self.dag_embed(ctx, image, ctx.command.name)
     
     @commands.command(name="obama")
@@ -308,7 +308,7 @@ class Image(commands.Cog, name="Images"):
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_tweet(self, ctx, user: GetAvatar, username: str, *, text: str):
         async with ctx.channel.typing():
-            image = await self.avi.dagpi.image_process(ImageFeatures.tweet(), text=text, url=user, username=username)
+            image = await self.bot.dagpi.image_process(ImageFeatures.tweet(), text=text, url=user, username=username)
         await self.dag_embed(ctx, image, ctx.command.name)
     
     @commands.command(name="youtube")
@@ -322,7 +322,7 @@ class Image(commands.Cog, name="Images"):
         else:
             url = str(user.avatar_url_as(format="png", static_format="png", size=1024))
         async with ctx.channel.typing():
-            image = await self.avi.dagpi.image_process(
+            image = await self.bot.dagpi.image_process(
                 ImageFeatures.youtube(), text=text, url=url,
                 username=user.name if user_name is None else user_name)
         await self.dag_embed(ctx, image, ctx.command.name)
@@ -338,7 +338,7 @@ class Image(commands.Cog, name="Images"):
         else:
             url = str(user.avatar_url_as(format="png", static_format="png", size=1024))
         async with ctx.channel.typing():
-            image = await self.avi.dagpi.image_process(
+            image = await self.bot.dagpi.image_process(
                 ImageFeatures.discord(), text=text, url=url,
                 username=user.name if user_name is None else user_name)
         await self.dag_embed(ctx, image, ctx.command.name)
@@ -347,7 +347,7 @@ class Image(commands.Cog, name="Images"):
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_captcha(self, ctx: AvimetryContext, text, *, item: GetAvatar):
         async with ctx.channel.typing():
-            image = await self.avi.dagpi.image_process(ImageFeatures.captcha(), item, text=text)
+            image = await self.bot.dagpi.image_process(ImageFeatures.captcha(), item, text=text)
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @commands.command(brief="Convert emoji to url so you can download them")
@@ -356,5 +356,5 @@ class Image(commands.Cog, name="Images"):
         await ctx.send(result)
 
 
-def setup(avi):
-    avi.add_cog(Image(avi))
+def setup(bot):
+    bot.add_cog(Image(bot))
