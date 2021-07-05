@@ -130,17 +130,21 @@ class AvimetryBot(commands.Bot):
             "status_offline": '<:status_offline:810683581541515335',
             "status_streaming": '<:status_streaming:810683604812169276>'
         }
-        self.bot_cogs = [
+        self.primary_extensions = [
+            "cogs.developer",
+            "cogs.events",
+            "cogs.jishaku",
+            "cogs.setup",
+            "utils.context"
+        ]
+        self.secondary_extensions = [
             "cogs.animals",
             "cogs.botinfo",
-            "cogs.developer",
             "cogs.errorhandler",
-            "cogs.events",
             "cogs.fun",
             "cogs.help",
             # "cogs.highlight",
             "cogs.images",
-            "cogs.jishaku",
             "cogs.joinsandleaves",
             "cogs.meta",
             "cogs.moderation",
@@ -148,11 +152,9 @@ class AvimetryBot(commands.Bot):
             "cogs.servermanagement",
             "cogs.settings",
             # "cogs.music",
-            "cogs.setup",
             "cogs.supportserver",
             "cogs.topgg",
             "cogs.verification",
-            "utils.context"
         ]
         with open("config.toml") as token:
             self.settings = toml.loads(token.read())
@@ -167,7 +169,9 @@ class AvimetryBot(commands.Bot):
         self.session = aiohttp.ClientSession()
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.pg["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
+        self.loop.create_task(self.load_extensions())
         # self.loop.create_task(self.initiate_obsidian())
+
 
         @self.check
         async def check(ctx):
@@ -178,12 +182,24 @@ class AvimetryBot(commands.Bot):
             if ctx.bot.maintenance is True:
                 raise Maintenance()
             return True
+    
+    async def load_extensions(self):
+        for ext in self.primary_extensions:
+            try:
+                self.load_extension(ext)
+            except commands.ExtensionError as error:
+                print(error)
+        await self.wait_until_ready()
+        for ext in self.secondary_extensions:
+            try:
+                self.load_extension(ext)
+            except commands.ExtensionError as error:
+                print(error)
 
     async def initiate_obsidian(self):
         self.obsidian = await obsidian.initiate_node(self)
 
     async def on_ready(self):
-        await self.wait_until_ready()
         timenow = datetime.datetime.now().strftime("%I:%M %p")
         print(
             "Successfully logged in:\n"
@@ -191,13 +207,6 @@ class AvimetryBot(commands.Bot):
             f"Bot ID: {self.user.id}\n"
             f"Login Time: {datetime.date.today()} at {timenow}\n"
         )
-        for cog in self.bot_cogs:
-            try:
-                self.load_extension(cog)
-            except commands.ExtensionAlreadyLoaded:
-                pass
-            except commands.ExtensionError as error:
-                print(error)
 
     async def wait_for(self, event, *, check=None, timeout=None):
         if event == "message":
