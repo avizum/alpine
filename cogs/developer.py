@@ -215,7 +215,7 @@ class Owner(commands.Cog):
         purged = await ctx.channel.purge(limit=amount, check=check, bulk=perms)
         await ctx.trash(f'Purged {len(purged)} messages')
 
-    @dev.group()
+    @dev.group(invoke_without_command=True)
     async def errors(self, ctx: AvimetryContext):
         errors = await self.bot.pool.fetch('SELECT * FROM command_errors WHERE fixed = false')
         embed = discord.Embed(title="Errors")
@@ -229,7 +229,6 @@ class Owner(commands.Cog):
         await ctx.send(embed=embed)
 
     @errors.command()
-    @commands.is_owner()
     async def fix(self, ctx: AvimetryContext, error_id: int = None):
         if error_id is None:
             return await ctx.send_help("error")
@@ -241,8 +240,7 @@ class Owner(commands.Cog):
             return await ctx.send('This error is already fixed.')
         query = "UPDATE command_errors SET fixed=$1 WHERE id=$2"
         await self.bot.pool.execute(query, True, error_id)
-        await ctx.send("Changed error status to fixed")
-
+        await ctx.send(f"Error {error_id} is now fixed.")
 
 
 def setup(bot):
