@@ -79,8 +79,8 @@ class AvimetryContext(commands.Context):
         if embed:
             if not embed.footer:
                 embed.set_footer(
-                    text=f"{self.author}",
-                    icon_url=f"Requested by: {str(self.author.avatar_url)}"
+                    text=f"Requested by: {self.author}",
+                    icon_url=str(self.author.avatar_url)
                 )
                 embed.timestamp = datetime.datetime.utcnow()
             if not embed.color:
