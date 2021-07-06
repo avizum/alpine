@@ -75,7 +75,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         embed.add_field(name="Credits", value="Foxi#6626 (Avatar),\nDutchy#6127 (Help Command)\nLere#3303 (Tester)")
         embed.set_thumbnail(url=ctx.me.avatar_url)
         await ctx.send(embed=embed)
-    
+
     @commands.command()
     async def credits(self, ctx: AvimetryContext):
         embed = discord.Embed(
@@ -113,7 +113,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             value=f"`{db.total_time * 1000:,.2f} ms`",
             inline=False)
         await ctx.send(embed=ping_embed)
-    
+
     @commands.command()
     async def hello(self, ctx: AvimetryContext):
         await ctx.send(f'Hello, {ctx.author}, I am a bot made my avizum#8771!')

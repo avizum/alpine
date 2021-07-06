@@ -1,5 +1,5 @@
 """
-Runs the bot.
+Music cog ran my Obsidian.
 Copyright (C) 2021 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -31,10 +31,6 @@ class AvimetryPlayer(obsidian.PresetPlayer):
         super().enqueue(track)
         if not self.is_playing():
             await self.do_next()
-
-    async def on_obsidian_track_end(self, _player, _event):
-        print('end')
-        return await super().on_obsidian_track_end(_player, _event)
 
 
 class Music(commands.Cog):
@@ -83,7 +79,7 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['resume'])
     async def pause(self, ctx: AvimetryContext):
-        player = ctx.bot.obsidian.get_player(ctx.guild, cls=obsidian.PresetPlayer)
+        player = ctx.bot.obsidian.get_player(ctx.guild, cls=AvimetryPlayer)
         if not player.connected:
             return
         new_pause = await player.set_pause()

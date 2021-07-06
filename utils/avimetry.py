@@ -50,12 +50,20 @@ BETA_BOT_ID = 787046145884291072
 
 
 logger = logging.getLogger("discord")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
 handler.setFormatter(
     logging.Formatter("%(levelname)s:%(name)s: %(message)s")
 )
 logger.addHandler(handler)
+
+logger2 = logging.getLogger("obsidian.player")
+logger2.setLevel(logging.DEBUG)
+handler2 = logging.FileHandler(filename="obsidian.log", encoding="utf-8", mode="w")
+handler2.setFormatter(
+    logging.Formatter("%(levelname)s:%(name)s: %(message)s")
+)
+logger2.addHandler(handler2)
 
 
 async def get_prefix(bot: "AvimetryBot", message: discord.Message):
@@ -170,7 +178,7 @@ class AvimetryBot(commands.Bot):
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.pg["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
         self.loop.create_task(self.load_extensions())
-        # self.loop.create_task(self.initiate_obsidian())
+        self.loop.create_task(self.initiate_obsidian())
 
         @self.check
         async def check(ctx):

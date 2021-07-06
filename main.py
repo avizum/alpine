@@ -19,5 +19,5 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from utils import AvimetryBot
 
 if __name__ == "__main__":
-    bot = AvimetryBot()
-    bot.run()
+    avi = AvimetryBot()
+    avi.run()

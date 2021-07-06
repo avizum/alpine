@@ -75,12 +75,12 @@ class AvimetryContext(commands.Context):
         if content:
             content = str(content)
             for token in self.tokens:
-                content = content.replace(token, "[config token omitted]")
+                content = content.replace(token, "[config omitted]")
         if embed:
             if not embed.footer:
                 embed.set_footer(
                     text=f"{self.author}",
-                    icon_url=str(self.author.avatar_url)
+                    icon_url=f"Requested by: {str(self.author.avatar_url)}"
                 )
                 embed.timestamp = datetime.datetime.utcnow()
             if not embed.color:
@@ -149,7 +149,7 @@ class AvimetryContext(commands.Context):
         if delete_after:
             await send.delete()
         return confirm
-    
+
     async def prompt(
         self, message=None, embed: discord.Embed = None, *,
         timeout=60, delete_after=True, raw=False

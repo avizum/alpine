@@ -22,7 +22,7 @@ import asyncio
 import akinator
 import typing
 
-from aiogtts import aiogTTS  
+from aiogtts import aiogTTS
 from io import BytesIO
 from discord.ext import commands
 from akinator.async_aki import Akinator
@@ -600,12 +600,13 @@ class Fun(commands.Cog):
         if conf:
             return await ctx.send(f"{member.mention} is gay.")
         return await ctx.send(f"{member.mention} is not gay.")
-    
+
     @commands.command(
         brief="Check how gay a person is"
     )
     async def gayrate(self, ctx: AvimetryContext, member: discord.Member = None):
-        if member is None: member = ctx.author
+        if member is None:
+            member = ctx.author
         return await ctx.send(f"{member.mention} is **{random.randint(10, 100)}%** gay :rainbow:")
 
     @commands.command()
@@ -640,7 +641,7 @@ class Fun(commands.Cog):
         )
         embed.set_footer(text=f'Use {ctx.prefix}help to see the whole list of commands.')
         await ctx.send(embed=embed)
-    
+
     @commands.command()
     async def tts(self, ctx: AvimetryContext, *, text):
         async with ctx.channel.typing():
