@@ -70,7 +70,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                     summary.append(
                         f"I am using {humanize.naturalsize(mem.rss)} physical memory and "
                         f"{humanize.naturalsize(mem.vms)} virtual memory, "
-                        f"{humanize.naturalsize(mem.uss)} of which is unique this this process."
+                        f"{humanize.naturalsize(mem.uss)} of which is unique to this process."
                     )
                 except psutil.AccessDenied:
                     pass
@@ -80,7 +80,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                     pid = proc.pid
                     thread_count = proc.num_threads()
                     summary.append(
-                        f"I am running on Process ID `{pid}` (`{name}`) with {thread_count} threads")
+                        f"I am running on Process ID `{pid}` (`{name}`) with {thread_count} threads.")
                 except psutil.AccessDenied:
                     pass
                 summary.append("")
@@ -89,10 +89,12 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             summary.append("psutil is installed but this process does not have access to display this information")
             summary.append("")
 
+        guilds = len(self.bot.guilds)
         members = len([m for m in self.bot.users if not m.bot])
         bots = len([m for m in self.bot.users if m.bot])
+        total = len(self.bot.users)
 
-        cache_summary = f"I can see {len(self.bot.guilds)} guilds, {members} users, and {bots} bots"
+        cache_summary = f"I can see {guilds} guilds, {members} users, and {bots} bots, totaling to {total} users."
 
         if isinstance(self.bot, discord.AutoShardedClient):
             summary.append(f"I am automatically sharded and can see {cache_summary}")
@@ -116,7 +118,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             summary.append(f"{message_cache} and {guild_subscriptions}.")
         summary.append("")
 
-        summary.append(f"Websocket latency: `{round(self.bot.latency * 1000)}ms`")
+        summary.append(f"Average websocket latency: `{round(self.bot.latency * 1000)}ms`")
 
         jishaku_embed = discord.Embed(description="\n".join(summary))
         await ctx.send(embed=jishaku_embed)

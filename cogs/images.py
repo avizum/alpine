@@ -17,10 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import discord
-import io
 import typing
 from discord.ext import commands
-from io import BytesIO
 from asyncdagpi import ImageFeatures, Image
 from twemoji_parser import emoji_to_url
 from utils import AvimetryBot, AvimetryContext, GetAvatar
@@ -72,19 +70,19 @@ class Image(commands.Cog, name="Images"):
     async def dag_pixel(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.pixel(), item, False)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="colors")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_colors(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.colors(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="america")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_america(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.america(), item, True)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="communism")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_communism(self, ctx: AvimetryContext, *, item=None):
@@ -96,13 +94,12 @@ class Image(commands.Cog, name="Images"):
     async def dag_triggered(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.triggered(), item, True)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="wasted")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_wasted(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.wasted(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-
 
     @commands.command(name="invert")
     @commands.cooldown(2, 10, commands.BucketType.member)
@@ -121,19 +118,19 @@ class Image(commands.Cog, name="Images"):
     async def dag_hog(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.hog(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="triangle")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_triangle(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.triangle(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="blur")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_blur(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.blur(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="rgb")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_rgb(self, ctx: AvimetryContext, *, item=None):
@@ -151,12 +148,6 @@ class Image(commands.Cog, name="Images"):
     async def dag_satan(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.satan(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
-    @commands.command(name="delete")
-    @commands.cooldown(2, 10, commands.BucketType.member)
-    async def dag_delete(self, ctx: AvimetryContext, *, item=None):
-        meth = await self.do_dagpi(ctx, ImageFeatures.delete(), item)
-        await self.dag_embed(ctx, meth, ctx.command.name)
 
     @commands.command(name="delete")
     @commands.cooldown(2, 10, commands.BucketType.member)
@@ -169,31 +160,31 @@ class Image(commands.Cog, name="Images"):
     async def dag_fedora(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.fedora(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="hitler")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_hitler(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.hitler(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="wanted")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_wanted(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.wanted(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="stringify")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_stringify(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.stringify(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="mosaic")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_mosaic(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.mosiac(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="sithlord")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_sithlord(self, ctx: AvimetryContext, *, item=None):
@@ -205,7 +196,7 @@ class Image(commands.Cog, name="Images"):
     async def dag_jail(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.jail(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="pride", enabled=False)
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_pride(self, ctx: AvimetryContext, *, item=None):
@@ -217,13 +208,13 @@ class Image(commands.Cog, name="Images"):
     async def dag_gay(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.gay(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="trash")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_trash(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.trash(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="deepfry")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_deepfry(self, ctx: AvimetryContext, *, item=None):
@@ -247,7 +238,7 @@ class Image(commands.Cog, name="Images"):
     async def dag_posterize(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.poster(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="sepia")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_sepia(self, ctx: AvimetryContext, *, item=None):
@@ -265,7 +256,7 @@ class Image(commands.Cog, name="Images"):
     async def dag_paint(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.paint(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="night")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_night(self, ctx: AvimetryContext, *, item=None):
@@ -277,7 +268,7 @@ class Image(commands.Cog, name="Images"):
     async def dag_rainbow(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.rainbow(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
-    
+
     @commands.command(name="magic", aliases=["magick", "magik"])
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_magic(self, ctx: AvimetryContext, *, item=None):
@@ -297,7 +288,7 @@ class Image(commands.Cog, name="Images"):
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.why_are_you_gay(), url=item1, url2=item2)
         await self.dag_embed(ctx, image, ctx.command.name)
-    
+
     @commands.command(name="obama")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_obama(self, ctx: AvimetryContext, *, item=None):
@@ -310,7 +301,7 @@ class Image(commands.Cog, name="Images"):
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.tweet(), text=text, url=user, username=username)
         await self.dag_embed(ctx, image, ctx.command.name)
-    
+
     @commands.command(name="youtube")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_youtube(self, ctx, user: discord.Member = None, *, text: str = None):
@@ -326,7 +317,7 @@ class Image(commands.Cog, name="Images"):
                 ImageFeatures.youtube(), text=text, url=url,
                 username=user.name if user_name is None else user_name)
         await self.dag_embed(ctx, image, ctx.command.name)
-    
+
     @commands.command(name="discord")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_discord(self, ctx, user: discord.User = None, *, text: str = None):
@@ -342,7 +333,7 @@ class Image(commands.Cog, name="Images"):
                 ImageFeatures.discord(), text=text, url=url,
                 username=user.name if user_name is None else user_name)
         await self.dag_embed(ctx, image, ctx.command.name)
-    
+
     @commands.command(name="captcha")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_captcha(self, ctx: AvimetryContext, text, *, item: GetAvatar):

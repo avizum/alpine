@@ -1,5 +1,6 @@
 .DS_Store
 discord.log
+obsidian.log
 *__pycache__
 .vscode
 config.toml
