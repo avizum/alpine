@@ -97,11 +97,11 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         cache_summary = f"I can see {guilds} guilds, {members} users, and {bots} bots, totaling to {total} users."
 
         if isinstance(self.bot, discord.AutoShardedClient):
-            summary.append(f"I am automatically sharded and can see {cache_summary}")
+            summary.append(f"I am automatically sharded and {cache_summary}")
         elif self.bot.shard_count:
-            summary.append(f"I am manually sharded and can see {cache_summary}")
+            summary.append(f"I am manually sharded and {cache_summary}")
         else:
-            summary.append(f"I am not sharded and can see {cache_summary}")
+            summary.append(f"I am not sharded and {cache_summary}")
 
         if self.bot._connection.max_messages:
             message_cache = f"Message cache is capped at {self.bot._connection.max_messages}."
