@@ -170,7 +170,7 @@ class AvimetryBot(commands.Bot):
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.pg["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
         self.loop.create_task(self.load_extensions())
-        self.loop.create_task(self.initiate_obsidian())
+        # self.loop.create_task(self.initiate_obsidian())
 
         @self.check
         async def check(ctx):

@@ -52,7 +52,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         command = self.bot.get_command("dev sync")
         await command(ctx)
 
-    @Feature.Command(name="jishaku", aliases=["jsk", "jks", "bsk", "bishaku", "bsk"], hidden=JISHAKU_HIDE,
+    @Feature.Command(name="jishaku", aliases=["jsk", "jks", "bishaku", "bsk", "bks"], hidden=JISHAKU_HIDE,
                      invoke_without_command=True, ignore_extra=False)
     async def jsk(self, ctx: AvimetryContext):
         summary = [
