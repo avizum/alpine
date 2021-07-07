@@ -107,6 +107,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             message_cache = f"Message cache is capped at {self.bot._connection.max_messages}"
         else:
             message_cache = "Message cache is not enabled"
+        summary.append(message_cache)
 
         if discord.version_info >= (1, 5, 0):
             presence_intent = f"presences `{'enabled' if self.bot.intents.presences else 'disabled'}`"
