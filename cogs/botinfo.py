@@ -51,6 +51,10 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @commands.command()
     async def about(self, ctx: AvimetryContext):
+        developer = self.bot.get_user(750135653638865017)
+        tester = self.bot.get_user(547280209284562944)
+        avatar = self.bot.get_user(672122220566413312)
+        help_command = self.bot.get_user(171539705043615744)
         embed = discord.Embed(title="Info about Avimetry")
         embed.add_field(
             name="Latest Updates",
@@ -60,7 +64,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         pid = psutil.Process(os.getpid())
         used = pid.memory_info().rss / 1024 ** 2
         total = psutil.virtual_memory().total / 1024 ** 2
-        embed.add_field(name="Developer", value="bot#8771 (Main)")
+        embed.add_field(name="Developer", value=f"{developer} (Main)")
         embed.add_field(name="Ping", value=f"`{round(self.bot.latency * 1000)}ms`")
         embed.add_field(name="Guild Count", value=f"{len(self.bot.guilds)} Guilds")
         embed.add_field(name="User Count", value=f"{len(self.bot.users)} Users")
@@ -72,7 +76,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         embed.add_field(name="Commands", value=f"{len(self.bot.commands)} loaded")
         embed.add_field(name="Commands ran", value=self.bot.commands_ran)
-        embed.add_field(name="Credits", value="Foxi#6626 (Avatar),\nDutchy#6127 (Help Command)\nLere#3303 (Tester)")
+        embed.add_field(name="Credits", value=f"{avatar} (Avatar),\n{help_command} (Help Command)\n{tester} (Tester)")
         embed.set_thumbnail(url=ctx.me.avatar_url)
         await ctx.send(embed=embed)
 
