@@ -99,7 +99,7 @@ class Fun(commands.Cog):
                 f"{author} accidentally shot themselves in the face while trying to load the gun.",
                 f"{author} died while summoning a demon to kill {member}",
                 f"{member} summoned a demon to kill {author}.",
-                f"{author} was caught by the police because he posted his plans to kill {member}",
+                f"{author} was caught by the police because they posted his plans to kill {member}",
                 f"{author} hired a hitman to kill {member}.",
                 f"{author} shot {member}. While reloading the gun, {author} shot themselves on the head.",
                 f"{author} kidnapped {member} and chopped their head off with a guillotine",
