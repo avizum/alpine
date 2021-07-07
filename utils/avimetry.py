@@ -97,7 +97,7 @@ intents = discord.Intents(
 activity = discord.Game("Loading...")
 
 
-class AvimetryBot(commands.Bot):
+class AvimetryBot(commands.AutoShardedBot):
     def __init__(self, **kwargs):
         super().__init__(
             **kwargs,
