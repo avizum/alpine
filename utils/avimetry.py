@@ -50,20 +50,12 @@ BETA_BOT_ID = 787046145884291072
 
 
 logger = logging.getLogger("discord")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
 handler.setFormatter(
     logging.Formatter("%(levelname)s:%(name)s: %(message)s")
 )
 logger.addHandler(handler)
-
-logger2 = logging.getLogger("obsidian.player")
-logger2.setLevel(logging.DEBUG)
-handler2 = logging.FileHandler(filename="obsidian.log", encoding="utf-8", mode="w")
-handler2.setFormatter(
-    logging.Formatter("%(levelname)s:%(name)s: %(message)s")
-)
-logger2.addHandler(handler2)
 
 
 async def get_prefix(bot: "AvimetryBot", message: discord.Message):

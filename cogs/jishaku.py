@@ -52,7 +52,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         command = self.bot.get_command("dev sync")
         await command(ctx)
 
-    @Feature.Command(name="jishaku", aliases=["jsk"], hidden=JISHAKU_HIDE,
+    @Feature.Command(name="jishaku", aliases=["jsk", "jks", "bsk", "bishaku", "bsk"], hidden=JISHAKU_HIDE,
                      invoke_without_command=True, ignore_extra=False)
     async def jsk(self, ctx: AvimetryContext):
         summary = [
@@ -101,18 +101,18 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         elif self.bot.shard_count:
             summary.append(f"I am manually sharded and can see {cache_summary}")
         else:
-            summary.append(f"I am not sharded and can see {cache_summary}.")
+            summary.append(f"I am not sharded and can see {cache_summary}")
 
         if self.bot._connection.max_messages:
-            message_cache = f"Message cache is capped at {self.bot._connection.max_messages}"
+            message_cache = f"Message cache is capped at {self.bot._connection.max_messages}."
         else:
-            message_cache = "Message cache is not enabled"
+            message_cache = "Message cache is not enabled."
         summary.append(message_cache)
 
         if discord.version_info >= (1, 5, 0):
             presence_intent = f"presences `{'enabled' if self.bot.intents.presences else 'disabled'}`"
             members_intent = f"members `{'enabled' if self.bot.intents.members else 'disabled'}`"
-            summary.append(f"Intents: {presence_intent} and {members_intent}")
+            summary.append(f"Intents: {presence_intent} and {members_intent}.")
         else:
             guild_subs = self.bot._connection.guild_subscriptions
             guild_subscriptions = f"`guild subscriptions` are `{'enabled' if guild_subs else 'disabled'}`"
