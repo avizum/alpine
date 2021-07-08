@@ -32,7 +32,8 @@ class MemberJoin(commands.Cog):
 
     async def do_verify(self, member):
         prefix = await self.bot.cache.get_guild_settings(member.guild.id)
-        pre = "a." if not prefix["prefixes"] else prefix["prefixes"][0]
+        prefixes = prefix.get('prefixes')
+        pre = prefixes[0] if prefixes else 'a.'
 
         config = self.bot.cache.verification.get(member.guild.id)
 

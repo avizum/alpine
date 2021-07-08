@@ -242,13 +242,13 @@ class BotInfo(commands.Cog, name="Bot Info"):
             if self.bot.user.id != 756257170521063444:
                 source_embed.description = (
                     "This bot is an instance of [Avimetry](https://github.com/avimetry/avimetry), "
-                    "Made by [bot](https://discord.com/users/750135653638865017). "
+                    "Made by [avizum#8771](https://discord.com/users/750135653638865017). "
                     f"Follow the [license]({license_link})"
                 )
             else:
                 source_embed.description = (
                     "Here is my [source](https://github.com/avimetry/avimetry). "
-                    "I am made by [bot](https://discord.com/users/750135653638865017).\n"
+                    "I am made by [avizum#8771](https://discord.com/users/750135653638865017).\n"
                     f"Follow the [license]({license_link})"
                 )
             return await ctx.send(embed=source_embed)

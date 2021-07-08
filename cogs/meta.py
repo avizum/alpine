@@ -21,7 +21,6 @@ import aiohttp
 import discord
 import datetime
 import random
-import humanize
 import pytz
 import typing
 
@@ -130,7 +129,7 @@ class Meta(commands.Cog):
             pos = f"{sort.index(member) + 1}/{len(ctx.guild.members)}"
             ie.add_field(
                 name="Join Date",
-                value=f"{timestamp(member.joined_at)} ({timestamp(member.joined_at, 'R')})",
+                value=f"{timestamp(member.joined_at)} ({timestamp(member.joined_at, 'R')})\nJoin Position: {pos}",
                 inline=False,
             )
             ie.add_field(
@@ -193,7 +192,9 @@ class Meta(commands.Cog):
         try:
             timezone = ctx.cache.users[member.id]["timezone"]
         except KeyError:
-            return await ctx.send("This user does not have a timezone setup.")
+            if member == ctx.author:
+                return await ctx.send("You don't have a timezone setup yet. Use {prefix}time set <timezone>.")
+            return await ctx.send("This user does not have a timezone setup. Use {prefix}time set <timezone>.")
         timezone = pytz.timezone(timezone)
         time = datetime.datetime.now(timezone)
         format_time = time.strftime("%A, %B %d at %I:%M %p")
