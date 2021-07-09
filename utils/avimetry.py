@@ -31,7 +31,6 @@ import asyncdagpi
 import logging
 import obsidian
 
-from sys import platform
 from discord.ext import commands
 from .errors import Blacklisted, Maintenance
 from .cache import AvimetryCache
@@ -148,7 +147,6 @@ class AvimetryBot(commands.AutoShardedBot):
             "cogs.joinsandleaves",
             "cogs.meta",
             "cogs.moderation",
-            "cogs.roblox",
             "cogs.servermanagement",
             "cogs.settings",
             # "cogs.music",
@@ -158,8 +156,6 @@ class AvimetryBot(commands.AutoShardedBot):
         ]
         with open("config.toml") as token:
             self.settings = toml.loads(token.read())
-        with open("pg_config.toml") as pg:
-            self.pg = toml.loads(pg.read())
 
         api = self.settings["api_tokens"]
         self.topgg = topgg.DBLClient(self, api["TopGG"], autopost_interval=None)
@@ -167,7 +163,7 @@ class AvimetryBot(commands.AutoShardedBot):
         self.dagpi = asyncdagpi.Client(api["DagpiAPI"])
         self.myst = mystbin.Client()
         self.session = aiohttp.ClientSession()
-        self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.pg["postgresql"]))
+        self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
         self.loop.create_task(self.load_extensions())
         # self.loop.create_task(self.initiate_obsidian())
@@ -253,10 +249,7 @@ class AvimetryBot(commands.AutoShardedBot):
 
     def run(self):
         tokens = self.settings["bot_tokens"]
-        if platform not in ["linux", "linux2"]:
-            token = tokens["AvimetryBeta"]
-        else:
-            token = tokens["Avimetry"]
+        token = tokens["Avimetry"]
         super().run(token, reconnect=True)
 
     async def close(self):
@@ -266,5 +259,6 @@ class AvimetryBot(commands.AutoShardedBot):
             await self.session.close()
             await self.dagpi.close()
             await self.topgg.close()
+            await self.obsidian.destroy()
             await super().close()
         print("\nSuccessfully closed bot", end="\n\n")

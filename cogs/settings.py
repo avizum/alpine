@@ -480,6 +480,45 @@ class Settings(commands.Cog):
         ctx.cache.verifiction[ctx.guild.id]["role_id"] = role.id
         return await ctx.send(f"Set screening role to `{role.mention}.`")
 
+    @commands.group(invoke_without_command=True, case_insensitive=True)
+    @commands.cooldown(1, 60, commands.BucketType.user)
+    async def theme(self, ctx: AvimetryContext, color: discord.Color):
+        embed = discord.Embed(description='Does this look good?', color=color)
+        conf = await ctx.confirm(embed=embed)
+        if conf:
+            query = (
+                "INSERT INTO user_settings (user_id, color) "
+                "VALUES ($1, $2) "
+                "ON CONFLICT (user_id) DO "
+                "UPDATE SET color = $2"
+            )
+            await self.bot.pool.execute(query, ctx.author.id, color.value)
+            try:
+                ctx.cache.users[ctx.author.id]["color"] = color.value
+            except KeyError:
+                new = await ctx.cache.new_user(ctx.author.id)
+                new["color"] = color.value
+            return await ctx.send(f"Set color to {color}")
+        return await ctx.send('Aborted.')
+
+    @theme.command(aliases=['none', 'no', 'not', 'gone'])
+    async def remove(self, ctx: AvimetryContext):
+        conf = await ctx.confirm('Are you sure you want to remove your color?')
+        if conf:
+            query = (
+                "INSERT INTO user_settings (user_id, color) "
+                "VALUES ($1, $2) "
+                "ON CONFLICT (user_id) DO "
+                "UPDATE SET color = $2"
+            )
+            await self.bot.pool.execute(query, ctx.author.id, None)
+            try:
+                ctx.cache.users[ctx.author.id]["color"] = None
+            except KeyError:
+                return await ctx.send('You do not have a color.')
+            return await ctx.send("Removed your color.")
+        return await ctx.send('Aborted.')
+
 
 def setup(bot):
     bot.add_cog(Settings(bot))

@@ -54,10 +54,11 @@ class AvimetryCache:
 
     async def delete_all(self, gid):
         await self.bot.pool.execute("DELETE FROM guild_settings WHERE guild_id = $1", gid)
+        self.guild_settings.pop(gid)
 
     async def get_guild_settings(self, guild_id: int):
         return self.guild_settings.get(guild_id)
-    
+
     async def get_prefix(self, guild_id: int):
         guild = self.guild_settings.get(guild_id)
         return guild.get('prefixes') if guild else None

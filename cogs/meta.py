@@ -185,16 +185,16 @@ class Meta(commands.Cog):
             thing = await resp.json()
             await ctx.send((str(thing[0]["symbol"][0]["data"])))
 
-    @commands.group(brief="Gets the time for a member", invoke_without_command=True)
+    @commands.group(case_insensitive=True, brief="Gets the time for a member", invoke_without_command=True)
     async def time(self, ctx: AvimetryContext, *, member: discord.Member = None):
-        if member is None:
-            member = ctx.author
+        member = member or ctx.author
         try:
             timezone = ctx.cache.users[member.id]["timezone"]
         except KeyError:
+            prefix = ctx.clean_prefix
             if member == ctx.author:
-                return await ctx.send("You don't have a timezone setup yet. Use {prefix}time set <timezone>.")
-            return await ctx.send("This user does not have a timezone setup. Use {prefix}time set <timezone>.")
+                return await ctx.send(f"You don't have a timezone setup yet. Use {prefix}time set <timezone>.")
+            return await ctx.send(f"This user does not have a timezone setup. Use {prefix}time set <timezone>.")
         timezone = pytz.timezone(timezone)
         time = datetime.datetime.now(timezone)
         format_time = time.strftime("%A, %B %d at %I:%M %p")
