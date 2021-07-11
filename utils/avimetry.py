@@ -25,7 +25,6 @@ import mystbin
 import topgg
 import toml
 import re
-import contextlib
 import asyncpg
 import asyncdagpi
 import logging
@@ -79,9 +78,7 @@ async def get_prefix(bot: "AvimetryBot", message: discord.Message):
     return prefixes
 
 
-allowed_mentions = discord.AllowedMentions(
-    everyone=False, users=False,
-    roles=False, replied_user=False)
+allowed_mentions = discord.AllowedMentions.none()
 
 intents = discord.Intents(
     bans=True,
@@ -253,12 +250,10 @@ class AvimetryBot(commands.AutoShardedBot):
         super().run(token, reconnect=True)
 
     async def close(self):
-        with contextlib.suppress(Exception):
-            await self.sr.close()
-            await self.myst.close()
-            await self.session.close()
-            await self.dagpi.close()
-            await self.topgg.close()
-            await self.obsidian.destroy()
-            await super().close()
+        await self.sr.close()
+        await self.myst.close()
+        await self.session.close()
+        await self.dagpi.close()
+        await self.topgg.close()
+        await super().close()
         print("\nSuccessfully closed bot", end="\n\n")

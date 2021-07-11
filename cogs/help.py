@@ -245,9 +245,9 @@ class AvimetryHelp(commands.HelpCommand):
 
 
 class HelpCommand(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: AvimetryBot):
         self.default = bot.help_command
-        self.bot: AvimetryBot = bot
+        self.bot = bot
         self.bot.help_command = AvimetryHelp(
             verify_checks=False,
             command_attrs=dict(

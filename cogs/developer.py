@@ -30,8 +30,8 @@ class Owner(commands.Cog):
     """
     Commands for the bot developers.
     """
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
 
     def cleanup_code(self, content):
         if content.startswith('```') and content.endswith('```'):
@@ -241,6 +241,22 @@ class Owner(commands.Cog):
         query = "UPDATE command_errors SET fixed=$1 WHERE id=$2"
         await self.bot.pool.execute(query, True, error_id)
         await ctx.send(f"Error {error_id} is now fixed.")
+
+    @errors.command()
+    async def fixall(self, ctx: AvimetryContext):
+        query = (
+            "UPDATE command_errors "
+            "SET fixed = $1 "
+            "WHERE fixed = $2 "
+            "RETURNING *"
+        )
+        thing = await self.bot.pool.fetchrow(query, True, False)
+        print(thing)
+        embed = discord.Embed(
+            title="Fixed all errors",
+            description=f"{len(thing)} errors have been fixed."
+        )
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

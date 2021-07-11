@@ -81,8 +81,8 @@ class JoinsAndLeaves(commands.Cog):
     """
     Cog for handling joins and leave messages.
     """
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
 
     async def convert(self, message):
         try:

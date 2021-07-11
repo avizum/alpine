@@ -6,9 +6,8 @@ from utils import AvimetryBot
 
 
 class Highlight(commands.Cog):
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
-
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
 
     @commands.Cog.listener("on_message")
     async def on_message(self, message: discord.Message):

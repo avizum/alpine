@@ -73,8 +73,8 @@ class Servers(commands.Cog, name="Servers"):
     '''
     Commands for bot's servers only.
     '''
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
         self.update_count.start()
         self.guild_id = [751490725555994716, 814206001451761664]
         self.joins_and_leaves = 751967006701387827

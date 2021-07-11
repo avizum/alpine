@@ -177,9 +177,6 @@ class CogConverter(commands.Converter):
             exts.extend(ctx.bot.extensions)
         else:
             exts.append(argument)
-        jsk = "cogs.jishaku"
-        if jsk in exts:
-            exts.remove("cogs.jishaku")
         return exts
 
 

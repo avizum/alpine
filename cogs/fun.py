@@ -33,8 +33,8 @@ class Fun(commands.Cog):
     """
     Fun commands for you and friends.
     """
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
         self._cd = commands.CooldownMapping.from_cooldown(1.0, 60.0, commands.BucketType.user)
 
     async def do_mock(self, string: str):

@@ -6,8 +6,8 @@ from discord.ext import commands
 
 
 class Animals(commands.Cog):
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
 
     async def do_animal(self, ctx: AvimetryContext, animal: str):
         e = await self.bot.sr.get_image(animal)

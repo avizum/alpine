@@ -29,8 +29,8 @@ from difflib import get_close_matches
 
 
 class ErrorHandler(commands.Cog):
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
         self.cd_mapping = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
         self.error_webhook = discord.Webhook.from_url(
             self.bot.settings["webhooks"]["error_log"],
@@ -212,7 +212,7 @@ class ErrorHandler(commands.Cog):
             traceback = (
                 "".join(DefaultFormatter().format_exception(type(error), error, error.__traceback__))
             )
-            if len(traceback) > 2000:
+            if len(traceback) > 4096:
                 traceback = f"Error was too long: {await self.bot.myst.post(traceback, 'bash')}"
 
             webhook_error_embed = discord.Embed(

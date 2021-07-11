@@ -33,8 +33,8 @@ class BotInfo(commands.Cog, name="Bot Info"):
     """
     Commands about the bot
     """
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
 
     @commands.Cog.listener()
     async def on_message(self, message):

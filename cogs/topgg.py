@@ -23,8 +23,8 @@ from discord.ext import commands, tasks
 
 
 class TopGG(commands.Cog):
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
         self.post.start()
         self.update.start()
 

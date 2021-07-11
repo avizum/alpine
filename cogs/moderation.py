@@ -30,8 +30,8 @@ class Moderation(commands.Cog):
     """
     Moderation commands.
     """
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
 
     @commands.command(brief="Kicks a member from the server.", usage="<member> [reason]")
     @commands.has_permissions(kick_members=True)

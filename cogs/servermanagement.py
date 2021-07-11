@@ -24,8 +24,8 @@ from utils import AvimetryBot, AvimetryContext
 
 
 class ServerManagement(commands.Cog, name="Server Management"):
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
 
     @commands.command(
         aliases=["members", "mc"], brief="Gets the members of the server and shows you."

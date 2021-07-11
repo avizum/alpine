@@ -31,8 +31,8 @@ class Image(commands.Cog, name="Images"):
     '''
     Commands for image manipuation and more.
     '''
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
 
     async def do_dagpi(self, ctx: AvimetryContext, feature: ImageFeatures, argument, gif: bool = False):
         converter = GetAvatar()

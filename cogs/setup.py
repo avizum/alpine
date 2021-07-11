@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import aiohttp
 import discord
 import datetime
 
@@ -24,8 +25,8 @@ from utils import AvimetryContext, AvimetryBot
 
 
 class Setup(commands.Cog):
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
         self.webhooks = self.bot.settings["webhooks"]
         self.guild_webhook = discord.Webhook.from_url(
             self.webhooks["join_log"],
@@ -91,7 +92,10 @@ class Setup(commands.Cog):
         )
         embed.set_author(name=ctx.author, icon_url=str(ctx.author.avatar_url_as(format="png", size=512)))
         embed.timestamp = datetime.datetime.utcnow()
-        await self.command_webhook.send(embed=embed)
+        try:
+            await self.command_webhook.send(embed=embed)
+        except aiohttp.ClientOSError:
+            return
         if ctx.guild.chunked:
             await ctx.guild.chunk()
         self.bot.commands_ran += 1

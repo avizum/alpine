@@ -22,12 +22,14 @@ import datetime
 import contextlib
 import re
 
+from .avimetry import AvimetryBot
 from discord.ext import commands
 
 
 class AvimetryContext(commands.Context):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, bot: AvimetryBot, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.bot = bot
         self.tokens = []
         self.tokens.extend(self.bot.settings['bot_tokens'].values())
         self.tokens.extend(self.bot.settings['api_tokens'].values())
@@ -36,6 +38,10 @@ class AvimetryContext(commands.Context):
     @property
     def cache(self):
         return self.bot.cache
+
+    @property
+    def pool(self):
+        return self.bot.pool
 
     @property
     def clean_prefix(self):
@@ -71,6 +77,22 @@ class AvimetryContext(commands.Context):
         )
         await self.send(embed=embed)
 
+    async def determine_color(self):
+        base = self.author.color
+        data = self.cache.users.get(self.author.id)
+        try:
+            color = data.get('color')
+            if not color:
+                color = base
+        except AttributeError:
+            color = self.author.color
+        if color == discord.Color(0):
+            if await self.bot.is_owner(self.author):
+                color = discord.Color(0x01b9c0)
+            else:
+                color = discord.Color(0x2F3136)
+        return color
+
     async def send(self, content=None, embed: discord.Embed = None, **kwargs):
         if content:
             content = str(content)
@@ -79,21 +101,12 @@ class AvimetryContext(commands.Context):
         if embed:
             if not embed.footer:
                 embed.set_footer(
-                    text=f"Requested by: {self.author}",
+                    text=f"Requested by {self.author}",
                     icon_url=str(self.author.avatar_url)
                 )
                 embed.timestamp = datetime.datetime.utcnow()
             if not embed.color:
-                cache = self.cache.users.get(self.author.id)
-                db_color = cache.get('color')
-                if db_color:
-                    color = db_color
-                elif self.author.color == discord.Color(0):
-                    if await self.bot.is_owner(self.author):
-                        color = discord.Color(0x01b9c0)
-                    else:
-                        color = discord.Color(0x2F3136)
-                embed.color = color
+                embed.color = await self.determine_color()
         if self.message.id in self.bot.command_cache and self.message.edited_at:
             edited_message = self.bot.command_cache[self.message.id]
             try:

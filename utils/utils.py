@@ -60,7 +60,14 @@ class Timer:
         self.start()
         return self
 
+    def __aenter__(self):
+        self.start()
+        return self
+
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.stop()
+
+    def __aexit__(self, exc_type, exc_value, exc_traceback):
         self.stop()
 
     def start(self):

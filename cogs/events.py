@@ -28,8 +28,8 @@ TOKEN_REGEX = r'[a-zA-Z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27}'
 
 
 class BotLogs(commands.Cog):
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
         self.clear_cache.start()
 
     @commands.Cog.listener("on_message")
@@ -147,7 +147,7 @@ class BotLogs(commands.Cog):
         channel_id = thing["channel_id"]
         channel = discord.utils.get(before.guild.channels, id=channel_id)
         await channel.send(embed=embed)
-    
+
     # @commands.Cog.listener("on_member_ban")
     # async def on_member_ban(self, guild: discord.Guild, user: discord.User):
     #     entry = (await guild.audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten())[0]

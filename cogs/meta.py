@@ -32,8 +32,8 @@ class Meta(commands.Cog):
     """
     Extra commands that do not lie in any category.
     """
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
 
     @commands.command(brief="Sends a poll in the current channel for people to vote to.")
     @commands.cooldown(1, 300, commands.BucketType.user)
@@ -205,11 +205,12 @@ class Meta(commands.Cog):
         time_embed.set_footer(text=f"{member.display_name}'s' timezone: {timezone}")
         await ctx.send(embed=time_embed)
 
-    @time.command(
+    @time.group(
         name="set",
-        brief="Sets your timezone"
+        brief="Sets your timezone",
+        invoke_without_command=True
         )
-    async def _set(self, ctx: AvimetryContext, *, timezone):
+    async def time_set(self, ctx: AvimetryContext, *, timezone):
         try:
             timezones = pytz.timezone(timezone)
         except KeyError:
@@ -227,6 +228,21 @@ class Meta(commands.Cog):
             new = await ctx.cache.new_user(ctx.author.id)
             new["timezone"] = timezone
         await ctx.send(f"Set timezone to {timezones}")
+
+    @time_set.command(aliases=['remove', 'no', 'gone', 'away'])
+    async def none(self, ctx: AvimetryContext):
+        query = (
+                "INSERT INTO user_settings (user_id, timezone) "
+                "VALUES ($1, $2) "
+                "ON CONFLICT (user_id) DO "
+                "UPDATE SET timezone = $2"
+        )
+        await self.bot.pool.execute(query, ctx.author.id, None)
+        try:
+            del ctx.cache.users[ctx.author.id]["timezone"]
+        except KeyError:
+            return await ctx.send('You do not have a timezone setup yet.')
+        await ctx.send("Removed your timezone.")
 
     @commands.command(brief="Get the jump link for the channel that you mention")
     @commands.cooldown(1, 15, commands.BucketType.guild)
