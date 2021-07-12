@@ -36,6 +36,11 @@ class AvimetryPlayer(obsidian.PresetPlayer):
 class Music(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+    
+    async def cog_check(self, ctx):
+        if await self.bot.is_owner(ctx.author):
+            return True
+        raise commands.NotOwner('nope')
 
     @commands.command()
     async def join(self, ctx: AvimetryContext, *, channel: discord.VoiceChannel = None):

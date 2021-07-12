@@ -100,12 +100,17 @@ class AvimetryHelp(commands.HelpCommand):
             except commands.CommandError:
                 continue
         usable = f"Total Commands: {total} | Usable by you here: {usable}"
+        info = [
+            f"[Support Server]({self.context.bot.support})",
+            f"[Invite]({self.context.bot.invite})",
+            "[Vote](https://top.gg/bot/756257170521063444/vote)"
+        ]
         embed = discord.Embed(
             title="Help Menu",
             description=(
-                f"{usable}"
-                f"{self.command_signature()}\nDo not put the brackets with the commands.\n"
-                f"Here are the prefixes for {self.get_destination().guild.name}.\n{await self.context.get_prefix}\n"
+                f"{self.command_signature()}Do not put the brackets with the commands.\n"
+                f"{usable}\n"
+                f"{' | '.join(info)}\n"
             )
         )
         modules_list = []
@@ -205,7 +210,6 @@ class AvimetryHelp(commands.HelpCommand):
             inline=False)
         try:
             can_run = await self.bot.can_run(self.ctx)
-            print(can_run)
         except Exception:
             pass
         try:
@@ -250,6 +254,7 @@ class HelpCommand(commands.Cog):
         self.bot = bot
         self.bot.help_command = AvimetryHelp(
             verify_checks=False,
+            show_hidden=False,
             command_attrs=dict(
                 hidden=True,
                 aliases=["halp", "helps", "hlp", "hlep", "hep"],

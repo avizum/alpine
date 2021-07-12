@@ -40,11 +40,7 @@ class MemberJoin(commands.Cog):
         if not config:
             return
 
-        if config["low"] is True:
-            print("doing some other stuff")
-        elif config["medium"] is True:
-            print("Doing stuff")
-        elif config["high"] is True:
+        if config["high"] is True:
             if config["role_id"] is None:
                 return
             name = "New Members"

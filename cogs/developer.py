@@ -46,7 +46,8 @@ class Owner(commands.Cog):
 
     @commands.group(
         invoke_without_command=True,
-        brief="Developer commands only."
+        brief="Developer commands only.",
+        hidden=True
     )
     async def dev(self, ctx: AvimetryContext):
         await ctx.send_help("dev")
@@ -213,7 +214,7 @@ class Owner(commands.Cog):
             return m.author == self.bot.user
         perms = ctx.channel.permissions_for(ctx.me).manage_messages
         purged = await ctx.channel.purge(limit=amount, check=check, bulk=perms)
-        await ctx.trash(f'Purged {len(purged)} messages')
+        await ctx.can_delete(f'Purged {len(purged)} messages')
 
     @dev.group(invoke_without_command=True)
     async def errors(self, ctx: AvimetryContext):
@@ -251,7 +252,6 @@ class Owner(commands.Cog):
             "RETURNING *"
         )
         thing = await self.bot.pool.fetchrow(query, True, False)
-        print(thing)
         embed = discord.Embed(
             title="Fixed all errors",
             description=f"{len(thing)} errors have been fixed."

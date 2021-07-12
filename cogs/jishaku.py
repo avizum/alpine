@@ -16,16 +16,31 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import humanize
 import jishaku
 import discord
 import sys
+import platform
 import psutil
+import math
 
 from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 from jishaku import Feature
 from jishaku.flags import JISHAKU_HIDE
 from utils import AvimetryBot, AvimetryContext, CogConverter, timestamp
+
+
+def naturalsize(size_in_bytes: int):
+    """
+    Converts a number of bytes to an appropriately-scaled unit
+    E.g.:
+        1024 -> 1.00 KiB
+        12345678 -> 11.77 MiB
+    """
+    units = ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')
+
+    power = int(math.log(size_in_bytes, 1024))
+
+    return f"{size_in_bytes / (1024 ** power):.2f} {units[power]}"
 
 
 class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
@@ -57,9 +72,9 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     async def jsk(self, ctx: AvimetryContext):
         summary = [
             f"Jishaku `v{jishaku.__version__}`, discord.py `v{discord.__version__}`, "
-            f"Python `{sys.version}` on `{sys.platform}`, ".replace("\n", ""),
-            f"Jishaku was loaded {timestamp(self.load_time, 'R')} and "
-            f"Jishaku cog was loaded {timestamp(self.start_time, 'R')}.",
+            f"Python `{platform.python_version()}` on `{sys.platform}`, ",
+            f"Jishaku was loaded {timestamp(self.load_time, 'R')} "
+            f"and the cog was loaded {timestamp(self.start_time, 'R')}.",
             ""
         ]
         try:
@@ -68,9 +83,9 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 try:
                     mem = proc.memory_full_info()
                     summary.append(
-                        f"I am using {humanize.naturalsize(mem.rss)} physical memory and "
-                        f"{humanize.naturalsize(mem.vms)} virtual memory, "
-                        f"{humanize.naturalsize(mem.uss)} of which is unique to this process."
+                        f"I am using {naturalsize(mem.rss)} physical memory and "
+                        f"{naturalsize(mem.vms)} virtual memory, "
+                        f"{naturalsize(mem.uss)} of which is unique to this process."
                     )
                 except psutil.AccessDenied:
                     pass
@@ -94,10 +109,13 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         bots = len([m for m in self.bot.users if m.bot])
         total = len(self.bot.users)
 
-        cache_summary = f"I can see {guilds} guilds, {members} users, and {bots} bots, totaling to {total} users."
+        cache_summary = f"I can see {guilds} guilds, {members} humans, and {bots} bots, totaling to {total} users."
 
         if isinstance(self.bot, discord.AutoShardedClient):
-            summary.append(f"I am automatically sharded and {cache_summary}")
+            summary.append(
+                f"I am automatically sharded ({len(self.bot.shards)} shards of {self.bot.shard_count})"
+                f" and can see {cache_summary}"
+            )
         elif self.bot.shard_count:
             summary.append(f"I am manually sharded and {cache_summary}")
         else:

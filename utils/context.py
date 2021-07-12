@@ -65,7 +65,7 @@ class AvimetryContext(commands.Context):
             return "`a.`"
         return f"`{'` | `'.join(prefix)}`"
 
-    async def send_raw(self, *args, **kwargs):
+    async def no_reply(self, *args, **kwargs):
         return await super().send(*args, **kwargs)
 
     async def post(self, content, syntax=None):
@@ -109,25 +109,22 @@ class AvimetryContext(commands.Context):
                 embed.color = await self.determine_color()
         if self.message.id in self.bot.command_cache and self.message.edited_at:
             edited_message = self.bot.command_cache[self.message.id]
-            try:
+            if self.me.permissions_in(self.channel).manage_messages is True:
                 await edited_message.clear_reactions()
-            except Exception:
-                pass
             try:
                 await edited_message.edit(content=content, embed=embed, **kwargs)
                 return edited_message
-            except Exception:
+            except discord.HTTPException:
                 pass
         try:
             message = await self.reply(content=content, embed=embed, **kwargs)
             return message
-        except Exception:
-            try:
-                message = await self.send_raw(content=content, embed=embed, **kwargs)
-                return message
-            except Exception:
+        except discord.HTTPException:
+            if len(content) > 2000:
                 message = await self.post(content=content)
                 return message
+            message = await self.no_reply(content=content, embed=embed, **kwargs)
+            return message
         finally:
             with contextlib.suppress(Exception):
                 self.bot.command_cache[self.message.id] = message
@@ -140,7 +137,7 @@ class AvimetryContext(commands.Context):
         yes_no = [emojis['green_tick'], emojis['red_tick']]
         check_message = confirm_message or f"React with {yes_no[0]} to accept, or {yes_no[1]} to deny."
         if raw is True:
-            send = await self.send_raw(content=message, embed=embed)
+            send = await self.no_reply(content=message, embed=embed)
         elif message:
             message = f"{message}\n\n{check_message}"
             send = await self.send(message)
@@ -171,7 +168,7 @@ class AvimetryContext(commands.Context):
         timeout=60, delete_after=True, raw=False
     ):
         if raw is True:
-            send = await self.send_raw(content=message, embed=embed)
+            send = await self.no_reply(content=message, embed=embed)
         elif message:
             message = f"{message}"
             send = await self.send(message)
@@ -193,7 +190,7 @@ class AvimetryContext(commands.Context):
             await send.delete()
         return confirm
 
-    async def trash(self, *args, **kwargs):
+    async def can_delete(self, *args, **kwargs):
         emoji = self.bot.emoji_dictionary["red_tick"]
         message = await self.send(*args, **kwargs)
         await message.add_reaction(emoji)

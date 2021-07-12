@@ -1,3 +1,4 @@
+from utils.utils import Timer
 import discord
 
 from io import BytesIO
@@ -10,9 +11,14 @@ class Animals(commands.Cog):
         self.bot = bot
 
     async def do_animal(self, ctx: AvimetryContext, animal: str):
-        e = await self.bot.sr.get_image(animal)
+        async with ctx.channel.typing():
+            with Timer() as timer:
+                e = await self.bot.sr.get_image(animal)
         file = discord.File(BytesIO(await e.read()), filename=f"{animal}.png")
-        embed = discord.Embed(title=f"Here is {animal}", description="Powered by Some Random API")
+        embed = discord.Embed(
+            title=f"Here is {animal}",
+            description=f"Powered by Some Random API\nProcessed in `{timer.total_time:,.2f}ms`"
+        )
         embed.set_image(url=f"attachment://{animal}.png")
         await ctx.send(file=file, embed=embed)
 

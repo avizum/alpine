@@ -114,13 +114,14 @@ class Fun(commands.Cog):
     @commands.command(brief="Makes me say a message")
     @commands.cooldown(1, 120, commands.BucketType.member)
     async def say(self, ctx: AvimetryContext, *, message):
-        await ctx.send_raw(message)
+        await ctx.no_reply(message)
 
     @commands.command(brief="Makes me say a message but I delete your message")
     @commands.cooldown(1, 120, commands.BucketType.member)
+    @commands.has_permissions(manage_messages=True)
     async def dsay(self, ctx: AvimetryContext, *, message):
         await ctx.message.delete()
-        await ctx.send_raw(message)
+        await ctx.no_reply(message)
 
     @commands.command(
         brief="Copies someone so it looks like a person actually sent the message."

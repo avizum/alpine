@@ -285,12 +285,12 @@ class Meta(commands.Cog):
             return await ctx.send('Remove the "content" part from your message and try again.')
         try:
             thing = json.loads(thing)
-            return await ctx.send_raw(embed=discord.Embed.from_dict(thing))
+            return await ctx.no_reply(embed=discord.Embed.from_dict(thing))
         except Exception as e:
             embed = discord.Embed(
                 title="Input Error",
                 description=f"The JSON input raised an error:\n```bash\n{e}```")
-            return await ctx.send_raw(embed=embed)
+            return await ctx.no_reply(embed=embed)
 
     @commands.command(
         brief="Check what website a url redirects to"
@@ -298,7 +298,7 @@ class Meta(commands.Cog):
     async def redirectcheck(self, ctx: AvimetryContext, url: str):
         url = url.strip("<>")
         async with self.bot.session.get(url) as f:
-            await ctx.send_raw(f"This url redirects to:\n\n{f.real_url}")
+            await ctx.no_reply(f"This url redirects to:\n\n{f.real_url}")
 
     @redirectcheck.error
     async def redirectcheck_error(self, ctx: AvimetryContext, error):

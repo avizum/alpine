@@ -31,7 +31,8 @@ class Settings(commands.Cog):
         self.bot = bot
         self.map = {
             True: "Enabled",
-            False: "Disabled"}
+            False: "Disabled",
+            None: "Disabled"}
 
     @commands.group(
         brief="Configure the server's prefixes",
@@ -100,15 +101,18 @@ class Settings(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     async def logging(self, ctx: AvimetryContext, toggle: bool = None):
         if toggle is None:
-            config = ctx.cache.logging[ctx.guild.id]
+            try:
+                config = ctx.cache.logging[ctx.guild.id]
+            except KeyError:
+                return await ctx.send("Logging is not enabled.")
             embed = discord.Embed(
                 title="Logging Configuation",
                 description=(
                     "```py\n"
-                    f"Global Toggle: {self.map[config['enabled']]}\n"
-                    f"Logging Channel ID: {config['channel_id']}\n"
-                    f"Message Delete: {config['message_delete']}\n"
-                    f"Message Edit: {config['message_edit']}```"))
+                    f"Global Toggle: {self.map[config.get('enabled')]}\n"
+                    f"Logging Channel ID: {config.get('channel_id')}\n"
+                    f"Message Delete: {config.get('message_delete')}\n"
+                    f"Message Edit: {config.get('message_edit')}```"))
             return await ctx.send(embed=embed)
         query = "UPDATE logging SET enabled = $1 WHERE guild_id = $2"
         await self.bot.pool.execute(query, toggle, ctx.guild.id)
@@ -443,13 +447,18 @@ class Settings(commands.Cog):
             embed.description = "Cancelled. Goodbye."
             return await wait_message.reply(embed=embed)
 
-    @commands.group()
+    @commands.group(invoke_without_command=True)
     @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
     async def screening(self, ctx: AvimetryContext, toggle: bool = None):
         if toggle is None:
+            try:
+                veri = ctx.cache.verification[ctx.guild.id]
+            except KeyError:
+                return await ctx.send("Screening is not setup.")
             embed = discord.Embed(description=(
-                f"Role: {ctx.cache.verification[ctx.guild.id]['role_id']}\n"
-                f"Toggle: {ctx.cache.verification[ctx.guild.id]['high']}"
+                f"Role: {veri.get('role_id')}\n"
+                f"Toggle: {veri.get('high')}"
                 )
             )
             return await ctx.send(embed=embed)
@@ -477,7 +486,7 @@ class Settings(commands.Cog):
             """
         )
         await self.bot.pool.execute(query, ctx.guild.id, role.id)
-        ctx.cache.verifiction[ctx.guild.id]["role_id"] = role.id
+        ctx.cache.verification[ctx.guild.id]["role_id"] = role.id
         return await ctx.send(f"Set screening role to `{role.mention}.`")
 
     @commands.group(invoke_without_command=True, case_insensitive=True)

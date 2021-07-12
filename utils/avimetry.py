@@ -116,6 +116,7 @@ class AvimetryBot(commands.AutoShardedBot):
         self.command_cache = {}
         self.cache = AvimetryCache(self)
         self.invite = str(discord.utils.oauth_url(PUBLIC_BOT_ID, discord.Permissions(8)))
+        self.support = "https://discord.gg/KaqqPhfwS4"
         self.emoji_dictionary = {
             "red_tick": '<:redtick:777096756865269760>',
             "green_tick": '<:greentick:777096731438874634>',
@@ -163,7 +164,7 @@ class AvimetryBot(commands.AutoShardedBot):
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
         self.loop.create_task(self.load_extensions())
-        # self.loop.create_task(self.initiate_obsidian())
+        self.loop.create_task(self.initiate_obsidian())
 
         @self.check
         async def check(ctx):
