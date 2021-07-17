@@ -21,6 +21,7 @@ import discord
 import datetime
 import asyncio
 
+from utils import core
 from discord.ext import commands
 from jishaku.codeblocks import codeblock_converter
 from utils import AvimetryBot, AvimetryContext, CogConverter
@@ -44,29 +45,38 @@ class Owner(commands.Cog):
             return True
         raise commands.NotOwner("Stay away.")
 
-    @commands.group(
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member):
+        waste = "\U0001f5d1\U0000fe0f"
+        if reaction.emoji == waste and await self.bot.is_owner(user) and reaction.message.author == self.bot.user:
+            await reaction.message.delete()
+
+    @core.group(
         invoke_without_command=True,
         brief="Developer commands only.",
+        aliases=["dev"],
         hidden=True
     )
-    async def dev(self, ctx: AvimetryContext):
-        await ctx.send_help("dev")
+    async def developer(self, ctx: AvimetryContext):
+        await ctx.send_help("developer")
 
-    @dev.command(
+    @developer.command(
         brief="Load module(s)", aliases=["l"]
         )
     async def load(self, ctx: AvimetryContext, module: CogConverter):
-        reload_list = []
+        load_list = []
         for cog in module:
             try:
                 self.bot.load_extension(cog)
-                reload_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
+                load_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
             except commands.ExtensionError as e:
-                reload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
-        embed = discord.Embed(title="Load", description="\n".join(reload_list))
+                load_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
+            except ModuleNotFoundError as e:
+                load_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
+        embed = discord.Embed(title="Load", description="\n".join(load_list))
         await ctx.send(embed=embed, delete_after=15)
 
-    @dev.command(
+    @developer.command(
         brief="Unload module(s)", aliases=["u"]
         )
     async def unload(self, ctx: AvimetryContext, module: CogConverter):
@@ -77,10 +87,12 @@ class Owner(commands.Cog):
                 unload_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
             except commands.ExtensionError as e:
                 unload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
+            except ModuleNotFoundError as e:
+                unload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
         embed = discord.Embed(title="Unload", description="\n".join(unload_list))
         await ctx.send(embed=embed, delete_after=15)
 
-    @dev.command(
+    @developer.command(
         brief="Reload module(s)", aliases=["r"]
     )
     async def reload(self, ctx: AvimetryContext, module: CogConverter):
@@ -91,11 +103,13 @@ class Owner(commands.Cog):
                 reload_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
             except commands.ExtensionError as e:
                 reload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
+            except ModuleNotFoundError as e:
+                reload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
         description = "\n".join(reload_list)
         embed = discord.Embed(title="Reload", description=description)
         await ctx.send(embed=embed, delete_after=15)
 
-    @dev.command(brief="Pulls from GitHub and then reloads all modules")
+    @developer.command(brief="Pulls from GitHub and then reloads all modules")
     async def sync(self, ctx: AvimetryContext):
         sync_embed = discord.Embed(
             title="Syncing with GitHub", description="Please Wait..."
@@ -130,23 +144,26 @@ class Owner(commands.Cog):
         sync_embed.add_field(name="Reloaded Modules", value=value)
         await edit_sync.edit(embed=sync_embed, delete_after=15)
 
-    @dev.command(brief="Reboot the bot")
+    @developer.command(brief="Reboot the bot", aliases=["shutdown"])
     async def reboot(self, ctx: AvimetryContext):
         sm = discord.Embed(
-            description="Are you sure you want to reboot?"
+            description=f"Are you sure you want to {ctx.invoked_with}?"
         )
         conf = await ctx.confirm(embed=sm)
         if conf:
             await self.bot.close()
         if not conf:
-            await ctx.send("Reboot Aborted", delete_after=5)
+            await ctx.send(f"{ctx.invoked_with.capitalize()} Aborted", delete_after=5)
 
-    @dev.command(brief="Evaluate python code.")
+    @developer.command(brief="Evaluate python code.")
     async def eval(self, ctx: AvimetryContext, *, code: codeblock_converter):
         jsk = self.bot.get_command("jsk py")
-        await jsk(ctx, argument=code)
+        if jsk:
+            await jsk(ctx, argument=code)
+        else:
+            await ctx.send("Jishaku is not loaded.")
 
-    @dev.command(brief="Leaves a server.")
+    @developer.command(brief="Leaves a server.")
     async def leave(self, ctx: AvimetryContext, guild: discord.Guild):
         conf = await ctx.confirm(f"Are you sure you want me to leave {guild.name} ({guild.id})?")
         if conf:
@@ -154,7 +171,7 @@ class Owner(commands.Cog):
             return await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
         await ctx.send("Okay, Aborted.")
 
-    @dev.group(
+    @developer.group(
         invoke_without_command=True,
         brief="Blacklist users from the bot",
         aliases=["bl"]
@@ -206,7 +223,7 @@ class Owner(commands.Cog):
         self.bot.cache.blacklist.pop(user.id)
         await ctx.send(f"Unblacklisted {str(user)}")
 
-    @dev.command(
+    @developer.command(
         brief="Cleans up bot messages only"
     )
     async def cleanup(self, ctx: AvimetryContext, amount: int = 15):
@@ -216,7 +233,16 @@ class Owner(commands.Cog):
         purged = await ctx.channel.purge(limit=amount, check=check, bulk=perms)
         await ctx.can_delete(f'Purged {len(purged)} messages')
 
-    @dev.group(invoke_without_command=True)
+    @developer.command()
+    async def maintenance(self, ctx: AvimetryContext, toggle: bool):
+        match = {
+            True: "enabled",
+            False: "disabled"
+        }
+        self.bot.maintenance = toggle
+        await ctx.send(f"Maintenance mode has been {match[toggle]}")
+
+    @developer.group(invoke_without_command=True)
     async def errors(self, ctx: AvimetryContext):
         errors = await self.bot.pool.fetch('SELECT * FROM command_errors WHERE fixed = false')
         embed = discord.Embed(title="Errors")
@@ -242,21 +268,6 @@ class Owner(commands.Cog):
         query = "UPDATE command_errors SET fixed=$1 WHERE id=$2"
         await self.bot.pool.execute(query, True, error_id)
         await ctx.send(f"Error {error_id} is now fixed.")
-
-    @errors.command()
-    async def fixall(self, ctx: AvimetryContext):
-        query = (
-            "UPDATE command_errors "
-            "SET fixed = $1 "
-            "WHERE fixed = $2 "
-            "RETURNING *"
-        )
-        thing = await self.bot.pool.fetchrow(query, True, False)
-        embed = discord.Embed(
-            title="Fixed all errors",
-            description=f"{len(thing)} errors have been fixed."
-        )
-        await ctx.send(embed=embed)
 
 
 def setup(bot):

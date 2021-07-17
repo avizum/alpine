@@ -27,6 +27,7 @@ import os
 from discord.ext import commands
 from topgg import NotFound
 from utils import AvimetryContext, AvimetryBot, Timer
+from utils import core
 
 
 class BotInfo(commands.Cog, name="Bot Info"):
@@ -35,6 +36,10 @@ class BotInfo(commands.Cog, name="Bot Info"):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.request_wh = discord.Webhook.from_url(
+            self.bot.settings["webhooks"]["request_log"],
+            adapter=discord.AsyncWebhookAdapter(self.bot.session)
+        )
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -49,12 +54,8 @@ class BotInfo(commands.Cog, name="Bot Info"):
             ctx.command = command
             await command(ctx)
 
-    @commands.command()
+    @core.command()
     async def about(self, ctx: AvimetryContext):
-        developer = self.bot.get_user(750135653638865017)
-        tester = self.bot.get_user(547280209284562944)
-        avatar = self.bot.get_user(672122220566413312)
-        help_command = self.bot.get_user(171539705043615744)
         embed = discord.Embed(title="Info about Avimetry")
         embed.add_field(
             name="Latest Updates",
@@ -64,6 +65,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         pid = psutil.Process(os.getpid())
         used = pid.memory_info().rss / 1024 ** 2
         total = psutil.virtual_memory().total / 1024 ** 2
+        developer = self.bot.get_user(750135653638865017)
         embed.add_field(name="Developer", value=f"{developer} (Main)")
         embed.add_field(name="Ping", value=f"`{round(self.bot.latency * 1000)}ms`")
         embed.add_field(name="Guild Count", value=f"{len(self.bot.guilds)} Guilds")
@@ -76,11 +78,24 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         embed.add_field(name="Commands", value=f"{len(self.bot.commands)} loaded")
         embed.add_field(name="Commands ran", value=self.bot.commands_ran)
-        embed.add_field(name="Credits", value=f"{avatar} (Avatar),\n{help_command} (Help Command)\n{tester} (Tester)")
+        tester = self.bot.get_user(547280209284562944)
+        avatar = self.bot.get_user(672122220566413312)
+        help_command = self.bot.get_user(171539705043615744)
+        cont_one = self.bot.get_user(733370212199694467)
+        embed.add_field(
+            name="Credits",
+            value=(
+                f"{avatar} (Avatar),\n"
+                f"{help_command} (Help Command)\n"
+                f"{tester} (Tester)\n"
+                f"{cont_one} (Contributor)"
+            )
+        )
         embed.set_thumbnail(url=ctx.me.avatar_url)
+        embed.set_footer(text="Want to be a contributor? Use the suggest command or create a PR on the github repo")
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @core.command()
     async def credits(self, ctx: AvimetryContext):
         embed = discord.Embed(
             title="Credits",
@@ -88,7 +103,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         await ctx.send(embed=embed)
 
-    @commands.command(brief="Get the bot's uptime")
+    @core.command(brief="Get the bot's uptime")
     async def uptime(self, ctx: AvimetryContext):
         delta_uptime = datetime.datetime.utcnow() - self.bot.launch_time
         ue = discord.Embed(
@@ -97,34 +112,34 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         await ctx.send(embed=ue)
 
-    @commands.command(brief="Gets the bot's ping.")
+    @core.command(brief="Gets the bot's ping.")
     async def ping(self, ctx: AvimetryContext):
-        with Timer() as api:
+        async with Timer() as api:
             await ctx.trigger_typing()
-        with Timer() as db:
-            await self.bot.pool.fetch("SELECT 1")
+        async with Timer() as db:
+            await self.bot.pool.execute("SELECT 1")
         ping_embed = discord.Embed(title="🏓 Pong!")
         ping_embed.add_field(
-            name="Websocket Latency",
+            name="<:avimetry:848820318117691432> Websocket Latency",
             value=f"`{self.bot.latency * 1000:,.2f} ms`",
             inline=False)
         ping_embed.add_field(
-            name="Typing Latency",
+            name="<a:typing:865110878408278038> Typing Latency",
             value=f"`{api.total_time * 1000:,.2f} ms`",
             inline=False)
         ping_embed.add_field(
-            name="Database Latency",
+            name="<:pgsql:865110950825951242> Database Latency",
             value=f"`{db.total_time * 1000:,.2f} ms`",
             inline=False)
         await ctx.send(embed=ping_embed)
 
-    @commands.command()
+    @core.command()
     async def hello(self, ctx: AvimetryContext):
         await ctx.send(f'Hello, {ctx.author}, I am a bot made my avizum#8771!')
 
-    @commands.group(
+    @core.group(
         invoke_without_command=True,
-        brief="Get the invite link for the bot"
+        brief="Get the invite link for the bot or another bot"
     )
     async def invite(self, ctx: AvimetryContext, bot: discord.Member = None):
         if bot is None:
@@ -144,7 +159,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
                 await self.bot.topgg.get_bot_info(bot.id)
                 invite_embed.description = (
                     f"Invite {bot.name} to your server! Here is the invite link.\n"
-                    f"[Click here!](https://top.gg/bot/{bot.id})"
+                    f"[Here! (top.gg)](https://top.gg/bot/{bot.id})"
                 )
             except NotFound:
                 invite_embed.description = (
@@ -155,7 +170,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         else:
             await ctx.send("That is not a bot.")
 
-    @commands.command(
+    @core.command(
         aliases=["lc", "linec", "lcount"],
         brief="Gets the amount of lines this bot has."
     )
@@ -193,21 +208,19 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         await ctx.send(embed=embed)
 
-    @commands.command(brief="Request a feature to be added to the bot.")
+    @core.command(brief="Request a feature to be added to the bot.")
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def request(self, ctx: AvimetryContext, *, request):
-        request_channel = self.bot.get_channel(817093957322407956)
         req_send = discord.Embed(
             title=f"Request from {str(ctx.author)}",
             description=f"```{request}```"
         )
-        await request_channel.send(embed=req_send)
+        await self.request_wh.send(embed=req_send)
         req_embed = discord.Embed(
             title="Request sent",
             description=(
-                "Thank you for your request! Join the [support](https://discord.gg/KaqqPhfwS4) server to see if \n"
-                "your request has been approved.\n"
-                "Please note that spam requests will get you permanently blacklisted from this bot."
+                "Thank you for your request! It has been sent to the [support](https://discord.gg/KaqqPhfwS4) server. "
+                f"Spam will get you permanently blacklisted from this {self.bot.user.name}."
             )
         )
         req_embed.add_field(
@@ -216,7 +229,11 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         await ctx.send(embed=req_embed)
 
-    @commands.command(brief="Vote Now!")
+    @core.command()
+    async def support(self, ctx: AvimetryContext):
+        await ctx.send(self.bot.support)
+
+    @core.command(brief="Vote Now!")
     async def vote(self, ctx: AvimetryContext):
         top_gg = "https://top.gg/bot/756257170521063444/vote"
         bot_list = "https://discordbotlist.com/bots/avimetry/upvote"
@@ -228,7 +245,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         await ctx.send(embed=vote_embed)
 
-    @commands.command(
+    @core.command(
         brief="Get the source of a command or bot."
     )
     async def source(self, ctx: AvimetryContext, *, command: str = None):
@@ -258,7 +275,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         else:
             command = self.bot.get_command(command)
         if not command:
-            return await ctx.send("Couldn't find command.")
+            return await ctx.send(f'Command "{command}" not found.')
 
         if isinstance(command, commands.HelpCommand):
             lines, number_one = inspect.getsourcelines(type(command))
@@ -278,7 +295,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             )
         await ctx.send(embed=source_embed)
 
-    @commands.command(
+    @core.command(
         aliases=[
             "deleteallmydata", "clearalldata",
             "trashmydata", "deletaalldata",
@@ -309,7 +326,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             return await ctx.send("Okay, I deleted all your data.")
         return await ctx.send("Aborted.")
 
-    @commands.command()
+    @core.command()
     async def error(self, ctx: AvimetryContext, error_id: int = None):
         if error_id is None:
             return await ctx.send_help("error")

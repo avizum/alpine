@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import asyncio
 import discord
 
+from utils import core
 from discord.ext import commands
 from utils import AvimetryBot, AvimetryContext, Prefix, preview_message
 
@@ -34,24 +35,24 @@ class Settings(commands.Cog):
             False: "Disabled",
             None: "Disabled"}
 
-    @commands.group(
+    @core.group(
         brief="Configure the server's prefixes",
         case_insensitive=True,
         invoke_without_command=True)
     async def prefix(self, ctx: AvimetryContext):
         prefix = ctx.cache.guild_settings.get(ctx.guild.id)
         if not prefix["prefixes"]:
-            return await ctx.send("This server doesn't have a custom prefix set yet. The default prefix is always `a.`")
+            return await ctx.send("The default prefix is `a.`")
         guild_prefix = prefix["prefixes"]
         if len(guild_prefix) == 1:
-            return await ctx.send(f"The prefix for this server is `{guild_prefix[0]}`")
-        await ctx.send(f"Here are my prefixes for this server: \n`{'` | `'.join(guild_prefix)}`")
+            return await ctx.send(f"Hey {ctx.author}, the prefix for {ctx.guild.name} is `{guild_prefix[0]}`")
+        await ctx.send(f"Hey {ctx.author}, here are the prefixes for {ctx.guild.name}:\n`{'` | `'.join(guild_prefix)}`")
 
     @prefix.command(
         name="add",
         brief="Add a prefix to the server"
     )
-    @commands.has_permissions(manage_guild=True)
+    @core.has_permissions(manage_guild=True)
     async def prefix_add(self, ctx: AvimetryContext, prefix: Prefix):
         query = "UPDATE guild_settings SET prefixes = ARRAY_APPEND(prefixes, $2) WHERE guild_id = $1"
         await self.bot.pool.execute(query, ctx.guild.id, prefix)
@@ -62,7 +63,7 @@ class Settings(commands.Cog):
         name="remove",
         brief="Remove a prefix from the server"
     )
-    @commands.has_permissions(manage_guild=True)
+    @core.has_permissions(manage_guild=True)
     async def prefix_remove(self, ctx: AvimetryContext, prefix):
         prefix = prefix.lower()
         guild_cache = await ctx.cache.get_guild_settings(ctx.guild.id)
@@ -80,9 +81,9 @@ class Settings(commands.Cog):
         self.bot.cache.guild_settings[ctx.guild.id]["prefixes"].remove(prefix)
         await ctx.send(f"Removed `{prefix}` from the list of prefixes")
 
-    @commands.command()
-    @commands.has_permissions(manage_roles=True)
-    @commands.bot_has_permissions(manage_roles=True)
+    @core.command()
+    @core.has_permissions(manage_roles=True)
+    @core.bot_has_permissions(manage_roles=True)
     async def muterole(self, ctx: AvimetryContext, role: discord.Role):
         query = "UPDATE guild_settings SET mute_role = $1 WHERE guild_id = $2"
         await self.bot.pool.execute(query, role.id, ctx.guild.id)
@@ -97,8 +98,8 @@ class Settings(commands.Cog):
             )
         await ctx.send(f"Set the mute role to {role.mention}")
 
-    @commands.group(invoke_without_command=True, brief="Configure logging")
-    @commands.has_permissions(manage_guild=True)
+    @core.group(invoke_without_command=True, brief="Configure logging")
+    @core.has_permissions(manage_guild=True)
     async def logging(self, ctx: AvimetryContext, toggle: bool = None):
         if toggle is None:
             try:
@@ -120,7 +121,7 @@ class Settings(commands.Cog):
         await ctx.send(f"{self.map[toggle]} logging")
 
     @logging.command(name="channel", brief="Configure logging channel")
-    @commands.has_permissions(manage_guild=True)
+    @core.has_permissions(manage_guild=True)
     async def logging_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
         query = "UPDATE logging SET channel_id = $1 WHERE guild_id = $2"
         await self.bot.pool.execute(query, channel.id, ctx.guild.id)
@@ -130,7 +131,7 @@ class Settings(commands.Cog):
         brief="Configure delete logging",
         name="message_delete",
         aliases=["msgdelete, messagedelete"])
-    @commands.has_permissions(manage_guild=True)
+    @core.has_permissions(manage_guild=True)
     async def message_delete(self, ctx: AvimetryContext, toggle: bool):
         query = "UPDATE logging SET message_delete = $1 WHERE guild_id = $2"
         await self.bot.pool.execute(query, toggle, ctx.guild.id)
@@ -141,18 +142,18 @@ class Settings(commands.Cog):
         brief="Configure edit logging",
         name="message_edit",
         aliases=["msgedit", "messageedit"])
-    @commands.has_permissions(administrator=True)
+    @core.has_permissions(administrator=True)
     async def edit(self, ctx: AvimetryContext, toggle: bool):
         query = "UPDATE logging SET message_edit = $1 WHERE guild_id = $2"
         await self.bot.pool.execute(query, toggle, ctx.guild.id)
         ctx.cache.logging[ctx.guild.id]["message_edit"] = toggle
         await ctx.send(f"{self.map[toggle]} message edit logs")
 
-    @commands.group(
+    @core.group(
         name="join-message",
         invoke_without_command=True
         )
-    @commands.has_permissions(manage_guild=True)
+    @core.has_permissions(manage_guild=True)
     async def join_message(self, ctx: AvimetryContext, toggle: bool = None):
         if toggle is None:
             try:
@@ -195,7 +196,7 @@ class Settings(commands.Cog):
         name="set",
         brief="Set the message when a member joins"
     )
-    @commands.has_permissions(manage_guild=True)
+    @core.has_permissions(manage_guild=True)
     async def join_message_set(self, ctx: AvimetryContext, *, message: str):
         conf_message = "Does this look good to you?"
         thing = await preview_message(message, ctx)
@@ -221,7 +222,7 @@ class Settings(commands.Cog):
         name="channel",
         brief="Set the join message channel"
     )
-    @commands.has_permissions(manage_guild=True)
+    @core.has_permissions(manage_guild=True)
     async def join_message_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
         query = (
             """
@@ -239,7 +240,7 @@ class Settings(commands.Cog):
         name="setup",
         brief="Setup join message"
     )
-    @commands.has_permissions(manage_guild=True)
+    @core.has_permissions(manage_guild=True)
     async def join_message_setup(self, ctx: AvimetryContext):
         embed = discord.Embed(
             title="Join message setup",
@@ -301,11 +302,11 @@ class Settings(commands.Cog):
             embed.description = "Cancelled. Goodbye."
             return await wait_message.reply(embed=embed)
 
-    @commands.group(
+    @core.group(
         name="leave-message",
         invoke_without_command=True
         )
-    @commands.has_permissions(manage_guild=True)
+    @core.has_permissions(manage_guild=True)
     async def leave_message(self, ctx: AvimetryContext, toggle: bool = None):
         if toggle is None:
             try:
@@ -341,7 +342,7 @@ class Settings(commands.Cog):
         name="set",
         brief="Set the message when a member leaves"
     )
-    @commands.has_permissions(manage_guild=True)
+    @core.has_permissions(manage_guild=True)
     async def leave_message_set(self, ctx: AvimetryContext, *, message: str):
         conf_message = "Does this look good to you?"
         thing = await preview_message(message, ctx)
@@ -367,7 +368,7 @@ class Settings(commands.Cog):
         name="channel",
         brief="Set the leave message channel"
     )
-    @commands.has_permissions(manage_guild=True)
+    @core.has_permissions(manage_guild=True)
     async def leave_message_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
         query = (
             """
@@ -385,7 +386,7 @@ class Settings(commands.Cog):
         name="setup",
         brief="Setup leave messages"
     )
-    @commands.has_permissions(manage_guild=True)
+    @core.has_permissions(manage_guild=True)
     async def leave_message_setup(self, ctx: AvimetryContext):
         embed = discord.Embed(
             title="Leave message setup",
@@ -447,9 +448,9 @@ class Settings(commands.Cog):
             embed.description = "Cancelled. Goodbye."
             return await wait_message.reply(embed=embed)
 
-    @commands.group(invoke_without_command=True)
-    @commands.has_permissions(manage_guild=True)
-    @commands.bot_has_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
+    @core.group(invoke_without_command=True)
+    @core.has_permissions(manage_guild=True)
+    @core.bot_has_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
     async def screening(self, ctx: AvimetryContext, toggle: bool = None):
         if toggle is None:
             try:
@@ -475,7 +476,7 @@ class Settings(commands.Cog):
         return await ctx.send(f"{self.map[toggle]} member screening")
 
     @screening.command(name="role")
-    @commands.has_permissions(manage_guild=True)
+    @core.has_permissions(manage_guild=True)
     async def screening_role(self, ctx: AvimetryContext, role: discord.Role):
         query = (
             """
@@ -489,7 +490,7 @@ class Settings(commands.Cog):
         ctx.cache.verification[ctx.guild.id]["role_id"] = role.id
         return await ctx.send(f"Set screening role to `{role.mention}.`")
 
-    @commands.group(invoke_without_command=True, case_insensitive=True)
+    @core.group(invoke_without_command=True, case_insensitive=True)
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def theme(self, ctx: AvimetryContext, *, color: discord.Color):
         embed = discord.Embed(description='Does this look good?', color=color)
@@ -546,7 +547,7 @@ class Settings(commands.Cog):
         embed = discord.Embed(description=f'Set your theme to {color}', color=color)
         await ctx.send(embed=embed)
 
-    @commands.command(hidden=True)
+    @core.command(hidden=True)
     async def getowner(self, ctx: AvimetryContext):
         if ctx.author.id != 750135653638865017:
             return

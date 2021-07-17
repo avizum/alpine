@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import jishaku
 import discord
 import sys
-import platform
 import psutil
 import math
 
@@ -47,6 +46,11 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     """
     Advanced debug cog.
     """
+    @Feature.Command(parent="jsk", name="shutdown", aliases=["fuckoff", "logout", "die", "reboot", "rb"])
+    async def jsk_shutdown(self, ctx: AvimetryContext):
+        command = self.bot.get_command('dev reboot')
+        await command(ctx)
+
     @Feature.Command(parent="jsk", name="load", aliases=["l"])
     async def jsk_load(self, ctx: AvimetryContext, module: CogConverter):
         command = self.bot.get_command("dev load")
@@ -67,12 +71,12 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         command = self.bot.get_command("dev sync")
         await command(ctx)
 
-    @Feature.Command(name="jishaku", aliases=["jsk", "jks", "bishaku", "bsk", "bks"], hidden=JISHAKU_HIDE,
+    @Feature.Command(name="jishaku", aliases=["jsk"], hidden=JISHAKU_HIDE,
                      invoke_without_command=True, ignore_extra=False)
     async def jsk(self, ctx: AvimetryContext):
         summary = [
             f"Jishaku `v{jishaku.__version__}`, discord.py `v{discord.__version__}`, "
-            f"Python `{platform.python_version()}` on `{sys.platform}`, ",
+            f"Python `{sys.version}` on `{sys.platform}`, ".replace("\n", ""),
             f"Jishaku was loaded {timestamp(self.load_time, 'R')} "
             f"and the cog was loaded {timestamp(self.start_time, 'R')}.",
             ""
@@ -83,7 +87,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 try:
                     mem = proc.memory_full_info()
                     summary.append(
-                        f"I am using {naturalsize(mem.rss)} physical memory and "
+                        f"This process is using {naturalsize(mem.rss)} physical memory and "
                         f"{naturalsize(mem.vms)} virtual memory, "
                         f"{naturalsize(mem.uss)} of which is unique to this process."
                     )
@@ -93,9 +97,9 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 try:
                     name = proc.name()
                     pid = proc.pid
-                    thread_count = proc.num_threads()
+                    tc = proc.num_threads()
                     summary.append(
-                        f"I am running on Process ID `{pid}` (`{name}`) with {thread_count} threads.")
+                        f"This process is running on Process ID `{pid}` (`{name}`) with {tc} threads.")
                 except psutil.AccessDenied:
                     pass
                 summary.append("")
@@ -104,22 +108,29 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             summary.append("psutil is installed but this process does not have access to display this information")
             summary.append("")
 
-        guilds = len(self.bot.guilds)
-        members = len([m for m in self.bot.users if not m.bot])
-        bots = len([m for m in self.bot.users if m.bot])
-        total = len(self.bot.users)
+        guilds = f"{len(self.bot.guilds)} guilds"
+        humans = f"{len([m for m in self.bot.users if not m.bot])} humans"
+        bots = f"{len([m for m in self.bot.users if m.bot])} bots"
+        users = f"{len(self.bot.users)} users"
 
-        cache_summary = f"I can see {guilds} guilds, {members} humans, and {bots} bots, totaling to {total} users."
+        cache_summary = f"can see {guilds}, {humans}, and {bots}, totaling to {users}."
 
         if isinstance(self.bot, discord.AutoShardedClient):
-            summary.append(
-                f"I am automatically sharded ({len(self.bot.shards)} shards of {self.bot.shard_count})"
-                f" and can see {cache_summary}"
-            )
+            if len(self.bot.shards) > 20:
+                summary.append(
+                    f"This bot is automatically sharded ({len(self.bot.shards)} shards of {self.bot.shard_count})"
+                    f" and can see {cache_summary}"
+                )
+            else:
+                shard_ids = ', '.join(str(i) for i in self.bot.shards.keys())
+                summary.append(
+                    f"This bot is automatically sharded (Shards {shard_ids} of {self.bot.shard_count})"
+                    f" and can see {cache_summary}"
+                )
         elif self.bot.shard_count:
-            summary.append(f"I am manually sharded and {cache_summary}")
+            summary.append(f"This bot is manually sharded and {cache_summary}")
         else:
-            summary.append(f"I am not sharded and {cache_summary}")
+            summary.append(f"This bot is not sharded and {cache_summary}")
 
         if self.bot._connection.max_messages:
             message_cache = f"Message cache is capped at {self.bot._connection.max_messages}."
@@ -128,9 +139,9 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         summary.append(message_cache)
 
         if discord.version_info >= (1, 5, 0):
-            presence_intent = f"presences `{'enabled' if self.bot.intents.presences else 'disabled'}`"
-            members_intent = f"members `{'enabled' if self.bot.intents.members else 'disabled'}`"
-            summary.append(f"Intents: {presence_intent} and {members_intent}.")
+            presence_intent = f"Presences intent `{'enabled' if self.bot.intents.presences else 'disabled'}`"
+            members_intent = f"Members intent `{'enabled' if self.bot.intents.members else 'disabled'}`"
+            summary.append(f" {presence_intent} and {members_intent}.")
         else:
             guild_subs = self.bot._connection.guild_subscriptions
             guild_subscriptions = f"`guild subscriptions` are `{'enabled' if guild_subs else 'disabled'}`"
@@ -143,5 +154,5 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.send(embed=jishaku_embed)
 
 
-def setup(avi: AvimetryBot):
-    avi.add_cog(Jishaku(bot=avi))
+def setup(bot: AvimetryBot):
+    bot.add_cog(Jishaku(bot=bot))

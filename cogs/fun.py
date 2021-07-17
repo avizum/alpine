@@ -22,6 +22,7 @@ import asyncio
 import akinator
 import typing
 
+from utils import core
 from aiogtts import aiogTTS
 from io import BytesIO
 from discord.ext import commands
@@ -40,7 +41,7 @@ class Fun(commands.Cog):
     async def do_mock(self, string: str):
         return "".join(random.choice([mock.upper, mock.lower])() for mock in string)
 
-    @commands.command(
+    @core.command(
         aliases=["8ball", "8b"],
         brief="Ask the 8ball something",
     )
@@ -75,14 +76,14 @@ class Fun(commands.Cog):
         )
         await ctx.send(embed=ballembed)
 
-    @commands.command(brief="Pick a random number from 1 to 100", usage="[amount]")
+    @core.command(brief="Pick a random number from 1 to 100", usage="[amount]")
     async def random(self, ctx: AvimetryContext, amount: int = 100):
         x = random.randint(1, amount)
         e = discord.Embed()
         e.add_field(name="Random Number", value=f"The number is {x}")
         await ctx.send(embed=e)
 
-    @commands.command(
+    @core.command(
         aliases=["murder"], brief="Kill some people. Make sure you don't get caught!")
     @commands.cooldown(2, 30, commands.BucketType.member)
     async def kill(self, ctx: AvimetryContext, member: discord.Member):
@@ -111,22 +112,22 @@ class Fun(commands.Cog):
             ]
             await ctx.send(f"{random.choice(kill_response)}")
 
-    @commands.command(brief="Makes me say a message")
+    @core.command(brief="Makes me say a message")
     @commands.cooldown(1, 120, commands.BucketType.member)
     async def say(self, ctx: AvimetryContext, *, message):
         await ctx.no_reply(message)
 
-    @commands.command(brief="Makes me say a message but I delete your message")
+    @core.command(brief="Makes me say a message but I delete your message")
     @commands.cooldown(1, 120, commands.BucketType.member)
-    @commands.has_permissions(manage_messages=True)
+    @core.has_permissions(manage_messages=True)
     async def dsay(self, ctx: AvimetryContext, *, message):
         await ctx.message.delete()
         await ctx.no_reply(message)
 
-    @commands.command(
+    @core.command(
         brief="Copies someone so it looks like a person actually sent the message."
     )
-    @commands.bot_has_permissions(manage_webhooks=True)
+    @core.bot_has_permissions(manage_webhooks=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def copy(self, ctx: AvimetryContext, member: typing.Union[discord.User, discord.Member], *, text):
         if member == self.bot.user:
@@ -143,7 +144,7 @@ class Fun(commands.Cog):
             avatar_url=member.avatar_url_as(format="png"),
             allowed_mentions=discord.AllowedMentions.none())
 
-    @commands.command(
+    @core.command(
         aliases=["fp", "facep", "fpalm"]
     )
     async def facepalm(self, ctx: AvimetryContext, member: discord.Member = None):
@@ -151,7 +152,7 @@ class Fun(commands.Cog):
             return await ctx.send(f"{ctx.author.mention} hit their head")
         return await ctx.send(f"{ctx.author.mention} hit their head because {member.mention} was being stupid.")
 
-    @commands.command(brief="Remove the skin off of people that you don't like.")
+    @core.command(brief="Remove the skin off of people that you don't like.")
     async def skin(self, ctx: AvimetryContext, member: discord.Member):
         await ctx.message.delete()
         if member == ctx.author:
@@ -161,13 +162,13 @@ class Fun(commands.Cog):
             e = discord.Embed(description=f"{member.mention} was skinned.")
             await ctx.send(embed=e)
 
-    @commands.command(aliases=["sd"], brief="Self destruct? Who put that there?")
+    @core.command(aliases=["sd"], brief="Self destruct? Who put that there?")
     async def selfdestruct(self, ctx: AvimetryContext):
         a = discord.Embed(
             description=f"{ctx.author.mention} self destructed due to overloaded fuel canisters")
         await ctx.send(embed=a)
 
-    @commands.command(brief="Dropkick someone")
+    @core.command(brief="Dropkick someone")
     async def dropkick(self, ctx: AvimetryContext, *, mention: discord.Member):
         if mention == ctx.author:
             embed = discord.Embed(description=f"{ctx.author.mention} tried dropkicking themselves.")
@@ -176,7 +177,7 @@ class Fun(commands.Cog):
                 description=f"{ctx.author.mention} dropkicked {mention.mention}, killing them.")
         await ctx.send(embed=embed)
 
-    @commands.command(
+    @core.command(
         brief=(
             "Get the cookie! (If you mention a user, I will listen to you and the member that you mentioned.)"),
         aliases=["\U0001F36A", "vookir", "kookie"]
@@ -244,13 +245,13 @@ class Fun(commands.Cog):
             return
         await message.clear_reactions()
 
-    @commands.command(
+    @core.command(
         name="akinator",
         aliases=["aki", "avinator"],
         brief="Play a game of akinator.")
     @commands.cooldown(1, 60, commands.BucketType.member)
     @commands.max_concurrency(1, commands.BucketType.channel)
-    @commands.bot_has_permissions(add_reactions=True)
+    @core.bot_has_permissions(add_reactions=True)
     async def fun_akinator(self, ctx: AvimetryContext, mode="en"):
         ended = False
         bot_perm = ctx.me.permissions_in(ctx.channel)
@@ -374,7 +375,7 @@ class Fun(commands.Cog):
                 )
             await initial_messsage.edit(embed=akinator_embed)
 
-    @commands.command(
+    @core.command(
         brief="Check if a person is compatible with another person."
     )
     async def ship(self, ctx: AvimetryContext, person1: discord.Member, person2: discord.Member):
@@ -385,7 +386,7 @@ class Fun(commands.Cog):
         percent = random.randint(0, 100)
         await ctx.send(f"{person1.mention} and {person2.mention} are {percent}% compatible with each other")
 
-    @commands.command(
+    @core.command(
         brief="Get the PP size of someone"
     )
     async def ppsize(self, ctx: AvimetryContext, member: discord.Member = None):
@@ -396,11 +397,11 @@ class Fun(commands.Cog):
         )
         await ctx.send(embed=pp_embed)
 
-    @commands.command(
+    @core.command(
         name="10s",
         brief="Test your reaction time!",
     )
-    @commands.bot_has_permissions(add_reactions=True)
+    @core.bot_has_permissions(add_reactions=True)
     async def _10s(self, ctx: AvimetryContext):
         embed_10s = discord.Embed(
             title="10 seconds",
@@ -434,7 +435,7 @@ class Fun(commands.Cog):
                     embed_10s.description = f"You got the cookie in {final:.2f} seconds"
                 await react_message.edit(embed=embed_10s)
 
-    @commands.command(
+    @core.command(
         brief="Gets a random post from a subreddit"
     )
     @commands.cooldown(1, 15, commands.BucketType.member)
@@ -479,7 +480,7 @@ class Fun(commands.Cog):
                 return await ctx.send("NSFW posts can't be send in non-nsfw channels.")
         return await ctx.send(embed=embed)
 
-    @commands.command(
+    @core.command(
         brief="Gets a meme from r/memes | r/meme subreddits."
     )
     @commands.cooldown(1, 15, commands.BucketType.member)
@@ -488,11 +489,11 @@ class Fun(commands.Cog):
         subreddits = ["memes", "meme"]
         await reddit(ctx, subreddit=random.choice(subreddits))
 
-    @commands.command(
+    @core.command(
         brief="See how fast you can react with the correct emoji."
     )
     @commands.cooldown(1, 10, commands.BucketType.channel)
-    @commands.bot_has_permissions(add_reactions=True)
+    @core.bot_has_permissions(add_reactions=True)
     async def reaction(self, ctx: AvimetryContext):
         emoji = ["🍪", "🎉", "🧋", "🍒", "🍑"]
         random_emoji = random.choice(emoji)
@@ -531,7 +532,7 @@ class Fun(commands.Cog):
                 embed.description = f"{user.mention} got the {random_emoji} in {total_second}"
                 return await first.edit(embed=embed)
 
-    @commands.command(
+    @core.command(
         name="guessthatlogo",
         aliases=["gtl"],
         brief="Try to guess the name of a logo. (Powered by Dagpi)"
@@ -577,21 +578,21 @@ class Fun(commands.Cog):
                 pass
             await message.edit(embed=embed)
 
-    @commands.command(
+    @core.command(
         name="roast",
         brief="Roasts a person. (Powered by Dagpi)")
     async def dag_roast(self, ctx: AvimetryContext, member: discord.Member):
         roast = await self.bot.dagpi.roast()
         await ctx.send(f"{member.mention}, {roast}")
 
-    @commands.command(
+    @core.command(
         name="funfact",
         brief="Gets a random fun fact. (Powered by Dagpi)")
     async def dag_fact(self, ctx: AvimetryContext):
         fact = await self.bot.dagpi.fact()
         await ctx.send(fact)
 
-    @commands.command(
+    @core.command(
         brief="Checks if a person is gay"
     )
     async def gay(self, ctx: AvimetryContext, member: discord.Member = None):
@@ -602,7 +603,7 @@ class Fun(commands.Cog):
             return await ctx.send(f"{member.mention} is gay.")
         return await ctx.send(f"{member.mention} is not gay.")
 
-    @commands.command(
+    @core.command(
         brief="Check how gay a person is"
     )
     async def gayrate(self, ctx: AvimetryContext, member: discord.Member = None):
@@ -610,7 +611,7 @@ class Fun(commands.Cog):
             member = ctx.author
         return await ctx.send(f"{member.mention} is **{random.randint(10, 100)}%** gay :rainbow:")
 
-    @commands.command()
+    @core.command()
     async def height(self, ctx: AvimetryContext):
         await ctx.send("How tall are you? (Ex: 1'4\")")
 
@@ -628,13 +629,13 @@ class Fun(commands.Cog):
             embed.set_footer(text="No need to thank me.")
             await ctx.send(embed=embed)
 
-    @commands.command()
+    @core.command()
     async def clap(self, ctx: AvimetryContext, *, words):
         input = words.split(" ")
         output = f"👏 {' 👏 '.join(input)} 👏"
         await ctx.send(output)
 
-    @commands.command()
+    @core.command()
     async def recursion(self, ctx: AvimetryContext):
         embed = discord.Embed(
             title="Invalid Command",
@@ -643,7 +644,7 @@ class Fun(commands.Cog):
         embed.set_footer(text=f'Use {ctx.prefix}help to see the whole list of commands.')
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @core.command()
     async def tts(self, ctx: AvimetryContext, *, text):
         async with ctx.channel.typing():
             aiogtts = aiogTTS()
@@ -652,6 +653,10 @@ class Fun(commands.Cog):
             buffer.seek(0)
             file = discord.File(buffer, f"{ctx.author.name}-tts.mp3")
         await ctx.send(file=file)
+
+    @core.command(user_permissions='manage_messages')
+    async def aaa(self, ctx: AvimetryContext):
+        await ctx.send('a')
 
 
 def setup(bot):

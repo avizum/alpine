@@ -20,6 +20,7 @@ import aiohttp
 import discord
 import datetime
 
+
 from discord.ext import commands
 from utils import AvimetryContext, AvimetryBot
 
@@ -36,6 +37,38 @@ class Setup(commands.Cog):
             self.webhooks["command_log"],
             adapter=discord.AsyncWebhookAdapter(self.bot.session)
         )
+        self.request_wh = discord.Webhook.from_url(
+            self.webhooks["request_log"],
+            adapter=discord.AsyncWebhookAdapter(self.bot.session)
+        )
+
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        if message.author.bot:
+            return
+        if message.guild is None:
+            cache = self.bot.cache.users.get(message.author.id)
+            if cache:
+                dmed = cache.get('dmed')
+                if not dmed:
+                    await message.channel.send('Hey, these DMs are logged and sent to the support server.')
+                    cache['dmed'] = True
+            embed = discord.Embed(title=f"DM from {message.author}", description=message.content)
+            embed.set_footer(text=message.author.id)
+            await self.request_wh.send(embed=embed)
+        try:
+            if message.channel.id == 817093957322407956:
+                resolved = message.reference.resolved.embeds[0]
+                if resolved.footer.text.isdigit():
+                    user = self.bot.get_user(int(resolved.footer.text))
+                    if user:
+                        send_embed = discord.Embed(
+                            title=f"Message from {message.author}",
+                            description=f"> {resolved.description}\n{message.content}"
+                        )
+                        await user.send(embed=send_embed)
+        except AttributeError:
+            return
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):

@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import discord
 import obsidian
 
+from utils import core
 from discord.ext import commands
 from utils import AvimetryBot, AvimetryContext
 
@@ -42,7 +43,7 @@ class Music(commands.Cog):
             return True
         raise commands.NotOwner('nope')
 
-    @commands.command()
+    @core.command()
     async def join(self, ctx: AvimetryContext, *, channel: discord.VoiceChannel = None):
         if channel is None:
             if not ctx.author.voice:
@@ -57,7 +58,7 @@ class Music(commands.Cog):
         else:
             await ctx.send(f'Joined {channel.mention}.')
 
-    @commands.command()
+    @core.command()
     async def play(self, ctx: AvimetryContext, *, song: str):
         player = ctx.bot.obsidian.get_player(ctx.guild, cls=AvimetryPlayer)
         if not player.connected:
@@ -77,12 +78,12 @@ class Music(commands.Cog):
         elif isinstance(track, obsidian.Playlist):
             await ctx.send(f'Added to queue: {track.name}')
 
-    @commands.command(aliases=['disconnect'])
+    @core.command(aliases=['disconnect'])
     async def leave(self, ctx: AvimetryContext):
         ctx.bot.obsidian.destroy_player(ctx.guild)
         await ctx.send('Left the channel.')
 
-    @commands.command(aliases=['resume'])
+    @core.command(aliases=['resume'])
     async def pause(self, ctx: AvimetryContext):
         player = ctx.bot.obsidian.get_player(ctx.guild, cls=AvimetryPlayer)
         if not player.connected:

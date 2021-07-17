@@ -22,6 +22,7 @@ import random
 import asyncio
 import datetime
 
+from utils import core
 from utils import AvimetryBot, AvimetryContext
 from discord.ext import commands
 
@@ -94,7 +95,7 @@ class MemberJoin(commands.Cog):
         if dchnl in member.guild.channels:
             await dchnl.delete(reason=f"{member.name} left during verification")
 
-    @commands.command(brief="Verify now!", hidden=True)
+    @core.command(brief="Verify now!", hidden=True)
     async def verify(self, ctx: AvimetryContext):
         member = ctx.author
         config = self.bot.cache.verification.get(member.guild.id)

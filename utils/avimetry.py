@@ -33,6 +33,7 @@ import obsidian
 from discord.ext import commands
 from .errors import Blacklisted, Maintenance
 from .cache import AvimetryCache
+from .core import AvimetryCommand, AvimetryGroup
 
 
 os.environ["JISHAKU_HIDE"] = "True"
@@ -42,7 +43,7 @@ os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
 DEFAULT_PREFIXES = ["a."]
 BETA_PREFIXES = ["ab.", "ba."]
-OWNER_IDS = {750135653638865017, 547280209284562944}
+OWNER_IDS = {750135653638865017, 547280209284562944, 765098549099626507, 756757268736901120}
 PUBLIC_BOT_ID = 756257170521063444
 BETA_BOT_ID = 787046145884291072
 
@@ -69,7 +70,14 @@ async def get_prefix(bot: "AvimetryBot", message: discord.Message):
         prefixes.extend(DEFAULT_PREFIXES)
     else:
         prefixes.extend(get_prefix)
-    if await bot.is_owner(message.author) and message.content.startswith(("jsk", "dev")):
+    commands = []
+    jishaku = bot.get_command('jishaku')
+    commands.append(jishaku.name)
+    commands.extend(jishaku.aliases)
+    developer = bot.get_command('developer')
+    commands.append(developer.name)
+    commands.extend(developer.aliases)
+    if await bot.is_owner(message.author) and message.content.startswith(tuple(commands)):
         prefixes.append("")
     command_prefix = "|".join(map(re.escape, prefixes))
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
@@ -93,7 +101,7 @@ intents = discord.Intents(
 activity = discord.Game("Loading...")
 
 
-class AvimetryBot(commands.AutoShardedBot):
+class AvimetryBot(commands.Bot):
     def __init__(self, **kwargs):
         super().__init__(
             **kwargs,
@@ -164,7 +172,7 @@ class AvimetryBot(commands.AutoShardedBot):
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
         self.loop.create_task(self.load_extensions())
-        self.loop.create_task(self.initiate_obsidian())
+        # self.loop.create_task(self.initiate_obsidian())
 
         @self.check
         async def check(ctx):
@@ -216,6 +224,9 @@ class AvimetryBot(commands.AutoShardedBot):
             bl_check = check
         return await super().wait_for(event, check=bl_check, timeout=timeout)
 
+    async def wait_for_message(self, *, check=None, timeout=None):
+        return await self.wait_for('message', check=check, timeout=timeout)
+
     async def get_context(self, message, *, cls=None):
         return await super().get_context(message, cls=cls or self.context)
 
@@ -244,6 +255,19 @@ class AvimetryBot(commands.AutoShardedBot):
                 self.command_cache.pop(message.id)
             except Exception:
                 pass
+
+    def command(self, name=None, cls=None, **kwargs):
+        if cls is None:
+            cls = AvimetryCommand
+
+        def decorator(func):
+            if isinstance(func, AvimetryCommand):
+                raise TypeError('Callback is already a command')
+            return cls(func, name=name, **kwargs)
+        return decorator
+
+    def group(self, name=None, **kwargs):
+        return self.command(name=name, cls=AvimetryGroup, **kwargs)
 
     def run(self):
         tokens = self.settings["bot_tokens"]

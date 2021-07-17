@@ -31,7 +31,7 @@ from difflib import get_close_matches
 class ErrorHandler(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-        self.cd_mapping = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
+        self.blacklist_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
         self.error_webhook = discord.Webhook.from_url(
             self.bot.settings["webhooks"]["error_log"],
             adapter=discord.AsyncWebhookAdapter(self.bot.session),
@@ -72,19 +72,22 @@ class ErrorHandler(commands.Cog):
                     "Please join the [support](https://discord.gg/KaqqPhfwS4) server to appeal."
                 ),
             )
-            bucket = self.cd_mapping.get_bucket(ctx.message)
+            bucket = self.blacklist_cooldown.get_bucket(ctx.message)
             retry_after = bucket.update_rate_limit()
             if not retry_after:
-                return await ctx.send(embed=blacklisted, delete_after=60)
+                return await ctx.send(embed=blacklisted, delete_after=30)
             else:
                 return
 
         if isinstance(error, Maintenance):
-            return await ctx.send('Maintenance mode enabled. Please try again later')
+            return await ctx.send(f'{self.bot.user.name} has maintenance mode enabled. Try again later.')
 
         elif isinstance(error, commands.CommandNotFound):
             if ctx.author.id in ctx.cache.blacklist:
                 return
+            cog = self.bot.get_cog(ctx.invoked_with)
+            if cog:
+                return await ctx.send_help(cog)
             not_found_embed = discord.Embed(title="Invalid Command")
             not_found = ctx.invoked_with
             all_commands = []
@@ -92,11 +95,11 @@ class ErrorHandler(commands.Cog):
                 try:
                     await cmd.can_run(ctx)
                     all_commands.append(cmd.name)
+                    if cmd.aliases:
+                        all_commands.extend(cmd.aliases)
                 except commands.CommandError:
                     continue
-            match = "\n".join(
-                get_close_matches(not_found, all_commands)
-            )
+            match = "\n".join(get_close_matches(not_found, all_commands))
             if match:
                 not_found_embed.description = f'"{not_found}" was not found. Did you mean...\n`{match}`'
                 not_found_embed.set_footer(
@@ -158,7 +161,7 @@ class ErrorHandler(commands.Cog):
         elif isinstance(error, commands.NotOwner):
             no = discord.Embed(
                 title="Missing Permissions",
-                description="You do not own this bot. Stay away"
+                description="You do not own this bot."
             )
             return await ctx.send(embed=no)
 
@@ -168,7 +171,7 @@ class ErrorHandler(commands.Cog):
                 title="Missing Arguments",
                 description=(
                     f"`{error.param.name}` is a required parameter to run this command.\n"
-                    f"Do you need help for `{ctx.invoked_with}`?"
+                    f"Do you need help for `{ctx.command.qualified_name}`?"
                 )
             )
             conf = await ctx.confirm(embed=a)

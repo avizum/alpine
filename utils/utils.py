@@ -60,14 +60,14 @@ class Timer:
         self.start()
         return self
 
-    def __aenter__(self):
+    async def __aenter__(self):
         self.start()
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.stop()
 
-    def __aexit__(self, exc_type, exc_value, exc_traceback):
+    async def __aexit__(self, exc_type, exc_value, exc_traceback):
         self.stop()
 
     def start(self):
@@ -75,6 +75,15 @@ class Timer:
 
     def stop(self):
         self.end_time = time.perf_counter()
+
+    def __str__(self):
+        return str(self.total_time)
+
+    def __int__(self):
+        return int(self.total_time)
+
+    def __repr__(self):
+        return f"<Timer time={self.total_time}>"
 
     @property
     def total_time(self):

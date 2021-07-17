@@ -40,7 +40,7 @@ class AvimetryHelp(commands.HelpCommand):
                     user_perms.append(i)
                 return ", ".join(user_perms).replace("_", " ").title()
             except KeyError:
-                return "Permissions not found"
+                return "Send Messages"
 
     async def get_user_perms(self, command):
         user_perms = []
@@ -56,16 +56,17 @@ class AvimetryHelp(commands.HelpCommand):
                     user_perms.append(i)
                 return ", ".join(user_perms).replace("_", " ").title()
             except KeyError:
-                return "Permissions not found"
+                return "Send Messages"
 
     def get_cooldown(self, command):
         try:
             rate = command._buckets._cooldown.rate
+            cd_type = command._buckets._cooldown.type.name
             per = humanize.precisedelta(command._buckets._cooldown.per)
             time = "time"
             if rate > 1:
                 time = "times"
-            return f"{per} every {rate} {time}"
+            return f"{per} every {rate} {time} per {cd_type}"
         except Exception:
             return None
 
@@ -108,7 +109,7 @@ class AvimetryHelp(commands.HelpCommand):
         embed = discord.Embed(
             title="Help Menu",
             description=(
-                f"{self.command_signature()}Do not put the brackets with the commands.\n"
+                f"{self.command_signature()}Do not use these when using commands.\n"
                 f"{usable}\n"
                 f"{' | '.join(info)}\n"
             )
@@ -209,10 +210,6 @@ class AvimetryHelp(commands.HelpCommand):
             value=command.short_doc or "No help was provided.",
             inline=False)
         try:
-            can_run = await self.bot.can_run(self.ctx)
-        except Exception:
-            pass
-        try:
             can_run_check = await command.can_run(self.context)
             if can_run_check:
                 can_run = self.context.bot.emoji_dictionary["green_tick"]
@@ -237,12 +234,19 @@ class AvimetryHelp(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
 
     async def command_not_found(self, string):
-        lol = "\n".join(
-            get_close_matches(string, [i.name for i in self.context.bot.commands])
-        )
-        if lol:
-            return f'"{string}" is not a command/module. Did you mean...\n`{lol}`'
-        return f'"{string}" is not a command/module and I couln\'t find any similar commands.'
+        all_commands = []
+        for cmd in self.context.bot.commands:
+            try:
+                await cmd.can_run(self.context)
+                all_commands.append(cmd.name)
+                if cmd.aliases:
+                    all_commands.extend(cmd.aliases)
+            except commands.CommandError:
+                continue
+        match = "\n".join(get_close_matches(string, all_commands))
+        if match:
+            return f'"{string}" is not a command or module. Did you mean...\n`{match}`'
+        return f'"{string}" is not a command or module. I couln\'t find any similar commands.'
 
     async def subcommand_not_found(self, command, string):
         return f'"{string}" is not a subcommand of "{command}".'

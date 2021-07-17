@@ -21,9 +21,10 @@ import asyncio
 import datetime
 import humanize
 
+from utils import core
 from discord.ext import commands
 from utils import (
-    AvimetryBot, AvimetryContext, TimeConverter, TargetMemberAction, FindBan, ModReason)
+    AvimetryBot, AvimetryContext, TimeConverter, TargetMember, FindBan, ModReason)
 
 
 class Moderation(commands.Cog):
@@ -33,10 +34,10 @@ class Moderation(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
 
-    @commands.command(brief="Kicks a member from the server.", usage="<member> [reason]")
-    @commands.has_permissions(kick_members=True)
-    @commands.bot_has_permissions(kick_members=True)
-    async def kick(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: ModReason = None):
+    @core.command(brief="Kicks a member from the server.", usage="<member> [reason]")
+    @core.has_permissions(kick_members=True)
+    @core.bot_has_permissions(kick_members=True)
+    async def kick(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
         kick_embed = discord.Embed(
             title="Kicked Member",
             color=discord.Color.green()
@@ -45,10 +46,10 @@ class Moderation(commands.Cog):
         kick_embed.description = f"**{member}** has been kicked from the server."
         await ctx.send(embed=kick_embed)
 
-    @commands.command(brief="Bans then unbans a member from the server")
-    @commands.has_permissions(kick_members=True)
-    @commands.bot_has_permissions(ban_members=True)
-    async def softban(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: ModReason = None):
+    @core.command(brief="Bans then unbans a member from the server")
+    @core.has_permissions(kick_members=True)
+    @core.bot_has_permissions(ban_members=True)
+    async def softban(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
         soft_ban_embed = discord.Embed(
             title="Soft-Banned Member",
             description=f"**{member}** has been soft banned from the server.",
@@ -57,10 +58,10 @@ class Moderation(commands.Cog):
         await member.ban(reason=reason)
         await ctx.send(embed=soft_ban_embed)
 
-    @commands.command(brief="Bans a member from the server", usage="<member> [reason]")
-    @commands.has_permissions(ban_members=True)
-    @commands.bot_has_permissions(ban_members=True)
-    async def ban(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: ModReason = None):
+    @core.command(brief="Bans a member from the server", usage="<member> [reason]")
+    @core.has_permissions(ban_members=True)
+    @core.bot_has_permissions(ban_members=True)
+    async def ban(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
         ban_embed = discord.Embed(
             title="Banned Member",
             color=discord.Color.green()
@@ -74,9 +75,9 @@ class Moderation(commands.Cog):
         ban_embed.description = f"**{str(member)}** has been banned from the server."
         await ctx.send(embed=ban_embed)
 
-    @commands.command(brief="Unbans a member from the server.", usage="<member_id> [reason]")
-    @commands.has_permissions(ban_members=True)
-    @commands.bot_has_permissions(ban_members=True)
+    @core.command(brief="Unbans a member from the server.", usage="<member_id> [reason]")
+    @core.has_permissions(ban_members=True)
+    @core.bot_has_permissions(ban_members=True)
     async def unban(self, ctx: AvimetryContext, member: FindBan, *, reason: ModReason = None):
         await ctx.guild.unban(member, reason=reason)
         unban_embed = discord.Embed(
@@ -86,33 +87,33 @@ class Moderation(commands.Cog):
         )
         await ctx.send(embed=unban_embed)
 
-    @commands.command(
+    @core.command(
         brief="Mutes a person indefinitely"
     )
-    @commands.has_permissions(manage_messages=True)
-    @commands.bot_has_permissions(manage_roles=True)
-    async def mute(self, ctx: AvimetryContext, member: TargetMemberAction, *, reason: ModReason = None):
+    @core.has_permissions(manage_messages=True)
+    @core.bot_has_permissions(manage_roles=True)
+    async def mute(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
         role = await ctx.cache.get_guild_settings(ctx.guild.id)
         mute_role = ctx.guild.get_role(role["mute_role"])
         await member.add_roles(mute_role, reason=reason)
         await ctx.send(f"{member.mention} has been muted indefinitely.")
 
-    @commands.command(
+    @core.command(
         brief="Temporarily mute someone for a specified amount of time.",
         enabled=False
     )
-    @commands.has_permissions(manage_messages=True)
-    @commands.bot_has_permissions(manage_roles=True)
+    @core.has_permissions(manage_messages=True)
+    @core.bot_has_permissions(manage_roles=True)
     async def tempmute(
-        self, ctx: AvimetryContext, member: TargetMemberAction, time: TimeConverter, *, reason: ModReason = None
+        self, ctx: AvimetryContext, member: TargetMember, time: TimeConverter, *, reason: ModReason = None
     ):
         print(f"Mute: {member}, {time}, {reason}")
 
-    @commands.group(
+    @core.group(
         invoke_without_command=True,
         brief="Mass delete a number of messages in the current channel.")
-    @commands.has_permissions(manage_messages=True)
-    @commands.bot_has_permissions(manage_messages=True)
+    @core.has_permissions(manage_messages=True)
+    @core.bot_has_permissions(manage_messages=True)
     @commands.cooldown(5, 30, commands.BucketType.member)
     async def purge(self, ctx: AvimetryContext, amount: int):
         if amount < 1:
@@ -140,8 +141,8 @@ class Moderation(commands.Cog):
         await ctx.can_delete(embed=pe)
 
     @purge.command()
-    @commands.has_permissions(manage_messages=True)
-    @commands.bot_has_permissions(manage_messages=True)
+    @core.has_permissions(manage_messages=True)
+    @core.bot_has_permissions(manage_messages=True)
     async def match(self, ctx: AvimetryContext, amount: int, *, text):
         await ctx.message.delete()
 
@@ -155,9 +156,9 @@ class Moderation(commands.Cog):
             value=f"Purged {amount} messages containing {text}.",
         )
 
-    @commands.command(brief="Delete bot messages", usage="[amount]")
-    @commands.has_permissions(manage_messages=True)
-    @commands.bot_has_permissions(manage_messages=True)
+    @core.command(brief="Delete bot messages", usage="[amount]")
+    @core.has_permissions(manage_messages=True)
+    @core.bot_has_permissions(manage_messages=True)
     async def cleanup(self, ctx: AvimetryContext, amount=15):
         prefixes = tuple(await self.bot.get_prefix(ctx.message))
 
@@ -183,12 +184,12 @@ class Moderation(commands.Cog):
             description=f"{msg}")
         await ctx.can_delete(embed=pe)
 
-    @commands.command(
+    @core.command(
         brief="Locks the mentioned channel.",
         usage="<channel> [reason]",
         timestamp=datetime.datetime.utcnow())
-    @commands.has_permissions(manage_channels=True)
-    @commands.bot_has_permissions(manage_channels=True)
+    @core.has_permissions(manage_channels=True)
+    @core.bot_has_permissions(manage_channels=True)
     async def lock(self, ctx: AvimetryContext, channel: discord.TextChannel, *, reason="No Reason Provided"):
         await channel.set_permissions(
             ctx.guild.default_role, send_messages=False,
@@ -201,13 +202,13 @@ class Moderation(commands.Cog):
         )
         await channel.send(embed=lc)
 
-    @commands.command(
+    @core.command(
         brief="Unlocks the mentioned channel.",
         usage="<channel> [reason]",
         timestamp=datetime.datetime.utcnow(),
     )
-    @commands.has_permissions(manage_channels=True)
-    @commands.bot_has_permissions(manage_channels=True)
+    @core.has_permissions(manage_channels=True)
+    @core.bot_has_permissions(manage_channels=True)
     async def unlock(self, ctx: AvimetryContext, channel: discord.TextChannel, *, reason="No Reason Provided"):
         await channel.set_permissions(
             ctx.guild.default_role, send_messages=None)
@@ -219,9 +220,9 @@ class Moderation(commands.Cog):
         )
         await channel.send(embed=uc)
 
-    @commands.command(brief="Sets the slowmode in the current channel.")
-    @commands.has_permissions(manage_channels=True)
-    @commands.bot_has_permissions(manage_channels=True)
+    @core.command(brief="Sets the slowmode in the current channel.")
+    @core.has_permissions(manage_channels=True)
+    @core.bot_has_permissions(manage_channels=True)
     async def slowmode(self, ctx: AvimetryContext, *, seconds: TimeConverter = 0):
         if seconds > 21600:
             raise commands.BadArgument("Amount should be less than or equal to 6 hours")
@@ -233,13 +234,13 @@ class Moderation(commands.Cog):
         )
         await ctx.send(embed=smembed)
 
-    @commands.group(invoke_without_command=True, brief="The command you just called")
-    @commands.has_permissions(manage_roles=True)
+    @core.group(invoke_without_command=True, brief="The command you just called")
+    @core.has_permissions(manage_roles=True)
     async def role(self, ctx: AvimetryContext):
         await ctx.send_help("role")
 
     @role.command(brief="Give a role to a member.")
-    @commands.has_permissions(manage_roles=True)
+    @core.has_permissions(manage_roles=True)
     async def add(self, ctx: AvimetryContext, member: discord.Member, role: discord.Role):
         await member.add_roles(role)
         ra = discord.Embed()
@@ -250,7 +251,7 @@ class Moderation(commands.Cog):
         await ctx.send(embed=ra)
 
     @role.command(brief="Remove a role from a member.")
-    @commands.has_permissions(manage_roles=True)
+    @core.has_permissions(manage_roles=True)
     async def remove(self, ctx: AvimetryContext, member: discord.Member, role: discord.Role):
         await member.remove_roles(role)
         rr = discord.Embed()
@@ -260,9 +261,9 @@ class Moderation(commands.Cog):
         )
         await ctx.send(embed=rr)
 
-    @commands.command(brief="Changes a member's nickname.")
-    @commands.has_permissions(kick_members=True)
-    async def nick(self, ctx: AvimetryContext, member: TargetMemberAction, *, nick=None):
+    @core.command(brief="Changes a member's nickname.")
+    @core.has_permissions(kick_members=True)
+    async def nick(self, ctx: AvimetryContext, member: TargetMember, *, nick=None):
         if nick is None:
             await member.edit(nick=nick)
         oldnick = member.display_name
@@ -275,14 +276,14 @@ class Moderation(commands.Cog):
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
 
-    @commands.command()
+    @core.command()
     @commands.cooldown(1, 60, commands.BucketType.member)
     async def selfban(self, ctx: AvimetryContext):
         conf = await ctx.confirm("Are you sure you want to ban yourself?")
         if conf:
             return await ctx.send("Sike")
 
-    @commands.command()
+    @core.command()
     @commands.cooldown(1, 60, commands.BucketType.member)
     async def selfkick(self, ctx: AvimetryContext):
         conf = await ctx.confirm("Are you sure you want to kick yourself?")

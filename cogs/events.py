@@ -36,8 +36,6 @@ class BotLogs(commands.Cog):
     async def on_message(self, message: discord.Message):
         if message.author == self.bot.user:
             return
-        if message.guild is None or message.guild.id == 336642139381301249:
-            return
         tokens = re.findall(TOKEN_REGEX, message.content)
         if tokens:
             content = "\n".join(tokens)
@@ -80,6 +78,8 @@ class BotLogs(commands.Cog):
             embed.set_author(name=message.author, icon_url=message.author.avatar_url)
             mentions = discord.AllowedMentions.all()
             try:
+                if message.guild is not None and message.guild.id == 336642139381301249:
+                    return
                 await message.reply(embed=embed, allowed_mentions=mentions, mention_author=True)
             except discord.Forbidden:
                 return

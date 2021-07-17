@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import discord
 import re
 
+from utils import core
 from discord.ext import commands, tasks
 from utils import AvimetryBot, AvimetryContext, PrivateServer
 
@@ -92,6 +93,8 @@ class Servers(commands.Cog, name="Servers"):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        if payload.user_id in self.bot.cache.blacklist:
+            return
         try:
             emojis = ROLE_MAP[payload.message_id]
         except KeyError:
@@ -170,7 +173,7 @@ class Servers(commands.Cog, name="Servers"):
             except discord.Forbidden:
                 pass
 
-    @commands.command(
+    @core.command(
         hidden=True
     )
     async def testing(self, ctx: AvimetryContext):

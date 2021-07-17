@@ -78,7 +78,7 @@ class ModReason(commands.Converter):
         return reason
 
 
-class TargetMemberAction(commands.Converter):
+class TargetMember(commands.Converter):
     async def convert(self, ctx: AvimetryContext, argument: discord.Member):
         try:
             member = await commands.MemberConverter().convert(ctx, argument)
@@ -203,7 +203,7 @@ class GetAvatar(commands.Converter):
                     return image
                 if re.match(emoji_regex, argument):
                     emoji_converter = commands.EmojiConverter()
-                    emoji = emoji_converter.convert(ctx, argument)
+                    emoji = await emoji_converter.convert(ctx, argument)
                     image = emoji.url_as(format="png", static_format="png", size=1024)
                     return image
             except Exception:

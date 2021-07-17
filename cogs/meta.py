@@ -24,6 +24,7 @@ import random
 import pytz
 import typing
 
+from utils import core
 from discord.ext import commands
 from utils import AvimetryBot, AvimetryContext, TimeZoneError, GetAvatar, timestamp
 
@@ -35,7 +36,7 @@ class Meta(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
 
-    @commands.command(brief="Sends a poll in the current channel for people to vote to.")
+    @core.command(brief="Sends a poll in the current channel for people to vote to.")
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def poll(self, ctx: AvimetryContext, question, *options: str):
         if len(options) < 2:
@@ -78,7 +79,7 @@ class Meta(commands.Cog):
         )
         await react_message.edit(embed=embed)
 
-    @commands.command(brief="Pick one of your options")
+    @core.command(brief="Pick one of your options")
     @commands.cooldown(1, 1, commands.BucketType.member)
     async def pick(self, ctx: AvimetryContext, *, options):
         opt = options.split("or")
@@ -87,7 +88,7 @@ class Meta(commands.Cog):
 
         return await ctx.send(random.choice(opt))
 
-    @commands.command(
+    @core.command(
         brief="Gets a member's information",
         aliases=["ui", "uinfo", "whois"]
     )
@@ -126,7 +127,7 @@ class Meta(commands.Cog):
                 ie.add_field(name="Nickname", value=member.nick)
 
             sort = sorted(ctx.guild.members, key=lambda m: m.joined_at)
-            pos = f"{sort.index(member) + 1}/{len(ctx.guild.members)}"
+            pos = f"{sort.index(member) + 1:,}/{len(ctx.guild.members):,}"
             ie.add_field(
                 name="Join Date",
                 value=f"{timestamp(member.joined_at)} ({timestamp(member.joined_at, 'R')})\nJoin Position: {pos}",
@@ -160,7 +161,7 @@ class Meta(commands.Cog):
         ie.set_thumbnail(url=member.avatar_url)
         await ctx.send(embed=ie)
 
-    @commands.command()
+    @core.command()
     async def avatar(self, ctx: AvimetryContext, member: discord.Member = None):
         if member is None:
             member = ctx.author
@@ -170,7 +171,7 @@ class Meta(commands.Cog):
         embed.set_image(url=str(member.avatar_url))
         await ctx.send(embed=embed)
 
-    @commands.group(brief="Make a QR code", invoke_without_command=True)
+    @core.group(brief="Make a QR code", invoke_without_command=True)
     async def qr(self, ctx: AvimetryContext, *, content):
         qr_embed = discord.Embed()
         qr_embed.add_field(name="QR code", value=f"Here is your qr code ({content})")
@@ -185,12 +186,12 @@ class Meta(commands.Cog):
             thing = await resp.json()
             await ctx.send((str(thing[0]["symbol"][0]["data"])))
 
-    @commands.group(case_insensitive=True, brief="Gets the time for a member", invoke_without_command=True)
+    @core.group(case_insensitive=True, brief="Gets the time for a member", invoke_without_command=True)
     async def time(self, ctx: AvimetryContext, *, member: discord.Member = None):
         member = member or ctx.author
         try:
             timezone = ctx.cache.users[member.id]["timezone"]
-        except KeyError:
+        except (KeyError, pytz.UnknownTimeZoneError):
             prefix = ctx.clean_prefix
             if member == ctx.author:
                 return await ctx.send(f"You don't have a timezone setup yet. Use {prefix}time set <timezone>.")
@@ -244,7 +245,7 @@ class Meta(commands.Cog):
             return await ctx.send('You do not have a timezone setup yet.')
         await ctx.send("Removed your timezone.")
 
-    @commands.command(brief="Get the jump link for the channel that you mention")
+    @core.command(brief="Get the jump link for the channel that you mention")
     @commands.cooldown(1, 15, commands.BucketType.guild)
     async def firstmessage(self, ctx: AvimetryContext, *, channel: discord.TextChannel = None):
         if channel is None:
@@ -259,7 +260,7 @@ class Meta(commands.Cog):
         )
         await ctx.send(embed=embed_message)
 
-    @commands.command(
+    @core.command(
         aliases=["rtfd", "rtm", "rtd", "docs"]
     )
     async def rtfm(self, ctx: AvimetryContext, query):
@@ -277,7 +278,7 @@ class Meta(commands.Cog):
         embed = discord.Embed(description="\n".join(listed))
         await ctx.send(embed=embed)
 
-    @commands.command(
+    @core.command(
         brief="Make embeds.")
     @commands.cooldown(5, 300, commands.BucketType.member)
     async def embed(self, ctx: AvimetryContext, *, thing: str):
@@ -292,7 +293,7 @@ class Meta(commands.Cog):
                 description=f"The JSON input raised an error:\n```bash\n{e}```")
             return await ctx.no_reply(embed=embed)
 
-    @commands.command(
+    @core.command(
         brief="Check what website a url redirects to"
     )
     async def redirectcheck(self, ctx: AvimetryContext, url: str):
@@ -309,7 +310,7 @@ class Meta(commands.Cog):
         await ctx.send("An error occured while checking the link, Please try another link or try again later.")
         raise error
 
-    @commands.command(hidden=True)
+    @core.command(hidden=True)
     @commands.is_owner()
     async def _(self, ctx):
         return

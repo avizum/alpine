@@ -18,16 +18,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 
+from utils import core
 from typing import Union
 from discord.ext import commands
-from utils import AvimetryBot, AvimetryContext
+from utils import AvimetryBot, AvimetryContext, ModReason
 
 
 class ServerManagement(commands.Cog, name="Server Management"):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
 
-    @commands.command(
+    @core.command(
         aliases=["members", "mc"], brief="Gets the members of the server and shows you."
     )
     async def membercount(self, ctx: AvimetryContext):
@@ -40,22 +41,46 @@ class ServerManagement(commands.Cog, name="Server Management"):
         mce.add_field(name="Total Members:", value=f"{amc} members", inline=False)
         await ctx.send(embed=mce)
 
-    @commands.group(
-        invoke_without_command=True
-    )
-    @commands.has_permissions(manage_channels=True)
-    @commands.bot_has_permissions(manage_channels=True)
+    @core.group(invoke_without_command=True)
+    @core.has_permissions(manage_channels=True)
+    @core.bot_has_permissions(manage_channels=True)
     async def channel(self, ctx):
-        await ctx.send_help("channel")
+        await ctx.send_help(ctx.command)
+
+    @channel.group(invoke_without_command=True)
+    @core.has_permissions(manage_channels=True)
+    @core.bot_has_permissions(manage_channels=True)
+    async def create(self, ctx: AvimetryContext):
+        await ctx.send_help(ctx.command)
+
+    @create.command(aliases=["tc", "text", "textchannel", "text-channel"])
+    @core.has_permissions(manage_channels=True)
+    @core.bot_has_permissions(manage_channels=True)
+    async def text_channel(self, ctx: AvimetryContext, name):
+        channel = await ctx.guild.create_text_channel(name)
+        await ctx.send(f"Created channel {channel.mention}.")
+
+    @create.command(aliases=["vc", "voice", "voicechannel", "voice-channel"])
+    @core.has_permissions(manage_channels=True)
+    @core.bot_has_permissions(manage_channels=True)
+    async def voice_channel(self, ctx: AvimetryContext, name):
+        channel = await ctx.guild.create_voice_channel(name)
+        await ctx.send(f"Created channel {channel.mention}.")
+
+    @create.command()
+    @core.has_permissions(manage_channels=True)
+    @core.bot_has_permissions(manage_channels=True)
+    async def category(self, ctx: AvimetryContext, name):
+        channel = await ctx.guild.create_text_channel(name)
+        await ctx.send(f"Created category channel {channel.mention}.")
 
     @channel.command()
-    @commands.has_permissions(manage_channels=True)
-    @commands.bot_has_permissions(manage_channels=True)
-    async def clone(self, ctx: AvimetryContext,
-                    channel: Union[discord.CategoryChannel,
-                                   discord.TextChannel,
-                                   discord.VoiceChannel,
-                                   discord.StageChannel]):
+    @core.has_permissions(manage_channels=True)
+    @core.bot_has_permissions(manage_channels=True)
+    async def clone(self, ctx: AvimetryContext, channel: Union[discord.CategoryChannel,
+                                                               discord.TextChannel,
+                                                               discord.VoiceChannel,
+                                                               discord.StageChannel]):
         if isinstance(channel, discord.CategoryChannel):
             new = await channel.clone()
             for channels in channel.channels:
@@ -66,8 +91,8 @@ class ServerManagement(commands.Cog, name="Server Management"):
         await ctx.send(f"Successfully cloned {channel.mention}.")
 
     @channel.command()
-    @commands.has_permissions(manage_channels=True)
-    @commands.bot_has_permissions(manage_channels=True)
+    @core.has_permissions(manage_channels=True)
+    @core.bot_has_permissions(manage_channels=True)
     async def delete(self, ctx: AvimetryContext, channel: Union[discord.CategoryChannel,
                                                                 discord.TextChannel,
                                                                 discord.VoiceChannel,
@@ -76,7 +101,20 @@ class ServerManagement(commands.Cog, name="Server Management"):
         conf = await ctx.confirm(f"Are you sure you want to delete {channel.mention}?")
         if conf:
             return await ctx.channel.delete()
-        return
+        return await ctx.send('Aborted.')
+
+    @core.command(aliases=["steal-emoji", "stealemoji"])
+    @core.has_permissions(manage_emojis=True)
+    @core.bot_has_permissions(manage_emojis=True)
+    async def steal_emoji(self, ctx: AvimetryContext, emoji: discord.PartialEmoji, *, reason: ModReason = None):
+        asset = await emoji.url.read()
+        await ctx.guild.create_custom_emoji(name=emoji.name, image=asset, reason=reason)
+
+    @core.command()
+    @core.has_permissions(manage_roles=True)
+    @core.bot_has_permissions(manage_roles=True)
+    async def create_role(self, ctx: AvimetryContext, name: str, color: discord.Color = None, reason: ModReason = None):
+        await ctx.guild.create_role(name=name, color=color, reason=reason)
 
 
 def setup(bot):
