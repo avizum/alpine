@@ -24,15 +24,53 @@ from discord.ext import commands
 
 class AvimetryCommand(commands.Command):
     def __init__(self, func, **kwargs):
+        try:
+            user_permissions = func.user_permissions
+        except AttributeError:
+            user_permissions = kwargs.get('user_permissions', 'Send Messages')
+        finally:
+            if isinstance(user_permissions, str):
+                self.user_permissions = [user_permissions]
+            elif isinstance(user_permissions, dict):
+                self.user_permissions = list(user_permissions)
+            elif isinstance(user_permissions, list):
+                self.user_permissions = user_permissions
+        try:
+            bot_permissions = func.bot_permissions
+        except AttributeError:
+            bot_permissions = kwargs.get('bot_permissions', 'Send Messages')
+        finally:
+            if isinstance(bot_permissions, str):
+                self.bot_permissions = [bot_permissions]
+            elif isinstance(bot_permissions, dict):
+                self.bot_permissions = list(bot_permissions)
+            elif isinstance(bot_permissions, list):
+                self.bot_permissions = bot_permissions
         super().__init__(func, **kwargs)
-        self.user_permissions = kwargs.get('user_permissions', 'Send Messages')
-        self.bot_permissions = kwargs.get('bot_permissions', 'Send Messages')
 
 
 class AvimetryGroup(AvimetryCommand, commands.Group):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.invoke_without_command = kwargs.pop('invoke_without_command')
+        self.invoke_without_command = True
+
+    def command(self, *args, **kwargs):
+        def decorator(func):
+            kwargs.setdefault('parent', self)
+            result = command(*args, **kwargs)(func)
+            self.add_command(result)
+            return result
+
+        return decorator
+
+    def group(self, *args, **kwargs):
+        def decorator(func):
+            kwargs.setdefault('parent', self)
+            result = group(*args, **kwargs)(func)
+            self.add_command(result)
+            return result
+
+        return decorator
 
 
 def command(name=None, cls=None, **kwargs):
@@ -50,8 +88,12 @@ def group(name=None, **kwargs):
     return command(name=name, cls=AvimetryGroup, **kwargs)
 
 
-def check(predicate):
+def check(predicate, user_permissions=None, bot_permissions=None):
     def decorator(func):
+        if user_permissions:
+            func.user_permissions = user_permissions
+        if bot_permissions:
+            func.bot_permissions = bot_permissions
         if isinstance(func, AvimetryCommand):
             func.checks.append(predicate)
         else:
@@ -87,19 +129,19 @@ def has_permissions(**perms):
             return True
 
         raise commands.MissingPermissions(missing)
-    return check(predicate)
+    return check(predicate, user_permissions=perms)
 
 
-def bot_has_guild_permissions(**perms):
+def bot_has_permissions(**perms):
     invalid = set(perms) - set(discord.Permissions.VALID_FLAGS)
     if invalid:
         raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
     def predicate(ctx):
-        if not ctx.guild:
-            raise commands.NoPrivateMessage
+        guild = ctx.guild
+        me = guild.me if guild is not None else ctx.bot.user
+        permissions = ctx.channel.permissions_for(me)
 
-        permissions = ctx.me.guild_permissions
         missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
 
         if not missing:
@@ -107,4 +149,4 @@ def bot_has_guild_permissions(**perms):
 
         raise commands.BotMissingPermissions(missing)
 
-    return check(predicate)
+    return check(predicate, bot_permissions=perms)

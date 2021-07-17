@@ -75,6 +75,24 @@ class Moderation(commands.Cog):
         ban_embed.description = f"**{str(member)}** has been banned from the server."
         await ctx.send(embed=ban_embed)
 
+    @core.command()
+    @core.has_permissions(ban_members=True)
+    @core.bot_has_permissions(ban_members=True)
+    async def massban(self, ctx: AvimetryContext, targets: commands.Greedy[TargetMember], *, reason: ModReason = None):
+        if not targets:
+            return await ctx.send("One or more members can not be banned by you. Try again.")
+        new_targets = ', '.join(str(i) for i in targets)
+        conf = await ctx.confirm(f"Do you want to ban {new_targets} ({len(targets)} members) with reason {reason}?")
+        if conf:
+            fail = 0
+            m = await ctx.send("Banning...")
+            for member in targets:
+                try:
+                    await member.ban(reason=reason)
+                except Exception:
+                    fail += 1
+            await m.edit(content=f"Sucessfully banned {len(targets)-fail}/{len(targets)} members.")
+
     @core.command(brief="Unbans a member from the server.", usage="<member_id> [reason]")
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)

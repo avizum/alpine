@@ -55,6 +55,7 @@ class Owner(commands.Cog):
         invoke_without_command=True,
         brief="Developer commands only.",
         aliases=["dev"],
+        user_permissions='Bot Owner',
         hidden=True
     )
     async def developer(self, ctx: AvimetryContext):

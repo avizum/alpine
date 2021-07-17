@@ -30,6 +30,7 @@ import asyncdagpi
 import logging
 import obsidian
 
+from . import core
 from discord.ext import commands
 from .errors import Blacklisted, Maintenance
 from .cache import AvimetryCache
@@ -117,6 +118,7 @@ class AvimetryBot(commands.Bot):
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
         self.owner_ids = OWNER_IDS
         self.bot_id = PUBLIC_BOT_ID
+        self.core = core
         self.launch_time = datetime.datetime.utcnow()
         self.maintenance = False
         self.commands_ran = 0
@@ -263,7 +265,9 @@ class AvimetryBot(commands.Bot):
         def decorator(func):
             if isinstance(func, AvimetryCommand):
                 raise TypeError('Callback is already a command')
-            return cls(func, name=name, **kwargs)
+            res = cls(func, name=name, **kwargs)
+            self.add_command(res)
+            return res
         return decorator
 
     def group(self, name=None, **kwargs):

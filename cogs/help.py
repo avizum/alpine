@@ -17,7 +17,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import discord
-import traceback
 import humanize
 
 from discord.ext import commands
@@ -27,36 +26,10 @@ from utils import AvimetryBot
 
 class AvimetryHelp(commands.HelpCommand):
     async def get_bot_perms(self, command):
-        user_perms = []
-        try:
-            check = command.checks[1]
-            await check(1)
-        except Exception as e:
-            frames = [*traceback.walk_tb(e.__traceback__)]
-            last_trace = frames[-1]
-            frame = last_trace[0]
-            try:
-                for i in frame.f_locals['perms']:
-                    user_perms.append(i)
-                return ", ".join(user_perms).replace("_", " ").title()
-            except KeyError:
-                return "Send Messages"
+        return ", ".join(command.bot_permissions).replace("_", " ").replace("guild", "server").title()
 
     async def get_user_perms(self, command):
-        user_perms = []
-        try:
-            check = command.checks[0]
-            await check(0)
-        except Exception as e:
-            frames = [*traceback.walk_tb(e.__traceback__)]
-            last_trace = frames[-1]
-            frame = last_trace[0]
-            try:
-                for i in frame.f_locals['perms']:
-                    user_perms.append(i)
-                return ", ".join(user_perms).replace("_", " ").title()
-            except KeyError:
-                return "Send Messages"
+        return ", ".join(command.user_permissions).replace("_", " ").replace("guild", "server").title()
 
     def get_cooldown(self, command):
         try:
@@ -199,7 +172,7 @@ class AvimetryHelp(commands.HelpCommand):
 
         embed.add_field(
             name="Command Usage",
-            value=f"`{self.clean_prefix}{command.name} {command.signature}`")
+            value=f"`{self.clean_prefix}{command.qualified_name} {command.signature}`")
         if command.aliases:
             embed.add_field(
                 name="Command Aliases",

@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from typing import Union
 import discord
 import datetime
 import psutil
@@ -141,7 +142,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         invoke_without_command=True,
         brief="Get the invite link for the bot or another bot"
     )
-    async def invite(self, ctx: AvimetryContext, bot: discord.Member = None):
+    async def invite(self, ctx: AvimetryContext, bot: Union[discord.Member, discord.User] = None):
         if bot is None:
             invite_embed = discord.Embed(
                 title=f"{self.bot.user.name} Invite",
