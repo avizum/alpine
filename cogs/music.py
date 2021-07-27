@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import obsidian
+import datetime
 
 from utils import core
 from discord.ext import commands
@@ -37,7 +38,8 @@ class AvimetryPlayer(obsidian.PresetPlayer):
 class Music(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-    
+        self.load_time = datetime.datetime.now()
+
     async def cog_check(self, ctx):
         if await self.bot.is_owner(ctx.author):
             return True

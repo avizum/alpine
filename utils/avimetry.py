@@ -32,7 +32,7 @@ import obsidian
 
 from . import core
 from discord.ext import commands
-from .errors import Blacklisted, Maintenance
+from .exceptions import Blacklisted, Maintenance
 from .cache import AvimetryCache
 from .core import AvimetryCommand, AvimetryGroup
 
@@ -285,4 +285,8 @@ class AvimetryBot(commands.Bot):
         await self.dagpi.close()
         await self.topgg.close()
         await super().close()
-        print("\nSuccessfully closed bot", end="\n\n")
+        timenow = datetime.datetime.now().strftime("%I:%M %p")
+        print(
+            f"\n{self.user.name} logged out:\n"
+            f"Logged out time: {datetime.date.today()} at {timenow}",
+            end="\n\n")

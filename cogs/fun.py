@@ -21,6 +21,7 @@ import random
 import asyncio
 import akinator
 import typing
+import datetime
 
 from utils import core
 from aiogtts import aiogTTS
@@ -36,6 +37,7 @@ class Fun(commands.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.load_time = datetime.datetime.now()
         self._cd = commands.CooldownMapping.from_cooldown(1.0, 60.0, commands.BucketType.user)
 
     async def do_mock(self, string: str):
@@ -609,6 +611,8 @@ class Fun(commands.Cog):
     async def gayrate(self, ctx: AvimetryContext, member: discord.Member = None):
         if member is None:
             member = ctx.author
+        if await self.bot.is_owner(member):
+            return await ctx.send(f"{member.mention} is **{random.randint(0, 10)}%** gay :rainbow:")
         return await ctx.send(f"{member.mention} is **{random.randint(10, 100)}%** gay :rainbow:")
 
     @core.command()

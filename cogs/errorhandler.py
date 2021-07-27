@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 
+import datetime
 import discord
 import humanize
 import sys
@@ -31,6 +32,7 @@ from difflib import get_close_matches
 class ErrorHandler(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.load_time = datetime.datetime.now()
         self.blacklist_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
         self.error_webhook = discord.Webhook.from_url(
             self.bot.settings["webhooks"]["error_log"],
@@ -48,7 +50,6 @@ class ErrorHandler(commands.Cog):
         error = getattr(error, "original", error)
         if hasattr(ctx.command, 'on_error'):
             return
-
         reinvoke = (
             commands.CommandOnCooldown,
             commands.NoPrivateMessage,
@@ -59,7 +60,10 @@ class ErrorHandler(commands.Cog):
             Maintenance
         )
         if await self.bot.is_owner(ctx.author) and isinstance(error, reinvoke):
-            return await ctx.reinvoke()
+            try:
+                return await ctx.reinvoke()
+            except Exception:
+                pass
         elif await self.bot.is_owner(ctx.author) and ctx.prefix == '' and isinstance(error, commands.CommandNotFound):
             return
 

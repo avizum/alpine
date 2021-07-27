@@ -47,6 +47,8 @@ class AvimetryCommand(commands.Command):
             elif isinstance(bot_permissions, list):
                 self.bot_permissions = bot_permissions
         super().__init__(func, **kwargs)
+        if not self._buckets._cooldown:
+            self._buckets._cooldown = commands.Cooldown(1, 3, commands.BucketType.user)
 
 
 class AvimetryGroup(AvimetryCommand, commands.Group):
@@ -119,12 +121,14 @@ def has_permissions(**perms):
     if invalid:
         raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
-    def predicate(ctx):
+    async def predicate(ctx):
         ch = ctx.channel
         permissions = ch.permissions_for(ctx.author)
 
         missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
 
+        if await ctx.bot.is_owner(ctx.author):
+            return True
         if not missing:
             return True
 
@@ -137,16 +141,27 @@ def bot_has_permissions(**perms):
     if invalid:
         raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
-    def predicate(ctx):
+    async def predicate(ctx):
         guild = ctx.guild
         me = guild.me if guild is not None else ctx.bot.user
         permissions = ctx.channel.permissions_for(me)
 
         missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
 
+        if await ctx.bot.is_owner(ctx.author):
+            return True
         if not missing:
             return True
 
         raise commands.BotMissingPermissions(missing)
 
     return check(predicate, bot_permissions=perms)
+
+
+def is_owner():
+    async def predicate(ctx):
+        if not await ctx.bot.is_owner(ctx.author):
+            raise commands.NotOwner('You do not own this bot.')
+        return True
+
+    return check(predicate, user_permissions=['bot_owner'])

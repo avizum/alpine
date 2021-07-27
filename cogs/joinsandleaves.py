@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import datetime
 import discord
 import json
 
@@ -83,6 +84,7 @@ class JoinsAndLeaves(commands.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.load_time = datetime.datetime.now()
 
     async def convert(self, message):
         try:

@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import humanize
+import datetime
 
 from discord.ext import commands
 from difflib import get_close_matches
@@ -26,10 +27,20 @@ from utils import AvimetryBot
 
 class AvimetryHelp(commands.HelpCommand):
     async def get_bot_perms(self, command):
-        return ", ".join(command.bot_permissions).replace("_", " ").replace("guild", "server").title()
+        permissions = getattr(command, 'bot_permissions', ["send_messages"])
+        return ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
 
     async def get_user_perms(self, command):
-        return ", ".join(command.user_permissions).replace("_", " ").replace("guild", "server").title()
+        permissions = getattr(command, 'user_permissions', ["send_messages"])
+        return ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
+
+    async def can_run(self, command, ctx):
+        try:
+            await command.can_run(ctx)
+            emoji = ctx.bot.emoji_dictionary["green_tick"]
+        except commands.CommandError:
+            emoji = ctx.bot.emoji_dictionary["red_tick"]
+        return emoji
 
     def get_cooldown(self, command):
         try:
@@ -43,7 +54,7 @@ class AvimetryHelp(commands.HelpCommand):
         except Exception:
             return None
 
-    def gending_note(self):
+    def ending_note(self):
         return f"Use {self.clean_prefix}{self.invoked_with} [command|module] for help on a command or module."
 
     def command_signature(self):
@@ -57,7 +68,7 @@ class AvimetryHelp(commands.HelpCommand):
         embed = discord.Embed(
             title="Help Error", description=error, color=discord.Color.red()
         )
-        embed.set_footer(text=self.gending_note())
+        embed.set_footer(text=self.ending_note())
         await self.get_destination().send(embed=embed)
 
     def get_destination(self):
@@ -73,6 +84,8 @@ class AvimetryHelp(commands.HelpCommand):
                 usable += 1
             except commands.CommandError:
                 continue
+        if await bot.is_owner(self.context.author):
+            usable = total
         usable = f"Total Commands: {total} | Usable by you here: {usable}"
         info = [
             f"[Support Server]({self.context.bot.support})",
@@ -80,7 +93,7 @@ class AvimetryHelp(commands.HelpCommand):
             "[Vote](https://top.gg/bot/756257170521063444/vote)"
         ]
         embed = discord.Embed(
-            title="Help Menu",
+            title=f"{self.context.bot.user.name} Help",
             description=(
                 f"{self.command_signature()}Do not use these when using commands.\n"
                 f"{usable}\n"
@@ -98,17 +111,23 @@ class AvimetryHelp(commands.HelpCommand):
             name="Modules",
             value=f"{joiner.join(modules_list)}", inline=False
         )
-        embed.set_footer(text=self.gending_note(), icon_url=str(self.context.author.avatar_url))
+        embed.set_footer(text=self.ending_note(), icon_url=str(self.context.author.avatar_url))
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
         await self.get_destination().send(embed=embed)
 
     async def send_cog_help(self, cog):
         embed = discord.Embed(
-            title=f"{cog.qualified_name.title()} Commands",
+            title=f"{cog.qualified_name.title()} module",
             description=cog.description or "Module description is not provided",
         )
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
-        command_list = [command.name for command in filtered]
+        command_list = []
+        for command in filtered:
+            try:
+                getattr(command, 'commands')
+                command_list.append(f"{command.name}\u200b*")
+            except AttributeError:
+                command_list.append(command.name)
         split_list = [command_list[item:item+4] for item in range(0, len(command_list), 4)]
         value = [", ".join(lists) for lists in split_list]
         embed.add_field(
@@ -117,12 +136,12 @@ class AvimetryHelp(commands.HelpCommand):
             inline=False,
         )
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
-        embed.set_footer(text=self.gending_note())
+        embed.set_footer(text=self.ending_note())
         await self.get_destination().send(embed=embed)
 
     async def send_group_help(self, group):
         embed = discord.Embed(
-            title=f"Commands in group {group.qualified_name.title()}",
+            title=f"Command Group: {group.qualified_name.title()}",
             description=f"{group.short_doc}" or "Description was not provided")
         embed.add_field(
             name="Base command usage",
@@ -132,18 +151,10 @@ class AvimetryHelp(commands.HelpCommand):
                 name="Command Aliases",
                 value=", ".join(group.aliases),
                 inline=False)
-        try:
-            can_run_check = await group.can_run(self.context)
-            if can_run_check:
-                can_run = self.context.bot.emoji_dictionary["green_tick"]
-            else:
-                can_run = self.context.bot.emoji_dictionary["red_tick"]
-        except commands.CommandError:
-            can_run = self.context.bot.emoji_dictionary["red_tick"]
         embed.add_field(
             name="Required Permissions",
             value=(
-                f"Can Use: {can_run}\n"
+                f"Can Use: {await self.can_run(group, self.context)}\n"
                 f"Bot Permissions: `{await self.get_bot_perms(group)}`\n"
                 f"User Permissions: `{await self.get_user_perms(group)}`"
             ),
@@ -155,7 +166,13 @@ class AvimetryHelp(commands.HelpCommand):
                 value=cooldown)
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
-            group_commands = [command.name for command in filtered]
+            group_commands = []
+            for command in filtered:
+                try:
+                    getattr(command, 'commands')
+                    group_commands.append(f"{command.name}\u200b*")
+                except AttributeError:
+                    group_commands.append(command.name)
             split_list = [group_commands[i:i+4]for i in range(0, len(group_commands), 4)]
             value = [", ".join(lists) for lists in split_list]
             embed.add_field(
@@ -163,7 +180,7 @@ class AvimetryHelp(commands.HelpCommand):
                 value=",\n".join(value) or None,
                 inline=False)
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
-        embed.set_footer(text=self.gending_note())
+        embed.set_footer(text=self.ending_note())
         await self.get_destination().send(embed=embed)
 
     async def send_command_help(self, command):
@@ -182,18 +199,10 @@ class AvimetryHelp(commands.HelpCommand):
             name="Description",
             value=command.short_doc or "No help was provided.",
             inline=False)
-        try:
-            can_run_check = await command.can_run(self.context)
-            if can_run_check:
-                can_run = self.context.bot.emoji_dictionary["green_tick"]
-            else:
-                can_run = self.context.bot.emoji_dictionary["red_tick"]
-        except commands.CommandError:
-            can_run = self.context.bot.emoji_dictionary["red_tick"]
         embed.add_field(
             name="Required Permissions",
             value=(
-                f"Can Use: {can_run}\n"
+                f"Can Use: {await self.can_run(command, self.context)}\n"
                 f"Bot Permissions: `{await self.get_bot_perms(command)}`\n"
                 f"User Permissions: `{await self.get_user_perms(command)}`"),
             inline=False)
@@ -203,7 +212,7 @@ class AvimetryHelp(commands.HelpCommand):
                 name="Cooldown",
                 value=cooldown)
         embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
-        embed.set_footer(text=self.gending_note())
+        embed.set_footer(text=self.ending_note())
         await self.get_destination().send(embed=embed)
 
     async def command_not_found(self, string):
@@ -229,6 +238,7 @@ class HelpCommand(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.default = bot.help_command
         self.bot = bot
+        self.load_time = datetime.datetime.now()
         self.bot.help_command = AvimetryHelp(
             verify_checks=False,
             show_hidden=False,

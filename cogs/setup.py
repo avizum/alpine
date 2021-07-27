@@ -28,6 +28,7 @@ from utils import AvimetryContext, AvimetryBot
 class Setup(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.load_time = datetime.datetime.now()
         self.webhooks = self.bot.settings["webhooks"]
         self.guild_webhook = discord.Webhook.from_url(
             self.webhooks["join_log"],
@@ -35,6 +36,10 @@ class Setup(commands.Cog):
         )
         self.command_webhook = discord.Webhook.from_url(
             self.webhooks["command_log"],
+            adapter=discord.AsyncWebhookAdapter(self.bot.session)
+        )
+        self.command_webhook2 = discord.Webhook.from_url(
+            self.webhooks["command_log2"],
             adapter=discord.AsyncWebhookAdapter(self.bot.session)
         )
         self.request_wh = discord.Webhook.from_url(
@@ -87,13 +92,15 @@ class Setup(commands.Cog):
         await self.guild_webhook.send("\n".join(message), username="Joined Guild")
         if not guild.chunked:
             await guild.chunk()
+        embed = discord.Embed(
+            title='Thank you for adding me to your server!',
+            description='To get started with Avimetry, use `a.help` for help, and `a.about` to show the about page.'
+        )
         channel = discord.utils.get(guild.text_channels, name='general')
         if not channel:
-            channel = guild.text_channels[0]
-        try:
-            await channel.send('Thank you for adding me to your server! To get started use `a.help`')
-        except discord.Forbidden:
-            return
+            channels = [channel for channel in guild.channels if channel.permissions_for(guild.me).send_messages]
+            channel = channels[0]
+        await channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
@@ -121,15 +128,18 @@ class Setup(commands.Cog):
                 f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
                 f"Channel: {ctx.channel} ({ctx.channel.id})\n"
             ),
-            color=ctx.author.color
+            color=await ctx.determine_color()
         )
         embed.set_author(name=ctx.author, icon_url=str(ctx.author.avatar_url_as(format="png", size=512)))
         embed.timestamp = datetime.datetime.utcnow()
         try:
-            await self.command_webhook.send(embed=embed)
+            if await self.bot.is_owner(ctx.author):
+                await self.command_webhook.send(embed=embed)
+            else:
+                await self.command_webhook2.send(embed=embed)
         except aiohttp.ClientOSError:
             return
-        if ctx.guild.chunked:
+        if not ctx.guild.chunked:
             await ctx.guild.chunk()
         self.bot.commands_ran += 1
 

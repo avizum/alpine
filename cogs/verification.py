@@ -30,6 +30,7 @@ from discord.ext import commands
 class MemberJoin(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.load_time = datetime.datetime.now()
 
     async def do_verify(self, member):
         prefix = await self.bot.cache.get_guild_settings(member.guild.id)

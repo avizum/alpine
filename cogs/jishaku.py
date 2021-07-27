@@ -78,7 +78,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             f"Jishaku `v{jishaku.__version__}`, discord.py `v{discord.__version__}`, "
             f"Python `{sys.version}` on `{sys.platform}`, ".replace("\n", ""),
             f"Jishaku was loaded {timestamp(self.load_time, 'R')} "
-            f"and the cog was loaded {timestamp(self.start_time, 'R')}.",
+            f"and module was loaded {timestamp(self.start_time, 'R')}.",
             ""
         ]
         try:

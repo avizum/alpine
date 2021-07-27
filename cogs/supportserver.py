@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import re
+import datetime
 
 from utils import core
 from discord.ext import commands, tasks
@@ -76,6 +77,7 @@ class Servers(commands.Cog, name="Servers"):
     '''
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.load_time = datetime.datetime.now()
         self.update_count.start()
         self.guild_id = [751490725555994716, 814206001451761664]
         self.joins_and_leaves = 751967006701387827

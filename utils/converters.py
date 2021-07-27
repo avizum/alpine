@@ -22,6 +22,7 @@ import discord
 from discord.ext import commands
 from utils import AvimetryContext
 from twemoji_parser import emoji_to_url as urlify_emoji
+from difflib import get_close_matches
 
 
 time_regex = re.compile(r"(?:(\d{1,5})\s?(h|s|m|d|w|y))+?")
@@ -173,6 +174,9 @@ class CogConverter(commands.Converter):
         exts = []
         if argument in ["~", "*", "a", "all"]:
             exts.extend(ctx.bot.extensions)
+        elif argument not in ctx.bot.extensions:
+            argument = get_close_matches(argument, ctx.bot.extensions)
+            exts.extend(argument)
         else:
             exts.append(argument)
         return exts

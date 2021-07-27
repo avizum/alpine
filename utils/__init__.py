@@ -21,7 +21,8 @@ from .avimetry import *
 from .cache import *
 from .context import *
 from .converters import *
-from .errors import *
+from .exceptions import *
 from .utils import *
 from .parser import *
 from .core import *
+from .gist import *

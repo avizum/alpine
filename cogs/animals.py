@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import discord
+import datetime
 
 from utils import core
 from io import BytesIO
@@ -28,12 +29,13 @@ from discord.ext import commands
 class Animals(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.load_time = datetime.datetime.now()
 
     async def do_animal(self, ctx: AvimetryContext, animal: str):
         async with ctx.channel.typing():
             with Timer() as timer:
                 e = await self.bot.sr.get_image(animal)
-        file = discord.File(BytesIO(await e.read()), filename=f"{animal}.png")
+                file = discord.File(BytesIO(await e.read()), filename=f"{animal}.png")
         embed = discord.Embed(
             title=f"Here is {animal}",
             description=f"Powered by Some Random API\nProcessed in `{timer.total_time:,.2f}ms`"

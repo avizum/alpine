@@ -20,6 +20,7 @@ import typing
 import discord
 import datetime
 import asyncio
+import utils
 
 from utils import core
 from discord.ext import commands
@@ -33,6 +34,7 @@ class Owner(commands.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.load_time = datetime.datetime.now()
 
     def cleanup_code(self, content):
         if content.startswith('```') and content.endswith('```'):
@@ -70,11 +72,9 @@ class Owner(commands.Cog):
             try:
                 self.bot.load_extension(cog)
                 load_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
-            except commands.ExtensionError as e:
+            except (commands.ExtensionError, ModuleNotFoundError) as e:
                 load_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
-            except ModuleNotFoundError as e:
-                load_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
-        embed = discord.Embed(title="Load", description="\n".join(load_list))
+        embed = discord.Embed(title="Loaded cogs", description="\n".join(load_list))
         await ctx.send(embed=embed, delete_after=15)
 
     @developer.command(
@@ -86,11 +86,9 @@ class Owner(commands.Cog):
             try:
                 self.bot.unload_extension(cog)
                 unload_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
-            except commands.ExtensionError as e:
+            except (commands.ExtensionError, ModuleNotFoundError) as e:
                 unload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
-            except ModuleNotFoundError as e:
-                unload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
-        embed = discord.Embed(title="Unload", description="\n".join(unload_list))
+        embed = discord.Embed(title="Unloaded cogs", description="\n".join(unload_list))
         await ctx.send(embed=embed, delete_after=15)
 
     @developer.command(
@@ -102,12 +100,10 @@ class Owner(commands.Cog):
             try:
                 self.bot.reload_extension(cog)
                 reload_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
-            except commands.ExtensionError as e:
-                reload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
-            except ModuleNotFoundError as e:
+            except (commands.ExtensionError, ModuleNotFoundError) as e:
                 reload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
         description = "\n".join(reload_list)
-        embed = discord.Embed(title="Reload", description=description)
+        embed = discord.Embed(title="Reloaded cogs", description=description)
         await ctx.send(embed=embed, delete_after=15)
 
     @developer.command(brief="Pulls from GitHub and then reloads all modules")
@@ -243,7 +239,16 @@ class Owner(commands.Cog):
         self.bot.maintenance = toggle
         await ctx.send(f"Maintenance mode has been {match[toggle]}")
 
-    @developer.group(invoke_without_command=True)
+    @developer.command()
+    async def cogs(self, ctx: AvimetryContext, cog: str = None):
+        thing_list = [
+            f"{key.title()} | Loaded {utils.timestamp(val.load_time, 'R')}"
+            for key, val in self.bot.cogs.items()
+        ]
+        embed = discord.Embed(title="Loaded Cogs", description='\n'.join(thing_list))
+        await ctx.send(embed=embed)
+
+    @developer.group(invoke_without_command=True, aliases=["error"])
     async def errors(self, ctx: AvimetryContext):
         errors = await self.bot.pool.fetch('SELECT * FROM command_errors WHERE fixed = false')
         embed = discord.Embed(title="Errors")
@@ -257,18 +262,16 @@ class Owner(commands.Cog):
         await ctx.send(embed=embed)
 
     @errors.command()
-    async def fix(self, ctx: AvimetryContext, error_id: int = None):
-        if error_id is None:
-            return await ctx.send_help("error")
+    async def fix(self, ctx: AvimetryContext, error_id: int):
         query = "SELECT * FROM command_errors WHERE id=$1"
         error_info = await self.bot.pool.fetchrow(query, error_id)
         if not error_info:
-            return await ctx.send("That is not a valid error id")
+            return await ctx.send("This error does not exist.")
         elif error_info['fixed'] is True:
-            return await ctx.send('This error is already fixed.')
+            return await ctx.send('This error is already marked as fixed.')
         query = "UPDATE command_errors SET fixed=$1 WHERE id=$2"
         await self.bot.pool.execute(query, True, error_id)
-        await ctx.send(f"Error {error_id} is now fixed.")
+        await ctx.send(f"Error #{error_id} has been marked as fixed.")
 
 
 def setup(bot):

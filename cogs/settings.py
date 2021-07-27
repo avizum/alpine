@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import asyncio
 import discord
+import datetime
 
 from utils import core
 from discord.ext import commands
@@ -30,6 +31,7 @@ class Settings(commands.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.load_time = datetime.datetime.now()
         self.map = {
             True: "Enabled",
             False: "Disabled",
@@ -112,42 +114,101 @@ class Settings(commands.Cog):
                     "```py\n"
                     f"Global Toggle: {self.map[config.get('enabled')]}\n"
                     f"Logging Channel ID: {config.get('channel_id')}\n"
-                    f"Message Delete: {config.get('message_delete')}\n"
-                    f"Message Edit: {config.get('message_edit')}```"))
+                    f"Message Delete: {self.map[config.get('message_delete')]}\n"
+                    f"Message Edit: {self.map[config.get('message_edit')]}\n"
+                    f"Member Kick: {self.map[config.get('member_kick')]}\n"
+                    f"Member Ban: {self.map[config.get('member_ban')]}\n"
+                    "```"))
             return await ctx.send(embed=embed)
-        query = "UPDATE logging SET enabled = $1 WHERE guild_id = $2"
-        await self.bot.pool.execute(query, toggle, ctx.guild.id)
+        query = (
+            "INSERT INTO logging (guild_id, enabled) "
+            "VALUES ($1, $2) "
+            "ON CONFLICT (guild_id) DO "
+            "UPDATE SET enabled = $2 "
+        )
+        await self.bot.pool.execute(query, ctx.guild.id, toggle)
         ctx.cache.logging[ctx.guild.id]["enabled"] = toggle
         await ctx.send(f"{self.map[toggle]} logging")
 
     @logging.command(name="channel", brief="Configure logging channel")
     @core.has_permissions(manage_guild=True)
     async def logging_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
-        query = "UPDATE logging SET channel_id = $1 WHERE guild_id = $2"
-        await self.bot.pool.execute(query, channel.id, ctx.guild.id)
+        query = (
+            "INSERT INTO logging (guild_id, channel_id) "
+            "VALUES ($1, $2) "
+            "ON CONFLICT (guild_id) DO "
+            "UPDATE SET channel_id = $2 "
+        )
+        await self.bot.pool.execute(query, ctx.guild.id, channel.id)
         ctx.cache.logging[ctx.guild.id]["channel_id"] = channel.id
 
     @logging.command(
         brief="Configure delete logging",
-        name="message_delete",
-        aliases=["msgdelete, messagedelete"])
+        name="message-delete",
+        aliases=["msgdelete", "messagedelete"])
     @core.has_permissions(manage_guild=True)
-    async def message_delete(self, ctx: AvimetryContext, toggle: bool):
-        query = "UPDATE logging SET message_delete = $1 WHERE guild_id = $2"
-        await self.bot.pool.execute(query, toggle, ctx.guild.id)
+    async def logging_message_delete(self, ctx: AvimetryContext, toggle: bool):
+        query = (
+            "INSERT INTO logging (guild_id, message_delete) "
+            "VALUES ($1, $2) "
+            "ON CONFLICT (guild_id) DO "
+            "UPDATE SET message_delete = $2 "
+        )
+        await self.bot.pool.execute(query, ctx.guild.id, toggle)
         ctx.cache.logging[ctx.guild.id]["message_delete"] = toggle
         await ctx.send(f"{self.map[toggle]} message delete logs")
 
     @logging.command(
         brief="Configure edit logging",
-        name="message_edit",
+        name="message-edit",
         aliases=["msgedit", "messageedit"])
-    @core.has_permissions(administrator=True)
-    async def edit(self, ctx: AvimetryContext, toggle: bool):
-        query = "UPDATE logging SET message_edit = $1 WHERE guild_id = $2"
-        await self.bot.pool.execute(query, toggle, ctx.guild.id)
+    @core.has_permissions(manage_guild=True)
+    async def logging_message_edit(self, ctx: AvimetryContext, toggle: bool):
+        query = (
+            "INSERT INTO logging (guild_id, message_edit) "
+            "VALUES ($1, $2) "
+            "ON CONFLICT (guild_id) DO "
+            "UPDATE SET message_edit = $2 "
+        )
+        await self.bot.pool.execute(query, ctx.guild.id, toggle)
         ctx.cache.logging[ctx.guild.id]["message_edit"] = toggle
         await ctx.send(f"{self.map[toggle]} message edit logs")
+
+    @logging.command(
+        brief="Configure member kick logging",
+        name="member-kick",
+        aliases=["mkick", "memberkick"]
+    )
+    @core.has_permissions(manage_guild=True)
+    @core.bot_has_permissions(view_audit_log=True)
+    async def logging_member_kick(self, ctx: AvimetryContext, toggle: bool):
+        query = (
+            "INSERT INTO logging (guild_id, member_kick) "
+            "VALUES ($1, $2) "
+            "ON CONFLICT (guild_id) DO "
+            "UPDATE SET member_kick = $2 "
+        )
+        await self.bot.pool.execute(query, ctx.guild.id, toggle)
+        ctx.cache.logging[ctx.guild.id]["member_kick"] = toggle
+        await ctx.send(f"{self.map[toggle]} member kicked logs")
+
+    @logging.command(
+        brief="Configure member kick logging",
+        name="member-ban",
+        aliases=["mban", "memberban"]
+    )
+    @core.has_permissions(manage_guild=True)
+    @core.bot_has_permissions(view_audit_log=True)
+    async def logging_member_ban(self, ctx: AvimetryContext, toggle: bool):
+        query = (
+            "INSERT INTO logging (guild_id, member_ban) "
+            "VALUES ($1, $2) "
+            "ON CONFLICT (guild_id) DO "
+            "UPDATE SET member_ban = $2 "
+        )
+        await self.bot.pool.execute(query, ctx.guild.id, toggle)
+        ctx.cache.logging[ctx.guild.id]["member_ban"] = toggle
+        await ctx.send(f"{self.map[toggle]} member ban logs")
 
     @core.group(
         name="join-message",
@@ -334,7 +395,7 @@ class Settings(commands.Cog):
                     await command(ctx)
                 return
         query = "UPDATE join_leave SET leave_enabled = $1 WHERE guild_id = $2"
-        await self.bot.pool.execute(query, toggle, ctx.guild.id)
+        await self.bot.pool.execute(query, ctx.guild.id, toggle)
         ctx.cache.join_leave[ctx.guild.id]["leave_enabled"] = toggle
         await ctx.send(f"{self.map[toggle]} leave message")
 
@@ -464,12 +525,10 @@ class Settings(commands.Cog):
             )
             return await ctx.send(embed=embed)
         query = (
-            """
-            INSERT INTO verification (guild_id, high)
-            VALUES ($1, $2)
-            ON CONFLICT (guild_id) DO
-            UPDATE SET guild_id = $1, high = $2
-            """
+            "INSERT INTO verification (guild_id, high) "
+            "VALUES ($1, $2) "
+            "ON CONFLICT (guild_id) DO "
+            "UPDATE SET high = $2"
         )
         await self.bot.pool.execute(query, ctx.guild.id, toggle)
         ctx.cache.verification[ctx.guild.id]["high"] = toggle

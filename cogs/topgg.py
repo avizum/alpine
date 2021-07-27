@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import discord
+import datetime
 
 from utils import AvimetryBot
 from discord.ext import commands, tasks
@@ -25,6 +26,7 @@ from discord.ext import commands, tasks
 class TopGG(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.load_time = datetime.datetime.now()
         self.post.start()
         self.update.start()
 
@@ -38,13 +40,13 @@ class TopGG(commands.Cog):
     async def before_post(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(minutes=30)
+    @tasks.loop(minutes=5)
     async def update(self):
         if self.bot.user.id != 756257170521063444:
             return
         status = discord.Status.online
         game = discord.Game(f"@Avimetry | {len(self.bot.guilds)} Servers")
-        if game == self.bot.activity:
+        if game == self.bot.get_guild(814206001451761664).me:
             return
         await self.bot.change_presence(status=status, activity=game)
 

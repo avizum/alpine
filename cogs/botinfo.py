@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import Union
 import discord
 import datetime
 import psutil
@@ -25,6 +24,7 @@ import pathlib
 import inspect
 import os
 
+from typing import Union
 from discord.ext import commands
 from topgg import NotFound
 from utils import AvimetryContext, AvimetryBot, Timer
@@ -37,6 +37,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.load_time = datetime.datetime.now()
         self.request_wh = discord.Webhook.from_url(
             self.bot.settings["webhooks"]["request_log"],
             adapter=discord.AsyncWebhookAdapter(self.bot.session)
@@ -93,7 +94,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             )
         )
         embed.set_thumbnail(url=ctx.me.avatar_url)
-        embed.set_footer(text="Want to be a contributor? Use the suggest command or create a PR on the github repo")
+        embed.set_footer(text="Contribute to Avimetry by doing magic!!")
         await ctx.send(embed=embed)
 
     @core.command()
@@ -113,13 +114,13 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         await ctx.send(embed=ue)
 
-    @core.command(brief="Gets the bot's ping.")
+    @core.command(brief="Get the bot's latencies")
     async def ping(self, ctx: AvimetryContext):
         async with Timer() as api:
             await ctx.trigger_typing()
         async with Timer() as db:
             await self.bot.pool.execute("SELECT 1")
-        ping_embed = discord.Embed(title="🏓 Pong!")
+        ping_embed = discord.Embed(title="Pong!")
         ping_embed.add_field(
             name="<:avimetry:848820318117691432> Websocket Latency",
             value=f"`{self.bot.latency * 1000:,.2f} ms`",
@@ -136,7 +137,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @core.command()
     async def hello(self, ctx: AvimetryContext):
-        await ctx.send(f'Hello, {ctx.author}, I am a bot made my avizum#8771!')
+        await ctx.send(f'Hello, {ctx.author}, I am a bot made by avizum#8771!')
 
     @core.group(
         invoke_without_command=True,
@@ -241,14 +242,13 @@ class BotInfo(commands.Cog, name="Bot Info"):
         vote_embed = discord.Embed(
             title=f"Vote for {self.bot.user.name}",
             description=(
-                f"**Vote on __top.gg__**\n[__`Vote Now`__]({top_gg})\n\n"
-                f"**Vote on __discordbotlist.com__**\n[__`Vote Now`__]({bot_list})")
+                f"**__top.gg__**\n[__`Vote Here`__]({top_gg})\n\n"
+                f"**__discordbotlist.com__**\n[__`Vote Here`__]({bot_list})")
         )
+        vote_embed.set_thumbnail(url=self.bot.user.avatar_url)
         await ctx.send(embed=vote_embed)
 
-    @core.command(
-        brief="Get the source of a command or bot."
-    )
+    @core.command(brief="Get the source of a command or the bot.")
     async def source(self, ctx: AvimetryContext, *, command: str = None):
         source_embed = discord.Embed(
                 title=f"{self.bot.user.name}'s source",

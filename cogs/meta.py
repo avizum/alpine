@@ -24,6 +24,7 @@ import random
 import pytz
 import typing
 
+from pytz import UnknownTimeZoneError
 from utils import core
 from discord.ext import commands
 from utils import AvimetryBot, AvimetryContext, TimeZoneError, GetAvatar, timestamp
@@ -35,6 +36,7 @@ class Meta(commands.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.load_time = datetime.datetime.now()
 
     @core.command(brief="Sends a poll in the current channel for people to vote to.")
     @commands.cooldown(1, 300, commands.BucketType.user)
@@ -191,7 +193,9 @@ class Meta(commands.Cog):
         member = member or ctx.author
         try:
             timezone = ctx.cache.users[member.id]["timezone"]
-        except (KeyError, pytz.UnknownTimeZoneError):
+            if not timezone:
+                raise KeyError
+        except (KeyError, UnknownTimeZoneError):
             prefix = ctx.clean_prefix
             if member == ctx.author:
                 return await ctx.send(f"You don't have a timezone setup yet. Use {prefix}time set <timezone>.")
@@ -311,7 +315,7 @@ class Meta(commands.Cog):
         raise error
 
     @core.command(hidden=True)
-    @commands.is_owner()
+    @core.is_owner()
     async def _(self, ctx):
         return
 
