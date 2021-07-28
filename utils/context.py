@@ -68,7 +68,9 @@ class AvimetryContext(commands.Context):
     async def no_reply(self, *args, **kwargs):
         return await super().send(*args, **kwargs)
 
-    async def post(self, content, syntax=None):
+    async def post(self, content, syntax=None, gist: bool = False):
+        if gist:
+            raise NotImplementedError("Will add later")
         if syntax is None:
             syntax = "python"
         link = await self.bot.myst.post(content, syntax=syntax)
@@ -111,11 +113,11 @@ class AvimetryContext(commands.Context):
             edited_message = self.bot.command_cache[self.message.id]
             if self.me.permissions_in(self.channel).manage_messages is True:
                 await edited_message.clear_reactions()
-            try:
+            if kwargs.get('file'):
+                message = self.send(content=content, embed=embed, **kwargs)
+            else:
                 await edited_message.edit(content=content, embed=embed, **kwargs)
                 return edited_message
-            except discord.HTTPException:
-                pass
         try:
             message = await self.reply(content=content, embed=embed, **kwargs)
             return message

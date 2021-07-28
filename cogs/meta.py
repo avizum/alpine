@@ -46,7 +46,7 @@ class Meta(commands.Cog):
                 "You need to have at least two options in the poll."
             )
         if len(options) > 10:
-            raise commands.BadArgument("You can only have twenty options in a poll")
+            raise commands.BadArgument("You can only have ten options in a poll")
         if len(options) == 3 and options[0] == "yes" and options[1] == "maybe" and options[2] == "no":
             reactions = [
                 self.bot.emoji_dictionary["green_tick"],
@@ -67,17 +67,11 @@ class Meta(commands.Cog):
         for x, option in enumerate(options):
             description += "\n\n{} {}".format(reactions[x], option)
         embed = discord.Embed(title=question, description="".join(description))
-        embed.set_footer(text=f"Poll from: {str(ctx.author)}")
-        if ctx.guild.id == 751490725555994716:
-            embed.color = ctx.author.color
-            channel = discord.utils.get(ctx.guild.channels, id=853767310736359444)
-            react_message = await channel.send(embed=embed)
-        else:
-            react_message = await ctx.send(embed=embed)
-        for reaction in reactions[: len(options)]:
+        react_message = await ctx.send(embed=embed)
+        for reaction in reactions[:len(options)]:
             await react_message.add_reaction(reaction)
         embed.set_footer(
-            text=f"Poll from: {str(ctx.author)}\nPoll ID: {react_message.id}"
+            text=f"Poll from: {str(ctx.author)}\nMessage ID: {react_message.id}"
         )
         await react_message.edit(embed=embed)
 

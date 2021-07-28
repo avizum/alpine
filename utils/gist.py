@@ -44,3 +44,7 @@ class Gist:
         output = await self.session.request("POST", "https://api.github.com/gists", json=data, headers=headers)
         info = await output.json()
         return info['html_url']
+
+    async def close(self):
+        if not self.session.closed:
+            await self.session.close()

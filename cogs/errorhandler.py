@@ -57,7 +57,8 @@ class ErrorHandler(commands.Cog):
             commands.MissingAnyRole,
             commands.MissingPermissions,
             commands.MissingRole,
-            Maintenance
+            Maintenance,
+            Blacklisted
         )
         if await self.bot.is_owner(ctx.author) and isinstance(error, reinvoke):
             try:

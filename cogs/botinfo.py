@@ -80,18 +80,15 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         embed.add_field(name="Commands", value=f"{len(self.bot.commands)} loaded")
         embed.add_field(name="Commands ran", value=self.bot.commands_ran)
-        tester = self.bot.get_user(547280209284562944)
-        avatar = self.bot.get_user(672122220566413312)
-        help_command = self.bot.get_user(171539705043615744)
-        cont_one = self.bot.get_user(733370212199694467)
+        credits_list = [
+            (self.bot.get_user(547280209284562944), 'Tester'),
+            (self.bot.get_user(672122220566413312), 'Avatar'),
+            (self.bot.get_user(171539705043615744), 'Help Command'),
+            (self.bot.get_user(733370212199694467), 'Contributor')
+        ]
         embed.add_field(
             name="Credits",
-            value=(
-                f"{avatar} (Avatar),\n"
-                f"{help_command} (Help Command)\n"
-                f"{tester} (Tester)\n"
-                f"{cont_one} (Contributor)"
-            )
+            value="\n".join(f"{user} ({role})" for user, role in credits_list)
         )
         embed.set_thumbnail(url=ctx.me.avatar_url)
         embed.set_footer(text="Contribute to Avimetry by doing magic!!")
@@ -99,10 +96,19 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @core.command()
     async def credits(self, ctx: AvimetryContext):
+        credit_list = [
+            (self.bot.get_user(750135653638865017), 'Developer'),
+            (self.bot.get_user(547280209284562944), 'Tester'),
+            (self.bot.get_user(672122220566413312), 'Avatar'),
+            (self.bot.get_user(171539705043615744), 'Help Command'),
+            (self.bot.get_user(733370212199694467), 'Contributor'),
+        ]
+
         embed = discord.Embed(
             title="Credits",
-            description="avizum#8771: Main Developer"
+            description="\n".join(f"{user}: {role}" for user, role in credit_list)
         )
+
         await ctx.send(embed=embed)
 
     @core.command(brief="Get the bot's uptime")
@@ -276,7 +282,8 @@ class BotInfo(commands.Cog, name="Bot Info"):
         else:
             command = self.bot.get_command(command)
         if not command:
-            return await ctx.send(f'Command "{command}" not found.')
+            source_embed.description = "That command could not be found."
+            return await ctx.send(embed=source_embed)
 
         if isinstance(command, commands.HelpCommand):
             lines, number_one = inspect.getsourcelines(type(command))

@@ -24,7 +24,7 @@ import math
 
 from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 from jishaku import Feature
-from jishaku.flags import JISHAKU_HIDE
+from jishaku.flags import Flags
 from utils import AvimetryBot, AvimetryContext, CogConverter, timestamp
 
 
@@ -71,7 +71,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         command = self.bot.get_command("dev sync")
         await command(ctx)
 
-    @Feature.Command(name="jishaku", aliases=["jsk"], hidden=JISHAKU_HIDE,
+    @Feature.Command(name="jishaku", aliases=["jsk"], hidden=Flags.HIDE,
                      invoke_without_command=True, ignore_extra=False)
     async def jsk(self, ctx: AvimetryContext):
         summary = [
