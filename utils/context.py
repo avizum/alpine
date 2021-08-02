@@ -114,7 +114,7 @@ class AvimetryContext(commands.Context):
             if self.me.permissions_in(self.channel).manage_messages is True:
                 await edited_message.clear_reactions()
             if kwargs.get('file'):
-                message = self.send(content=content, embed=embed, **kwargs)
+                message = await self.send(content=content, embed=embed, **kwargs)
             else:
                 await edited_message.edit(content=content, embed=embed, **kwargs)
                 return edited_message

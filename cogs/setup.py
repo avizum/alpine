@@ -81,21 +81,34 @@ class Setup(commands.Cog):
             return
         await self.bot.cache.cache_new_guild(guild.id)
         await self.bot.cache.check_for_cache()
-        message = [
-            f"I got added to a server named {guild.name} ({guild.id}) with a total of {guild.member_count} members.",
-            f"I am now in {len(self.bot.guilds)} guilds."
+        members = sum(not m.bot for m in guild.members)
+        bots = sum(m.bot for m in guild.members)
+        summary = [
+            f"I was just added to a guild named {guild.name} ({guild.id}).",
+            f"Guild owner is {guild.owner} ({guild.owner_id}).",
+            f"There are {bots} bots and {members} members in this guild. "
         ]
-        members = len([m for m in guild.members if not m.bot])
-        bots = len([m for m in guild.members if m.bot])
         if bots > members:
-            message.append(f"There are {bots} bots and {members} members so it may be a bot farm.")
-        await self.guild_webhook.send("\n".join(message), username="Joined Guild")
+            summary.append("This guild may be a bot farm.")
+        summary.append(f"I am now in a total of {len(self.bot.guilds)} guilds.")
+        embed = discord.Embed(title="New guild", description='\n'.join(summary), color=guild.owner.color)
+        await self.guild_webhook.send(embed=embed, username="Joined Guild")
         if not guild.chunked:
             await guild.chunk()
         embed = discord.Embed(
-            title='Thank you for adding me to your server!',
-            description='To get started with Avimetry, use `a.help` for help, and `a.about` to show the about page.'
+            title='\U0001f44b Hey, I am Avimetry!',
+            description='Hello, thank you for adding me to your server. Here are some commands to get you started.',
+            color=guild.owner.color
         )
+        embed.add_field(name='a.help', value='Sends the help page.', inline=False)
+        embed.add_field(
+            name='a.prefix add',
+            value='Adds a prefix to this server. (You can have up to 15 prefixes)',
+            inline=False
+        )
+        embed.add_field(name='a.about', value='Show some info about the bot.', inline=False)
+        embed.add_field(name='a.vote', value='You can support Avimetry by voting! Thank you!', inline=False)
+        embed.set_footer(text='Made by avizum :)')
         channel = discord.utils.get(guild.text_channels, name='general')
         if not channel:
             channels = [channel for channel in guild.channels if channel.permissions_for(guild.me).send_messages]

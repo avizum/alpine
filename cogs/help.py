@@ -128,6 +128,8 @@ class AvimetryHelp(commands.HelpCommand):
                 command_list.append(f"{command.name}\u200b*")
             except AttributeError:
                 command_list.append(command.name)
+        if not command_list:
+            return
         split_list = [command_list[item:item+4] for item in range(0, len(command_list), 4)]
         value = [", ".join(lists) for lists in split_list]
         embed.add_field(

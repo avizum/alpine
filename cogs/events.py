@@ -94,7 +94,9 @@ class BotLogs(commands.Cog):
             return
         if thing["enabled"] is not True:
             return
-        if thing["message_delete"] is False:
+        if not thing["message_delete"]:
+            return
+        if not thing["channel_id"]:
             return
         if message.author == self.bot.user or message.author.bot:
             return
@@ -130,7 +132,9 @@ class BotLogs(commands.Cog):
             return
         if thing["enabled"] is not True:
             return
-        if thing["message_edit"] is False:
+        if not thing["message_edit"]:
+            return
+        if not thing["channel_id"]:
             return
         if before.author == self.bot.user or before.author.bot:
             return
@@ -156,7 +160,9 @@ class BotLogs(commands.Cog):
             return
         if thing["enabled"] is not True:
             return
-        if thing["message_edit"] is False:
+        if not thing["message_edit"]:
+            return
+        if not thing["channel_id"]:
             return
         entry = (await guild.audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten())[0]
         if entry.target == user:
@@ -178,7 +184,9 @@ class BotLogs(commands.Cog):
             return
         if thing["enabled"] is not True:
             return
-        if thing["message_edit"] is False:
+        if not thing["message_edit"]:
+            return
+        if not thing["channel_id"]:
             return
         entry = (await member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick).flatten())[0]
         if entry.target == member:
@@ -200,7 +208,9 @@ class BotLogs(commands.Cog):
             return
         if thing["enabled"] is not True:
             return
-        if thing["channel"] is False:
+        if not thing["channel"]:
+            return
+        if not thing["channel_id"]:
             return
         channel = self.bot.get_channel(thing["channel_id"])
         await channel.send(f"Channel has been created: {channel.mention}")
@@ -212,7 +222,9 @@ class BotLogs(commands.Cog):
             return
         if thing["enabled"] is not True:
             return
-        if thing["channel"] is False:
+        if not thing["channel"]:
+            return
+        if not thing["channel_id"]:
             return
         channel = self.bot.get_channel(thing["channel_id"])
         await channel.send(f"Channel has been deleted: {channel.name}")
@@ -224,7 +236,9 @@ class BotLogs(commands.Cog):
             return
         if thing["enabled"] is not True:
             return
-        if thing["channel"] is False:
+        if not thing["channel"]:
+            return
+        if not thing["channel_id"]:
             return
 
     @commands.Cog.listener("on_guild_update")

@@ -61,7 +61,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         embed = discord.Embed(title="Info about Avimetry")
         embed.add_field(
             name="Latest Updates",
-            value="Vote Now at [top.gg](https://top.gg/bot/756257170521063444/vote)",
+            value="Avimetry will not work in Threads yet. This will be fixed soon. Thank you!",
             inline=False
         )
         pid = psutil.Process(os.getpid())

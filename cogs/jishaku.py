@@ -109,8 +109,8 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             summary.append("")
 
         guilds = f"{len(self.bot.guilds)} guilds"
-        humans = f"{len([m for m in self.bot.users if not m.bot])} humans"
-        bots = f"{len([m for m in self.bot.users if m.bot])} bots"
+        humans = f"{sum(not m.bot for m in self.bot.users)} humans"
+        bots = f"{sum(m.bot for m in self.bot.users)} bots"
         users = f"{len(self.bot.users)} users"
 
         cache_summary = f"can see {guilds}, {humans}, and {bots}, totaling to {users}."
