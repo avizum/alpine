@@ -27,7 +27,8 @@ import typing
 from pytz import UnknownTimeZoneError
 from utils import core
 from discord.ext import commands
-from utils import AvimetryBot, AvimetryContext, TimeZoneError, GetAvatar, timestamp
+from jishaku.codeblocks import codeblock_converter
+from utils import AvimetryBot, AvimetryContext, TimeZoneError, GetAvatar, Gist, timestamp
 
 
 class Meta(commands.Cog):
@@ -307,6 +308,18 @@ class Meta(commands.Cog):
             return await ctx.send("I wasn't able to connect to this website.")
         await ctx.send("An error occured while checking the link, Please try another link or try again later.")
         raise error
+
+    @core.command(brief="Posts a gist online.")
+    @commands.cooldown(1, 60, commands.BucketType.user)
+    async def gist(self, ctx: AvimetryContext, *, code: codeblock_converter):
+        gist = Gist(self.bot, self.bot.session)
+        lang = code.language or 'txt'
+        out = await gist.post(
+            filename=f"output.{lang}",
+            description=f"{ctx.author} at {datetime.datetime.utcnow().strftime('%x %X')}",
+            content=code.content
+        )
+        await ctx.send(f"These gists are posted publicly. DM me to get it removed.\n{out}")
 
     @core.command(hidden=True)
     @core.is_owner()

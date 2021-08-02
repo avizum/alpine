@@ -54,7 +54,7 @@ class AvimetryCommand(commands.Command):
 class AvimetryGroup(AvimetryCommand, commands.Group):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.invoke_without_command = True
+        self.invoke_without_command = kwargs.get('invoke_without_command', True)
 
     def command(self, *args, **kwargs):
         def decorator(func):

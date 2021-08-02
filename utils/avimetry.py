@@ -137,7 +137,7 @@ class AvimetryBot(commands.Bot):
         }
         self.primary_extensions = [
             "cogs.developer",
-            # "cogs.events",
+            "cogs.events",
             "cogs.jishaku",
             "cogs.setup",
             "utils.context"

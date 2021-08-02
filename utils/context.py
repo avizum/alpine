@@ -21,6 +21,7 @@ import discord
 import datetime
 import contextlib
 import re
+import random
 
 from .avimetry import AvimetryBot
 from discord.ext import commands

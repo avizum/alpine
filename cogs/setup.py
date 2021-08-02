@@ -111,7 +111,7 @@ class Setup(commands.Cog):
         embed.set_footer(text='Made by avizum :)')
         channel = discord.utils.get(guild.text_channels, name='general')
         if not channel:
-            channels = [channel for channel in guild.channels if channel.permissions_for(guild.me).send_messages]
+            channels = [channel for channel in guild.text_channels if channel.permissions_for(guild.me).send_messages]
             channel = channels[0]
         await channel.send(embed=embed)
 

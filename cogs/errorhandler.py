@@ -119,7 +119,7 @@ class ErrorHandler(commands.Cog):
             cd = discord.Embed(
                 title="Slow down",
                 description=(
-                    f"This command has reached its cooldown. It can be used {rate} {'time' if rate == 1 else 'times'} "
+                    f"This command can only be used {rate} {'time' if rate == 1 else 'times'} "
                     f"every {per} seconds per {cd_type}.\n"
                     f"Try again in {humanize.naturaldelta(error.retry_after)}."
                 )
@@ -190,6 +190,7 @@ class ErrorHandler(commands.Cog):
 
         elif isinstance(error, commands.BadArgument):
             self.reset(ctx)
+            print(dir(error))
             ba = discord.Embed(
                 title="Bad Argument",
                 description=str(error),
@@ -211,6 +212,13 @@ class ErrorHandler(commands.Cog):
                 description=str(error),
             )
             return await ctx.send(embed=many_arguments)
+
+        elif isinstance(error, commands.ArgumentParsingError):
+            embed = discord.Embed(
+                title="Quote Error",
+                description=error
+            )
+            return await ctx.send(embed=embed)
 
         elif isinstance(error, commands.NoPrivateMessage):
             return

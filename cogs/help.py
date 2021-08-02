@@ -76,17 +76,8 @@ class AvimetryHelp(commands.HelpCommand):
 
     async def send_bot_help(self, mapping):
         bot = self.context.bot
-        total = len(bot.commands)
-        usable = 0
-        for command in bot.commands:
-            try:
-                await command.can_run(self.context)
-                usable += 1
-            except commands.CommandError:
-                continue
-        if await bot.is_owner(self.context.author):
-            usable = total
-        usable = f"Total Commands: {total} | Usable by you here: {usable}"
+        command = list(bot.commands)
+        usable = f"Total Commands: {len(command)} | Usable by you here: {len(await self.filter_commands(command))}"
         info = [
             f"[Support Server]({self.context.bot.support})",
             f"[Invite]({self.context.bot.invite})",

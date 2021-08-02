@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import datetime
+import asyncio
 import base64
 import re
 
@@ -89,14 +90,8 @@ class BotLogs(commands.Cog):
     async def logging_delete(self, message: discord.Message):
         if not message.guild:
             return
-        thing = self.bot.cache.logging.get(message.guild.id)
-        if not thing:
-            return
-        if thing["enabled"] is not True:
-            return
-        if not thing["message_delete"]:
-            return
-        if not thing["channel_id"]:
+        data = self.bot.cache.logging.get(message.guild.id)
+        if not data or data["enabled"] is not True or not data["message_delete"] or not data["channel_id"]:
             return
         if message.author == self.bot.user or message.author.bot:
             return
@@ -119,7 +114,7 @@ class BotLogs(commands.Cog):
                     text=f"Deleted by {deleted_by.user}",
                     icon_url=deleted_by.user.avatar_url,
                 )
-        channel_id = thing["channel_id"]
+        channel_id = data["channel_id"]
         channel = discord.utils.get(message.guild.channels, id=channel_id)
         await channel.send(embed=embed)
 
@@ -127,14 +122,8 @@ class BotLogs(commands.Cog):
     async def logging_edit(self, before: discord.Message, after: discord.Message):
         if before.guild is None and after.guild is None:
             return
-        thing = self.bot.cache.logging.get(before.guild.id)
-        if not thing:
-            return
-        if thing["enabled"] is not True:
-            return
-        if not thing["message_edit"]:
-            return
-        if not thing["channel_id"]:
+        data = self.bot.cache.logging.get(before.guild.id)
+        if not data or data["enabled"] is not True or not data["message_edit"] or not data["channel_id"]:
             return
         if before.author == self.bot.user or before.author.bot:
             return
@@ -149,24 +138,19 @@ class BotLogs(commands.Cog):
         embed.add_field(name="Message Before", value=f">>> {bef_con}", inline=False)
         embed.add_field(name="Message After", value=f">>> {aft_con}", inline=False)
         embed.set_footer(text="Edited at")
-        channel_id = thing["channel_id"]
+        channel_id = data["channel_id"]
         channel = discord.utils.get(before.guild.channels, id=channel_id)
         await channel.send(embed=embed)
 
     @commands.Cog.listener("on_member_ban")
     async def logging_ban(self, guild: discord.Guild, user: discord.User):
-        thing = self.bot.cache.logging.get(guild.id)
-        if not thing:
+        data = self.bot.cache.logging.get(guild.id)
+        if not data or data["enabled"] is not True or not data["member_ban"] or not data["channel_id"]:
             return
-        if thing["enabled"] is not True:
-            return
-        if not thing["message_edit"]:
-            return
-        if not thing["channel_id"]:
-            return
+        await asyncio.sleep(1)
         entry = (await guild.audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten())[0]
         if entry.target == user:
-            channel = self.bot.get_channel(thing["channel_id"])
+            channel = self.bot.get_channel(data["channel_id"])
             embed = discord.Embed(
                 title="Member Banned",
                 description=f"{user} ({user.id}) has been banned from {guild.name}.",
@@ -179,18 +163,12 @@ class BotLogs(commands.Cog):
 
     @commands.Cog.listener("on_member_remove")
     async def loggging_kick(self, member: discord.Member):
-        thing = self.bot.cache.logging.get(member.guild.id)
-        if not thing:
-            return
-        if thing["enabled"] is not True:
-            return
-        if not thing["message_edit"]:
-            return
-        if not thing["channel_id"]:
+        data = self.bot.cache.logging.get(member.guild.id)
+        if not data or data["enabled"] is not True or not data["member_kick"] or not data["channel_id"]:
             return
         entry = (await member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick).flatten())[0]
         if entry.target == member:
-            channel = self.bot.get_channel(thing["channel_id"])
+            channel = self.bot.get_channel(data["channel_id"])
             embed = discord.Embed(
                 title="Member Kicked",
                 description=f"{member} ({member.id}) has been kicked from {member.guild.name}.",
