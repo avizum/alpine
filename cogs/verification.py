@@ -22,13 +22,15 @@ import random
 import asyncio
 import datetime
 
+from utils import core
 from utils import AvimetryBot, AvimetryContext
 from discord.ext import commands
 
 
 class MemberJoin(commands.Cog):
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
+        self.load_time = datetime.datetime.now()
 
     async def do_verify(self, member):
         prefix = await self.bot.cache.get_guild_settings(member.guild.id)
@@ -40,11 +42,7 @@ class MemberJoin(commands.Cog):
         if not config:
             return
 
-        if config["low"] is True:
-            print("doing some other stuff")
-        elif config["medium"] is True:
-            print("Doing stuff")
-        elif config["high"] is True:
+        if config["high"] is True:
             if config["role_id"] is None:
                 return
             name = "New Members"
@@ -98,7 +96,7 @@ class MemberJoin(commands.Cog):
         if dchnl in member.guild.channels:
             await dchnl.delete(reason=f"{member.name} left during verification")
 
-    @commands.command(brief="Verify now!", hidden=True)
+    @core.command(brief="Verify now!", hidden=True)
     async def verify(self, ctx: AvimetryContext):
         member = ctx.author
         config = self.bot.cache.verification.get(member.guild.id)

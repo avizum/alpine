@@ -25,16 +25,16 @@ import mystbin
 import topgg
 import toml
 import re
-import contextlib
 import asyncpg
 import asyncdagpi
 import logging
 import obsidian
 
-from sys import platform
+from . import core
 from discord.ext import commands
-from .errors import Blacklisted, Maintenance
+from .exceptions import Blacklisted, Maintenance
 from .cache import AvimetryCache
+from .core import AvimetryCommand, AvimetryGroup
 
 
 os.environ["JISHAKU_HIDE"] = "True"
@@ -44,7 +44,7 @@ os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
 DEFAULT_PREFIXES = ["a."]
 BETA_PREFIXES = ["ab.", "ba."]
-OWNER_IDS = {750135653638865017, 547280209284562944}
+OWNER_IDS = {750135653638865017, 547280209284562944, 765098549099626507, 756757268736901120}
 PUBLIC_BOT_ID = 756257170521063444
 BETA_BOT_ID = 787046145884291072
 
@@ -52,9 +52,7 @@ BETA_BOT_ID = 787046145884291072
 logger = logging.getLogger("discord")
 logger.setLevel(logging.INFO)
 handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
-handler.setFormatter(
-    logging.Formatter("%(levelname)s:%(name)s: %(message)s")
-)
+handler.setFormatter(logging.Formatter("%(levelname)s:%(name)s: %(message)s"))
 logger.addHandler(handler)
 
 
@@ -71,7 +69,14 @@ async def get_prefix(bot: "AvimetryBot", message: discord.Message):
         prefixes.extend(DEFAULT_PREFIXES)
     else:
         prefixes.extend(get_prefix)
-    if await bot.is_owner(message.author) and message.content.startswith(("jsk", "dev")):
+    commands = []
+    jishaku = bot.get_command('jishaku')
+    commands.append(jishaku.name)
+    commands.extend(jishaku.aliases)
+    developer = bot.get_command('developer')
+    commands.append(developer.name)
+    commands.extend(developer.aliases)
+    if await bot.is_owner(message.author) and message.content.startswith(tuple(commands)):
         prefixes.append("")
     command_prefix = "|".join(map(re.escape, prefixes))
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
@@ -80,9 +85,7 @@ async def get_prefix(bot: "AvimetryBot", message: discord.Message):
     return prefixes
 
 
-allowed_mentions = discord.AllowedMentions(
-    everyone=False, users=False,
-    roles=False, replied_user=False)
+allowed_mentions = discord.AllowedMentions.none()
 
 intents = discord.Intents(
     bans=True,
@@ -101,7 +104,7 @@ class AvimetryBot(commands.Bot):
     def __init__(self, **kwargs):
         super().__init__(
             **kwargs,
-            command_prefix='a2.',
+            command_prefix=get_prefix,
             case_insensitive=True,
             allowed_mentions=allowed_mentions,
             activity=activity,
@@ -113,13 +116,15 @@ class AvimetryBot(commands.Bot):
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
         self.owner_ids = OWNER_IDS
         self.bot_id = PUBLIC_BOT_ID
+        self.core = core
         self.launch_time = datetime.datetime.utcnow()
         self.maintenance = False
         self.commands_ran = 0
         self.command_usage = {}
         self.command_cache = {}
         self.cache = AvimetryCache(self)
-        self.invite = str(discord.utils.oauth_url(PUBLIC_BOT_ID, permissions=discord.Permissions(8)))
+        self.invite = str(discord.utils.oauth_url(PUBLIC_BOT_ID, discord.Permissions(8)))
+        self.support = "https://discord.gg/KaqqPhfwS4"
         self.emoji_dictionary = {
             "red_tick": '<:redtick:777096756865269760>',
             "green_tick": '<:greentick:777096731438874634>',
@@ -132,7 +137,7 @@ class AvimetryBot(commands.Bot):
         }
         self.primary_extensions = [
             "cogs.developer",
-            # "cogs.events",
+            "cogs.events",
             "cogs.jishaku",
             "cogs.setup",
             "utils.context"
@@ -145,15 +150,15 @@ class AvimetryBot(commands.Bot):
             "cogs.help",
             # "cogs.highlight",
             "cogs.images",
-            # "cogs.joinsandleaves",
+            "cogs.joinsandleaves",
             "cogs.meta",
-            # "cogs.moderation",
-            # "cogs.servermanagement",
+            "cogs.moderation",
+            "cogs.servermanagement",
             "cogs.settings",
             # "cogs.music",
-            # "cogs.supportserver",
-            # "cogs.topgg",
-            # "cogs.verification",
+            "cogs.supportserver",
+            "cogs.topgg",
+            "cogs.verification",
         ]
         with open("config.toml") as token:
             self.settings = toml.loads(token.read())
@@ -219,6 +224,9 @@ class AvimetryBot(commands.Bot):
             bl_check = check
         return await super().wait_for(event, check=bl_check, timeout=timeout)
 
+    async def wait_for_message(self, *, check=None, timeout=None):
+        return await self.wait_for('message', check=check, timeout=timeout)
+
     async def get_context(self, message, *, cls=None):
         return await super().get_context(message, cls=cls or self.context)
 
@@ -248,20 +256,35 @@ class AvimetryBot(commands.Bot):
             except Exception:
                 pass
 
+    def command(self, name=None, cls=None, **kwargs):
+        if cls is None:
+            cls = AvimetryCommand
+
+        def decorator(func):
+            if isinstance(func, AvimetryCommand):
+                raise TypeError('Callback is already a command')
+            res = cls(func, name=name, **kwargs)
+            self.add_command(res)
+            return res
+        return decorator
+
+    def group(self, name=None, **kwargs):
+        return self.command(name=name, cls=AvimetryGroup, **kwargs)
+
     def run(self):
         tokens = self.settings["bot_tokens"]
-        if platform not in ["linux", "linux2"]:
-            token = tokens["AvimetryII"]
-        else:
-            token = tokens["Avimetry"]
+        token = tokens["Avimetry"]
         super().run(token, reconnect=True)
 
     async def close(self):
-        with contextlib.suppress(Exception):
-            await self.sr.close()
-            await self.myst.close()
-            await self.session.close()
-            await self.dagpi.close()
-            await self.topgg.close()
-            await super().close()
-        print("\nSuccessfully closed bot", end="\n\n")
+        await self.sr.close()
+        await self.myst.close()
+        await self.session.close()
+        await self.dagpi.close()
+        await self.topgg.close()
+        await super().close()
+        timenow = datetime.datetime.now().strftime("%I:%M %p")
+        print(
+            f"\n{self.user.name} logged out:\n"
+            f"Logged out time: {datetime.date.today()} at {timenow}",
+            end="\n\n")

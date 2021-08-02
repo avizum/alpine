@@ -21,6 +21,8 @@ import discord
 
 from discord.ext import commands
 from utils import AvimetryContext
+from twemoji_parser import emoji_to_url as urlify_emoji
+from difflib import get_close_matches
 
 
 time_regex = re.compile(r"(?:(\d{1,5})\s?(h|s|m|d|w|y))+?")
@@ -77,7 +79,7 @@ class ModReason(commands.Converter):
         return reason
 
 
-class TargetMemberAction(commands.Converter):
+class TargetMember(commands.Converter):
     async def convert(self, ctx: AvimetryContext, argument: discord.Member):
         try:
             member = await commands.MemberConverter().convert(ctx, argument)
@@ -149,21 +151,19 @@ class Prefix(commands.Converter):
         channel_mention = re.findall(r"<#(\d+)>", argument)
         guild_cache = await ctx.cache.get_guild_settings(ctx.guild.id)
         if not guild_cache:
-            g = await ctx.cache.cache_new_guild(ctx.guild.id)
-            guild_prefix = g["prefixes"]
-        else:
-            guild_prefix = guild_cache["prefixes"]
+            guild_cache = await ctx.cache.cache_new_guild(ctx.guild.id)
+        guild_prefix = guild_cache['prefixes']
         if user_mention:
             raise commands.BadArgument("You can not add a mention as a prefix.")
-        if role_mention:
+        elif role_mention:
             raise commands.BadArgument("You can not add a role mention as a prefix.")
-        if channel_mention:
+        elif channel_mention:
             raise commands.BadArgument("You can not add a channel mention as a prefix.")
-        if len(argument) > PREFIX_CHAR_LIMIT:
+        elif len(argument) > PREFIX_CHAR_LIMIT:
             raise commands.BadArgument(f"That prefix is too long ({len(argument)}/{PREFIX_CHAR_LIMIT})")
-        if len(guild_prefix) > MAX_PREFIX_AMOUNT:
+        elif len(guild_prefix) > MAX_PREFIX_AMOUNT:
             raise commands.BadArgument(f"You already the max amount of prefixes {MAX_PREFIX_AMOUNT} prefixes")
-        if argument in guild_prefix:
+        elif argument in guild_prefix:
             raise commands.BadArgument("That is already a prefix for this server.")
 
         return argument.lower()
@@ -174,6 +174,9 @@ class CogConverter(commands.Converter):
         exts = []
         if argument in ["~", "*", "a", "all"]:
             exts.extend(ctx.bot.extensions)
+        elif argument not in ctx.bot.extensions:
+            argument = get_close_matches(argument, ctx.bot.extensions)
+            exts.extend(argument)
         else:
             exts.append(argument)
         return exts
@@ -191,16 +194,20 @@ class GetAvatar(commands.Converter):
         try:
             member_converter = commands.MemberConverter()
             member = await member_converter.convert(ctx, argument)
-            image = member.avatar.replace(format="png", static_format="png", size=1024)
+            image = member.avatar_url_as(format="png", static_format="png", size=1024)
             return str(image)
         except Exception:
             try:
+                url = await urlify_emoji(argument)
+                if re.match(regex_url, url):
+                    image = str(url)
+                    return image
                 if re.match(regex_url, argument):
                     image = argument
                     return image
                 if re.match(emoji_regex, argument):
                     emoji_converter = commands.EmojiConverter()
-                    emoji = emoji_converter.convert(ctx, argument)
+                    emoji = await emoji_converter.convert(ctx, argument)
                     image = emoji.url_as(format="png", static_format="png", size=1024)
                     return image
             except Exception:

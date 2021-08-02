@@ -16,16 +16,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import aiohttp
 import discord
 import datetime
+
 
 from discord.ext import commands
 from utils import AvimetryContext, AvimetryBot
 
 
 class Setup(commands.Cog):
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
+        self.load_time = datetime.datetime.now()
         self.webhooks = self.bot.settings["webhooks"]
         self.guild_webhook = discord.Webhook.from_url(
             self.webhooks["join_log"],
@@ -35,6 +38,42 @@ class Setup(commands.Cog):
             self.webhooks["command_log"],
             session=self.bot.session
         )
+        self.command_webhook2 = discord.Webhook.from_url(
+            self.webhooks["command_log2"],
+            adapter=discord.AsyncWebhookAdapter(self.bot.session)
+        )
+        self.request_wh = discord.Webhook.from_url(
+            self.webhooks["request_log"],
+            adapter=discord.AsyncWebhookAdapter(self.bot.session)
+        )
+
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        if message.author.bot:
+            return
+        if message.guild is None:
+            cache = self.bot.cache.users.get(message.author.id)
+            if cache:
+                dmed = cache.get('dmed')
+                if not dmed:
+                    await message.channel.send('Hey, these DMs are logged and sent to the support server.')
+                    cache['dmed'] = True
+            embed = discord.Embed(title=f"DM from {message.author}", description=message.content)
+            embed.set_footer(text=message.author.id)
+            await self.request_wh.send(embed=embed)
+        try:
+            if message.channel.id == 817093957322407956:
+                resolved = message.reference.resolved.embeds[0]
+                if resolved.footer.text.isdigit():
+                    user = self.bot.get_user(int(resolved.footer.text))
+                    if user:
+                        send_embed = discord.Embed(
+                            title=f"Message from {message.author}",
+                            description=f"> {resolved.description}\n{message.content}"
+                        )
+                        await user.send(embed=send_embed)
+        except AttributeError:
+            return
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
@@ -53,13 +92,15 @@ class Setup(commands.Cog):
         await self.guild_webhook.send("\n".join(message), username="Joined Guild")
         if not guild.chunked:
             await guild.chunk()
+        embed = discord.Embed(
+            title='Thank you for adding me to your server!',
+            description='To get started with Avimetry, use `a.help` for help, and `a.about` to show the about page.'
+        )
         channel = discord.utils.get(guild.text_channels, name='general')
         if not channel:
-            channel = guild.text_channels[0]
-        try:
-            await channel.send('Thank you for adding me to your server! To get started use `a.help`')
-        except discord.Forbidden:
-            return
+            channels = [channel for channel in guild.channels if channel.permissions_for(guild.me).send_messages]
+            channel = channels[0]
+        await channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
@@ -87,12 +128,18 @@ class Setup(commands.Cog):
                 f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
                 f"Channel: {ctx.channel} ({ctx.channel.id})\n"
             ),
-            color=ctx.author.color
+            color=await ctx.determine_color()
         )
         embed.set_author(name=ctx.author, icon_url=str(ctx.author.avatar.replace(format="png", size=512)))
         embed.timestamp = datetime.datetime.utcnow()
-        await self.command_webhook.send(embed=embed)
-        if ctx.guild.chunked:
+        try:
+            if await self.bot.is_owner(ctx.author):
+                await self.command_webhook.send(embed=embed)
+            else:
+                await self.command_webhook2.send(embed=embed)
+        except aiohttp.ClientOSError:
+            return
+        if not ctx.guild.chunked:
             await ctx.guild.chunk()
         self.bot.commands_ran += 1
 

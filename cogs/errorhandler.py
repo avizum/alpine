@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 
+import datetime
 import discord
 import humanize
 import sys
@@ -29,9 +30,10 @@ from difflib import get_close_matches
 
 
 class ErrorHandler(commands.Cog):
-    def __init__(self, bot):
-        self.bot: AvimetryBot = bot
-        self.cd_mapping = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
+    def __init__(self, bot: AvimetryBot):
+        self.bot = bot
+        self.load_time = datetime.datetime.now()
+        self.blacklist_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
         self.error_webhook = discord.Webhook.from_url(
             self.bot.settings["webhooks"]["error_log"],
             session=self.bot.session
@@ -48,7 +50,6 @@ class ErrorHandler(commands.Cog):
         error = getattr(error, "original", error)
         if hasattr(ctx.command, 'on_error'):
             return
-
         reinvoke = (
             commands.CommandOnCooldown,
             commands.NoPrivateMessage,
@@ -56,10 +57,14 @@ class ErrorHandler(commands.Cog):
             commands.MissingAnyRole,
             commands.MissingPermissions,
             commands.MissingRole,
-            Maintenance
+            Maintenance,
+            Blacklisted
         )
         if await self.bot.is_owner(ctx.author) and isinstance(error, reinvoke):
-            return await ctx.reinvoke()
+            try:
+                return await ctx.reinvoke()
+            except Exception:
+                pass
         elif await self.bot.is_owner(ctx.author) and ctx.prefix == '' and isinstance(error, commands.CommandNotFound):
             return
 
@@ -72,15 +77,15 @@ class ErrorHandler(commands.Cog):
                     "Please join the [support](https://discord.gg/KaqqPhfwS4) server to appeal."
                 ),
             )
-            bucket = self.cd_mapping.get_bucket(ctx.message)
+            bucket = self.blacklist_cooldown.get_bucket(ctx.message)
             retry_after = bucket.update_rate_limit()
             if not retry_after:
-                return await ctx.send(embed=blacklisted, delete_after=60)
+                return await ctx.send(embed=blacklisted, delete_after=30)
             else:
                 return
 
         if isinstance(error, Maintenance):
-            return await ctx.send('Maintenance mode enabled. Please try again later')
+            return await ctx.send(f'{self.bot.user.name} has maintenance mode enabled. Try again later.')
 
         elif isinstance(error, commands.CommandNotFound):
             if ctx.author.id in ctx.cache.blacklist:
@@ -161,7 +166,7 @@ class ErrorHandler(commands.Cog):
         elif isinstance(error, commands.NotOwner):
             no = discord.Embed(
                 title="Missing Permissions",
-                description="You do not own this bot. Stay away"
+                description="You do not own this bot."
             )
             return await ctx.send(embed=no, delete_after=5)
 
@@ -171,7 +176,7 @@ class ErrorHandler(commands.Cog):
                 title="Missing Arguments",
                 description=(
                     f"`{error.param.name}` is a required parameter to run this command.\n"
-                    f"Do you need help for `{ctx.invoked_with}`?"
+                    f"Do you need help for `{ctx.command.qualified_name}`?"
                 )
             )
             conf = await ctx.confirm(embed=a, delete_after=True)
@@ -215,7 +220,7 @@ class ErrorHandler(commands.Cog):
             traceback = (
                 "".join(DefaultFormatter().format_exception(type(error), error, error.__traceback__))
             )
-            if len(traceback) > 2000:
+            if len(traceback) > 4096:
                 traceback = f"Error was too long: {await self.bot.myst.post(traceback, 'bash')}"
 
             webhook_error_embed = discord.Embed(

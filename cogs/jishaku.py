@@ -24,7 +24,7 @@ import math
 
 from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 from jishaku import Feature
-from jishaku.flags import JISHAKU_HIDE
+from jishaku.flags import Flags
 from utils import AvimetryBot, AvimetryContext, CogConverter, timestamp
 
 
@@ -46,6 +46,11 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     """
     Advanced debug cog.
     """
+    @Feature.Command(parent="jsk", name="shutdown", aliases=["fuckoff", "logout", "die", "reboot", "rb"])
+    async def jsk_shutdown(self, ctx: AvimetryContext):
+        command = self.bot.get_command('dev reboot')
+        await command(ctx)
+
     @Feature.Command(parent="jsk", name="load", aliases=["l"])
     async def jsk_load(self, ctx: AvimetryContext, module: CogConverter):
         command = self.bot.get_command("dev load")
@@ -66,15 +71,14 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         command = self.bot.get_command("dev sync")
         await command(ctx)
 
-    @Feature.Command(name="jishaku", aliases=["jsk"], hidden=JISHAKU_HIDE,
-                     invoke_without_command=True, ignore_extra=False,
-                     extras=dict(user_perms="owner", bot_perms="send_messages"))
+    @Feature.Command(name="jishaku", aliases=["jsk"], hidden=Flags.HIDE,
+                     invoke_without_command=True, ignore_extra=False)
     async def jsk(self, ctx: AvimetryContext):
         summary = [
             f"Jishaku `v{jishaku.__version__}`, discord.py `v{discord.__version__}`, "
             f"Python `{sys.version}` on `{sys.platform}`, ".replace("\n", ""),
             f"Jishaku was loaded {timestamp(self.load_time, 'R')} "
-            f"and the cog was loaded {timestamp(self.start_time, 'R')}.",
+            f"and module was loaded {timestamp(self.start_time, 'R')}.",
             ""
         ]
         try:
@@ -135,9 +139,9 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         summary.append(message_cache)
 
         if discord.version_info >= (1, 5, 0):
-            presence_intent = f"presences `{'enabled' if self.bot.intents.presences else 'disabled'}`"
-            members_intent = f"members `{'enabled' if self.bot.intents.members else 'disabled'}`"
-            summary.append(f"Intents: {presence_intent} and {members_intent}.")
+            presence_intent = f"Presences intent `{'enabled' if self.bot.intents.presences else 'disabled'}`"
+            members_intent = f"Members intent `{'enabled' if self.bot.intents.members else 'disabled'}`"
+            summary.append(f" {presence_intent} and {members_intent}.")
         else:
             guild_subs = self.bot._connection.guild_subscriptions
             guild_subscriptions = f"`guild subscriptions` are `{'enabled' if guild_subs else 'disabled'}`"
