@@ -296,18 +296,18 @@ class BotInfo(commands.Cog, name="Bot Info"):
             color=discord.Color.red()
         )
         conf = await ctx.confirm(embed=embed)
-        if conf:
+        if conf.result:
             user_settings = self.bot.cache.users.get(ctx.author.id)
             if not user_settings:
-                return await ctx.send("You are not in my database.")
+                return await conf.message.edit(content="You are not in my database.", embed=None)
             query = (
                 "DELETE FROM user_settings "
                 "WHERE user_id=$1"
             )
             await self.bot.pool.execute(query, ctx.author.id)
             self.bot.cache.users.pop(ctx.author.id)
-            return await ctx.send("Okay, I deleted all your data.")
-        return await ctx.send("Aborted.")
+            return await conf.message.edit(content="Okay, all your data has been deleted.", embed=None)
+        return await conf.message.edit(content="Aborted.", embed=None)
 
     @commands.command()
     async def error(self, ctx: AvimetryContext, error_id: int = None):

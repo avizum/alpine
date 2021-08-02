@@ -41,7 +41,7 @@ class Image(commands.Cog, name="Images"):
                 img = ctx.message.attachments[0]
                 image = img.url
             else:
-                image = str(ctx.author.avatar.url.replace(format="png", static_format="png", size=1024))
+                image = str(ctx.author.avatar.replace(format="png", static_format="png", size=1024))
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(feature, image)
         return image
@@ -306,11 +306,11 @@ class Image(commands.Cog, name="Images"):
     async def dag_youtube(self, ctx, user: discord.Member = None, *, text: str = None):
         user_name = None
         if text is None:
-            url = str(ctx.author.avatar.url.replace(format="png", static_format="png", size=1024))
+            url = str(ctx.author.avatar.replace(format="png", static_format="png", size=1024))
             text = "I am an idiot for not putting the text in"
             user_name = ctx.author.name
         else:
-            url = str(user.avatar.url.replace(format="png", static_format="png", size=1024))
+            url = str(user.avatar.replace(format="png", static_format="png", size=1024))
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(
                 ImageFeatures.youtube(), text=text, url=url,
@@ -322,11 +322,11 @@ class Image(commands.Cog, name="Images"):
     async def dag_discord(self, ctx, user: discord.User = None, *, text: str = None):
         user_name = None
         if text is None:
-            url = str(ctx.author.avatar.url.replace(format="png", static_format="png", size=1024))
+            url = str(ctx.author.avatar.replace(format="png", static_format="png", size=1024))
             text = "I am an idiot for not putting the text in"
             user_name = ctx.author.name
         else:
-            url = str(user.avatar.url.replace(format="png", static_format="png", size=1024))
+            url = str(user.avatar.replace(format="png", static_format="png", size=1024))
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(
                 ImageFeatures.discord(), text=text, url=url,

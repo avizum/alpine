@@ -89,7 +89,7 @@ class Setup(commands.Cog):
             ),
             color=ctx.author.color
         )
-        embed.set_author(name=ctx.author, icon_url=str(ctx.author.avatar.url.replace(format="png", size=512)))
+        embed.set_author(name=ctx.author, icon_url=str(ctx.author.avatar.replace(format="png", size=512)))
         embed.timestamp = datetime.datetime.utcnow()
         await self.command_webhook.send(embed=embed)
         if ctx.guild.chunked:

@@ -73,11 +73,12 @@ class AvimetryHelp(commands.HelpCommand):
     def get_cooldown(self, command):
         try:
             rate = command._buckets._cooldown.rate
+            cd_type = command._buckets._cooldown.type
             per = humanize.precisedelta(command._buckets._cooldown.per)
             time = "time"
             if rate > 1:
                 time = "times"
-            return f"{per} every {rate} {time}"
+            return f"{per} every {rate} {time} per {cd_type}"
         except Exception:
             return None
 

@@ -97,7 +97,7 @@ intents = discord.Intents(
 activity = discord.Game("Loading...")
 
 
-class AvimetryBot(commands.AutoShardedBot):
+class AvimetryBot(commands.Bot):
     def __init__(self, **kwargs):
         super().__init__(
             **kwargs,
@@ -132,7 +132,7 @@ class AvimetryBot(commands.AutoShardedBot):
         }
         self.primary_extensions = [
             "cogs.developer",
-            "cogs.events",
+            # "cogs.events",
             "cogs.jishaku",
             "cogs.setup",
             "utils.context"
@@ -145,20 +145,18 @@ class AvimetryBot(commands.AutoShardedBot):
             "cogs.help",
             # "cogs.highlight",
             "cogs.images",
-            "cogs.joinsandleaves",
+            # "cogs.joinsandleaves",
             "cogs.meta",
-            "cogs.moderation",
-            "cogs.servermanagement",
+            # "cogs.moderation",
+            # "cogs.servermanagement",
             "cogs.settings",
             # "cogs.music",
-            "cogs.supportserver",
-            "cogs.topgg",
-            "cogs.verification",
+            # "cogs.supportserver",
+            # "cogs.topgg",
+            # "cogs.verification",
         ]
         with open("config.toml") as token:
             self.settings = toml.loads(token.read())
-        with open("pg_config.toml") as pg:
-            self.pg = toml.loads(pg.read())
 
         api = self.settings["api_tokens"]
         self.topgg = topgg.DBLClient(self, api["TopGG"], autopost_interval=None)
@@ -166,7 +164,7 @@ class AvimetryBot(commands.AutoShardedBot):
         self.dagpi = asyncdagpi.Client(api["DagpiAPI"])
         self.myst = mystbin.Client()
         self.session = aiohttp.ClientSession()
-        self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.pg["postgresql"]))
+        self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
         self.loop.create_task(self.load_extensions())
         # self.loop.create_task(self.initiate_obsidian())

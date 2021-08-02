@@ -68,6 +68,12 @@ class ConfirmView(discord.ui.View):
         await self.stop()
 
 
+class ConfirmResult:
+    def __init__(self, message: discord.Message, result: bool):
+        self.message = message
+        self.result = result
+
+
 class AvimetryContext(commands.Context):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -171,7 +177,7 @@ class AvimetryContext(commands.Context):
 
     async def confirm(
         self, message=None, embed: discord.Embed = None, confirm_message=None, *,
-        timeout=60, delete_after=True, raw=False
+        timeout=60, delete_after=False, raw=False
     ):
 
         view = ConfirmView(timeout=timeout, ctx=self)
@@ -188,7 +194,7 @@ class AvimetryContext(commands.Context):
         await view.wait()
         if delete_after:
             await send.delete()
-        return view.value
+        return ConfirmResult(send, view.value)
 
     async def prompt(
         self, message=None, embed: discord.Embed = None, *,

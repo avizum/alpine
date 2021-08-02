@@ -176,9 +176,6 @@ class CogConverter(commands.Converter):
             exts.extend(ctx.bot.extensions)
         else:
             exts.append(argument)
-        jsk = "cogs.jishaku"
-        if jsk in exts:
-            exts.remove("cogs.jishaku")
         return exts
 
 
@@ -194,7 +191,7 @@ class GetAvatar(commands.Converter):
         try:
             member_converter = commands.MemberConverter()
             member = await member_converter.convert(ctx, argument)
-            image = member.avatar.url.replace(format="png", static_format="png", size=1024)
+            image = member.avatar.replace(format="png", static_format="png", size=1024)
             return str(image)
         except Exception:
             try:

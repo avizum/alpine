@@ -144,10 +144,11 @@ class Owner(commands.Cog):
             description="Are you sure you want to reboot?"
         )
         conf = await ctx.confirm(embed=sm)
-        if conf:
+        if conf.result:
+            await conf.message.edit("Rebooting...", embed=None, delete_after=5)
             await self.bot.close()
-        if not conf:
-            await ctx.send("Reboot Aborted", delete_after=5)
+        if not conf.result:
+            await conf.message.edit("Reboot Aborted", embed=None, delete_after=5)
 
     @dev.command(
         brief="Evaluate python code.",
@@ -161,10 +162,10 @@ class Owner(commands.Cog):
         extras=dict(user_perms="owner", bot_perms="send_messages"))
     async def leave(self, ctx: AvimetryContext, guild: discord.Guild):
         conf = await ctx.confirm(f"Are you sure you want me to leave {guild.name} ({guild.id})?")
-        if conf:
+        if conf.result:
             await ctx.guild.leave()
             return await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
-        await ctx.send("Okay, Aborted.")
+        await conf.message.edit(content="Okay, I won't leave that guild.")
 
     @dev.group(
         invoke_without_command=True,

@@ -16,16 +16,30 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import humanize
 import jishaku
 import discord
 import sys
 import psutil
+import math
 
 from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 from jishaku import Feature
 from jishaku.flags import JISHAKU_HIDE
 from utils import AvimetryBot, AvimetryContext, CogConverter, timestamp
+
+
+def naturalsize(size_in_bytes: int):
+    """
+    Converts a number of bytes to an appropriately-scaled unit
+    E.g.:
+        1024 -> 1.00 KiB
+        12345678 -> 11.77 MiB
+    """
+    units = ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')
+
+    power = int(math.log(size_in_bytes, 1024))
+
+    return f"{size_in_bytes / (1024 ** power):.2f} {units[power]}"
 
 
 class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
@@ -52,14 +66,15 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         command = self.bot.get_command("dev sync")
         await command(ctx)
 
-    @Feature.Command(name="jishaku", aliases=["jsk", "jks", "bishaku", "bsk", "bks"], hidden=JISHAKU_HIDE,
-                     invoke_without_command=True, ignore_extra=False, extras=dict(user_perms="owner", bot_perms="send_messages"))
+    @Feature.Command(name="jishaku", aliases=["jsk"], hidden=JISHAKU_HIDE,
+                     invoke_without_command=True, ignore_extra=False,
+                     extras=dict(user_perms="owner", bot_perms="send_messages"))
     async def jsk(self, ctx: AvimetryContext):
         summary = [
             f"Jishaku `v{jishaku.__version__}`, discord.py `v{discord.__version__}`, "
             f"Python `{sys.version}` on `{sys.platform}`, ".replace("\n", ""),
-            f"Jishaku was loaded {timestamp(self.load_time, 'R')} and "
-            f"Jishaku cog was loaded {timestamp(self.start_time, 'R')}.",
+            f"Jishaku was loaded {timestamp(self.load_time, 'R')} "
+            f"and the cog was loaded {timestamp(self.start_time, 'R')}.",
             ""
         ]
         try:
@@ -68,9 +83,9 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 try:
                     mem = proc.memory_full_info()
                     summary.append(
-                        f"I am using {humanize.naturalsize(mem.rss)} physical memory and "
-                        f"{humanize.naturalsize(mem.vms)} virtual memory, "
-                        f"{humanize.naturalsize(mem.uss)} of which is unique to this process."
+                        f"This process is using {naturalsize(mem.rss)} physical memory and "
+                        f"{naturalsize(mem.vms)} virtual memory, "
+                        f"{naturalsize(mem.uss)} of which is unique to this process."
                     )
                 except psutil.AccessDenied:
                     pass
@@ -78,9 +93,9 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 try:
                     name = proc.name()
                     pid = proc.pid
-                    thread_count = proc.num_threads()
+                    tc = proc.num_threads()
                     summary.append(
-                        f"I am running on Process ID `{pid}` (`{name}`) with {thread_count} threads.")
+                        f"This process is running on Process ID `{pid}` (`{name}`) with {tc} threads.")
                 except psutil.AccessDenied:
                     pass
                 summary.append("")
@@ -89,19 +104,29 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             summary.append("psutil is installed but this process does not have access to display this information")
             summary.append("")
 
-        guilds = len(self.bot.guilds)
-        members = len([m for m in self.bot.users if not m.bot])
-        bots = len([m for m in self.bot.users if m.bot])
-        total = len(self.bot.users)
+        guilds = f"{len(self.bot.guilds)} guilds"
+        humans = f"{len([m for m in self.bot.users if not m.bot])} humans"
+        bots = f"{len([m for m in self.bot.users if m.bot])} bots"
+        users = f"{len(self.bot.users)} users"
 
-        cache_summary = f"I can see {guilds} guilds, {members} users, and {bots} bots, totaling to {total} users."
+        cache_summary = f"can see {guilds}, {humans}, and {bots}, totaling to {users}."
 
         if isinstance(self.bot, discord.AutoShardedClient):
-            summary.append(f"I am automatically sharded and {cache_summary}")
+            if len(self.bot.shards) > 20:
+                summary.append(
+                    f"This bot is automatically sharded ({len(self.bot.shards)} shards of {self.bot.shard_count})"
+                    f" and can see {cache_summary}"
+                )
+            else:
+                shard_ids = ', '.join(str(i) for i in self.bot.shards.keys())
+                summary.append(
+                    f"This bot is automatically sharded (Shards {shard_ids} of {self.bot.shard_count})"
+                    f" and can see {cache_summary}"
+                )
         elif self.bot.shard_count:
-            summary.append(f"I am manually sharded and {cache_summary}")
+            summary.append(f"This bot is manually sharded and {cache_summary}")
         else:
-            summary.append(f"I am not sharded and {cache_summary}")
+            summary.append(f"This bot is not sharded and {cache_summary}")
 
         if self.bot._connection.max_messages:
             message_cache = f"Message cache is capped at {self.bot._connection.max_messages}."
@@ -125,5 +150,5 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.send(embed=jishaku_embed)
 
 
-def setup(avi: AvimetryBot):
-    avi.add_cog(Jishaku(bot=avi))
+def setup(bot: AvimetryBot):
+    bot.add_cog(Jishaku(bot=bot))

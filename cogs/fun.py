@@ -36,10 +36,17 @@ class AkinatorGameView(discord.ui.View):
         self.akiclient = akiclient
         self.member = member
         self.embed = embed
+        self.ended = False
+    
+    async def on_error(self, error, item, interaction):
+        await self.ctx.send(error)
+        print(item)
+        print(interaction)
 
     async def stop(self, *args, **kwargs):
         await self.akiclient.close()
         await self.message.edit(*args, **kwargs, view=None)
+        super().stop()
 
     async def on_timeout(self):
         self.embed.description = 'Game ended due to timeout.'
@@ -52,12 +59,8 @@ class AkinatorGameView(discord.ui.View):
             await interaction.response.send_message(f'Only {self.member.mention} can play this.', ephemeral=True)
 
     async def answer(self, interaction, answer):
-        if answer == 'stop':
-            await self.akiclient.win()
-            self.embed.description = 'Game stopped.'
-            await interaction.response.edit_message(embed=self.embed, view=None)
-            await self.stop()
-        elif answer == 'back':
+
+        if answer == 'back':
             try:
                 next = await self.akiclient.back()
                 self.embed.description = f'{self.akiclient.step+1}. {next}'
@@ -74,16 +77,18 @@ class AkinatorGameView(discord.ui.View):
             embed = discord.Embed(
                 title='Akinator',
                 description=(
-                    f'I think you are thinking of {client.first_guess["name"]} ({client.first_guess["description"]}).\n'
+                    f'Are you thinking of {client.first_guess["name"]} ({client.first_guess["description"]})?\n'
                 )
             )
             embed.set_image(url=client.first_guess["absolute_picture_path"])
-            await interaction.response.edit_message(embed=embed, view=None)
-            await self.stop()
+            for i in self.children:
+                if i.label not in ['Yes', 'No']:
+                    self.remove_item(i)
+            await self.message.edit(embed=embed, view=self)
 
     @discord.ui.button(label='Yes', style=discord.ButtonStyle.success, row=1)
     async def game_yes(self, button: discord.Button, interaction: discord.Interaction):
-        await self.answer(interaction, 'yes')
+        await self.answer(interaction, 'no')
 
     @discord.ui.button(label='No', style=discord.ButtonStyle.danger, row=1)
     async def game_no(self, button: discord.Button, interaction: discord.Interaction):
@@ -107,7 +112,15 @@ class AkinatorGameView(discord.ui.View):
 
     @discord.ui.button(label='Stop', style=discord.ButtonStyle.danger, row=3)
     async def game_stop(self, button: discord.Button, interaction: discord.Interaction):
-        await self.answer(interaction, 'stop')
+        await self.akiclient.win()
+        self.embed.description = 'Game stopped.'
+        await interaction.response.edit_message(embed=self.embed, view=None)
+        await self.stop()
+
+
+class AkinatorFlags(commands.FlagConverter):
+    mode: str = 'en'
+    child: bool = True
 
 
 class RockPaperScissorGame(discord.ui.View):
@@ -119,6 +132,7 @@ class RockPaperScissorGame(discord.ui.View):
 
     async def stop(self):
         for i in self.children:
+            print(i.custom_id)
             i.disabled = True
         await self.message.edit(view=self)
 
@@ -156,7 +170,7 @@ class RockPaperScissorGame(discord.ui.View):
             i.disabled = True
         self.embed.description = thing
         await interaction.response.edit_message(embed=self.embed, view=self)
-        self.stop()
+        await self.stop()
 
     @discord.ui.button(label='Rock', emoji='\U0001faa8', style=discord.ButtonStyle.secondary, row=1)
     async def game_rock(self, button: discord.Button, interaction: discord.Interaction):
@@ -188,11 +202,6 @@ class CookieView(discord.ui.View):
         self.winner = interaction.user
         button.disabled = True
         self.stop()
-
-
-class Things(commands.FlagConverter):
-    mode: str = 'en'
-    child: bool = True
 
 
 class Fun(commands.Cog):
@@ -305,7 +314,7 @@ class Fun(commands.Cog):
                 avatar=await self.bot.user.avatar.read())
         await avimetry_webhook.send(
             text, username=member.display_name,
-            avatar_url=member.avatar.url.replace(format="png"),
+            avatar_url=member.avatar.replace(format="png"),
             allowed_mentions=discord.AllowedMentions.none())
 
     @commands.command(
@@ -435,7 +444,10 @@ class Fun(commands.Cog):
         view.message = await ctx.send(embed=embed, view=view)
 
     @commands.command(aliases=['aki'])
-    async def akinator(self, ctx: AvimetryContext, *, flags: Things):
+    @commands.max_concurrency(2, commands.BucketType.channel)
+    @commands.cooldown(60, 5, commands.BucketType.guild)
+    async def akinator(self, ctx: AvimetryContext, *, flags: AkinatorFlags):
+        fm = await ctx.send("Starting game, please wait...")
         akiclient = Akinator()
         async with ctx.channel.typing():
             game = await akiclient.start_game(language=flags.mode, child_mode=flags.child)
@@ -443,6 +455,7 @@ class Fun(commands.Cog):
                 return await ctx.send('Child mode can only be disabled in NSFW channels.')
             embed = discord.Embed(title='Akinator', description=f'{akiclient.step+1}. {game}')
         view = AkinatorGameView(ctx=ctx, akiclient=akiclient, member=ctx.author, embed=embed)
+        await fm.delete()
         view.message = await ctx.send(embed=embed, view=view)
 
     @commands.command(

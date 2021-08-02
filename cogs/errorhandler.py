@@ -85,6 +85,9 @@ class ErrorHandler(commands.Cog):
         elif isinstance(error, commands.CommandNotFound):
             if ctx.author.id in ctx.cache.blacklist:
                 return
+            cog = self.bot.get_cog(ctx.invoked_with)
+            if cog:
+                return await ctx.send_help(cog)
             not_found_embed = discord.Embed(title="Invalid Command")
             not_found = ctx.invoked_with
             all_commands = []
@@ -92,11 +95,11 @@ class ErrorHandler(commands.Cog):
                 try:
                     await cmd.can_run(ctx)
                     all_commands.append(cmd.name)
+                    if cmd.aliases:
+                        all_commands.extend(cmd.aliases)
                 except commands.CommandError:
                     continue
-            match = "\n".join(
-                get_close_matches(not_found, all_commands)
-            )
+            match = "\n".join(get_close_matches(not_found, all_commands))
             if match:
                 not_found_embed.description = f'"{not_found}" was not found. Did you mean...\n`{match}`'
                 not_found_embed.set_footer(
@@ -160,7 +163,7 @@ class ErrorHandler(commands.Cog):
                 title="Missing Permissions",
                 description="You do not own this bot. Stay away"
             )
-            return await ctx.send(embed=no)
+            return await ctx.send(embed=no, delete_after=5)
 
         elif isinstance(error, commands.MissingRequiredArgument):
             self.reset(ctx)
@@ -171,8 +174,8 @@ class ErrorHandler(commands.Cog):
                     f"Do you need help for `{ctx.invoked_with}`?"
                 )
             )
-            conf = await ctx.confirm(embed=a)
-            if conf:
+            conf = await ctx.confirm(embed=a, delete_after=True)
+            if conf.value:
                 return await ctx.send_help(ctx.command)
             return
 
