@@ -31,9 +31,9 @@ args = typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, No
 
 
 class Image(commands.Cog, name="Images"):
-    '''
+    """
     Commands for image manipuation and more.
-    '''
+    """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now()

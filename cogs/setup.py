@@ -144,7 +144,7 @@ class Setup(commands.Cog):
             color=await ctx.determine_color()
         )
         embed.set_author(name=ctx.author, icon_url=str(ctx.author.avatar_url_as(format="png", size=512)))
-        embed.timestamp = datetime.datetime.utcnow()
+        embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
         try:
             if await self.bot.is_owner(ctx.author):
                 await self.command_webhook.send(embed=embed)

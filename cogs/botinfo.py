@@ -58,6 +58,9 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @core.command()
     async def about(self, ctx: AvimetryContext):
+        """
+        Show some information about Avimetry.
+        """
         embed = discord.Embed(title="Info about Avimetry")
         embed.add_field(
             name="Latest Updates",
@@ -96,6 +99,11 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @core.command()
     async def credits(self, ctx: AvimetryContext):
+        """
+        List of people that have contributed to Avimetry.
+
+        If you want to contribute, Check out the GitHub repo.
+        """
         credit_list = [
             (self.bot.get_user(750135653638865017), 'Developer'),
             (self.bot.get_user(547280209284562944), 'Tester'),
@@ -111,9 +119,12 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
         await ctx.send(embed=embed)
 
-    @core.command(brief="Get the bot's uptime")
+    @core.command()
     async def uptime(self, ctx: AvimetryContext):
-        delta_uptime = datetime.datetime.utcnow() - self.bot.launch_time
+        """
+        Check how long the bot has been up for.
+        """
+        delta_uptime = datetime.datetime.now(datetime.timezone.utc) - self.bot.launch_time
         ue = discord.Embed(
             title="Current Uptime",
             description=humanize.precisedelta(delta_uptime, format="%.2g"),
@@ -122,6 +133,13 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @core.command(brief="Get the bot's latencies")
     async def ping(self, ctx: AvimetryContext):
+        """
+        Check the bot's latencies.
+
+        Websocket: latency between the bot and the server.
+        Typing: how long it takes for bot to send typing to the channel.
+        Database: how long it takes for the bot to query the database.
+        """
         async with Timer() as api:
             await ctx.trigger_typing()
         async with Timer() as db:
@@ -143,13 +161,19 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @core.command()
     async def hello(self, ctx: AvimetryContext):
+        """
+        Hello!
+        """
         await ctx.send(f'Hello, {ctx.author}, I am a bot made by avizum#8771!')
 
-    @core.group(
-        invoke_without_command=True,
-        brief="Get the invite link for the bot or another bot"
-    )
+    @core.group(invoke_without_command=True)
     async def invite(self, ctx: AvimetryContext, bot: Union[discord.Member, discord.User] = None):
+        """
+        Invite me to your server.
+
+        If you mention a bot, I will try to find their Top.GG page and send it. If I can't find it, then
+        I will generate an invite link and send it.
+        """
         if bot is None:
             invite_embed = discord.Embed(
                 title=f"{self.bot.user.name} Invite",
@@ -178,11 +202,11 @@ class BotInfo(commands.Cog, name="Bot Info"):
         else:
             await ctx.send("That is not a bot.")
 
-    @core.command(
-        aliases=["lc", "linec", "lcount"],
-        brief="Gets the amount of lines this bot has."
-    )
+    @core.command(aliases=["lc", "linec", "lcount"])
     async def linecount(self, ctx):
+        """
+        Check how many lines of code the bot has.
+        """
         path = pathlib.Path('./')
         comment_count = corutine_count = function_count = class_count = line_count = file_count = 0
         for files in path.rglob('*.py'):
@@ -219,6 +243,11 @@ class BotInfo(commands.Cog, name="Bot Info"):
     @core.command(brief="Request a feature to be added to the bot.")
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def request(self, ctx: AvimetryContext, *, request):
+        """
+        Request a feature to be added to Avimetry.
+
+        Spamming this command or sending spam requests will get you blacklisted from the bot.
+        """
         req_send = discord.Embed(
             title=f"Request from {str(ctx.author)}",
             description=f"```{request}```"
@@ -239,10 +268,16 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @core.command()
     async def support(self, ctx: AvimetryContext):
+        """
+        Send the bot's support server link.
+        """
         await ctx.send(self.bot.support)
 
-    @core.command(brief="Vote Now!")
+    @core.command()
     async def vote(self, ctx: AvimetryContext):
+        """
+        Support Avimetry by voting!
+        """
         top_gg = "https://top.gg/bot/756257170521063444/vote"
         bot_list = "https://discordbotlist.com/bots/avimetry/upvote"
         vote_embed = discord.Embed(
@@ -254,11 +289,18 @@ class BotInfo(commands.Cog, name="Bot Info"):
         vote_embed.set_thumbnail(url=self.bot.user.avatar_url)
         await ctx.send(embed=vote_embed)
 
-    @core.command(brief="Get the source of a command or the bot.")
+    # Please do not remove this command.
+    # - avizum
+    @core.command()
     async def source(self, ctx: AvimetryContext, *, command: str = None):
+        """
+        Send the bot's source or a source of a command.
+
+        Typing a command will send the source of a command instead.
+        """
         source_embed = discord.Embed(
                 title=f"{self.bot.user.name}'s source",
-                timestamp=datetime.datetime.utcnow()
+                timestamp=datetime.datetime.now(datetime.timezone.utc)
             )
         git_link = "https://github.com/avimetry/avimetry/blob/master/"
         license_link = "https://github.com/avimetry/avimetry/blob/master/LICENSE"
@@ -312,6 +354,13 @@ class BotInfo(commands.Cog, name="Bot Info"):
         ]
     )
     async def deletemydata(self, ctx: AvimetryContext):
+        """
+        Delete all the data I have about you.
+
+        This includes:
+        Your timezone if you set it
+        Your user id
+        """
         embed = discord.Embed(
             title="Delete user data",
             description=(
@@ -336,6 +385,12 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @core.command()
     async def error(self, ctx: AvimetryContext, error_id: int = None):
+        """
+        Get some error about an error
+
+        This will show the Traceback and if it has been fixed yet.
+        If you have any ideas on how to fix it, You can DM Avimetry or use the suggest command.
+        """
         if error_id is None:
             return await ctx.send_help("error")
         query = "SELECT * FROM command_errors WHERE id=$1"

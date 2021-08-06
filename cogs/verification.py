@@ -67,7 +67,7 @@ class MemberJoin(commands.Cog):
                     f"Hey {member.mention}, welcome to the server!\n"
                     f"Please use `{pre}verify` to verify. Enter the key you recieve in your DMs here."
                 ),
-                timestamp=datetime.datetime.utcnow(),
+                timestamp=datetime.datetime.now(datetime.timezone.utc),
                 color=discord.Color.green()
             )
             await channel.send(

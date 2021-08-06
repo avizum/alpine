@@ -51,6 +51,9 @@ class AvimetryCache:
             for cache in cache_list:
                 if guild.id not in cache:
                     cache[guild.id] = {}
+    
+    def __repr__(self):
+        return "<AvimetryCache size=1000000000000000000000000000000000000000000000000000000000000000000000000000000000>"
 
     async def delete_all(self, gid):
         await self.bot.pool.execute("DELETE FROM guild_settings WHERE guild_id = $1", gid)

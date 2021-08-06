@@ -68,12 +68,23 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
     @Feature.Command(parent="jsk", name="sync", aliases=["pull"])
     async def jsk_sync(self, ctx: AvimetryContext):
+        """
+        Pulls from GitHub then reloads all modules.
+
+        If the command fails to unload, It will show the module and error.
+        """
         command = self.bot.get_command("dev sync")
         await command(ctx)
 
     @Feature.Command(name="jishaku", aliases=["jsk"], hidden=Flags.HIDE,
                      invoke_without_command=True, ignore_extra=False)
     async def jsk(self, ctx: AvimetryContext):
+        """
+        The Jishaku debug and diagnostic commands.
+
+        This command on its own gives a status brief.
+        All other functionality is within its subcommands.
+        """
         summary = [
             f"Jishaku `v{jishaku.__version__}`, discord.py `v{discord.__version__}`, "
             f"Python `{sys.version}` on `{sys.platform}`, ".replace("\n", ""),

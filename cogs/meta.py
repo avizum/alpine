@@ -39,9 +39,15 @@ class Meta(commands.Cog):
         self.bot = bot
         self.load_time = datetime.datetime.now()
 
-    @core.command(brief="Sends a poll in the current channel for people to vote to.")
+    @core.command()
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def poll(self, ctx: AvimetryContext, question, *options: str):
+        """
+        Send a poll for people to vote to.
+
+        The first option will be the title.
+        You can have up to 10 other options in a poll.
+        """
         if len(options) < 2:
             raise commands.BadArgument(
                 "You need to have at least two options in the poll."
@@ -68,7 +74,7 @@ class Meta(commands.Cog):
         for x, option in enumerate(options):
             description += "\n\n{} {}".format(reactions[x], option)
         embed = discord.Embed(title=question, description="".join(description))
-        react_message = await ctx.send(embed=embed)
+        react_message = await ctx.no_reply(embed=embed)
         for reaction in reactions[:len(options)]:
             await react_message.add_reaction(reaction)
         embed.set_footer(
@@ -76,26 +82,34 @@ class Meta(commands.Cog):
         )
         await react_message.edit(embed=embed)
 
-    @core.command(brief="Pick one of your options")
+    @core.command()
     @commands.cooldown(1, 1, commands.BucketType.member)
     async def pick(self, ctx: AvimetryContext, *, options):
+        """
+        Pick one of your options you provided.
+
+        You can use "or" to seperate, or "," to seperate options.
+        """
         opt = options.split("or")
         if len(opt) != 2:
             opt = options.split(",")
 
         return await ctx.send(random.choice(opt))
 
-    @core.command(
-        brief="Gets a member's information",
-        aliases=["ui", "uinfo", "whois"]
-    )
+    @core.command(aliases=["ui", "uinfo", "whois"])
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def userinfo(self, ctx: AvimetryContext, *, member: typing.Union[discord.Member, discord.User] = None):
+        """
+        Get info about a user.
+
+        This works with any user on Discord.
+        """
         member = member or ctx.author
         if isinstance(member, discord.User):
             ie = discord.Embed(
                 title="User Information",
                 description="This user in not in this server",
-                timestamp=datetime.datetime.utcnow(),
+                timestamp=datetime.datetime.now(datetime.timezone.utc),
                 color=member.color,
             )
             ie.add_field(name="User Name", value=str(member))
@@ -115,7 +129,7 @@ class Meta(commands.Cog):
             userroles.remove(ctx.guild.default_role.mention)
             ie = discord.Embed(
                 title="User Information",
-                timestamp=datetime.datetime.utcnow(),
+                timestamp=datetime.datetime.now(datetime.timezone.utc),
                 color=member.color,
             )
             ie.add_field(name="User Name", value=str(member))
@@ -160,16 +174,21 @@ class Meta(commands.Cog):
 
     @core.command()
     async def avatar(self, ctx: AvimetryContext, member: discord.Member = None):
-        if member is None:
-            member = ctx.author
+        """
+        Sends the avatar of a member.
+        """
+        member = member or ctx.author
         embed = discord.Embed(
             title=f"{member}'s avatar"
         )
         embed.set_image(url=str(member.avatar_url))
         await ctx.send(embed=embed)
 
-    @core.group(brief="Make a QR code", invoke_without_command=True)
+    @core.group(invoke_without_command=True)
     async def qr(self, ctx: AvimetryContext, *, content):
+        """
+        Create a QR code.
+        """
         qr_embed = discord.Embed()
         qr_embed.add_field(name="QR code", value=f"Here is your qr code ({content})")
         qr_embed.set_image(
@@ -177,14 +196,22 @@ class Meta(commands.Cog):
         )
         await ctx.send(embed=qr_embed)
 
-    @qr.command(brief="Read a QR code")
+    @qr.command()
     async def read(self, ctx: AvimetryContext, *, image: GetAvatar):
+        """
+        Read a QR code.
+        """
         async with self.bot.session.get(f"https://api.qrserver.com/v1/read-qr-code/?fileurl={image}") as resp:
             thing = await resp.json()
             await ctx.send((str(thing[0]["symbol"][0]["data"])))
 
-    @core.group(case_insensitive=True, brief="Gets the time for a member", invoke_without_command=True)
+    @core.group(case_insensitive=True, invoke_without_command=True)
     async def time(self, ctx: AvimetryContext, *, member: discord.Member = None):
+        """
+        Get the time for a user.
+
+        If the user does not have a timezone set up, an error will occur.
+        """
         member = member or ctx.author
         try:
             timezone = ctx.cache.users[member.id]["timezone"]
@@ -205,12 +232,13 @@ class Meta(commands.Cog):
         time_embed.set_footer(text=f"{member.display_name}'s' timezone: {timezone}")
         await ctx.send(embed=time_embed)
 
-    @time.group(
-        name="set",
-        brief="Sets your timezone",
-        invoke_without_command=True
-        )
+    @time.group(name="set", invoke_without_command=True)
     async def time_set(self, ctx: AvimetryContext, *, timezone):
+        """
+        Set your timezone.
+
+        The timezone must be one of (these timezones.)[https://gist.github.com/Soheab/3bec6dd6c1e90962ef46b8545823820d]
+        """
         try:
             timezones = pytz.timezone(timezone)
         except KeyError:
@@ -231,6 +259,9 @@ class Meta(commands.Cog):
 
     @time_set.command(aliases=['remove', 'no', 'gone', 'away'])
     async def none(self, ctx: AvimetryContext):
+        """
+        Remove your timezone.
+        """
         query = (
                 "INSERT INTO user_settings (user_id, timezone) "
                 "VALUES ($1, $2) "
@@ -244,9 +275,14 @@ class Meta(commands.Cog):
             return await ctx.send('You do not have a timezone setup yet.')
         await ctx.send("Removed your timezone.")
 
-    @core.command(brief="Get the jump link for the channel that you mention")
+    @core.command()
     @commands.cooldown(1, 15, commands.BucketType.guild)
     async def firstmessage(self, ctx: AvimetryContext, *, channel: discord.TextChannel = None):
+        """
+        Get the first message of the channel.
+
+        This will give you the jump url of the message.
+        """
         if channel is None:
             channel = ctx.channel
         messages = await channel.history(limit=1, oldest_first=True).flatten()
@@ -263,13 +299,18 @@ class Meta(commands.Cog):
         aliases=["rtfd", "rtm", "rtd", "docs"]
     )
     async def rtfm(self, ctx: AvimetryContext, query):
+        """
+        Get the docs for the discord.py library.
+
+        RTFM means "read the fucking manual"
+        """
         if len(query) < 3:
             return await ctx.send("Your search query needs to be at least 3 characters.")
         params = {
             "query": query,
             "location": "https://discordpy.readthedocs.io/en/latest"
         }
-        async with self.bot.session.get("https://idevision.net/api/public/rtfm", params=params) as resp:
+        async with self.bot.session.get("https://idevision.net/api/public/rtfm.sphinx", params=params) as resp:
             response = await resp.json()
         if not response["nodes"]:
             return await ctx.send("Nothing found. Sorry.")
@@ -277,10 +318,14 @@ class Meta(commands.Cog):
         embed = discord.Embed(description="\n".join(listed))
         await ctx.send(embed=embed)
 
-    @core.command(
-        brief="Make embeds.")
-    @commands.cooldown(5, 300, commands.BucketType.member)
+    @core.command()
+    @commands.cooldown(1, 300, commands.BucketType.member)
     async def embed(self, ctx: AvimetryContext, *, thing: str):
+        """
+        Make embeds with JSON.
+
+        This command has a high cooldown to prevent abuse.
+        """
         if '"content":' in thing or "'content':" in thing:
             return await ctx.send('Remove the "content" part from your message and try again.')
         try:
@@ -292,10 +337,13 @@ class Meta(commands.Cog):
                 description=f"The JSON input raised an error:\n```bash\n{e}```")
             return await ctx.no_reply(embed=embed)
 
-    @core.command(
-        brief="Check what website a url redirects to"
-    )
+    @core.command()
     async def redirectcheck(self, ctx: AvimetryContext, url: str):
+        """
+        Check what a URL leads to.
+
+        Useful to see if a link is a rickroll or something.
+        """
         url = url.strip("<>")
         async with self.bot.session.get(url) as f:
             await ctx.no_reply(f"This url redirects to:\n\n{f.real_url}")
@@ -309,14 +357,19 @@ class Meta(commands.Cog):
         await ctx.send("An error occured while checking the link, Please try another link or try again later.")
         raise error
 
-    @core.command(brief="Posts a gist online.")
+    @core.command()
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def gist(self, ctx: AvimetryContext, *, code: codeblock_converter):
+        """
+        Posts a gist.
+
+        These gists are public and if you want to get one removed, DM Avimetry or join the support server.
+        """
         gist = Gist(self.bot, self.bot.session)
         lang = code.language or 'txt'
         out = await gist.post(
             filename=f"output.{lang}",
-            description=f"{ctx.author} at {datetime.datetime.utcnow().strftime('%x %X')}",
+            description=f"{ctx.author} at {datetime.datetime.now(datetime.timezone.utc).strftime('%x %X')}",
             content=code.content
         )
         await ctx.send(f"These gists are posted publicly. DM me to get it removed.\n{out}")

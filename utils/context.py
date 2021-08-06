@@ -19,9 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import asyncio
 import discord
 import datetime
-import contextlib
 import re
-import random
 
 from .avimetry import AvimetryBot
 from discord.ext import commands
@@ -107,30 +105,30 @@ class AvimetryContext(commands.Context):
                     text=f"Requested by {self.author}",
                     icon_url=str(self.author.avatar_url)
                 )
-                embed.timestamp = datetime.datetime.utcnow()
+                embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
             if not embed.color:
                 embed.color = await self.determine_color()
-        if self.message.id in self.bot.command_cache and self.message.edited_at:
-            edited_message = self.bot.command_cache[self.message.id]
-            if self.me.permissions_in(self.channel).manage_messages is True:
-                await edited_message.clear_reactions()
-            if kwargs.get('file'):
-                message = await self.send(content=content, embed=embed, **kwargs)
-            else:
-                await edited_message.edit(content=content, embed=embed, **kwargs)
-                return edited_message
+        if self.message.id in self.bot.command_cache:
+            message = self.channel.get_partial_message(self.bot.command_cache[self.message.id])
+            try:
+                await message.edit(content=content, embed=embed, **kwargs)
+                return message
+            except Exception:
+                del self.bot.command_cache[self.message.id]
+                message = await self.send(content=content, embed=embed, mention_author=False, **kwargs)
+                return message
         try:
-            message = await self.reply(content=content, embed=embed, **kwargs)
+            message = await self.reply(content=content, embed=embed, mention_author=False, **kwargs)
             return message
         except discord.HTTPException:
-            if len(content) > 2000:
-                message = await self.post(content=content)
-                return message
+            if content:
+                if len(content) > 2000:
+                    message = await self.post(content=content)
+                    return message
             message = await self.no_reply(content=content, embed=embed, **kwargs)
             return message
         finally:
-            with contextlib.suppress(Exception):
-                self.bot.command_cache[self.message.id] = message
+            self.bot.command_cache[self.message.id] = message.id
 
     async def confirm(
         self, message=None, embed: discord.Embed = None, confirm_message=None, *,

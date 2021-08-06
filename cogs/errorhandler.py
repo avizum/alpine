@@ -38,6 +38,10 @@ class ErrorHandler(commands.Cog):
             self.bot.settings["webhooks"]["error_log"],
             adapter=discord.AsyncWebhookAdapter(self.bot.session),
         )
+        self.beta_webhook = discord.Webhook.from_url(
+            self.bot.settings["webhooks"]["error_log2"],
+            adapter=discord.AsyncWebhookAdapter(self.bot.session),
+        )
 
     def reset(self, ctx: AvimetryContext):
         try:
@@ -115,12 +119,12 @@ class ErrorHandler(commands.Cog):
         elif isinstance(error, commands.CommandOnCooldown):
             rate = error.cooldown.rate
             per = error.cooldown.per
-            cd_type = str(error.cooldown.type).replace("BucketType.", "")
+            cd_type = 'globally' if error.cooldown.type.name == 'default' else f'per {error.cooldown.type.name}'
             cd = discord.Embed(
                 title="Slow down",
                 description=(
                     f"This command can only be used {rate} {'time' if rate == 1 else 'times'} "
-                    f"every {per} seconds per {cd_type}.\n"
+                    f"every {per} seconds {cd_type}.\n"
                     f"Try again in {humanize.naturaldelta(error.retry_after)}."
                 )
             )
@@ -131,7 +135,7 @@ class ErrorHandler(commands.Cog):
                 title="Slow Down",
                 description=(
                     f"This command has reached its max concurrency.\nIt can only be used {error.number} "
-                    f"{'time' if error.number == 1 else 'times'} per {error.per.name}."),
+                    f"{'time' if error.number == 1 else 'times'} {error.per.name}."),
             )
             return await ctx.send(embed=max_uses)
 
@@ -190,7 +194,6 @@ class ErrorHandler(commands.Cog):
 
         elif isinstance(error, commands.BadArgument):
             self.reset(ctx)
-            print(dir(error))
             ba = discord.Embed(
                 title="Bad Argument",
                 description=str(error),

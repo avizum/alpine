@@ -45,8 +45,8 @@ def format_list(list):
 
 def timestamp(times: datetime.datetime, format: typing.Optional[str] = None):
     if format:
-        return f'<t:{int(times.timestamp())}:{format}>'
-    return f'<t:{int(times.timestamp())}>'
+        return f'<t:{int(times.replace(tzinfo=datetime.timezone.utc).timestamp())}:{format}>'
+    return f'<t:{int(times.replace(tzinfo=datetime.timezone.utc).timestamp())}>'
 
 
 class Timer:

@@ -16,13 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import typing
 import discord
 import datetime
 import asyncio
 import utils
 
 from utils import core
+from utils.converters import ModReason
 from discord.ext import commands
 from jishaku.codeblocks import codeblock_converter
 from utils import AvimetryBot, AvimetryContext, CogConverter
@@ -55,18 +55,22 @@ class Owner(commands.Cog):
 
     @core.group(
         invoke_without_command=True,
-        brief="Developer commands only.",
         aliases=["dev"],
         user_permissions='Bot Owner',
         hidden=True
     )
     async def developer(self, ctx: AvimetryContext):
-        await ctx.send_help("developer")
+        """
+        Commands for bot devlopers.
+        """
+        jishaku = self.bot.get_command('jishaku')
+        await jishaku(ctx)
 
-    @developer.command(
-        brief="Load module(s)", aliases=["l"]
-        )
+    @developer.command(aliases=["l"])
     async def load(self, ctx: AvimetryContext, module: CogConverter):
+        """
+        Load cogs.
+        """
         load_list = []
         for cog in module:
             try:
@@ -77,10 +81,11 @@ class Owner(commands.Cog):
         embed = discord.Embed(title="Loaded cogs", description="\n".join(load_list))
         await ctx.send(embed=embed, delete_after=15)
 
-    @developer.command(
-        brief="Unload module(s)", aliases=["u"]
-        )
+    @developer.command(aliases=["u"])
     async def unload(self, ctx: AvimetryContext, module: CogConverter):
+        """
+        Unload cogs.
+        """
         unload_list = []
         for cog in module:
             try:
@@ -91,10 +96,11 @@ class Owner(commands.Cog):
         embed = discord.Embed(title="Unloaded cogs", description="\n".join(unload_list))
         await ctx.send(embed=embed, delete_after=15)
 
-    @developer.command(
-        brief="Reload module(s)", aliases=["r"]
-    )
+    @developer.command(aliases=["r"])
     async def reload(self, ctx: AvimetryContext, module: CogConverter):
+        """
+        Reload cogs
+        """
         reload_list = []
         for cog in module:
             try:
@@ -106,8 +112,13 @@ class Owner(commands.Cog):
         embed = discord.Embed(title="Reloaded cogs", description=description)
         await ctx.send(embed=embed, delete_after=15)
 
-    @developer.command(brief="Pulls from GitHub and then reloads all modules")
+    @developer.command()
     async def sync(self, ctx: AvimetryContext):
+        """
+        Pulls from GitHub then reloads all modules.
+
+        If the command fails to unload, It will show the module and error.
+        """
         sync_embed = discord.Embed(
             title="Syncing with GitHub", description="Please Wait..."
         )
@@ -125,7 +136,7 @@ class Owner(commands.Cog):
             output = f'[stderr]\n{stderr.decode()}'
 
         sync_embed.description = f"```bash\n{output}\n```"
-        sync_embed.timestamp = datetime.datetime.utcnow()
+        sync_embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
         sync_embed.title = "Synced With GitHub"
         modules = await CogConverter().convert(ctx, "~")
         reload_list = []
@@ -141,8 +152,11 @@ class Owner(commands.Cog):
         sync_embed.add_field(name="Reloaded Modules", value=value)
         await edit_sync.edit(embed=sync_embed, delete_after=15)
 
-    @developer.command(brief="Reboot the bot", aliases=["shutdown"])
+    @developer.command(aliases=["shutdown"])
     async def reboot(self, ctx: AvimetryContext):
+        """
+        Reboot or shutdown the bot.
+        """
         sm = discord.Embed(
             description=f"Are you sure you want to {ctx.invoked_with}?"
         )
@@ -152,8 +166,13 @@ class Owner(commands.Cog):
         if not conf:
             await ctx.send(f"{ctx.invoked_with.capitalize()} Aborted", delete_after=5)
 
-    @developer.command(brief="Evaluate python code.")
+    @developer.command()
     async def eval(self, ctx: AvimetryContext, *, code: codeblock_converter):
+        """
+        Direct evaluation of python code.
+
+        This command is an alias of `jishaku py`.
+        """
         jsk = self.bot.get_command("jsk py")
         if jsk:
             await jsk(ctx, argument=code)
@@ -162,6 +181,9 @@ class Owner(commands.Cog):
 
     @developer.command(brief="Leaves a server.")
     async def leave(self, ctx: AvimetryContext, guild: discord.Guild):
+        """
+        Command to leave a guild that may be abusing the bot.
+        """
         conf = await ctx.confirm(f"Are you sure you want me to leave {guild.name} ({guild.id})?")
         if conf:
             await ctx.guild.leave()
@@ -170,10 +192,12 @@ class Owner(commands.Cog):
 
     @developer.group(
         invoke_without_command=True,
-        brief="Blacklist users from the bot",
         aliases=["bl"]
     )
     async def blacklist(self, ctx: AvimetryContext):
+        """
+        Show the User IDs for the currently blacklisted people.
+        """
         bl_users = ctx.cache.blacklist.keys()
         joiner = "\n"
         embed = discord.Embed(
@@ -184,10 +208,12 @@ class Owner(commands.Cog):
 
     @blacklist.command(
         name="add",
-        aliases=["a"],
-        brief="Adds a user to the global blacklist"
+        aliases=["a"]
     )
-    async def blacklist_add(self, ctx: AvimetryContext, user: typing.Union[discord.User, discord.Member], *, reason):
+    async def blacklist_add(self, ctx: AvimetryContext, user: discord.User, *, reason: ModReason):
+        """
+        Adds a user to the global blacklist.
+        """
         try:
             ctx.cache.blacklist[user.id]
             return await ctx.send(f"{user} is already blacklisted.")
@@ -207,10 +233,12 @@ class Owner(commands.Cog):
 
     @blacklist.command(
         name="remove",
-        aliases=["r"],
-        brief="Remove a user from the blacklist."
+        aliases=["r"]
     )
-    async def blacklist_remove(self, ctx: AvimetryContext, user: typing.Union[discord.User, discord.Member], *, reason):
+    async def blacklist_remove(self, ctx: AvimetryContext, user: discord.User, *, reason=None):
+        """
+        Removes a user from the global blacklist.
+        """
         try:
             ctx.cache.blacklist[user.id]
         except KeyError:
@@ -218,12 +246,15 @@ class Owner(commands.Cog):
         query = "DELETE FROM blacklist WHERE user_id=$1"
         await self.bot.pool.execute(query, user.id)
         self.bot.cache.blacklist.pop(user.id)
-        await ctx.send(f"Unblacklisted {str(user)}")
+        await ctx.send(f"Unblacklisted {str(user)}. Reason: {reason}")
 
-    @developer.command(
-        brief="Cleans up bot messages only"
-    )
+    @developer.command()
     async def cleanup(self, ctx: AvimetryContext, amount: int = 15):
+        """
+        Delete only the bot messages.
+
+        Goes through channel history and then deletes them one by one.
+        """
         def check(m: discord.Message):
             return m.author == self.bot.user
         perms = ctx.channel.permissions_for(ctx.me).manage_messages
@@ -232,6 +263,11 @@ class Owner(commands.Cog):
 
     @developer.command()
     async def maintenance(self, ctx: AvimetryContext, toggle: bool):
+        """
+        Enables maintenance mode.
+
+        When maintenance mode is enabled, The bot will only locked to devlopers.
+        """
         match = {
             True: "enabled",
             False: "disabled"
@@ -241,6 +277,9 @@ class Owner(commands.Cog):
 
     @developer.command()
     async def cogs(self, ctx: AvimetryContext, cog: str = None):
+        """
+        Shows all the loaded cogs and how long ago they were loaded.
+        """
         thing_list = [
             f"{key.title()} | Loaded {utils.timestamp(val.load_time, 'R')}"
             for key, val in self.bot.cogs.items()
@@ -250,6 +289,9 @@ class Owner(commands.Cog):
 
     @developer.group(invoke_without_command=True, aliases=["error"])
     async def errors(self, ctx: AvimetryContext):
+        """
+        Show all the errors in the bot.
+        """
         errors = await self.bot.pool.fetch('SELECT * FROM command_errors WHERE fixed = false')
         embed = discord.Embed(title="Errors")
         for error in errors:
@@ -263,6 +305,9 @@ class Owner(commands.Cog):
 
     @errors.command()
     async def fix(self, ctx: AvimetryContext, error_id: int):
+        """
+        Marks an error as fixed.
+        """
         query = "SELECT * FROM command_errors WHERE id=$1"
         error_info = await self.bot.pool.fetchrow(query, error_id)
         if not error_info:

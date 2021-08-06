@@ -28,6 +28,9 @@ from discord.ext import commands
 
 class Animals(commands.Cog):
     def __init__(self, bot: AvimetryBot):
+        """
+        Get images of animals.
+        """
         self.bot = bot
         self.load_time = datetime.datetime.now()
 
@@ -45,38 +48,65 @@ class Animals(commands.Cog):
 
     @core.command()
     async def dog(self, ctx: AvimetryContext):
+        """
+        Gets a random image of a dog online.
+        """
         await self.do_animal(ctx, "dog")
 
     @core.command()
     async def cat(self, ctx: AvimetryContext):
+        """
+        Gets a random image of a cat online.
+        """
         await self.do_animal(ctx, "cat")
 
     @core.command()
     async def panda(self, ctx: AvimetryContext):
+        """
+        Gets a random image of a panda online.
+        """
         await self.do_animal(ctx, "panda")
 
     @core.command()
     async def fox(self, ctx: AvimetryContext):
+        """
+        Gets a random image of a fox online.
+        """
         await self.do_animal(ctx, "fox")
 
     @core.command()
     async def koala(self, ctx: AvimetryContext):
+        """
+        Gets a random image of a koala online.
+        """
         await self.do_animal(ctx, "koala")
 
-    @core.command()
-    async def birb(self, ctx: AvimetryContext):
+    @core.command(aliases=['birb'])
+    async def bird(self, ctx: AvimetryContext):
+        """
+        Gets a random image of a bird online.
+        """
         await self.do_animal(ctx, "birb")
 
     @core.command()
     async def racoon(self, ctx: AvimetryContext):
+        """
+        Gets a random image of a racoon online.
+        """
         await self.do_animal(ctx, "racoon")
 
     @core.command()
     async def kangaroo(self, ctx: AvimetryContext):
+        """
+        Gets a random image of a kangaroo online.
+        """
         await self.do_animal(ctx, "kangaroo")
 
     @core.command()
     async def duck(self, ctx: AvimetryContext):
+        """
+        Gets a random image of a duck online.
+        """
         async with self.bot.session.get("https://random-d.uk/api/v2/random") as resp:
             image = await resp.json()
         embed = discord.Embed(title="Here is a duck")

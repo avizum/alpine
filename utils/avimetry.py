@@ -69,13 +69,7 @@ async def get_prefix(bot: "AvimetryBot", message: discord.Message):
         prefixes.extend(DEFAULT_PREFIXES)
     else:
         prefixes.extend(get_prefix)
-    commands = []
-    jishaku = bot.get_command('jishaku')
-    commands.append(jishaku.name)
-    commands.extend(jishaku.aliases)
-    developer = bot.get_command('developer')
-    commands.append(developer.name)
-    commands.extend(developer.aliases)
+    commands = ['dev', 'developer', 'jsk', 'jishaku']
     if await bot.is_owner(message.author) and message.content.startswith(tuple(commands)):
         prefixes.append("")
     command_prefix = "|".join(map(re.escape, prefixes))
@@ -117,7 +111,7 @@ class AvimetryBot(commands.Bot):
         self.owner_ids = OWNER_IDS
         self.bot_id = PUBLIC_BOT_ID
         self.core = core
-        self.launch_time = datetime.datetime.utcnow()
+        self.launch_time = datetime.datetime.now(datetime.timezone.utc)
         self.maintenance = False
         self.commands_ran = 0
         self.command_usage = {}
@@ -147,6 +141,7 @@ class AvimetryBot(commands.Bot):
             "cogs.botinfo",
             "cogs.errorhandler",
             "cogs.fun",
+            "cogs.games",
             "cogs.help",
             # "cogs.highlight",
             "cogs.images",
