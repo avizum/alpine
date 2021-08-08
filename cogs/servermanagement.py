@@ -26,14 +26,20 @@ from utils import AvimetryBot, AvimetryContext, ModReason
 
 
 class ServerManagement(commands.Cog, name="Server Management"):
+    """
+    Commands to manage your server.
+    """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now()
 
     @core.command(
-        aliases=["members", "mc"], brief="Gets the members of the server and shows you."
+        aliases=["members", "mc"]
     )
     async def membercount(self, ctx: AvimetryContext):
+        """
+        Show the member count
+        """
         tmc = len([m for m in ctx.guild.members if not m.bot])
         tbc = len([m for m in ctx.guild.members if m.bot])
         amc = ctx.guild.member_count
@@ -47,18 +53,35 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
     async def channel(self, ctx):
+        """
+        Manage channels in the server
+
+        You can create channels,
+        clone channels,
+        or delete channels.
+        """
         await ctx.send_help(ctx.command)
 
     @channel.group(invoke_without_command=True)
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
     async def create(self, ctx: AvimetryContext):
+        """
+        Create a channel.
+
+        This command does nothing on it's own. Use the subcommands for full functionality.
+        """
         await ctx.send_help(ctx.command)
 
     @create.command(aliases=["tc", "text", "textchannel", "text-channel"])
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
     async def text_channel(self, ctx: AvimetryContext, name):
+        """
+        Create a text chanel.
+
+        This doesn't set any permissions, This may be added soon.
+        """
         channel = await ctx.guild.create_text_channel(name)
         await ctx.send(f"Created channel {channel.mention}.")
 
@@ -73,6 +96,11 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
     async def category(self, ctx: AvimetryContext, name):
+        """
+        Create a category
+
+        This doesn't set any permissions, This may be added soon.
+        """
         channel = await ctx.guild.create_text_channel(name)
         await ctx.send(f"Created category channel {channel.mention}.")
 
@@ -83,6 +111,11 @@ class ServerManagement(commands.Cog, name="Server Management"):
                                                                discord.TextChannel,
                                                                discord.VoiceChannel,
                                                                discord.StageChannel]):
+        """
+        Clone a channel.
+
+        This clones the channel with all the permissions.
+        """
         if isinstance(channel, discord.CategoryChannel):
             new = await channel.clone()
             for channels in channel.channels:
@@ -99,7 +132,11 @@ class ServerManagement(commands.Cog, name="Server Management"):
                                                                 discord.TextChannel,
                                                                 discord.VoiceChannel,
                                                                 discord.StageChannel]):
+        """
+        Deletes a channel.
 
+        This asks for confirmation to prevent abuse.
+        """
         conf = await ctx.confirm(f"Are you sure you want to delete {channel.mention}?")
         if conf:
             return await ctx.channel.delete()
@@ -109,6 +146,12 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @core.has_permissions(manage_emojis=True)
     @core.bot_has_permissions(manage_emojis=True)
     async def steal_emoji(self, ctx: AvimetryContext, emoji: discord.PartialEmoji, *, reason: ModReason = None):
+        """
+        Steal an emoji.
+
+        This creates an emoji with the same name.
+        You can provide a reason.
+        """
         asset = await emoji.url.read()
         await ctx.guild.create_custom_emoji(name=emoji.name, image=asset, reason=reason)
 
@@ -116,6 +159,11 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @core.has_permissions(manage_roles=True)
     @core.bot_has_permissions(manage_roles=True)
     async def create_role(self, ctx: AvimetryContext, name: str, color: discord.Color = None, reason: ModReason = None):
+        """
+        Creates a role.
+
+        Create a role with the name, color.
+        """
         await ctx.guild.create_role(name=name, color=color, reason=reason)
 
 

@@ -94,7 +94,7 @@ class AvimetryContext(commands.Context):
                 color = discord.Color(0x2F3136)
         return color
 
-    async def send(self, content=None, embed: discord.Embed = None, **kwargs):
+    async def send(self, content: str = None, embed: discord.Embed = None, edit: bool = True, **kwargs):
         if content:
             content = str(content)
             for token in self.tokens:
@@ -108,27 +108,13 @@ class AvimetryContext(commands.Context):
                 embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
             if not embed.color:
                 embed.color = await self.determine_color()
-        if self.message.id in self.bot.command_cache:
-            message = self.channel.get_partial_message(self.bot.command_cache[self.message.id])
-            try:
-                await message.edit(content=content, embed=embed, **kwargs)
-                return message
-            except Exception:
-                del self.bot.command_cache[self.message.id]
-                message = await self.send(content=content, embed=embed, mention_author=False, **kwargs)
-                return message
-        try:
+        if self.message.id in self.bot.command_cache and not kwargs.get('file') and edit:
+            message = self.bot.command_cache[self.message.id]
+            await message.edit(content=content, embed=embed, mention_author=False, file=None, files=None)
+        else:
             message = await self.reply(content=content, embed=embed, mention_author=False, **kwargs)
-            return message
-        except discord.HTTPException:
-            if content:
-                if len(content) > 2000:
-                    message = await self.post(content=content)
-                    return message
-            message = await self.no_reply(content=content, embed=embed, **kwargs)
-            return message
-        finally:
-            self.bot.command_cache[self.message.id] = message.id
+        self.bot.command_cache[self.message.id] = message
+        return message
 
     async def confirm(
         self, message=None, embed: discord.Embed = None, confirm_message=None, *,

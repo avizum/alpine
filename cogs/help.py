@@ -100,7 +100,7 @@ class CogHelp(menus.ListPageSource):
             text=f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.cog.get_commands())} Commands)"
         )
         thing = [
-            f"{self.ctx.clean_prefix}{command.name} - {command.short_doc or 'No help provided'}"
+            f"{command.name} - {command.short_doc or 'No help provided'}"
             for command in commands
         ]
 
@@ -153,7 +153,7 @@ class GroupHelp(menus.ListPageSource):
             text=f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.group.commands)} Commands)"
         )
         thing = [
-            f"{self.ctx.clean_prefix}{command.name} - {command.short_doc or 'No help provided'}"
+            f"{command.name} - {command.short_doc or 'No help provided'}"
             for command in commands
         ]
 
@@ -216,10 +216,14 @@ class AvimetryHelp(commands.HelpCommand):
 
     async def send_bot_help(self, mapping):
         items = []
-        for cog, command in mapping.items():
-            filtered = await self.filter_commands(command, sort=True)
-            if filtered and cog:
-                items.append(f"{cog.qualified_name} - {cog.description or 'No description'}")
+        for cog in mapping:
+            if not cog:
+                continue
+            filtered = await self.filter_commands(cog.get_commands())
+            if filtered:
+                thing = f"{cog.qualified_name} - {cog.description or 'No description'}"
+                items.append(thing)
+                print(thing)
         menu = AvimetryPages(MainHelp(self.context, items, self))
         await menu.start(self.context)
 

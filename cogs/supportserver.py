@@ -72,9 +72,9 @@ ROLE_MAP = {
 
 
 class Servers(commands.Cog, name="Servers"):
-    '''
+    """
     Commands for bot's servers only.
-    '''
+    """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now()
@@ -179,6 +179,11 @@ class Servers(commands.Cog, name="Servers"):
         hidden=True
     )
     async def testing(self, ctx: AvimetryContext):
+        """
+        Gives testing role.
+
+        This will give you access to the testing channel where you can test some features.
+        """
         if ctx.guild.id != 814206001451761664:
             return
         role = ctx.guild.get_role(836105548457574410)

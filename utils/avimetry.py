@@ -113,6 +113,7 @@ class AvimetryBot(commands.Bot):
         self.core = core
         self.launch_time = datetime.datetime.now(datetime.timezone.utc)
         self.maintenance = False
+        self.debug = False
         self.commands_ran = 0
         self.command_usage = {}
         self.command_cache = {}
@@ -178,6 +179,9 @@ class AvimetryBot(commands.Bot):
             if ctx.bot.maintenance is True:
                 raise Maintenance()
             return True
+
+    def __repr__(self):
+        return f"<AvimetryBot id={self.user.id}>"
 
     async def load_extensions(self):
         for ext in self.primary_extensions:

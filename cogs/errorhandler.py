@@ -239,6 +239,8 @@ class ErrorHandler(commands.Cog):
                 description=f"```py\n{traceback}```",
             )
             error_embed = discord.Embed(title="An error has occured")
+            if self.bot.debug and await self.bot.is_owner(ctx.author):
+                return await ctx.send(embed=webhook_error_embed)
 
             query = "SELECT * FROM command_errors WHERE command=$1 and error=$2"
             check = await self.bot.pool.fetchrow(query, ctx.command.qualified_name, str(error))

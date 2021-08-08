@@ -48,21 +48,33 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     """
     @Feature.Command(parent="jsk", name="shutdown", aliases=["fuckoff", "logout", "die", "reboot", "rb"])
     async def jsk_shutdown(self, ctx: AvimetryContext):
+        """
+        Reboot or shutdown the bot.
+        """
         command = self.bot.get_command('dev reboot')
         await command(ctx)
 
     @Feature.Command(parent="jsk", name="load", aliases=["l"])
     async def jsk_load(self, ctx: AvimetryContext, module: CogConverter):
+        """
+        Load cogs.
+        """
         command = self.bot.get_command("dev load")
         await command(ctx, module=module)
 
     @Feature.Command(parent="jsk", name="unload", aliases=["u"])
     async def jsk_unload(self, ctx: AvimetryContext, module: CogConverter):
+        """
+        Unload cogs.
+        """
         command = self.bot.get_command("dev unload")
         await command(ctx, module=module)
 
     @Feature.Command(parent="jsk", name="reload", aliases=["r"])
     async def jsk_reload(self, ctx: AvimetryContext, module: CogConverter):
+        """
+        Reload cogs
+        """
         command = self.bot.get_command("dev reload")
         await command(ctx, module=module)
 

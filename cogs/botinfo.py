@@ -84,14 +84,14 @@ class BotInfo(commands.Cog, name="Bot Info"):
         embed.add_field(name="Commands", value=f"{len(self.bot.commands)} loaded")
         embed.add_field(name="Commands ran", value=self.bot.commands_ran)
         credits_list = [
-            (self.bot.get_user(547280209284562944), 'Tester'),
-            (self.bot.get_user(672122220566413312), 'Avatar'),
-            (self.bot.get_user(171539705043615744), 'Help Command'),
-            (self.bot.get_user(733370212199694467), 'Contributor')
+            (self.bot.get_user(547280209284562944), 'Tester', 'https://github.com/LereUwU'),
+            (self.bot.get_user(672122220566413312), 'Avatar', 'https://discord.com/users/672122220566413312'),
+            (self.bot.get_user(171539705043615744), 'Help Command', 'https://github.com/iDutchy'),
+            (self.bot.get_user(733370212199694467), 'Contributor', 'https://github.com/MrArkon/')
         ]
         embed.add_field(
             name="Credits",
-            value="\n".join(f"{user} ({role})" for user, role in credits_list)
+            value="\n".join(f"[{user}]({credit}) ({role})" for user, role, credit in credits_list)
         )
         embed.set_thumbnail(url=ctx.me.avatar_url)
         embed.set_footer(text="Contribute to Avimetry by doing magic!!")
@@ -105,16 +105,16 @@ class BotInfo(commands.Cog, name="Bot Info"):
         If you want to contribute, Check out the GitHub repo.
         """
         credit_list = [
-            (self.bot.get_user(750135653638865017), 'Developer'),
-            (self.bot.get_user(547280209284562944), 'Tester'),
-            (self.bot.get_user(672122220566413312), 'Avatar'),
-            (self.bot.get_user(171539705043615744), 'Help Command'),
-            (self.bot.get_user(733370212199694467), 'Contributor'),
+            (self.bot.get_user(750135653638865017), 'Developer', 'https://github.com/avizum'),
+            (self.bot.get_user(547280209284562944), 'Tester', 'https://github.com/LereUwU'),
+            (self.bot.get_user(672122220566413312), 'Avatar', 'https://discord.com/users/672122220566413312'),
+            (self.bot.get_user(171539705043615744), 'Help Command', 'https://github.com/iDutchy'),
+            (self.bot.get_user(733370212199694467), 'Contributor', 'https://github.com/MrArkon/')
         ]
 
         embed = discord.Embed(
             title="Credits",
-            description="\n".join(f"{user}: {role}" for user, role in credit_list)
+            description="\n".join(f"[{user}]({credit}): {role}" for user, role, credit in credit_list)
         )
 
         await ctx.send(embed=embed)
@@ -308,13 +308,13 @@ class BotInfo(commands.Cog, name="Bot Info"):
             if self.bot.user.id != 756257170521063444:
                 source_embed.description = (
                     "This bot is an instance of [Avimetry](https://github.com/avimetry/avimetry), "
-                    "Made by [avizum#8771](https://discord.com/users/750135653638865017). "
+                    "Made by [avizum](https://github.com/avizum/). "
                     f"Follow the [license]({license_link})"
                 )
             else:
                 source_embed.description = (
                     "Here is my [source](https://github.com/avimetry/avimetry). "
-                    "I am made by [avizum#8771](https://discord.com/users/750135653638865017).\n"
+                    "I am made by [avizum](https://github.com/avizum/).\n"
                     f"Follow the [license]({license_link})"
                 )
             return await ctx.send(embed=source_embed)
@@ -342,6 +342,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         source_embed.description = (
             f"[Here is the source]({link}) for `{command}`. "
             f"Follow the [license]({license_link})."
+            f"Made by [avizum](https://github.com/avizum/)"
             )
         await ctx.send(embed=source_embed)
 

@@ -24,11 +24,32 @@ import random
 import pytz
 import typing
 
+from .help import AvimetryPages
+from doc_search import AsyncScraper
 from pytz import UnknownTimeZoneError
 from utils import core
-from discord.ext import commands
+from discord.ext import commands, menus
 from jishaku.codeblocks import codeblock_converter
 from utils import AvimetryBot, AvimetryContext, TimeZoneError, GetAvatar, Gist, timestamp
+
+
+class RTFMPageSource(menus.ListPageSource):
+    def __init__(self, ctx: AvimetryContext, items, query):
+        super().__init__(items, per_page=12)
+        self.ctx = ctx
+        self.items = items
+        self.query = query
+
+    async def format_page(self, menu, page):
+        embed = discord.Embed(
+            title=f"Results for \"{self.query}\"",
+            description=(
+                "\n".join(f"[`{k.replace('discord.', '').replace('discord.ext.commands.', '')}`]({v})" for k, v in page)
+            ),
+            color=await self.ctx.determine_color()
+        )
+        embed.set_footer(text=f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.items)} results)")
+        return embed
 
 
 class Meta(commands.Cog):
@@ -38,6 +59,7 @@ class Meta(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now()
+        self.scraper = AsyncScraper(self.bot.loop, self.bot.session)
 
     @core.command()
     @commands.cooldown(1, 300, commands.BucketType.user)
@@ -232,23 +254,31 @@ class Meta(commands.Cog):
         time_embed.set_footer(text=f"{member.display_name}'s' timezone: {timezone}")
         await ctx.send(embed=time_embed)
 
-    @time.group(name="set", invoke_without_command=True)
+    @time.command(name="set")
     async def time_set(self, ctx: AvimetryContext, *, timezone):
         """
         Set your timezone.
 
-        The timezone must be one of (these timezones.)[https://gist.github.com/Soheab/3bec6dd6c1e90962ef46b8545823820d]
+        The timezone must be one of [these timezones.](https://gist.github.com/Soheab/3bec6dd6c1e90962ef46b8545823820d)
         """
-        try:
-            timezones = pytz.timezone(timezone)
-        except KeyError:
-            raise TimeZoneError(timezone)
         query = (
                 "INSERT INTO user_settings (user_id, timezone) "
                 "VALUES ($1, $2) "
                 "ON CONFLICT (user_id) DO "
                 "UPDATE SET timezone = $2"
         )
+        if timezone.lower() in ['remove', 'none']:
+            await self.bot.pool.execute(query, ctx.author.id, None)
+            try:
+                ctx.cache.users[ctx.author.id]["timezone"] = timezone
+            except KeyError:
+                new = await ctx.cache.new_user(ctx.author.id)
+                new["timezone"] = timezone
+            return await ctx.send("Remove timezone")
+        try:
+            timezones = pytz.timezone(timezone)
+        except KeyError:
+            raise TimeZoneError(timezone)
         await self.bot.pool.execute(query, ctx.author.id, timezone)
         try:
             ctx.cache.users[ctx.author.id]["timezone"] = timezone
@@ -256,24 +286,6 @@ class Meta(commands.Cog):
             new = await ctx.cache.new_user(ctx.author.id)
             new["timezone"] = timezone
         await ctx.send(f"Set timezone to {timezones}")
-
-    @time_set.command(aliases=['remove', 'no', 'gone', 'away'])
-    async def none(self, ctx: AvimetryContext):
-        """
-        Remove your timezone.
-        """
-        query = (
-                "INSERT INTO user_settings (user_id, timezone) "
-                "VALUES ($1, $2) "
-                "ON CONFLICT (user_id) DO "
-                "UPDATE SET timezone = $2"
-        )
-        await self.bot.pool.execute(query, ctx.author.id, None)
-        try:
-            del ctx.cache.users[ctx.author.id]["timezone"]
-        except KeyError:
-            return await ctx.send('You do not have a timezone setup yet.')
-        await ctx.send("Removed your timezone.")
 
     @core.command()
     @commands.cooldown(1, 15, commands.BucketType.guild)
@@ -295,28 +307,53 @@ class Meta(commands.Cog):
         )
         await ctx.send(embed=embed_message)
 
-    @core.command(
-        aliases=["rtfd", "rtm", "rtd", "docs"]
+    @core.group(
+        aliases=["rtfd", "rtm", "rtd", "docs"],
+        invoke_without_command=True,
     )
     async def rtfm(self, ctx: AvimetryContext, query):
         """
         Get the docs for the discord.py library.
-
-        RTFM means "read the fucking manual"
         """
-        if len(query) < 3:
-            return await ctx.send("Your search query needs to be at least 3 characters.")
-        params = {
-            "query": query,
-            "location": "https://discordpy.readthedocs.io/en/latest"
-        }
-        async with self.bot.session.get("https://idevision.net/api/public/rtfm.sphinx", params=params) as resp:
-            response = await resp.json()
-        if not response["nodes"]:
-            return await ctx.send("Nothing found. Sorry.")
-        listed = [f"[`{word}`]({link})" for word, link in response["nodes"].items()]
-        embed = discord.Embed(description="\n".join(listed))
-        await ctx.send(embed=embed)
+        q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/stable/")
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], query))
+        await menu.start(ctx)
+
+    @rtfm.command()
+    async def master(self, ctx: AvimetryContext, query):
+        """
+        Get the docs for the discord.py master branch library.
+        """
+        q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/master/")
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], query))
+        await menu.start(ctx)
+
+    @rtfm.command(aliases=['py'])
+    async def python(self, ctx: AvimetryContext, query):
+        """
+        Get the docs for the latest Python version
+        """
+        q = await self.scraper.search(query, page="https://docs.python.org/3/")
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], query))
+        await menu.start(ctx)
+
+    @rtfm.command(aliases=['ob'])
+    async def obsidian(self, ctx: AvimetryContext, query):
+        """
+        Get the docs for the Obsidian.py library
+        """
+        q = await self.scraper.search(query, page="https://obsidianpy.readthedocs.io/en/latest/")
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], query))
+        await menu.start(ctx)
+
+    @rtfm.command(aliases=['wl'])
+    async def wavelink(self, ctx: AvimetryContext, query):
+        """
+        Get the docs for the Wavelink library
+        """
+        q = await self.scraper.search(query, page="https://wavelink.readthedocs.io/en/latest/")
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], query))
+        await menu.start(ctx)
 
     @core.command()
     @commands.cooldown(1, 300, commands.BucketType.member)

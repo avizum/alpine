@@ -29,9 +29,9 @@ from utils import AvimetryContext, AvimetryBot, Timer
 from utils import core
 
 
-class Games(commands.Cog, name="Bot Info"):
+class Games(commands.Cog):
     """
-    Game commands
+    Game commands.
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot

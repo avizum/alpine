@@ -36,7 +36,7 @@ class BotLogs(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def on_message(self, message: discord.Message):
-        if message.author == self.bot.user:
+        if message.author == self.bot.user or message.author.id == 80528701850124288:
             return
         tokens = re.findall(TOKEN_REGEX, message.content)
         if tokens:

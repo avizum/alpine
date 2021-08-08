@@ -38,10 +38,14 @@ class Settings(commands.Cog):
             None: "Disabled"}
 
     @core.group(
-        brief="Configure the server's prefixes",
         case_insensitive=True,
         invoke_without_command=True)
     async def prefix(self, ctx: AvimetryContext):
+        """
+        Show current server prefixes.
+
+        To add prefixes, use `prefix add` and to remove prefixes, use `prefix remove.`
+        """
         prefix = ctx.cache.guild_settings.get(ctx.guild.id)
         if not prefix["prefixes"]:
             return await ctx.send("The default prefix is `a.`")
@@ -50,23 +54,27 @@ class Settings(commands.Cog):
             return await ctx.send(f"Hey {ctx.author}, the prefix for {ctx.guild.name} is `{guild_prefix[0]}`")
         await ctx.send(f"Hey {ctx.author}, here are the prefixes for {ctx.guild.name}:\n`{'` | `'.join(guild_prefix)}`")
 
-    @prefix.command(
-        name="add",
-        brief="Add a prefix to the server"
-    )
+    @prefix.command(name="add")
     @core.has_permissions(manage_guild=True)
-    async def prefix_add(self, ctx: AvimetryContext, prefix: Prefix):
+    async def prefix_add(self, ctx: AvimetryContext, *, prefix: Prefix):
+        """
+        Adds a prefix to the server.
+
+        Setting one prefix will remove the default prefix. Add it back if you want.
+        You can have up to 15 prefixes, each up to 20 characters.
+        The prefix can not be a channel, role or member mention.
+        """
         query = "UPDATE guild_settings SET prefixes = ARRAY_APPEND(prefixes, $2) WHERE guild_id = $1"
         await self.bot.pool.execute(query, ctx.guild.id, prefix)
         ctx.cache.guild_settings[ctx.guild.id]["prefixes"].append(prefix)
         await ctx.send(f"Appended `{prefix}` to the list of prefixes.")
 
-    @prefix.command(
-        name="remove",
-        brief="Remove a prefix from the server"
-    )
+    @prefix.command(name="remove")
     @core.has_permissions(manage_guild=True)
     async def prefix_remove(self, ctx: AvimetryContext, prefix):
+        """
+        Removes a prefix from the server.
+        """
         prefix = prefix.lower()
         guild_cache = await ctx.cache.get_guild_settings(ctx.guild.id)
         if not guild_cache:
@@ -87,22 +95,35 @@ class Settings(commands.Cog):
     @core.has_permissions(manage_roles=True)
     @core.bot_has_permissions(manage_roles=True)
     async def muterole(self, ctx: AvimetryContext, role: discord.Role):
+        """
+        Set the server's mute role.
+
+        This command will update channel overwrites if you let it.
+        """
         query = "UPDATE guild_settings SET mute_role = $1 WHERE guild_id = $2"
         await self.bot.pool.execute(query, role.id, ctx.guild.id)
+        conf = await ctx.confirm("Should I edit this role to deny send messages in all channels?")
+        if conf:
+            for channel in ctx.guild.channels:
+                perms = channel.overwrites_for(role)
+                perms.update(send_messages=False)
+                await channel.set_permissions(
+                    target=role,
+                    overwrite=perms,
+                    reason=f"Mute role set to {role.name} by {ctx.author}"
+                )
+        await self.bot.pool.execute(query, role.id, ctx.guild.id)
         self.bot.cache.guild_settings[ctx.guild.id]["mute_role"] = role.id
-        for channel in ctx.guild.channels:
-            perms = channel.overwrites_for(role)
-            perms.update(send_messages=False)
-            await channel.set_permissions(
-                target=role,
-                overwrite=perms,
-                reason=f"Mute role set to {role.name} by {ctx.author}"
-            )
         await ctx.send(f"Set the mute role to {role.mention}")
 
-    @core.group(invoke_without_command=True, brief="Configure logging")
+    @core.group(invoke_without_command=True)
     @core.has_permissions(manage_guild=True)
     async def logging(self, ctx: AvimetryContext, toggle: bool = None):
+        """
+        Configure logging.
+
+        This command will show the current logging configuration for this server.
+        """
         if toggle is None:
             try:
                 config = ctx.cache.logging[ctx.guild.id]
@@ -130,9 +151,14 @@ class Settings(commands.Cog):
         ctx.cache.logging[ctx.guild.id]["enabled"] = toggle
         await ctx.send(f"{self.map[toggle]} logging")
 
-    @logging.command(name="channel", brief="Configure logging channel")
+    @logging.command(name="channel")
     @core.has_permissions(manage_guild=True)
     async def logging_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
+        """
+        Set the channel for logging.
+
+        This channel will be used for sending logs (if enabled).
+        """
         query = (
             "INSERT INTO logging (guild_id, channel_id) "
             "VALUES ($1, $2) "
@@ -141,13 +167,19 @@ class Settings(commands.Cog):
         )
         await self.bot.pool.execute(query, ctx.guild.id, channel.id)
         ctx.cache.logging[ctx.guild.id]["channel_id"] = channel.id
+        await ctx.send(f"Set the logging channel to {channel.mention}.")
 
     @logging.command(
-        brief="Configure delete logging",
         name="message-delete",
         aliases=["msgdelete", "messagedelete"])
     @core.has_permissions(manage_guild=True)
     async def logging_message_delete(self, ctx: AvimetryContext, toggle: bool):
+        """
+        Configure message delete logging.
+
+        If enabled, deleted messages will be sent to the logging channel.
+        Media will not be logged.
+        """
         query = (
             "INSERT INTO logging (guild_id, message_delete) "
             "VALUES ($1, $2) "
@@ -159,11 +191,15 @@ class Settings(commands.Cog):
         await ctx.send(f"{self.map[toggle]} message delete logs")
 
     @logging.command(
-        brief="Configure edit logging",
         name="message-edit",
         aliases=["msgedit", "messageedit"])
     @core.has_permissions(manage_guild=True)
     async def logging_message_edit(self, ctx: AvimetryContext, toggle: bool):
+        """
+        Configure message edit logging.
+
+        If enabled, edited messages will be logged and sent the the logging channel.
+        """
         query = (
             "INSERT INTO logging (guild_id, message_edit) "
             "VALUES ($1, $2) "
@@ -175,13 +211,18 @@ class Settings(commands.Cog):
         await ctx.send(f"{self.map[toggle]} message edit logs")
 
     @logging.command(
-        brief="Configure member kick logging",
         name="member-kick",
         aliases=["mkick", "memberkick"]
     )
     @core.has_permissions(manage_guild=True)
     @core.bot_has_permissions(view_audit_log=True)
     async def logging_member_kick(self, ctx: AvimetryContext, toggle: bool):
+        """
+        Configure member kick logging.
+
+        If enabled, kicked members will be logged and sent to the logging channel.
+        It will show who got kicked and who kicked them and reason if provided.
+        """
         query = (
             "INSERT INTO logging (guild_id, member_kick) "
             "VALUES ($1, $2) "
@@ -193,13 +234,18 @@ class Settings(commands.Cog):
         await ctx.send(f"{self.map[toggle]} member kicked logs")
 
     @logging.command(
-        brief="Configure member kick logging",
         name="member-ban",
         aliases=["mban", "memberban"]
     )
     @core.has_permissions(manage_guild=True)
     @core.bot_has_permissions(view_audit_log=True)
     async def logging_member_ban(self, ctx: AvimetryContext, toggle: bool):
+        """
+        Configure member ban logging.
+
+        If enabled, banned members will be logged and sent to the logging channel.
+        It will show who got banned and who ban them and reason if provided.
+        """
         query = (
             "INSERT INTO logging (guild_id, member_ban) "
             "VALUES ($1, $2) "
@@ -216,6 +262,11 @@ class Settings(commands.Cog):
         )
     @core.has_permissions(manage_guild=True)
     async def join_message(self, ctx: AvimetryContext, toggle: bool = None):
+        """
+        Configure the join message.
+
+        If no subcommands are called, The configuration will be shown.
+        """
         if toggle is None:
             try:
                 config = ctx.cache.join_leave.get(ctx.guild.id)
@@ -253,12 +304,14 @@ class Settings(commands.Cog):
         ctx.cache.join_leave[ctx.guild.id]["join_enabled"] = toggle
         await ctx.send(f"{self.map[toggle]} join message")
 
-    @join_message.command(
-        name="set",
-        brief="Set the message when a member joins"
-    )
+    @join_message.command(name="set")
     @core.has_permissions(manage_guild=True)
     async def join_message_set(self, ctx: AvimetryContext, *, message: str):
+        """
+        Set the the join message.
+
+        If enabled, this will be the message used to welcome new members.
+        """
         conf_message = "Does this look good to you?"
         thing = await preview_message(message, ctx)
         if type(thing) is discord.Embed:
@@ -279,12 +332,14 @@ class Settings(commands.Cog):
             return await ctx.send("Succesfully set the join message.")
         return await ctx.send("Cancelled")
 
-    @join_message.command(
-        name="channel",
-        brief="Set the join message channel"
-    )
+    @join_message.command(name="channel")
     @core.has_permissions(manage_guild=True)
     async def join_message_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
+        """
+        Set the join message channel.
+
+        If enabled, this is the channel used for welcoming members.
+        """
         query = (
             """
             INSERT INTO join_leave (guild_id, join_channel)
@@ -297,12 +352,17 @@ class Settings(commands.Cog):
         ctx.cache.join_leave[ctx.guild.id]["join_channel"] = channel.id
         await ctx.send(f"Set the join message channel to {channel.mention}")
 
-    @join_message.command(
-        name="setup",
-        brief="Setup join message"
-    )
+    @join_message.command(name="setup")
     @core.has_permissions(manage_guild=True)
     async def join_message_setup(self, ctx: AvimetryContext):
+        """
+        Interactive setup for join messages.
+
+        This will ask a series of questions:
+        1) Where to send the messages
+        2) What the message should be
+        3) Confirmation/Preview message
+        """
         embed = discord.Embed(
             title="Join message setup",
             description="Hello. Which channel would you like to send the join messages to?"
@@ -363,12 +423,14 @@ class Settings(commands.Cog):
             embed.description = "Cancelled. Goodbye."
             return await wait_message.reply(embed=embed)
 
-    @core.group(
-        name="leave-message",
-        invoke_without_command=True
-        )
+    @core.group(invoke_without_command=True)
     @core.has_permissions(manage_guild=True)
     async def leave_message(self, ctx: AvimetryContext, toggle: bool = None):
+        """
+        Configure the leave message.
+
+        If no subcommands are called, The configuration will be shown.
+        """
         if toggle is None:
             try:
                 config = ctx.cache.join_leave.get(ctx.guild.id)
@@ -399,12 +461,14 @@ class Settings(commands.Cog):
         ctx.cache.join_leave[ctx.guild.id]["leave_enabled"] = toggle
         await ctx.send(f"{self.map[toggle]} leave message")
 
-    @leave_message.command(
-        name="set",
-        brief="Set the message when a member leaves"
-    )
+    @leave_message.command(name="set")
     @core.has_permissions(manage_guild=True)
     async def leave_message_set(self, ctx: AvimetryContext, *, message: str):
+        """
+        Set the the leave message.
+
+        If enabled, this will be the message used to say goodbye to members.
+        """
         conf_message = "Does this look good to you?"
         thing = await preview_message(message, ctx)
         if type(thing) is discord.Embed:
@@ -425,12 +489,14 @@ class Settings(commands.Cog):
             return await ctx.send("Succesfully set leave message.")
         return await ctx.send("Aborted set leave message.")
 
-    @leave_message.command(
-        name="channel",
-        brief="Set the leave message channel"
-    )
+    @leave_message.command(name="channel")
     @core.has_permissions(manage_guild=True)
     async def leave_message_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
+        """
+        Set the leave message channel.
+
+        If enabled, this is the channel used to say goodbye to members.
+        """
         query = (
             """
             INSERT INTO join_leave (guild_id, join_channel)
@@ -443,12 +509,17 @@ class Settings(commands.Cog):
         ctx.cache.join_leave[ctx.guild.id]["leave_channel"] = channel.id
         await ctx.send(f"Set the leave message channel to {channel.mention}")
 
-    @leave_message.command(
-        name="setup",
-        brief="Setup leave messages"
-    )
+    @leave_message.command(name="setup")
     @core.has_permissions(manage_guild=True)
     async def leave_message_setup(self, ctx: AvimetryContext):
+        """
+        Interactive setup for goodbye messages.
+
+        This will ask a series of questions:
+        1) Where to send the messages
+        2) What the message should be
+        3) Confirmation/Preview message
+        """
         embed = discord.Embed(
             title="Leave message setup",
             description="Hello. Which channel would you like to send the leave messages to?"
@@ -512,12 +583,18 @@ class Settings(commands.Cog):
     @core.group(invoke_without_command=True)
     @core.has_permissions(manage_guild=True)
     @core.bot_has_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
-    async def screening(self, ctx: AvimetryContext, toggle: bool = None):
+    async def verification(self, ctx: AvimetryContext, toggle: bool = None):
+        """
+        Set verification.
+
+        If enabled, a new channel will be created for verification.
+        More options will be added soon.
+        """
         if toggle is None:
             try:
                 veri = ctx.cache.verification[ctx.guild.id]
             except KeyError:
-                return await ctx.send("Screening is not setup.")
+                return await ctx.send("Verification is not setup.")
             embed = discord.Embed(description=(
                 f"Role: {veri.get('role_id')}\n"
                 f"Toggle: {veri.get('high')}"
@@ -534,9 +611,14 @@ class Settings(commands.Cog):
         ctx.cache.verification[ctx.guild.id]["high"] = toggle
         return await ctx.send(f"{self.map[toggle]} member screening")
 
-    @screening.command(name="role")
+    @verification.command(name="role")
     @core.has_permissions(manage_guild=True)
-    async def screening_role(self, ctx: AvimetryContext, role: discord.Role):
+    async def verification_role(self, ctx: AvimetryContext, role: discord.Role):
+        """
+        Set verification role.
+
+        What role to use to give to members when they finish verification.
+        """
         query = (
             """
             INSERT INTO VERIFICATION (guild_id, role_id)
@@ -552,6 +634,11 @@ class Settings(commands.Cog):
     @core.group(invoke_without_command=True, case_insensitive=True)
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def theme(self, ctx: AvimetryContext, *, color: discord.Color):
+        """
+        Set the theme.
+
+        This color will be used for embeds sent by the bot.
+        """
         embed = discord.Embed(description='Does this look good?', color=color)
         conf = await ctx.confirm(embed=embed)
         if conf:
@@ -572,6 +659,11 @@ class Settings(commands.Cog):
 
     @theme.command(aliases=['none', 'no', 'not', 'gone'])
     async def remove(self, ctx: AvimetryContext):
+        """
+        Remove theme
+
+        This will remove the color used for embeds and will use your top role color instead.
+        """
         conf = await ctx.confirm('Are you sure you want to remove your theme?')
         if conf:
             query = (
@@ -590,6 +682,11 @@ class Settings(commands.Cog):
 
     @theme.command()
     async def random(self, ctx: AvimetryContext):
+        """
+        Set a random theme.
+
+        This will pick a random color for embeds.
+        """
         color = discord.Color.random()
         query = (
             "INSERT INTO user_settings (user_id, color) "

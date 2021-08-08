@@ -148,8 +148,6 @@ def bot_has_permissions(**perms):
 
         missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
 
-        if await ctx.bot.is_owner(ctx.author):
-            return True
         if not missing:
             return True
 
