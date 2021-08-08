@@ -28,6 +28,9 @@ from discord.ext import commands
 
 class Animals(commands.Cog):
     def __init__(self, bot: AvimetryBot):
+        """
+        Get images of animals.
+        """
         self.bot = bot
         self.load_time = datetime.datetime.now()
 
