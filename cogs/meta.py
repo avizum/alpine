@@ -316,7 +316,7 @@ class Meta(commands.Cog):
         Get the docs for the discord.py library.
         """
         q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/stable/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], query))
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Discord.py"))
         await menu.start(ctx)
 
     @rtfm.command()
@@ -325,7 +325,7 @@ class Meta(commands.Cog):
         Get the docs for the discord.py master branch library.
         """
         q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/master/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], query))
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Discord.py 2.0"))
         await menu.start(ctx)
 
     @rtfm.command(aliases=['py'])
@@ -334,7 +334,7 @@ class Meta(commands.Cog):
         Get the docs for the latest Python version
         """
         q = await self.scraper.search(query, page="https://docs.python.org/3/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], query))
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Python"))
         await menu.start(ctx)
 
     @rtfm.command(aliases=['ob'])
@@ -343,7 +343,7 @@ class Meta(commands.Cog):
         Get the docs for the Obsidian.py library
         """
         q = await self.scraper.search(query, page="https://obsidianpy.readthedocs.io/en/latest/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], query))
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Obsidian"))
         await menu.start(ctx)
 
     @rtfm.command(aliases=['wl'])
@@ -352,7 +352,19 @@ class Meta(commands.Cog):
         Get the docs for the Wavelink library
         """
         q = await self.scraper.search(query, page="https://wavelink.readthedocs.io/en/latest/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], query))
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Wavelink"))
+        await menu.start(ctx)
+
+    @rtfm.command(aliases=['c'])
+    async def custom(self, ctx: AvimetryContext, doc_url, query):
+        """
+        Search any Sphinx docs.
+        """
+        try:
+            q = await self.scraper.search(query, page=doc_url)
+        except Exception as e:
+            return await ctx.send(e)
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Custom Docs"))
         await menu.start(ctx)
 
     @core.command()
