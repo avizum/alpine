@@ -24,13 +24,12 @@ import random
 import pytz
 import typing
 
-from .help import AvimetryPages
 from doc_search import AsyncScraper
 from pytz import UnknownTimeZoneError
 from utils import core
 from discord.ext import commands, menus
 from jishaku.codeblocks import codeblock_converter
-from utils import AvimetryBot, AvimetryContext, TimeZoneError, GetAvatar, Gist, timestamp
+from utils import AvimetryBot, AvimetryContext, TimeZoneError, GetAvatar, Gist, timestamp, AvimetryPages
 
 
 class RTFMPageSource(menus.ListPageSource):
