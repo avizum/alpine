@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from utils.paginators import AvimetryPages
 import discord
 import datetime
 import asyncio
@@ -23,7 +24,7 @@ import utils
 
 from utils import core
 from utils.converters import ModReason
-from discord.ext import commands
+from discord.ext import commands, menus
 from jishaku.codeblocks import codeblock_converter
 from utils import AvimetryBot, AvimetryContext, CogConverter
 
@@ -306,6 +307,20 @@ class Owner(commands.Cog):
         """
         Show all the errors in the bot.
         """
+        class ErrorSource(menus.ListPageSource):
+            def __init__(self, ctx: AvimetryContext, errors):
+                super().__init__(entries=errors, per_page=1)
+                self.ctx = ctx
+
+            async def format_page(self, menu, page):
+                embed = discord.Embed(title=f"Errors ({self.get_max_pages()} errors)")
+                embed.add_field(
+                    name=f"{page['command']} | `{page['id']}`",
+                    value=f"```\n{page['error']}```"
+                )
+                embed.set_footer(text=f"Page {menu.current_page+1}/{self.get_max_pages()}")
+                embed.color = await self.ctx.determine_color()
+                return embed
         errors = await self.bot.pool.fetch('SELECT * FROM command_errors WHERE fixed = false')
         embed = discord.Embed(title="Errors")
         for error in errors:
@@ -313,24 +328,33 @@ class Owner(commands.Cog):
                 name=f"{error['command']} | `{error['id']}`",
                 value=f"```py\n{error['error']}```", inline=False
             )
+            menu = AvimetryPages(ErrorSource(ctx, errors))
+            return await menu.start(ctx)
         if not errors:
-            embed.add_field(name='No errors found', value='Nice :)')
+            embed.description = "No active errors have been found."
+            return await ctx.send(embed=embed)
         await ctx.send(embed=embed)
 
     @errors.command()
-    async def fix(self, ctx: AvimetryContext, error_id: int):
+    async def fix(self, ctx: AvimetryContext, *error_id: int):
         """
         Marks an error as fixed.
+
+        Giving multiple IDs will mark all of them as fixed.
         """
-        query = "SELECT * FROM command_errors WHERE id=$1"
-        error_info = await self.bot.pool.fetchrow(query, error_id)
-        if not error_info:
-            return await ctx.send("This error does not exist.")
-        elif error_info['fixed'] is True:
-            return await ctx.send('This error is already marked as fixed.')
-        query = "UPDATE command_errors SET fixed=$1 WHERE id=$2"
-        await self.bot.pool.execute(query, True, error_id)
-        await ctx.send(f"Error #{error_id} has been marked as fixed.")
+        fix_list = []
+        for i in error_id:
+            query = "SELECT * FROM command_errors WHERE id=$1"
+            error_info = await self.bot.pool.fetchrow(query, i)
+            if not error_info:
+                fix_list.append(f"Error ID {i} does not exist.")
+            elif error_info['fixed'] is True:
+                fix_list.append(f"Error ID {i} is already marked as fixed.")
+            else:
+                query = "UPDATE command_errors SET fixed=$1 WHERE id=$2"
+                await self.bot.pool.execute(query, True, i)
+                fix_list.append(f"Error #{i} has been marked as fixed.")
+        await ctx.send('\n'.join(fix_list))
 
 
 def setup(bot):
