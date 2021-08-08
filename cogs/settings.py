@@ -423,7 +423,7 @@ class Settings(commands.Cog):
             embed.description = "Cancelled. Goodbye."
             return await wait_message.reply(embed=embed)
 
-    @core.group(invoke_without_command=True)
+    @core.group(name="leave-message", invoke_without_command=True)
     @core.has_permissions(manage_guild=True)
     async def leave_message(self, ctx: AvimetryContext, toggle: bool = None):
         """
