@@ -22,6 +22,7 @@ import datetime
 
 from discord.ext import commands, menus
 from difflib import get_close_matches
+from utils import core
 from utils import AvimetryBot, AvimetryContext
 
 
@@ -223,7 +224,6 @@ class AvimetryHelp(commands.HelpCommand):
             if filtered:
                 thing = f"{cog.qualified_name} - {cog.description or 'No description'}"
                 items.append(thing)
-                print(thing)
         menu = AvimetryPages(MainHelp(self.context, items, self))
         await menu.start(self.context)
 
@@ -305,6 +305,7 @@ class HelpCommand(commands.Cog):
                 aliases=["halp", "helps", "hlp", "hlep", "hep"],
                 brief="Why do you need help with the help command?",
                 usage="[command|module]",
+                checks=[core.bot_has_permissions(add_reactions=True).predicate]
             )
         )
 
