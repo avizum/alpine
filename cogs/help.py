@@ -23,28 +23,7 @@ import datetime
 from discord.ext import commands, menus
 from difflib import get_close_matches
 from utils import core
-from utils import AvimetryBot, AvimetryContext
-
-
-class AvimetryPages(menus.MenuPages):
-    def __init__(self, source, **kwargs):
-        super().__init__(source, clear_reactions_after=True, **kwargs)
-
-    async def send_initial_message(self, ctx, channel):
-        page = await self._source.get_page(0)
-        kwargs = await self._get_kwargs_from_page(page)
-        return await ctx.send(**kwargs)
-
-    async def update(self, payload):
-        if self._can_remove_reactions:
-            if payload.event_type == 'REACTION_ADD':
-                await self.bot.http.remove_reaction(
-                    payload.channel_id, payload.message_id,
-                    payload.emoji, payload.member.id
-                )
-            elif payload.event_type == 'REACTION_REMOVE':
-                return
-        await super().update(payload)
+from utils import AvimetryBot, AvimetryContext, AvimetryPages
 
 
 class MainHelp(menus.ListPageSource):
