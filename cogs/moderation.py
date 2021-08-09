@@ -17,7 +17,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import discord
-import asyncio
 import datetime
 import humanize
 
@@ -25,6 +24,17 @@ from utils import core
 from discord.ext import commands
 from utils import (
     AvimetryBot, AvimetryContext, TimeConverter, TargetMember, FindBan, ModReason)
+
+
+class PurgeAmount(commands.Converter):
+    async def convert(self, ctx, argument):
+        try:
+            number = int(argument)
+        except Exception:
+            raise commands.BadArgument(f"{argument} is not a number. Please give a number.")
+        if number < 1 or number > 1000:
+            raise commands.BadArgument("Number must be greater than 0 and less than 1000")
+        return number
 
 
 class Moderation(commands.Cog):
@@ -83,6 +93,7 @@ class Moderation(commands.Cog):
         Softban someone from the server.
 
         Softban bans then unbans a person.
+        This is like kicking them and deleting their messages.
         You can not kick someone with a role higher than you or higher permissions.
         """
         soft_ban_embed = discord.Embed(
@@ -99,6 +110,8 @@ class Moderation(commands.Cog):
     async def ban(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
         """
         Ban someone from the server.
+
+        You can ban people whether they are in the server or not.
 
         You can not ban someone with a role higher than you or higher permissions.
         """
@@ -184,60 +197,77 @@ class Moderation(commands.Cog):
         """
         pass
 
-    @core.group(invoke_without_command=True)
-    @core.has_permissions(manage_messages=True)
-    @core.bot_has_permissions(manage_messages=True)
-    @commands.cooldown(5, 30, commands.BucketType.member)
-    async def purge(self, ctx: AvimetryContext, amount: int):
-        """
-        Mass delete messages in the current channel.
-
-        You can only purge up to 1000 messages at a time.
-        """
-        if amount < 1:
-            return
-        elif amount > 1000:
-            return
+    async def do_affected(self, ctx: commands.Context, messages: list[discord.Message]):
         authors = {}
-
-        def check(message: discord.Message):
-            return not message.pinned
-
-        purged = await ctx.channel.purge(limit=amount, check=check, before=ctx.message)
-        for message in purged:
+        for message in messages:
             if message.author not in authors:
                 authors[message.author] = 1
             else:
                 authors[message.author] += 1
-        await asyncio.sleep(0.1)
-        msg = "\n".join(
-            f"{author.mention}: {amount} {'message' if amount == 1 else 'messages'}"
-            for author, amount in authors.items()
-        )
+        message = "\n".join(f"{author.mention}: {amount} messages" for author, amount in authors.items())
+        return discord.Embed(title="Affected Messages", description=message)
 
-        pe = discord.Embed(
-            title="Affected Messages",
-            description=f"{msg}")
-        await ctx.can_delete(embed=pe)
+    @core.group(invoke_without_command=True)
+    @core.has_permissions(manage_messages=True)
+    @core.bot_has_permissions(manage_messages=True)
+    @commands.cooldown(5, 30, commands.BucketType.member)
+    async def purge(self, ctx: AvimetryContext, amount: PurgeAmount):
+        """
+        Mass delete messages in the current channel.
+
+        This always avoids pinned messages.
+        You can only purge up to 1000 messages at a time.
+        """
+        purged = await ctx.channel.purge(limit=amount, check=lambda m: not m.pinned, before=ctx.message)
+        await ctx.can_delete(embed=await self.do_affected(ctx, purged))
+
+    @purge.command(aliases=['user', 'person'])
+    @core.has_permissions(manage_messages=True)
+    @core.bot_has_permissions(manage_messages=True)
+    async def member(self, ctx: AvimetryContext, member: discord.Member, amount: PurgeAmount):
+        """
+        Purge messages from a member.
+
+        You can purge up to 1000 messages from a member.
+        """
+        purged = await ctx.channel.purge(limit=amount, check=lambda m: m.author == member, before=ctx.message)
+        await ctx.can_delete(embed=await self.do_affected(ctx, purged))
 
     @purge.command()
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
-    async def match(self, ctx: AvimetryContext, amount: int, *, text):
+    async def contains(self, ctx: AvimetryContext, *, text):
         """
-        Purge messages from a channel but matches messages with the text you provide.
+        Purge messages containing text.
+
+        This removes up to 100 messages.
         """
-        await ctx.message.delete()
+        purged = await ctx.channel.purge(limit=100, check=lambda m: text in m.content)
+        await ctx.can_delete(embed=await self.do_affected(ctx, purged))
 
-        def pmatch(m):
-            return text in m.content
+    @purge.command(aliases=["sw", "starts"])
+    @core.has_permissions(manage_messages=True)
+    @core.bot_has_permissions(manage_messages=True)
+    async def startswith(self, ctx: AvimetryContext, *, text):
+        """
+        Purge messages starting with text.
 
-        await ctx.channel.purge(limit=amount, check=pmatch)
-        purgematch = discord.Embed()
-        purgematch.add_field(
-            name="<:yesTick:777096731438874634> Purge Match",
-            value=f"Purged {amount} messages containing {text}.",
-        )
+        This removes up to 100 messages.
+        """
+        purged = await ctx.channel.purge(limit=100, check=lambda m: m.content.startswith(text))
+        await ctx.can_delete(embed=await self.do_affected(ctx, purged))
+
+    @purge.command(aliases=["ew", "ends"])
+    @core.has_permissions(manage_messages=True)
+    @core.bot_has_permissions(manage_messages=True)
+    async def endswith(self, ctx: AvimetryContext, *, text):
+        """
+        Purge messages ending with with text.
+
+        This removes up to 100 messages.
+        """
+        purged = await ctx.channel.purge(limit=100, check=lambda m: m.content.endswith(text))
+        await ctx.can_delete(embed=await self.do_affected(ctx, purged))
 
     @core.command(usage="[amount]")
     @core.has_permissions(manage_messages=True)
@@ -254,23 +284,7 @@ class Moderation(commands.Cog):
             return message.content.startswith(prefixes) or message.author == self.bot.user
 
         purged = await ctx.channel.purge(limit=amount, check=check, before=ctx.message)
-
-        authors = {}
-        for message in purged:
-            if message.author not in authors:
-                authors[message.author] = 1
-            else:
-                authors[message.author] += 1
-        await asyncio.sleep(0.1)
-        msg = "\n".join(
-            f"{author.mention}: {amount} {'message' if amount == 1 else 'messages'}"
-            for author, amount in authors.items()
-        )
-
-        pe = discord.Embed(
-            title="Affected Messages",
-            description=f"{msg}")
-        await ctx.can_delete(embed=pe)
+        await ctx.delete(self.do_affected(ctx, purged))
 
     @core.command(usage="<channel> [reason]")
     @core.has_permissions(manage_channels=True)
