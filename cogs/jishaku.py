@@ -88,6 +88,16 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         command = self.bot.get_command("dev sync")
         await command(ctx)
 
+    @Feature.Command(parent="jsk", name="battery")
+    async def jsk_battery(self, ctx: AvimetryContext):
+        """
+        Shows the system battery.
+        """
+        battery = psutil.sensors_battery()
+        plugged = battery.power_plugged
+        percent = str(battery.percent)
+        await ctx.send(f"System battery is at {percent}% and {'Plugged in' if plugged else 'Unplugged'}")
+
     @Feature.Command(name="jishaku", aliases=["jsk"], hidden=Flags.HIDE,
                      invoke_without_command=True, ignore_extra=False)
     async def jsk(self, ctx: AvimetryContext):
