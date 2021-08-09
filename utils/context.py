@@ -112,7 +112,10 @@ class AvimetryContext(commands.Context):
             message = self.bot.command_cache[self.message.id]
             await message.edit(content=content, embed=embed, mention_author=False, file=None, files=None)
         else:
-            message = await self.reply(content=content, embed=embed, mention_author=False, **kwargs)
+            try:
+                message = await self.reply(content=content, embed=embed, mention_author=False, **kwargs)
+            except discord.HTTPException:
+                message = await super().send(content=content, embed=embed, mention_author=False, **kwargs)
         self.bot.command_cache[self.message.id] = message
         return message
 
