@@ -35,7 +35,7 @@ class Fun(commands.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-        self.load_time = datetime.datetime.now()
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self._cd = commands.CooldownMapping.from_cooldown(1.0, 60.0, commands.BucketType.user)
 
     async def do_mock(self, string: str):

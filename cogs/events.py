@@ -31,7 +31,7 @@ TOKEN_REGEX = r'[a-zA-Z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27}'
 class BotLogs(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-        self.load_time = datetime.datetime.now()
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.clear_cache.start()
         self.gist = Gist(self.bot, self.bot.session)
 

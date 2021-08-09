@@ -28,7 +28,7 @@ from utils import AvimetryContext, AvimetryBot
 class Setup(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-        self.load_time = datetime.datetime.now()
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.webhooks = self.bot.settings["webhooks"]
         self.guild_webhook = discord.Webhook.from_url(
             self.webhooks["join_log"],

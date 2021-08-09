@@ -36,7 +36,7 @@ class Image(commands.Cog, name="Images"):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-        self.load_time = datetime.datetime.now()
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     async def do_dagpi(self, ctx: AvimetryContext, feature: ImageFeatures, argument, gif: bool = False):
         converter = GetAvatar()

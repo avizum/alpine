@@ -18,15 +18,83 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import datetime
-import akinator
 import typing
 import asyncio
 import random
 
 from akinator.async_aki import Akinator
-from discord.ext import commands
+from akinator import CantGoBackAnyFurther
+from discord.ext import commands, menus
 from utils import AvimetryContext, AvimetryBot, Timer
 from utils import core
+
+
+class AkinatorMenu(menus.Menu):
+    def __init__(self, timeout=20, *, ctx, akiclient, embed):
+        super().__init__(timeout=timeout, clear_reactions_after=True)
+        self.ctx = ctx
+        self.akiclient = akiclient
+        self.embed = embed
+        self.ended = False
+
+    async def send_initial_message(self, ctx, channel):
+        return await ctx.send(embed=self.embed)
+
+    async def answer(self, answer):
+        if answer == 'back':
+            try:
+                next = await self.akiclient.back()
+                self.embed.description = f'{self.akiclient.step+1}. {next}'
+                await self.message.edit(embed=self.embed)
+            except CantGoBackAnyFurther:
+                pass
+        elif self.akiclient.progression <= 80:
+            next = await self.akiclient.answer(answer)
+            self.embed.description = f'{self.akiclient.step+1}. {next}'
+            self.embed.set_footer(text=f"{self.akiclient.progression:,.2f}%")
+            await self.message.edit(embed=self.embed)
+        else:
+            await self.akiclient.win()
+            client = self.akiclient
+            embed = discord.Embed(
+                title='Akinator',
+                description=(
+                    f'Are you thinking of {client.first_guess["name"]} ({client.first_guess["description"]})?\n'
+                )
+            )
+            embed.set_image(url=client.first_guess["absolute_picture_path"])
+            await self.message.edit(embed=embed)
+
+    @menus.button("<:greentick:777096731438874634>")
+    async def yes(self, payload):
+        await self.answer('yes')
+
+    @menus.button("<:redtick:777096756865269760>")
+    async def no(self, payload):
+        await self.answer('no')
+
+    @menus.button("\U0001f937")
+    async def idk(self, payload):
+        await self.answer('idk')
+
+    @menus.button("\U0001f914")
+    async def proabably(self, payload):
+        await self.answer('probably')
+
+    @menus.button("\U0001f614")
+    async def proabably_not(self, payload):
+        await self.answer('probably not')
+
+    @menus.button("<:Back:815854941083664454>")
+    async def back(self, payload):
+        await self.answer('back')
+
+    @menus.button("<:Stop:815859174667452426>")
+    async def stop(self, payload):
+        await self.akiclient.win()
+        await self.akiclient.close()
+        await self.message.edit("Game stopped.", embed=None)
+        await super().stop(payload)
 
 
 class Games(commands.Cog):
@@ -35,7 +103,7 @@ class Games(commands.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-        self.load_time = datetime.datetime.now()
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     @core.command(aliases=["\U0001F36A", "vookir", "kookie"])
     @commands.cooldown(5, 10, commands.BucketType.member)
@@ -120,127 +188,13 @@ class Games(commands.Cog):
         This command has a high cooldown because a lot of reactions can cause ratelimits.
         Discord can be thanked for this.
         """
-        ended = False
-        bot_perm = ctx.me.permissions_in(ctx.channel)
-        perms = True if bot_perm.manage_messages is True else False
-        aki_dict = {
-            "<:greentick:777096731438874634>": "yes",
-            "<:redtick:777096756865269760>": "no",
-            "\U0001f937": "idk",
-            "\U0001f914": "probably",
-            "\U0001f614": "probably not",
-            "<:Back:815854941083664454>": "back",
-            "<:Stop:815859174667452426>": "stop"
-        }
-        aki_react = list(aki_dict)
         aki_client = Akinator()
-        akinator_embed = discord.Embed(
-            title="Akinator",
-            description="Starting Game..."
-        )
         async with ctx.channel.typing():
-            initial_messsage = await ctx.send(embed=akinator_embed)
-            for reaction in aki_react:
-                await initial_messsage.add_reaction(reaction)
-            game = await aki_client.start_game(mode)
-
-        while aki_client.progression <= 80:
-            akinator_embed.description = game
-            await initial_messsage.edit(embed=akinator_embed)
-
-            def check(reaction, user):
-                return (
-                    reaction.message.id == initial_messsage.id and
-                    str(reaction.emoji) in aki_react and
-                    user == ctx.author and
-                    user != self.bot.user
-                )
-
-            done, pending = await asyncio.wait([
-                self.bot.wait_for("reaction_remove", check=check, timeout=20),
-                self.bot.wait_for("reaction_add", check=check, timeout=20)
-            ], return_when=asyncio.FIRST_COMPLETED)
-
-            try:
-                reaction, user = done.pop().result()
-
-            except asyncio.TimeoutError:
-                await self.clear(initial_messsage, perms)
-                akinator_embed.description = (
-                    "Akinator session closed because you took too long to answer."
-                )
-                ended = True
-
-                await initial_messsage.edit(embed=akinator_embed)
-                break
-            else:
-                ans = aki_dict[str(reaction.emoji)]
-                if ans == "stop":
-                    ended = True
-                    akinator_embed.description = "Akinator session stopped."
-                    await initial_messsage.edit(embed=akinator_embed)
-                    await self.clear(initial_messsage, perms)
-                    break
-                elif ans == "back":
-                    try:
-                        game = await aki_client.back()
-                    except akinator.CantGoBackAnyFurther:
-                        pass
-                else:
-                    answer = ans
-
-            finally:
-                for future in done:
-                    future.exception()
-                for future in pending:
-                    future.cancel()
-
-            await self.remove(initial_messsage, reaction.emoji, user, perms)
-            game = await aki_client.answer(answer)
-        try:
-            await initial_messsage.clear_reactions()
-        except discord.Forbidden:
-            if ended:
-                return
-            await initial_messsage.delete()
-            initial_messsage = await ctx.send("...")
-        if ended:
-            return
-        await aki_client.win()
-
-        akinator_embed.description = (
-            f"I think it is {aki_client.first_guess['name']} ({aki_client.first_guess['description']})! Was I correct?"
-        )
-        akinator_embed.set_image(url=f"{aki_client.first_guess['absolute_picture_path']}")
-        await initial_messsage.edit(embed=akinator_embed)
-        reactions = ["<:greentick:777096731438874634>", "<:redtick:777096756865269760>"]
-        for reaction in reactions:
-            await initial_messsage.add_reaction(reaction)
-
-        def yes_no_check(reaction, user):
-            return (
-                reaction.message.id == initial_messsage.id and
-                str(reaction.emoji) in ["<:greentick:777096731438874634>", "<:redtick:777096756865269760>"] and
-                user != self.bot.user and
-                user == ctx.author
-            )
-        try:
-            reaction, user = await self.bot.wait_for(
-                "reaction_add", check=yes_no_check, timeout=60
-            )
-        except asyncio.TimeoutError:
-            await self.clear(initial_messsage, perms)
-        else:
-            await self.clear(initial_messsage, perms)
-            if str(reaction.emoji) == "<:greentick:777096731438874634>":
-                akinator_embed.description = (
-                    f"{akinator_embed.description}\n\n------\n\nYay!"
-                )
-            if str(reaction.emoji) == "<:redtick:777096756865269760>":
-                akinator_embed.description = (
-                    f"{akinator_embed.description}\n\n------\n\nAww, maybe next time."
-                )
-            await initial_messsage.edit(embed=akinator_embed)
+            game = await aki_client.start_game()
+            embed = discord.Embed(title='Akinator', description=f'{aki_client.step+1}. {game}')
+            embed.set_footer(text=f"{aki_client.progression:,.2f}%")
+        menu = AkinatorMenu(ctx=ctx, akiclient=aki_client, embed=embed)
+        await menu.start(ctx)
 
     @core.command(name="10s")
     @core.bot_has_permissions(add_reactions=True)

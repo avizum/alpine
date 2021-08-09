@@ -77,7 +77,7 @@ class Servers(commands.Cog, name="Servers"):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-        self.load_time = datetime.datetime.now()
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.update_count.start()
         self.guild_id = [751490725555994716, 814206001451761664]
         self.joins_and_leaves = 751967006701387827

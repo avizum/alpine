@@ -31,7 +31,7 @@ class Settings(commands.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-        self.load_time = datetime.datetime.now()
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.map = {
             True: "Enabled",
             False: "Disabled",

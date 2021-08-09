@@ -37,7 +37,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-        self.load_time = datetime.datetime.now()
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.request_wh = discord.Webhook.from_url(
             self.bot.settings["webhooks"]["request_log"],
             adapter=discord.AsyncWebhookAdapter(self.bot.session)

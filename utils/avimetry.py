@@ -199,7 +199,7 @@ class AvimetryBot(commands.Bot):
         self.obsidian = await obsidian.initiate_node(self)
 
     async def on_ready(self):
-        timenow = datetime.datetime.now().strftime("%I:%M %p")
+        timenow = datetime.datetime.now(datetime.timezone.utc).strftime("%I:%M %p")
         print(
             "Successfully logged in:\n"
             f"Username: {self.user.name}\n"
@@ -281,7 +281,7 @@ class AvimetryBot(commands.Bot):
         await self.dagpi.close()
         await self.topgg.close()
         await super().close()
-        timenow = datetime.datetime.now().strftime("%I:%M %p")
+        timenow = datetime.datetime.now(datetime.timezone.utc).strftime("%I:%M %p")
         print(
             f"\n{self.user.name} logged out:\n"
             f"Logged out time: {datetime.date.today()} at {timenow}",

@@ -284,18 +284,19 @@ class HelpCommand(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.default = bot.help_command
         self.bot = bot
-        self.load_time = datetime.datetime.now()
-        self.bot.help_command = AvimetryHelp(
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
+        help_command = AvimetryHelp(
             verify_checks=False,
             show_hidden=False,
             command_attrs=dict(
                 hidden=True,
                 aliases=["halp", "helps", "hlp", "hlep", "hep"],
-                brief="Why do you need help with the help command?",
                 usage="[command|module]",
                 checks=[core.bot_has_permissions(add_reactions=True).predicate]
             )
         )
+        help_command.cog = self
+        self.bot.help_command = help_command
 
     def cog_unload(self):
         self.bot.help_command = self.default

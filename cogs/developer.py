@@ -35,7 +35,7 @@ class Owner(commands.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-        self.load_time = datetime.datetime.now()
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     def cleanup_code(self, content):
         if content.startswith('```') and content.endswith('```'):

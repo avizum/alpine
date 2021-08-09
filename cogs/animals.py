@@ -32,7 +32,7 @@ class Animals(commands.Cog):
         Get images of animals.
         """
         self.bot = bot
-        self.load_time = datetime.datetime.now()
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     async def do_animal(self, ctx: AvimetryContext, animal: str):
         async with ctx.channel.typing():

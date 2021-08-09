@@ -57,7 +57,7 @@ class Meta(commands.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-        self.load_time = datetime.datetime.now()
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.scraper = AsyncScraper(self.bot.loop, self.bot.session)
 
     @core.command()

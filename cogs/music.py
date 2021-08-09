@@ -38,7 +38,7 @@ class AvimetryPlayer(obsidian.PresetPlayer):
 class Music(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-        self.load_time = datetime.datetime.now()
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     async def cog_check(self, ctx):
         if await self.bot.is_owner(ctx.author):

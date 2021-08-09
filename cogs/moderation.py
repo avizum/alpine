@@ -43,7 +43,7 @@ class Moderation(commands.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-        self.load_time = datetime.datetime.now()
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     @core.command(usage="<member> [reason]")
     @core.has_permissions(kick_members=True)
