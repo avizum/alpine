@@ -120,6 +120,24 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=embed)
 
     @core.command()
+    async def commits(self, ctx: AvimetryContext):
+        """
+        Gets the recent commits.
+
+        This shows the recent commits on the Avimetry repo.
+        You can contribute on the repo.
+        """
+        async with self.bot.session.get("https://api.github.com/repos/avimetry/avimetry/commits") as resp:
+            items = await resp.json()
+        try:
+            commit_list = [f"[`{cm['sha'][:7]}`]({cm['html_url']}) {cm['commit']['message']}" for cm in items[:10]]
+        except KeyError:
+            return await ctx.send("An error occured while trying to get the commits. Try again later.")
+        embed = discord.Embed(title="Recent commits", description="\n".join(commit_list))
+        embed.set_footer(text="Contribute to Avimetry by doing magic.")
+        await ctx.send(embed=embed)
+
+    @core.command()
     async def uptime(self, ctx: AvimetryContext):
         """
         Check how long the bot has been up for.
