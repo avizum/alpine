@@ -94,7 +94,7 @@ class AvimetryContext(commands.Context):
                 color = discord.Color(0x2F3136)
         return color
 
-    async def send(self, content: str = None, embed: discord.Embed = None, edit: bool = True, **kwargs):
+    async def send(self, content: str = None, embed: discord.Embed = None, **kwargs):
         if content:
             content = str(content)
             for token in self.tokens:
@@ -108,7 +108,7 @@ class AvimetryContext(commands.Context):
                 embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
             if not embed.color:
                 embed.color = await self.determine_color()
-        if self.message.id in self.bot.command_cache and not kwargs.get('file') and edit:
+        if self.message.id in self.bot.command_cache and not kwargs.get('file') and self.message.edited_at:
             message = self.bot.command_cache[self.message.id]
             await message.edit(content=content, embed=embed, mention_author=False, file=None, files=None)
         else:
