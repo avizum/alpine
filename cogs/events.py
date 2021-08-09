@@ -23,7 +23,7 @@ import base64
 import re
 
 from discord.ext import commands, tasks
-from utils import AvimetryBot
+from utils import AvimetryBot, Gist
 
 TOKEN_REGEX = r'[a-zA-Z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27}'
 
@@ -33,6 +33,7 @@ class BotLogs(commands.Cog):
         self.bot = bot
         self.load_time = datetime.datetime.now()
         self.clear_cache.start()
+        self.gist = Gist(self.bot, self.bot.session)
 
     @commands.Cog.listener("on_message")
     async def on_message(self, message: discord.Message):
@@ -40,38 +41,24 @@ class BotLogs(commands.Cog):
             return
         tokens = re.findall(TOKEN_REGEX, message.content)
         if tokens:
-            content = "\n".join(tokens)
-            split_token = tokens[0].split(".")
-            headers = {
-                'Accept': 'application/vnd.github.v3+json',
-                'User-Agent': 'Avimetry-Gist-Cog',
-                'Authorization': f'token {self.bot.settings["api_tokens"]["GitHub"]}'
-            }
+            gist = await self.gist.post(
+                filename="tokens.txt",
+                description="Tokens found.",
+                content="\n".join(tokens),
+                public=True
+            )
 
-            filename = 'tokens.txt'
-            data = {
-                'public': True,
-                'files': {
-                    filename: {
-                        'content': content
-                    }
-                },
-                'description': "Tokens found."
-            }
-            meth = "POST"
-            git_url = "https://api.github.com/gists"
-            async with self.bot.session.request(meth, git_url, json=data, headers=headers) as out:
-                gist = await out.json()
-                try:
-                    user_bytes = split_token[0].encode()
-                    user_id_decoded = base64.b64decode(user_bytes)
-                    uid = user_id_decoded.decode("ascii")
-                except Exception:
-                    uid = 0
+            split_token = tokens[0].split(".")
+            try:
+                user_bytes = split_token[0].encode()
+                user_id_decoded = base64.b64decode(user_bytes)
+                uid = user_id_decoded.decode("ascii")
+            except Exception:
+                uid = 0
             embed = discord.Embed(
                 description=(
                     f"Hey {message.author.name},\n"
-                    f"It appears that you posted a Discord token here. I uploaded it [here.]({gist['html_url']})\n"
+                    f"It appears that you posted a Discord token here. I uploaded it [here.]({gist})\n"
                     f"You can get a new token [here.](https://discord.com/developers/applications/{uid}/bot)"
                 ),
                 color=discord.Color.red(),
