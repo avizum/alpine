@@ -219,7 +219,7 @@ class AvimetryHelp(commands.HelpCommand):
         filtered = await self.filter_commands(cog.get_commands(), sort=False)
         if not filtered:
             return
-        menu = AvimetryPages(CogHelp(self.context, filtered, cog))
+        menu = AvimetryPages(CogHelp(self.context, filtered, cog, self))
         await menu.start(self.context)
 
     async def send_group_help(self, group):

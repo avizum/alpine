@@ -399,10 +399,6 @@ class Fun(commands.Cog):
             file = discord.File(buffer, f"{ctx.author.name}-tts.mp3")
         await ctx.send(file=file)
 
-    @core.command(user_permissions='manage_messages')
-    async def aaa(self, ctx: AvimetryContext):
-        await ctx.send('a')
-
 
 def setup(bot):
     bot.add_cog(Fun(bot))
