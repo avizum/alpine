@@ -64,10 +64,11 @@ class MainHelp(menus.ListPageSource):
 
 
 class CogHelp(menus.ListPageSource):
-    def __init__(self, ctx: AvimetryContext, commands, cog: commands.Cog):
+    def __init__(self, ctx: AvimetryContext, commands, cog: commands.Cog, help_command: "AvimetryHelp"):
         super().__init__(entries=commands, per_page=4)
         self.ctx = ctx
         self.cog = cog
+        self.help_command = help_command
 
     async def format_page(self, menu, commands):
         embed = discord.Embed(
@@ -76,9 +77,6 @@ class CogHelp(menus.ListPageSource):
             color=await self.ctx.determine_color()
         )
         embed.set_thumbnail(url=self.ctx.bot.user.avatar_url)
-        embed.set_footer(
-            text=f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.cog.get_commands())} Commands)"
-        )
         thing = [
             f"{command.name} - {command.short_doc or 'No help provided'}"
             for command in commands
@@ -88,6 +86,14 @@ class CogHelp(menus.ListPageSource):
             name=f"Commands in {self.cog.qualified_name.title()}",
             value="\n".join(thing) or 'error'
         )
+        if self.get_max_pages() != 1:
+            embed.set_footer(
+                text=f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.cog.get_commands())} Commands)"
+            )
+        else:
+            embed.set_footer(
+                text=self.help_command.ending_note()
+            )
         return embed
 
 
@@ -129,9 +135,6 @@ class GroupHelp(menus.ListPageSource):
                 inline=False)
 
         embed.set_thumbnail(url=self.ctx.bot.user.avatar_url)
-        embed.set_footer(
-            text=f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.group.commands)} Commands)"
-        )
         thing = [
             f"{command.name} - {command.short_doc or 'No help provided'}"
             for command in commands
@@ -142,6 +145,12 @@ class GroupHelp(menus.ListPageSource):
             value="\n".join(thing),
             inline=False
         )
+        if self.get_max_pages() != 1:
+            embed.set_footer(
+                text=f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.group.commands)} Commands)"
+            )
+        else:
+            embed.set_footer(text=self.hc.ending_note())
         return embed
 
 
@@ -175,7 +184,7 @@ class AvimetryHelp(commands.HelpCommand):
             return None
 
     def ending_note(self):
-        return f"Use {self.context.clean_prefix}{self.invoked_with} [command|module]"
+        return f"Use {self.context.clean_prefix}{self.invoked_with} [command|module] for more help."
 
     def command_signature(self):
         return (
