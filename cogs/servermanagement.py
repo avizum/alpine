@@ -33,12 +33,10 @@ class ServerManagement(commands.Cog, name="Server Management"):
         self.bot = bot
         self.load_time = datetime.datetime.now()
 
-    @core.command(
-        aliases=["members", "mc"]
-    )
+    @core.group(aliases=["members", "mc"])
     async def membercount(self, ctx: AvimetryContext):
         """
-        Show the member count
+        Show the member count.
         """
         tmc = len([m for m in ctx.guild.members if not m.bot])
         tbc = len([m for m in ctx.guild.members if m.bot])
@@ -49,12 +47,26 @@ class ServerManagement(commands.Cog, name="Server Management"):
         mce.add_field(name="Total Members:", value=f"{amc} members", inline=False)
         await ctx.send(embed=mce)
 
+    @membercount.command()
+    async def role(self, ctx: AvimetryContext, role: discord.Role):
+        """
+        Show the members in a role.
+        """
+        tmc = sum(not m.bot for m in role.members)
+        tbc = sum(m.bot for m in role.members)
+        amc = ctx.guild.member_count
+        mce = discord.Embed(title=f"Members in role: {role}")
+        mce.add_field(name="Members:", value=f"{tmc} members", inline=False)
+        mce.add_field(name="Bots:", value=f"{tbc} bots", inline=False)
+        mce.add_field(name="Total Members:", value=f"{amc} members", inline=False)
+        await ctx.send(embed=mce)
+
     @core.group(invoke_without_command=True)
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
     async def channel(self, ctx):
         """
-        Manage channels in the server
+        Manage channels in the server.
 
         You can create channels,
         clone channels,
@@ -67,7 +79,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @core.bot_has_permissions(manage_channels=True)
     async def create(self, ctx: AvimetryContext):
         """
-        Create a channel.
+        Creates a channel.
 
         This command does nothing on it's own. Use the subcommands for full functionality.
         """
@@ -78,7 +90,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @core.bot_has_permissions(manage_channels=True)
     async def text_channel(self, ctx: AvimetryContext, name):
         """
-        Create a text chanel.
+        Creates a text chanel.
 
         This doesn't set any permissions, This may be added soon.
         """
@@ -97,7 +109,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @core.bot_has_permissions(manage_channels=True)
     async def category(self, ctx: AvimetryContext, name):
         """
-        Create a category
+        Creates a category.
 
         This doesn't set any permissions, This may be added soon.
         """
@@ -112,7 +124,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
                                                                discord.VoiceChannel,
                                                                discord.StageChannel]):
         """
-        Clone a channel.
+        Clones a channel.
 
         This clones the channel with all the permissions.
         """
