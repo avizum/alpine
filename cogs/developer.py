@@ -277,20 +277,6 @@ class Owner(commands.Cog):
         await ctx.send(f"Maintenance mode has been {match[toggle]}")
 
     @developer.command()
-    async def debug(self, ctx: AvimetryContext, toggle: bool):
-        """
-        Enables debug mode.
-
-        When maintenance mode is enabled, All command errors (made by owner) will not be logged.
-        """
-        match = {
-            True: "enabled",
-            False: "disabled"
-        }
-        self.bot.debug = toggle
-        await ctx.send(f"Debug mode has been {match[toggle]}")
-
-    @developer.command()
     async def cogs(self, ctx: AvimetryContext, cog: str = None):
         """
         Shows all the loaded cogs and how long ago they were loaded.

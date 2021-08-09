@@ -113,7 +113,6 @@ class AvimetryBot(commands.Bot):
         self.core = core
         self.launch_time = datetime.datetime.now(datetime.timezone.utc)
         self.maintenance = False
-        self.debug = False
         self.commands_ran = 0
         self.command_usage = {}
         self.command_cache = {}
