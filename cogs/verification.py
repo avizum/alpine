@@ -31,6 +31,7 @@ class MemberJoin(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
+        self.messages = {}
 
     async def do_verify(self, member):
         prefix = await self.bot.cache.get_guild_settings(member.guild.id)
@@ -38,29 +39,17 @@ class MemberJoin(commands.Cog):
         pre = prefixes[0] if prefixes else 'a.'
 
         config = self.bot.cache.verification.get(member.guild.id)
+        role = config.get("role_id")
+        high = config.get("high")
 
-        if not config:
+        if not config or not role or not high:
             return
 
         if config["high"] is True:
             if config["role_id"] is None:
                 return
-            name = "New Members"
-            category = discord.utils.get(member.guild.categories, name=name)
-            overwrites = {
-                member.guild.default_role: discord.PermissionOverwrite(read_messages=False),
-                member: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True),
-            }
-            await member.guild.create_text_channel(
-                f"{member.name.lower().replace(' ', '-')}-verification",
-                category=category,
-                reason=f"Started Verification for {member.name}",
-                overwrites=overwrites,
-            )
 
-            channel = discord.utils.get(
-                member.guild.channels, name=f"{member.name.lower().replace(' ', '-')}-verification",
-            )
+            channel = member.guild.get_channel(config.get("channel_id"))
             x = discord.Embed(
                 title=f"Welcome to **{member.guild.name}**!",
                 description=(
@@ -70,12 +59,11 @@ class MemberJoin(commands.Cog):
                 timestamp=datetime.datetime.now(datetime.timezone.utc),
                 color=discord.Color.green()
             )
-            await channel.send(
+            message = await channel.send(
                 f"{member.mention}", embed=x,
-                allowed_mentions=discord.AllowedMentions(
-                    users=True
-                ),
+                allowed_mentions=discord.AllowedMentions(users=True)
             )
+            self.messages[member.id] = message
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
@@ -84,48 +72,39 @@ class MemberJoin(commands.Cog):
         if member.pending:
             return
         await self.do_verify(member)
+    
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: discord.Member):
+        message = self.messages.get(member.id)
+        if message:
+            await message.delete()
 
     @commands.Cog.listener()
     async def on_member_update(self, before: discord.Member, after: discord.Member):
         if before.pending is True and after.pending is False:
             await self.do_verify(after)
 
-    @commands.Cog.listener()
-    async def on_member_remove(self, member):
-        dchnl = discord.utils.get(member.guild.channels, name=f"{member.name.lower().replace(' ', '-')}-verification")
-        if dchnl in member.guild.channels:
-            await dchnl.delete(reason=f"{member.name} left during verification")
-
-    @core.command(brief="Verify now!", hidden=True)
+    @core.command(hidden=True)
     async def verify(self, ctx: AvimetryContext):
+        """
+        Verify.
+
+        This command only works if the server has verification enabled.
+        """
         member = ctx.author
         config = self.bot.cache.verification.get(member.guild.id)
         if not config:
-            return await ctx.send("Please setup verification.")
-        role_id = ctx.guild.get_role(config["role_id"])
-
-        channel = discord.utils.get(
-            ctx.guild.channels,
-            name=f"{member.name.lower().replace(' ', '-')}-verification",
-        )
-
-        if not channel:
+            return
+        role = ctx.guild.get_role(config.get("role_id"))
+        channel = ctx.guild.get_channel(config.get("channel_id"))
+        if not role or not channel or role in member.roles:
             return
         letters = string.ascii_letters
         randomkey = "".join(random.choice(letters) for i in range(10))
 
         try:
-            rkey = discord.Embed()
-            rkey.add_field(
-                name="Here is your key. Your key will expire after 1 minute of inactivity.",
-                value=f"`{randomkey}`",
-            )
-            if member.is_on_mobile():
-                await member.send("**Here is your key. Your key will expire after 1 minute of inactivity.**")
-                await member.send(f"{randomkey}")
-            else:
-                await member.send(embed=rkey)
-
+            await member.send("**Here is your key. Your key will expire after 1 minute of inactivity.**")
+            await member.send(f"{randomkey}")
         except discord.Forbidden:
             keyforbidden = discord.Embed()
             keyforbidden.add_field(
@@ -134,12 +113,11 @@ class MemberJoin(commands.Cog):
             )
             return await ctx.send(embed=keyforbidden)
 
-        ksid = discord.Embed(
+        sent_dms = discord.Embed(
             title="I sent a key to your DMs",
             description="Please enter your key here to complete the verification process."
         )
-        await ctx.send(embed=ksid)
-        channel = ctx.channel
+        send_message = await ctx.send(embed=sent_dms)
 
         def check(m):
             return m.author == ctx.author and m.channel == channel
@@ -158,22 +136,13 @@ class MemberJoin(commands.Cog):
                 await ctx.author.send(embed=timeup)
                 break
             else:
+                await send_message.delete()
+                await self.messages[member.id].delete()
                 if msg.content != randomkey:
-                    await ctx.send("Wrong Key, Try again.")
+                    await msg.add_reaction(self.bot.emoji_dictionary["red_tick"])
                 else:
-                    verembed = discord.Embed(
-                        title="Verification complete!",
-                        description="Congratulations, you have been verified! Please wait while I update your roles...",
-                    )
-                    await ctx.send(embed=verembed)
-                    await member.add_roles(role_id)
-                    cnl = discord.utils.get(
-                        ctx.guild.channels, name=f"{member.name.lower().replace(' ', '-')}-verification",
-                    )
-                    try:
-                        await cnl.delete(reason=f"{member.name} finished verification")
-                    except Exception:
-                        pass
+                    await msg.add_reaction(self.bot.emoji_dictionary["green_tick"])
+                    await member.add_roles(role)
                     break
 
 
