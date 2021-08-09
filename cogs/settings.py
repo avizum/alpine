@@ -609,7 +609,7 @@ class Settings(commands.Cog):
         )
         await self.bot.pool.execute(query, ctx.guild.id, toggle)
         ctx.cache.verification[ctx.guild.id]["high"] = toggle
-        return await ctx.send(f"{self.map[toggle]} member screening")
+        return await ctx.send(f"{self.map[toggle]} member verification")
 
     @verification.command(name="role")
     @core.has_permissions(manage_guild=True)
@@ -629,7 +629,27 @@ class Settings(commands.Cog):
         )
         await self.bot.pool.execute(query, ctx.guild.id, role.id)
         ctx.cache.verification[ctx.guild.id]["role_id"] = role.id
-        return await ctx.send(f"Set screening role to `{role.mention}.`")
+        return await ctx.send(f"Set verification role to {role.mention}.")
+
+    @verification.command(name="channel")
+    @core.has_permissions(manage_guild=True)
+    async def verification_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
+        """
+        Set verification channel.
+
+        This channel will be used to send verification messages.
+        """
+        query = (
+            """
+            INSERT INTO VERIFICATION (guild_id, channel_id)
+            VALUES ($1, $2)
+            ON CONFLICT (guild_id) DO
+            UPDATE SET channel_id = $2
+            """
+        )
+        await self.bot.pool.execute(query, ctx.guild.id, channel.id)
+        ctx.cache.verification[ctx.guild.id]["channel_id"] = channel.id
+        return await ctx.send(f"Set verification channel to {channel.mention}")
 
     @core.group(invoke_without_command=True, case_insensitive=True)
     @commands.cooldown(1, 60, commands.BucketType.user)
