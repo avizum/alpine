@@ -284,7 +284,7 @@ class Moderation(commands.Cog):
             return message.content.startswith(prefixes) or message.author == self.bot.user
 
         purged = await ctx.channel.purge(limit=amount, check=check, before=ctx.message)
-        await ctx.delete(self.do_affected(ctx, purged))
+        await ctx.can_delete(embed=await self.do_affected(ctx, purged))
 
     @core.command(usage="<channel> [reason]")
     @core.has_permissions(manage_channels=True)
@@ -309,11 +309,7 @@ class Moderation(commands.Cog):
         )
         await channel.send(embed=lc)
 
-    @core.command(
-        brief="Unlocks the mentioned channel.",
-        usage="<channel> [reason]",
-        timestamp=datetime.datetime.now(datetime.timezone.utc),
-    )
+    @core.command(usage="<channel> [reason]")
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
     async def unlock(self, ctx: AvimetryContext, channel: discord.TextChannel, *, reason="No Reason Provided"):
