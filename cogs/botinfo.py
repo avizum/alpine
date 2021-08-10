@@ -33,7 +33,7 @@ from utils import core
 
 class BotInfo(commands.Cog, name="Bot Info"):
     """
-    Commands about the bot
+    Bot Information commands
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot

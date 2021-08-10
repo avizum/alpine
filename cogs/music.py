@@ -20,6 +20,7 @@ import discord
 import obsidian
 import datetime
 
+from obsidian import PresetPlayer
 from utils import core
 from discord.ext import commands
 from utils import AvimetryBot, AvimetryContext
@@ -52,7 +53,7 @@ class Music(commands.Cog):
                 return await ctx.send('You are not in a channel.')
             channel = ctx.author.voice.channel
 
-        player = ctx.bot.obsidian.get_player(ctx.guild, cls=AvimetryPlayer)
+        player = ctx.bot.obsidian.get_player(ctx.guild, cls=PresetPlayer)
         try:
             await player.connect(channel)
         except discord.HTTPException:
@@ -62,7 +63,7 @@ class Music(commands.Cog):
 
     @core.command()
     async def play(self, ctx: AvimetryContext, *, song: str):
-        player = ctx.bot.obsidian.get_player(ctx.guild, cls=AvimetryPlayer)
+        player = ctx.bot.obsidian.get_player(ctx.guild, cls=PresetPlayer)
         if not player.connected:
             join = ctx.bot.get_command('join')
             await join(ctx)
@@ -74,7 +75,9 @@ class Music(commands.Cog):
         if not track:
             return await ctx.send('No songs were found.')
 
-        await player.enqueue(track)
+        player.enqueue(track)
+        if not player.is_playing():
+            await player.do_next()
         if isinstance(track, obsidian.Track):
             await ctx.send(f'Added to queue: {track.title}')
         elif isinstance(track, obsidian.Playlist):
