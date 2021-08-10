@@ -54,11 +54,10 @@ class ServerManagement(commands.Cog, name="Server Management"):
         """
         tmc = sum(not m.bot for m in role.members)
         tbc = sum(m.bot for m in role.members)
-        amc = ctx.guild.member_count
         mce = discord.Embed(title=f"Members in role: {role}")
         mce.add_field(name="Members:", value=f"{tmc} members", inline=False)
         mce.add_field(name="Bots:", value=f"{tbc} bots", inline=False)
-        mce.add_field(name="Total Members:", value=f"{amc} members", inline=False)
+        mce.add_field(name="Members", value=", ".join(i.mention for i in role.members[:42]))
         await ctx.send(embed=mce)
 
     @core.group(invoke_without_command=True)
