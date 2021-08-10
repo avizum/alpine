@@ -29,6 +29,23 @@ from jishaku.codeblocks import codeblock_converter
 from utils import AvimetryBot, AvimetryContext, CogConverter
 
 
+class ErrorSource(menus.ListPageSource):
+    def __init__(self, ctx: AvimetryContext, errors, *, per_page=1):
+        super().__init__(entries=errors, per_page=per_page)
+        self.ctx = ctx
+
+    async def format_page(self, menu, page):
+        embed = discord.Embed(title=f"Errors ({self.get_max_pages()} errors)")
+        embed.add_field(
+            name=f"{page['command']} | `{page['id']}`",
+            value=f"```\n{page['error']}```",
+            inline=False
+        )
+        embed.set_footer(text=f"Page {menu.current_page+1}/{self.get_max_pages()}")
+        embed.color = await self.ctx.determine_color()
+        return embed
+
+
 class Owner(commands.Cog):
     """
     Commands for the bot developers.
@@ -72,6 +89,9 @@ class Owner(commands.Cog):
         """
         Load cogs.
         """
+        if module[0] in ["~", "*", "a", "all"]:
+            await ctx.send("Loaded all extensions.")
+            return await self.bot.load_extensions()
         load_list = []
         for cog in module:
             try:
@@ -293,33 +313,25 @@ class Owner(commands.Cog):
         """
         Show all the errors in the bot.
         """
-        class ErrorSource(menus.ListPageSource):
-            def __init__(self, ctx: AvimetryContext, errors):
-                super().__init__(entries=errors, per_page=1)
-                self.ctx = ctx
-
-            async def format_page(self, menu, page):
-                embed = discord.Embed(title=f"Errors ({self.get_max_pages()} errors)")
-                embed.add_field(
-                    name=f"{page['command']} | `{page['id']}`",
-                    value=f"```\n{page['error']}```"
-                )
-                embed.set_footer(text=f"Page {menu.current_page+1}/{self.get_max_pages()}")
-                embed.color = await self.ctx.determine_color()
-                return embed
         errors = await self.bot.pool.fetch('SELECT * FROM command_errors WHERE fixed = false')
-        embed = discord.Embed(title="Errors")
-        for error in errors:
-            embed.add_field(
-                name=f"{error['command']} | `{error['id']}`",
-                value=f"```py\n{error['error']}```", inline=False
-            )
+        if not errors:
+            embed = discord.Embed(title="Errors", description="No active errors have been found.")
+            return await ctx.send(embed=embed)
+        else:
             menu = AvimetryPages(ErrorSource(ctx, errors))
             return await menu.start(ctx)
+
+    @errors.command()
+    async def fixed(self, ctx: AvimetryContext):
+        """
+        Shows all fixed errors.
+        """
+        errors = await self.bot.pool.fetch('SELECT * FROM command_errors where fixed = true')
         if not errors:
-            embed.description = "No active errors have been found."
-            return await ctx.send(embed=embed)
-        await ctx.send(embed=embed)
+            return await ctx.send("An error occured while fetching errors.")
+        else:
+            menu = AvimetryPages(ErrorSource(ctx, errors, per_page=2))
+            return await menu.start(ctx)
 
     @errors.command()
     async def fix(self, ctx: AvimetryContext, *error_id: int):

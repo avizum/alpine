@@ -63,7 +63,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await command(ctx, module=module)
 
     @Feature.Command(parent="jsk", name="unload", aliases=["u"])
-    async def jsk_unload(self, ctx: AvimetryContext, module: CogConverter):
+    async def jsk_unload(self, ctx: AvimetryContext, *module: CogConverter):
         """
         Unload cogs.
         """
