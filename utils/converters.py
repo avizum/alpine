@@ -69,9 +69,9 @@ class TimeConverter(commands.Converter):
 
 
 class ModReason(commands.Converter):
-    async def convert(self, ctx, argument):
+    async def convert(self, ctx, argument=None):
         reason = f"{ctx.author}: {argument}"
-        if argument is None:
+        if not argument:
             reason = f"{ctx.author}: No reason was provided."
 
         if len(reason) > 512:

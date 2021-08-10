@@ -54,6 +54,7 @@ class Moderation(commands.Cog):
 
         You can not kick someone with a role higher than you or higher permissions.
         """
+        reason = reason or f"{ctx.author}: No reason provided"
         kick_embed = discord.Embed(
             title="Kicked Member",
             color=discord.Color.green()
@@ -71,6 +72,7 @@ class Moderation(commands.Cog):
 
         You can not kick people with a role higher than you or higher permissions.
         """
+        reason = reason or f"{ctx.author}: No reason provided"
         if not targets:
             return await ctx.send("One or more members can not be kick by you. Try again.")
         new_targets = ', '.join(str(i) for i in targets)
@@ -96,6 +98,7 @@ class Moderation(commands.Cog):
         This is like kicking them and deleting their messages.
         You can not kick someone with a role higher than you or higher permissions.
         """
+        reason = reason or f"{ctx.author}: No reason provided"
         soft_ban_embed = discord.Embed(
             title="Soft-Banned Member",
             description=f"**{member}** has been soft banned from the server.",
@@ -115,6 +118,7 @@ class Moderation(commands.Cog):
 
         You can not ban someone with a role higher than you or higher permissions.
         """
+        reason = reason or f"{ctx.author}: No reason provided"
         ban_embed = discord.Embed(
             title="Banned Member",
             color=discord.Color.green()
@@ -137,6 +141,7 @@ class Moderation(commands.Cog):
 
         You can not kick people with a role higher than you or higher permissions.
         """
+        reason = reason or f"{ctx.author}: No reason provided"
         if not targets:
             return await ctx.send("One or more members can not be banned by you. Try again.")
         new_targets = ', '.join(str(i) for i in targets)
@@ -160,6 +165,7 @@ class Moderation(commands.Cog):
 
         Anyone with permission to ban members can unban anyone.
         """
+        reason = reason or f"{ctx.author}: No reason provided"
         await ctx.guild.unban(member, reason=reason)
         unban_embed = discord.Embed(
             title="Unbanned Member",
@@ -178,6 +184,7 @@ class Moderation(commands.Cog):
         You can not mute someone with a role higher than you or higher permissions.
         This command mutes people indefinitely. For temporary mutes, use tempmute.
         """
+        reason = reason or f"{ctx.author}: No reason provided"
         role = await ctx.cache.get_guild_settings(ctx.guild.id)
         mute_role = ctx.guild.get_role(role["mute_role"])
         await member.add_roles(mute_role, reason=reason)

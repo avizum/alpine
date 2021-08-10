@@ -227,14 +227,14 @@ class Owner(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    @blacklist.command(
-        name="add",
-        aliases=["a"]
-    )
-    async def blacklist_add(self, ctx: AvimetryContext, user: discord.User, *, reason: ModReason):
+    @blacklist.command(name="add", aliases=["a"])
+    async def blacklist_add(self, ctx: AvimetryContext, user: discord.User, *, reason: ModReason = None):
         """
         Adds a user to the global blacklist.
         """
+        reason = reason or f"{ctx.author}: No reason provided, Ask in support server."
+        if user.id in self.bot.owner_ids:
+            return await ctx.send("Nope, won't do that.")
         try:
             ctx.cache.blacklist[user.id]
             return await ctx.send(f"{user} is already blacklisted.")
