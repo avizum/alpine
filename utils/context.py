@@ -94,7 +94,7 @@ class AvimetryContext(commands.Context):
                 color = discord.Color(0x2F3136)
         return color
 
-    async def send(self, content: str = None, embed: discord.Embed = None, **kwargs):
+    async def send(self, content: str = None, embed: discord.Embed = None, no_reply: bool = False, **kwargs):
         if content:
             content = str(content)
             for token in self.tokens:
@@ -113,7 +113,10 @@ class AvimetryContext(commands.Context):
             await message.edit(content=content, embed=embed, mention_author=False, file=None, files=None)
         else:
             try:
-                message = await self.reply(content=content, embed=embed, mention_author=False, **kwargs)
+                if no_reply:
+                    message = await super().send(content=content, embed=embed, mention_author=False, **kwargs)
+                else:
+                    message = await self.reply(content=content, embed=embed, mention_author=False, **kwargs)
             except discord.HTTPException:
                 message = await super().send(content=content, embed=embed, mention_author=False, **kwargs)
         self.bot.command_cache[self.message.id] = message
