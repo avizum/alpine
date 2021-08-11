@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-
 import datetime
 import discord
 import humanize
@@ -54,6 +53,9 @@ class ErrorHandler(commands.Cog):
         error = getattr(error, "original", error)
         if hasattr(ctx.command, 'on_error'):
             return
+        if ctx.cog and ctx.cog._get_overridden_method(ctx.cog.cog_command_error) is not None:
+            return
+
         reinvoke = (
             commands.CommandOnCooldown,
             commands.NoPrivateMessage,
