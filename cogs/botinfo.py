@@ -64,7 +64,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         embed = discord.Embed(title="Info about Avimetry")
         embed.add_field(
             name="Latest Updates",
-            value="Avimetry will not work in Threads yet. This will be fixed soon. Thank you!",
+            value=":tada: Music is now in the bot! Use `a.help music` to see the commands you can use. Enjoy!",
             inline=False
         )
         pid = psutil.Process(os.getpid())

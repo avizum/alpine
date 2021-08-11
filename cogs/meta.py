@@ -41,7 +41,6 @@ class RTFMPageSource(menus.ListPageSource):
 
     async def format_page(self, menu, page):
         embed = discord.Embed(
-            title=f"Results for \"{self.query}\"",
             description=(
                 "\n".join(f"[`{k.replace('discord.', '').replace('discord.ext.commands.', '')}`]({v})" for k, v in page)
             ),

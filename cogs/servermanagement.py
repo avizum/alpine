@@ -163,6 +163,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
         This creates an emoji with the same name.
         You can provide a reason.
         """
+        reason = reason or f"{ctx.author}: No reason provided"
         asset = await emoji.url.read()
         await ctx.guild.create_custom_emoji(name=emoji.name, image=asset, reason=reason)
 
@@ -175,6 +176,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
 
         Create a role with the name, color.
         """
+        reason = reason or f"{ctx.author}: No reason provided"
         await ctx.guild.create_role(name=name, color=color, reason=reason)
 
 

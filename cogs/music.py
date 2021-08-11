@@ -181,8 +181,9 @@ class PaginatorSource(menus.ListPageSource):
 
 
 class Music(commands.Cog, wavelink.WavelinkMixin):
-    """Music Cog."""
-
+    """
+    Music commands for music.
+    """
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
