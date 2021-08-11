@@ -25,10 +25,17 @@ from discord.ext import commands
 from utils import AvimetryContext, AvimetryBot
 
 
+class CooldownByContent(commands.CooldownMapping):
+    def _bucket_key(self, message):
+        return (message.channel.id, message.content)
+
+
 class Setup(commands.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
+        self.content_cd = CooldownByContent.from_cooldown(5.0, 20.0, commands.BucketType.user)
+        self.user_cd = commands.CooldownMapping.from_cooldown(10.0, 40, commands.BucketType.user)
         self.webhooks = self.bot.settings["webhooks"]
         self.guild_webhook = discord.Webhook.from_url(
             self.webhooks["join_log"],
@@ -60,6 +67,11 @@ class Setup(commands.Cog):
                     cache['dmed'] = True
             embed = discord.Embed(title=f"DM from {message.author}", description=message.content)
             embed.set_footer(text=message.author.id)
+            ts = message.created_at.timestamp()
+            content_bucket = self.content_cd.get_bucket(message)
+            user_bucket = self.user_cd.get_bucket(message)
+            if content_bucket.update_rate_limit(ts) or user_bucket.update_rate_limit(ts):
+                return
             await self.request_wh.send(embed=embed)
         try:
             if message.channel.id == 817093957322407956:

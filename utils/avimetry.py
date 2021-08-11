@@ -28,7 +28,7 @@ import re
 import asyncpg
 import asyncdagpi
 import logging
-import obsidian
+import wavelink
 
 from . import core
 from discord.ext import commands
@@ -150,7 +150,7 @@ class AvimetryBot(commands.Bot):
             "cogs.moderation",
             "cogs.servermanagement",
             "cogs.settings",
-            # "cogs.music",
+            "cogs.music",
             "cogs.supportserver",
             "cogs.topgg",
             "cogs.verification",
@@ -159,6 +159,7 @@ class AvimetryBot(commands.Bot):
             self.settings = toml.loads(token.read())
 
         api = self.settings["api_tokens"]
+        self.wavelink = wavelink.Client(bot=self)
         self.topgg = topgg.DBLClient(self, api["TopGG"], autopost_interval=None)
         self.sr = sr_api.Client()
         self.dagpi = asyncdagpi.Client(api["DagpiAPI"])
@@ -167,7 +168,7 @@ class AvimetryBot(commands.Bot):
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
         self.loop.create_task(self.load_extensions())
-        # self.loop.create_task(self.initiate_obsidian())
+        self.loop.create_task(self.start_nodes())
 
         @self.check
         async def check(ctx):
@@ -195,8 +196,25 @@ class AvimetryBot(commands.Bot):
             except commands.ExtensionError as error:
                 print(error)
 
-    async def initiate_obsidian(self):
-        self.obsidian = await obsidian.initiate_node(self)
+    async def start_nodes(self) -> None:
+        await self.wait_until_ready()
+
+        if self.wavelink.nodes:
+            previous = self.bot.wavelink.nodes.copy()
+
+            for node in previous.values():
+                await node.destroy()
+
+        nodes = {'MAIN': {'host': '0.0.0.0',
+                          'port': 2333,
+                          'rest_uri': 'http://0.0.0.0:2333',
+                          'password': 'youshallnotpass',
+                          'identifier': 'MAIN',
+                          'region': 'us_central'
+                          }}
+
+        for n in nodes.values():
+            await self.wavelink.initiate_node(**n)
 
     async def on_ready(self):
         timenow = datetime.datetime.now(datetime.timezone.utc).strftime("%I:%M %p")
