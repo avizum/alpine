@@ -75,6 +75,9 @@ class BotLogs(commands.Cog):
 
     @commands.Cog.listener("on_message_delete")
     async def logging_delete(self, message: discord.Message):
+        context = await self.bot.get_context(message)
+        if context.valid:
+            return
         if not message.guild:
             return
         data = self.bot.cache.logging.get(message.guild.id)
@@ -107,6 +110,9 @@ class BotLogs(commands.Cog):
 
     @commands.Cog.listener("on_message_edit")
     async def logging_edit(self, before: discord.Message, after: discord.Message):
+        context = await self.bot.get_context(after)
+        if context.valid:
+            return
         if before.guild is None and after.guild is None:
             return
         data = self.bot.cache.logging.get(before.guild.id)
