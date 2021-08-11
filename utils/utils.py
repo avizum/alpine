@@ -88,3 +88,25 @@ class Timer:
     @property
     def total_time(self):
         return self.end_time - self.start_time
+
+
+# The following code is not mine Thanks Axel :)
+# https://github.com/Axelancerr/Life/blob/508e1e9c5b02f56f76a53a2cfd9b521ddacdd8f3/Life/utilities/utils.py#L51-L64
+def format_seconds(seconds: float, *, friendly: bool = False) -> str:
+
+    seconds = round(seconds)
+
+    minute, second = divmod(seconds, 60)
+    hour, minute = divmod(minute, 60)
+    day, hour = divmod(hour, 24)
+
+    days, hours, minutes, seconds = round(day), round(hour), round(minute), round(second)
+
+    if friendly:
+        days = f"{days}d ' if not days == 0 else ''"
+        hours = f'{hours}h ' if not hours == 0 or days != 0 else ''
+        return f"{days}{hours}{minutes}m {seconds}s"
+
+    days = f'{days:02d}:' if days != 0 else ''
+    hours = f'{hours:02d}:' if hours != 0 or days != 0 else ''
+    return f"{days}{hours}{minutes:02d}:{seconds:02d}"
