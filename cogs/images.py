@@ -72,115 +72,298 @@ class Image(commands.Cog, name="Images"):
     @core.command(name="pixel")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_pixel(self, ctx: AvimetryContext, *, item=None):
+        """
+        Adds a pixel effect to an image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.pixel(), item, False)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="mirror", enabled=False)
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_mirror(self, ctx: AvimetryContext, *, item=None):
+        """
+        Flips your image along the y axis.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.mirror(), item, False)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="flip", enabled=False)
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_flip(self, ctx: AvimetryContext, item=None):
+        """
+        Flips an image.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.flip(), item, False)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="colors")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_colors(self, ctx: AvimetryContext, *, item=None):
+        """
+        Get the colors of an image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.colors(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="america")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_america(self, ctx: AvimetryContext, *, item=None):
+        """
+        Adds an American flag over the image
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.america(), item, True)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="communism")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_communism(self, ctx: AvimetryContext, *, item=None):
+        """
+        Adds a communism flag over an image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.communism(), item, True)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="triggered")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_triggered(self, ctx: AvimetryContext, *, item=None):
+        """
+        Adds a triggered filter over your image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.triggered(), item, True)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="expand", enabled=False)
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_expand(self, ctx: AvimetryContext, *, item=None):
+        """
+        Animation that stretches your image.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.expand(), item, True)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="wasted")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_wasted(self, ctx: AvimetryContext, *, item=None):
+        """
+        Adds a wasted filter over your image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.wasted(), item)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="sketch")
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_sketch(self, ctx: AvimetryContext, *, item=None):
+        """
+        "Sketches" an image.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.sketch(), item)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="spin")
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_spin(self, ctx: AvimetryContext, *, item=None):
+        """
+        Adds a spinning effect to your image.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.spin(), item, True)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="petpet")
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_petpet(self, ctx: AvimetryContext, *, item=None):
+        """
+        Yes. Petpet.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.petpet(), item, True)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="bonk")
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_bonk(self, ctx: AvimetryContext, *, item=None):
+        """
+        Get bonked.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.bonk(), item)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="bomb")
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_bomb(self, ctx: AvimetryContext, *, item=None):
+        """
+        Boom. Explosion. On your image.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.bomb(), item, True)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="dissolve")
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_dissolve(self, ctx: AvimetryContext, *, item=None):
+        """
+        Dissolve effect from PowerPoint.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.dissolve(), item, True)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="shake", enabled=False)
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_shake(self, ctx: AvimetryContext, *, item=None):
+        """
+        Shakes an image.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.shake(), item, True)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="invert")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_invert(self, ctx: AvimetryContext, *, item=None):
+        """
+        Inverts an image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.invert(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="sobel")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_sobel(self, ctx: AvimetryContext, *, item=None):
+        """
+        Adds a sobel filter over an image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.sobel(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="hog")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_hog(self, ctx: AvimetryContext, *, item=None):
+        """
+        Histogram of Oriented Gradients for an image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.hog(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="triangle")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_triangle(self, ctx: AvimetryContext, *, item=None):
+        """
+        Cool effect on your image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.triangle(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="blur")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_blur(self, ctx: AvimetryContext, *, item=None):
+        """
+        Adds a blury effect to your image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.blur(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="rgb")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_rgb(self, ctx: AvimetryContext, *, item=None):
+        """
+        Get a graph of colors.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.rgb(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="angel")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_angel(self, ctx: AvimetryContext, *, item=None):
+        """
+        Puts your image on an angel. How nice.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.angel(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="satan")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_satan(self, ctx: AvimetryContext, *, item=None):
+        """
+        Puts your image on an angel. How bad.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.satan(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="delete")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_delete(self, ctx: AvimetryContext, *, item=None):
+        """
+        Puts your image on a delete dialog.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.delete(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="fedora")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_fedora(self, ctx: AvimetryContext, *, item=None):
+        """
+        Perry the platypus!
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.fedora(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="hitler")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_hitler(self, ctx: AvimetryContext, *, item=None):
+        """
+        Hmm, What's this?
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.hitler(), item)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="lego", disabled=True)
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_lego(self, ctx: AvimetryContext, *, item=None):
+        """
+        Adds lego filter on your image.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.lego(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="wanted")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_wanted(self, ctx: AvimetryContext, *, item=None):
+        """
+        Overlay your image on a wanted poster.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.wanted(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="stringify")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_stringify(self, ctx: AvimetryContext, *, item=None):
+        """
+        Turn your image to a ball of yarn.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.stringify(), item)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="burn")
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_burn(self, ctx: AvimetryContext, *, item=None):
+        """
+        Burn an image.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.burn(), item)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="freeze")
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_freeze(self, ctx: AvimetryContext, *, item=None):
+        """
+        Ice on your image. Cold.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.freeze(), item)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="earth")
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_earth(self, ctx: AvimetryContext, *, item=None):
+        """
+        The green and blue of the earth.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.earth(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="mosaic")
@@ -193,6 +376,12 @@ class Image(commands.Cog, name="Images"):
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_sithlord(self, ctx: AvimetryContext, *, item=None):
         meth = await self.do_dagpi(ctx, ImageFeatures.sith(), item)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="shatter")
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_shatter(self, ctx: AvimetryContext, *, item=None):
+        meth = await self.do_dagpi(ctx, ImageFeatures.shatter(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="jail")
