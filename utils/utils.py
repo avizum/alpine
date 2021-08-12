@@ -103,10 +103,12 @@ def format_seconds(seconds: float, *, friendly: bool = False) -> str:
     days, hours, minutes, seconds = round(day), round(hour), round(minute), round(second)
 
     if friendly:
-        days = f"{days}d ' if not days == 0 else ''"
-        hours = f'{hours}h ' if not hours == 0 or days != 0 else ''
-        return f"{days}{hours}{minutes}m {seconds}s"
-
-    days = f'{days:02d}:' if days != 0 else ''
-    hours = f'{hours:02d}:' if hours != 0 or days != 0 else ''
-    return f"{days}{hours}{minutes:02d}:{seconds:02d}"
+        day = f'{days}d ' if days != 0 else ''
+        hour = f'{hours}h ' if hours != 0 or not days == 0 else ''
+        minsec = f'{minutes}m {seconds}s'
+        return f"{day}{hour}{minsec}"
+    else:
+        day = f'{days:02d}:' if days != 0 else ''
+        hour = f'{hours:02d}:' if hours != 0 or days != 0 else ''
+        minsec = f"{minutes:02d}:{seconds:02d}"
+    return f"{day}{hour}{minsec}"
