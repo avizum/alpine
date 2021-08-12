@@ -663,6 +663,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return await ctx.send("The queue is empty. You can't clear an empty queue.")
 
         if self.is_privileged(ctx):
+            await ctx.send("Cleared the queue.")
             return player.queue.clear()
 
         await ctx.send("Only the DJ can clear the queue.")

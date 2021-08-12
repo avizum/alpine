@@ -564,12 +564,10 @@ class Settings(commands.Cog):
                 conf = await ctx.confirm(f"{conf_message}\n=====\n{preview}", raw=True)
             if conf:
                 query = (
-                    """
-                    INSERT INTO join_leave (guild_id, leave_enabled, leave_message, leave_channel)
-                    VALUES ($1, $2, $3, $4)
-                    ON CONFLICT (guild_id) DO
-                    UPDATE SET guild_id = $1, leave_enabled = $2, leave_message = $3, leave_channel = $4
-                    """
+                    "INSERT INTO join_leave (guild_id, leave_enabled, leave_message, leave_channel) "
+                    "VALUES ($1, $2, $3, $4) "
+                    "ON CONFLICT (guild_id) DO "
+                    "UPDATE SET guild_id = $1, leave_enabled = $2, leave_message = $3, leave_channel = $4"
                 )
                 await self.bot.pool.execute(query, ctx.guild.id, True, message, channel.id)
                 ctx.cache.join_leave[ctx.guild.id]["leave_enabled"] = True
@@ -620,12 +618,10 @@ class Settings(commands.Cog):
         What role to use to give to members when they finish verification.
         """
         query = (
-            """
-            INSERT INTO VERIFICATION (guild_id, role_id)
-            VALUES ($1, $2)
-            ON CONFLICT (guild_id) DO
-            UPDATE SET role_id = $2
-            """
+            "INSERT INTO VERIFICATION (guild_id, role_id) "
+            "VALUES ($1, $2) "
+            "ON CONFLICT (guild_id) DO "
+            "UPDATE SET role_id = $2"
         )
         await self.bot.pool.execute(query, ctx.guild.id, role.id)
         ctx.cache.verification[ctx.guild.id]["role_id"] = role.id
@@ -640,12 +636,10 @@ class Settings(commands.Cog):
         This channel will be used to send verification messages.
         """
         query = (
-            """
-            INSERT INTO VERIFICATION (guild_id, channel_id)
-            VALUES ($1, $2)
-            ON CONFLICT (guild_id) DO
-            UPDATE SET channel_id = $2
-            """
+            "INSERT INTO VERIFICATION (guild_id, channel_id) "
+            "VALUES ($1, $2) "
+            "ON CONFLICT (guild_id) DO "
+            "UPDATE SET channel_id = $2"
         )
         await self.bot.pool.execute(query, ctx.guild.id, channel.id)
         ctx.cache.verification[ctx.guild.id]["channel_id"] = channel.id

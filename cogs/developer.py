@@ -351,7 +351,7 @@ class Owner(commands.Cog):
             else:
                 query = "UPDATE command_errors SET fixed=$1 WHERE id=$2"
                 await self.bot.pool.execute(query, True, i)
-                fix_list.append(f"Error #{i} has been marked as fixed.")
+                fix_list.append(f"Error ID {i} has been marked as fixed.")
         await ctx.send('\n'.join(fix_list))
 
 

@@ -384,7 +384,7 @@ class Meta(commands.Cog):
                 description=f"The JSON input raised an error:\n```bash\n{e}```")
             return await ctx.no_reply(embed=embed)
 
-    @core.command()
+    @core.command(enabled=False)
     async def redirectcheck(self, ctx: AvimetryContext, url: str):
         """
         Check what a URL leads to.
