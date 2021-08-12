@@ -41,17 +41,44 @@ class Queue(asyncio.Queue):
         super().__init__(maxsize=max_size)
         self._queue = collections.deque()
 
-    def add(self, track, append_left=False):
-        if append_left:
-            self._queue.appendleft(track)
-        else:
-            self._queue.append(track)
+    def _put(self, item, left=False):
+        meth = self._queue.appendleft if left is True else self._queue.append
+        meth(item)
 
     def remove(self, track):
         self._queue.remove(track)
 
     def clear(self):
         self._queue.clear()
+
+    async def put(self, item, left=False):
+        """Put an item into the queue.
+        Put an item into the queue. If the queue is full, wait until a free
+        slot is available before adding item.
+        """
+        while self.full():
+            putter = self._get_loop().create_future()
+            self._putters.append(putter)
+            try:
+                await putter
+            except Exception:
+                putter.cancel()
+                try:
+                    self._putters.remove(putter)
+                except ValueError:
+                    pass
+                if not self.full() and not putter.cancelled():
+                    self._wakeup_next(self._putters)
+                raise
+        return self.put_nowait(item, left=left)
+
+    def put_nowait(self, item, left=False) -> None:
+        if self.full():
+            raise asyncio.QueueFull
+        self._put(item, left=left)
+        self._unfinished_tasks += 1
+        self._finished.clear()
+        self._wakeup_next(self._getters)
 
     @property
     def up_next(self):
@@ -117,7 +144,6 @@ class Player(wavelink.Player):
         if self.is_playing or self.waiting:
             return
 
-        # Clear the votes for a new song...
         self.pause_votes.clear()
         self.resume_votes.clear()
         self.skip_votes.clear()
@@ -126,7 +152,7 @@ class Player(wavelink.Player):
 
         try:
             self.waiting = True
-            with async_timeout.timeout(300):
+            with async_timeout.timeout(120):
                 track = await self.queue.get()
         except asyncio.TimeoutError:
             return await self.teardown()
@@ -134,9 +160,9 @@ class Player(wavelink.Player):
         await self.play(track)
         self.waiting = False
 
-        await self.context.channel.send(embed=await self.build_embed())
+        await self.context.channel.send(embed=await self.build_now_playing())
 
-    async def build_embed(self, position=None) -> typing.Optional[discord.Embed]:
+    async def build_now_playing(self, position=None) -> typing.Optional[discord.Embed]:
         """
         Builds the "now playing" embed
         """
@@ -157,6 +183,17 @@ class Player(wavelink.Player):
             f'{time}'
             f"Requested by: {track.requester.mention} (`{track.requester}`)\n\n"
             f"Up next: {self.queue.up_next or 'Add more songs!'}"
+        )
+        embed.set_thumbnail(url=track.thumb)
+        return embed
+
+    async def build_added(self, track: Track) -> typing.Optional[discord.Embed]:
+        """
+        Builds the "added song to queue" embed.
+        """
+        embed = discord.Embed(title="Added to queue")
+        embed.description = (
+            f"Song: [{track.title}]({track.uri})"
         )
         embed.set_thumbnail(url=track.thumb)
         return embed
@@ -200,10 +237,14 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
     async def on_node_ready(self, node: wavelink.Node):
         print(f'Node {node.identifier} is ready!')
 
+    @wavelink.WavelinkMixin.listener('on_track_exception')
+    async def on_player_stop(self, node: wavelink.Node, payload: wavelink.events.TrackException):
+        player: Player = payload.player
+        await player.context.send(f"Error:{node.identifier}: {payload.error}")
+
     @wavelink.WavelinkMixin.listener('on_track_stuck')
     @wavelink.WavelinkMixin.listener('on_track_end')
-    @wavelink.WavelinkMixin.listener('on_track_exception')
-    async def on_player_stop(self, node: wavelink.Node, payload):
+    async def track_stuck(self, node: wavelink.Node, payload):
         await payload.player.do_next()
 
     @commands.Cog.listener("on_voice_state_update")
@@ -248,7 +289,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         player: Player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player, context=ctx)
 
         if player.context and player.context.channel != ctx.channel:
-            await ctx.send(f'{ctx.author.mention}, You need to use this in {player.context.channel.mention}.')
+            await ctx.send(f'{ctx.author.display_name}, you need to use this in {player.context.channel.mention}.')
 
         if ctx.command.name == 'connect' and not player.context:
             return
@@ -260,7 +301,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if player.is_connected and ctx.author not in channel.members:
-            await ctx.send(f'{ctx.author.mention}, You need to be in {channel.mention} to use this.')
+            await ctx.send(f'{ctx.author.display_name}, you need to be in {channel.mention} to use this.')
 
     def required(self, ctx: AvimetryContext):
         """Method which returns required votes based on amount of members in a channel."""
@@ -309,18 +350,25 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
         tracks = await self.bot.wavelink.get_tracks(query)
         if not tracks:
-            return await ctx.send('No songs were found with that query. Please try again.', delete_after=15)
+            return await ctx.send('No songs were found with that query. Please try again.')
 
         if isinstance(tracks, wavelink.TrackPlaylist):
             for track in tracks.tracks:
                 track = Track(track.id, track.info, requester=ctx.author)
-                player.queue.add(track)
+                await player.queue.put(track)
 
-            await ctx.send(f"Enqueued {tracks.data['playlistInfo']['name']} ({len(tracks.tracks)} tracks)")
+            embed = discord.Embed(
+                title="Enqueued playlist",
+                description=(
+                    f"Playlist {tracks.data['playlistInfo']['name']} with {len(tracks.tracks)} added to the queue."
+                )
+            )
+            embed.set_thumbnail(url=tracks.tracks[0].thumb)
+            await ctx.send(embed=embed)
         else:
             track = Track(tracks[0].id, tracks[0].info, requester=ctx.author)
-            await ctx.send(f"Enqueued {track.title}.")
-            player.queue.add(track)
+            await ctx.send(embed=await player.build_added(track))
+            await player.queue.put(track)
 
         if not player.is_playing:
             await player.do_next()
@@ -346,14 +394,14 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
             tracks = await self.bot.wavelink.get_tracks(query)
             if not tracks:
-                return await ctx.send('No songs found. Please try again.', delete_after=15)
+                return await ctx.send('No songs found. Please try again.')
 
             if isinstance(tracks, wavelink.TrackPlaylist):
                 return await ctx.send("Can't add a playlist to the top.")
             else:
                 track = Track(tracks[0].id, tracks[0].info, requester=ctx.author)
                 await ctx.send(f"Enqueued {track.title} to the top of the queue.")
-                player.queue.add(track, append_left=True)
+                await player.queue.put(track, left=True)
 
             if not player.is_playing:
                 await player.do_next()
@@ -374,7 +422,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if self.is_privileged(ctx):
-            await ctx.send(f'{ctx.author.mention} has paused the player.', delete_after=10)
+            await ctx.send(f':pause_button: {ctx.author.display_name} has paused the player.')
             player.pause_votes.clear()
             return await player.set_pause(True)
 
@@ -382,11 +430,11 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         player.pause_votes.add(ctx.author)
 
         if len(player.pause_votes) >= required:
-            await ctx.send('Vote to pause passed. Pausing player.', delete_after=10)
+            await ctx.send(':pause_button: Pausing because vote to pause passed.')
             player.pause_votes.clear()
             await player.set_pause(True)
         else:
-            await ctx.send(f'{ctx.author.mention} has voted to pause the player.', delete_after=15)
+            await ctx.send(f'{ctx.author.display_name} has voted to pause the player.')
 
     @core.command()
     async def resume(self, ctx: AvimetryContext):
@@ -402,7 +450,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if self.is_privileged(ctx):
-            await ctx.send(f'{ctx.author.mention} has resumed the player.', delete_after=10)
+            await ctx.send(f':arrow_forward: {ctx.author.display_name} has resumed the player.')
             player.resume_votes.clear()
 
             return await player.set_pause(False)
@@ -411,11 +459,11 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         player.resume_votes.add(ctx.author)
 
         if len(player.resume_votes) >= required:
-            await ctx.send('Vote to resume passed. Resuming player.', delete_after=10)
+            await ctx.send(':arrow_forward: Resuming because vote to resume passed.')
             player.resume_votes.clear()
             await player.set_pause(False)
         else:
-            await ctx.send(f'{ctx.author.mention} has voted to resume the player.', delete_after=15)
+            await ctx.send(f'{ctx.author.display_name} has voted to resume the player.')
 
     @core.command()
     async def skip(self, ctx: AvimetryContext):
@@ -431,13 +479,13 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if self.is_privileged(ctx):
-            await ctx.send(f'{ctx.author.mention} has skipped the song.', delete_after=10)
+            await ctx.send(f':track_next: {ctx.author.display_name} has skipped the song.')
             player.skip_votes.clear()
 
             return await player.stop()
 
         if ctx.author == player.current.requester:
-            await ctx.send('The song requester has skipped the song.', delete_after=10)
+            await ctx.send(':track_next: The song requester has skipped the song.')
             player.skip_votes.clear()
 
             return await player.stop()
@@ -446,11 +494,11 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         player.skip_votes.add(ctx.author)
 
         if len(player.skip_votes) >= required:
-            await ctx.send('Vote to skip passed. Skipping song.', delete_after=10)
+            await ctx.send(':track_next: Skipping because vote to skip passed')
             player.skip_votes.clear()
             await player.stop()
         else:
-            await ctx.send(f'{ctx.author.mention} voted to skip. {len(player.skip_votes)}/{required}', delete_after=15)
+            await ctx.send(f'{ctx.author.display_name} voted to skip. {len(player.skip_votes)}/{required}')
 
     @core.command(aliases=["ff", "fastf", "fforward"])
     async def fastforward(self, ctx: AvimetryContext, seconds: int):
@@ -459,7 +507,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
         if self.is_privileged(ctx):
             await player.seek(seconds*1000)
-            return await ctx.send(f"Fast forwarded {seconds} seconds")
+            return await ctx.send(f":fast_forward: Fast forwarded {seconds} seconds")
         await ctx.send("Only the DJ can fast forward.")
 
     @core.command(aliases=["rw"])
@@ -469,7 +517,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
         if self.is_privileged(ctx):
             await player.seek(player.position-seconds*1000)
-            return await ctx.send(f"Went back {seconds} seconds")
+            return await ctx.send(f":rewind: Rewinded {seconds} seconds")
         await ctx.send("Only the DJ can rewind.")
 
     @core.command(aliases=["sk"])
@@ -496,17 +544,17 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if self.is_privileged(ctx):
-            await ctx.send('Goodbye! :wave:', delete_after=10)
+            await ctx.send('Goodbye! :wave:')
             return await player.teardown()
 
         required = self.required(ctx)
         player.stop_votes.add(ctx.author)
 
         if len(player.stop_votes) >= required:
-            await ctx.send('Vote to stop passed. Goodbye! :wave:', delete_after=10)
+            await ctx.send('Vote to stop passed. Goodbye! :wave:')
             await player.teardown()
         else:
-            await ctx.send(f'{ctx.author.mention} has voted to stop the player.', delete_after=15)
+            await ctx.send(f'{ctx.author.display_name} has voted to stop the player.')
 
     @core.command(aliases=['v', 'vol'])
     async def volume(self, ctx: AvimetryContext, *, vol: int):
@@ -527,7 +575,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return await ctx.send('Please enter a value between 1 and 100.')
 
         await player.set_volume(vol)
-        await ctx.send(f'Set the volume to **{vol}**%', delete_after=7)
+        await ctx.send(f':sound: Set the volume to {vol}%')
 
     @core.command(aliases=['mix'])
     async def shuffle(self, ctx: AvimetryContext):
@@ -543,7 +591,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if self.is_privileged(ctx):
-            await ctx.send(f'{ctx.author.mention} has shuffled the queue.', delete_after=10)
+            await ctx.send(f':twisted_rightwards_arrows: {ctx.author.display_name} shuffled the queue.')
             player.shuffle_votes.clear()
             return random.shuffle(player.queue._queue)
 
@@ -554,43 +602,11 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         player.shuffle_votes.add(ctx.author)
 
         if len(player.shuffle_votes) >= required:
-            await ctx.send('Vote to shuffle passed. Shuffling the playlist.', delete_after=10)
+            await ctx.send(':twisted_rightwards_arrows: Shuffling queue because vote to shuffle passed.')
             player.shuffle_votes.clear()
             random.shuffle(player.queue._queue)
         else:
-            await ctx.send(f'{ctx.author.mention} has voted to shuffle the playlist.', delete_after=15)
-
-    @core.command(hidden=True)
-    async def vol_up(self, ctx: AvimetryContext):
-        """Command used for volume up button."""
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
-
-        if not player.is_connected or not self.is_privileged(ctx):
-            return
-
-        vol = int(math.ceil((player.volume + 10) / 10)) * 10
-
-        if vol > 100:
-            vol = 100
-            await ctx.send('Maximum volume reached', delete_after=7)
-
-        await player.set_volume(vol)
-
-    @core.command(hidden=True)
-    async def vol_down(self, ctx: AvimetryContext):
-        """Command used for volume down button."""
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
-
-        if not player.is_connected or not self.is_privileged(ctx):
-            return
-
-        vol = int(math.ceil((player.volume - 10) / 10)) * 10
-
-        if vol < 0:
-            vol = 0
-            await ctx.send('Player is currently muted', delete_after=10)
-
-        await player.set_volume(vol)
+            await ctx.send(f'{ctx.author.display_name} has voted to shuffle the playlist.', delete_after=15)
 
     @core.command(aliases=['eq'])
     async def equalizer(self, ctx: AvimetryContext, *, equalizer: str):
@@ -614,7 +630,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             joined = "\n".join(eqs.keys())
             return await ctx.send(f'Invalid EQ provided. Valid EQs:\n{joined}')
 
-        await ctx.send(f'Successfully changed equalizer to {equalizer}', delete_after=15)
+        await ctx.send(f'Successfully changed equalizer to {equalizer}')
         await player.set_eq(eq)
 
     @core.command(aliases=['q', 'upnext', 'next'])
@@ -626,13 +642,30 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if player.queue.size == 0:
-            return await ctx.send(f'The queue is empty. Use {ctx.prefix}play to add some songs!', delete_after=15)
+            return await ctx.send(f'The queue is empty. Use {ctx.prefix}play to add some songs!')
 
         entries = [f"`{index+1})` [{track.title}]({track.uri})" for index, track in enumerate(player.queue._queue)]
         pages = PaginatorSource(entries=entries, ctx=ctx)
         paginator = AvimetryPages(source=pages, timeout=120)
 
         await paginator.start(ctx)
+
+    @core.command(aliases=["clq", "clqueue", "cqueue"])
+    async def clearqueue(self, ctx: AvimetryContext):
+        """
+        Clears the player's queue.
+        """
+        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+
+        if not player.is_connected:
+            return
+        if player.queue.size == 0:
+            return await ctx.send("The queue is empty. You can't clear an empty queue.")
+
+        if self.is_privileged(ctx):
+            return player.queue.clear()
+
+        await ctx.send("Only the DJ can clear the queue.")
 
     @core.command(aliases=['np', 'now_playing', 'current'])
     async def nowplaying(self, ctx: AvimetryContext):
@@ -644,7 +677,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if not player.is_connected:
             return
         pos = player.position
-        await ctx.send(embed=await player.build_embed(position=pos))
+        await ctx.send(embed=await player.build_now_playing(position=pos))
 
     @core.command(aliases=['swap', 'new_dj'])
     async def swap_dj(self, ctx: AvimetryContext, *, member: discord.Member = None):
@@ -655,18 +688,18 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if not self.is_privileged(ctx):
-            return await ctx.send('Only admins and the DJ may use this command.', delete_after=15)
+            return await ctx.send('Only admins and the DJ may use this command.')
 
         members = self.bot.get_channel(int(player.channel_id)).members
 
         if member and member not in members:
-            return await ctx.send(f'{member} is not currently in voice, so can not be a DJ.', delete_after=15)
+            return await ctx.send(f'{member} is not currently in voice, so can not be a DJ.')
 
         if member and member == player.dj:
-            return await ctx.send('Cannot swap DJ to the current DJ... :)', delete_after=15)
+            return await ctx.send('Cannot swap DJ to the current DJ... :)')
 
         if len(members) <= 2:
-            return await ctx.send('No more members to swap to.', delete_after=15)
+            return await ctx.send('No more members to swap to.')
 
         if member:
             player.dj = member
