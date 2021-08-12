@@ -159,12 +159,12 @@ class AvimetryBot(commands.Bot):
             self.settings = toml.loads(token.read())
 
         api = self.settings["api_tokens"]
-        self.wavelink = wavelink.Client(bot=self)
-        self.topgg = topgg.DBLClient(self, api["TopGG"], autopost_interval=None)
-        self.sr = sr_api.Client()
-        self.dagpi = asyncdagpi.Client(api["DagpiAPI"])
-        self.myst = mystbin.Client()
         self.session = aiohttp.ClientSession()
+        self.wavelink = wavelink.Client(bot=self, session=self.session)
+        self.topgg = topgg.DBLClient(self, api["TopGG"], autopost_interval=None, session=self.session)
+        self.sr = sr_api.Client(session=self.session)
+        self.dagpi = asyncdagpi.Client(api["DagpiAPI"], session=self.session)
+        self.myst = mystbin.Client(session=self.session)
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
         self.loop.create_task(self.cache.cache_all())
         self.loop.create_task(self.load_extensions())
@@ -293,11 +293,7 @@ class AvimetryBot(commands.Bot):
         super().run(token, reconnect=True)
 
     async def close(self):
-        await self.sr.close()
-        await self.myst.close()
         await self.session.close()
-        await self.dagpi.close()
-        await self.topgg.close()
         await super().close()
         timenow = datetime.datetime.now(datetime.timezone.utc).strftime("%I:%M %p")
         print(
