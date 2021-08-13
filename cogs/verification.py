@@ -24,10 +24,9 @@ import datetime
 
 from utils import core
 from utils import AvimetryBot, AvimetryContext
-from discord.ext import commands
 
 
-class MemberJoin(commands.Cog):
+class MemberJoin(core.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
@@ -65,21 +64,21 @@ class MemberJoin(commands.Cog):
             )
             self.messages[member.id] = message
 
-    @commands.Cog.listener()
+    @core.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         if member.bot:
             return
         if member.pending:
             return
         await self.do_verify(member)
-    
-    @commands.Cog.listener()
+
+    @core.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
         message = self.messages.get(member.id)
         if message:
             await message.delete()
 
-    @commands.Cog.listener()
+    @core.Cog.listener()
     async def on_member_update(self, before: discord.Member, after: discord.Member):
         if before.pending is True and after.pending is False:
             await self.do_verify(after)
@@ -141,7 +140,7 @@ class MemberJoin(commands.Cog):
                 if msg.content != randomkey:
                     await msg.add_reaction(self.bot.emoji_dictionary["red_tick"])
                 else:
-                    await msg.add_reaction(self.bot.emoji_dictionary["green_tick"])
+                    await msg.delete(delay=5)
                     await member.add_roles(role)
                     break
 

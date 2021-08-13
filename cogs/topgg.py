@@ -20,10 +20,11 @@ import discord
 import datetime
 
 from utils import AvimetryBot
-from discord.ext import commands, tasks
+from discord.ext import tasks
+from utils import core
 
 
-class TopGG(commands.Cog):
+class TopGG(core.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)

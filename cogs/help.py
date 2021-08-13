@@ -43,7 +43,8 @@ class MainHelp(menus.ListPageSource):
         info = [
             f"[Support Server]({self.ctx.bot.support})",
             f"[Invite]({self.ctx.bot.invite})",
-            "[Vote](https://top.gg/bot/756257170521063444/vote)"
+            "[Vote](https://top.gg/bot/756257170521063444/vote)",
+            f"[Source]({self.ctx.bot.support})"
         ]
         embed = discord.Embed(
             title=f"Avimetry {self.help_command.invoked_with.title()} Menu",
@@ -280,7 +281,7 @@ class AvimetryHelp(commands.HelpCommand):
         return f'"{string}" is not a subcommand of "{command}".'
 
 
-class HelpCommand(commands.Cog):
+class HelpCommand(core.Cog):
     def __init__(self, bot: AvimetryBot):
         self.default = bot.help_command
         self.bot = bot

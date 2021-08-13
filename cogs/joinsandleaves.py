@@ -20,7 +20,7 @@ import datetime
 import discord
 import json
 
-from discord.ext import commands
+from utils import core
 from tagformatter import Parser
 from utils import AvimetryBot
 
@@ -78,7 +78,7 @@ def guild_icon(env):
     return str(env.guild.icon_url_as(format="png", static_format="png", size=512))
 
 
-class JoinsAndLeaves(commands.Cog):
+class JoinsAndLeaves(core.Cog):
     """
     Cog for handling joins and leave messages.
     """
@@ -94,7 +94,7 @@ class JoinsAndLeaves(commands.Cog):
         except Exception:
             return message
 
-    @commands.Cog.listener()
+    @core.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         config = self.bot.cache.join_leave.get(member.guild.id)
         if not config:
@@ -114,7 +114,7 @@ class JoinsAndLeaves(commands.Cog):
             return await join_channel.send(embed=final)
         return await join_channel.send(final)
 
-    @commands.Cog.listener()
+    @core.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
         config = self.bot.cache.join_leave.get(member.guild.id)
         if not config:

@@ -43,7 +43,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             adapter=discord.AsyncWebhookAdapter(self.bot.session)
         )
 
-    @commands.Cog.listener()
+    @core.Cog.listener()
     async def on_message(self, message):
         ctx = await self.bot.get_context(message, cls=AvimetryContext)
         if message.author == self.bot.user:

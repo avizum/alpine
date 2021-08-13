@@ -22,6 +22,7 @@ import datetime
 
 
 from discord.ext import commands
+from utils import core
 from utils import AvimetryContext, AvimetryBot
 
 
@@ -30,7 +31,7 @@ class CooldownByContent(commands.CooldownMapping):
         return (message.channel.id, message.content)
 
 
-class Setup(commands.Cog):
+class Setup(core.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
@@ -54,7 +55,7 @@ class Setup(commands.Cog):
             adapter=discord.AsyncWebhookAdapter(self.bot.session)
         )
 
-    @commands.Cog.listener()
+    @core.Cog.listener()
     async def on_message(self, message: discord.Message):
         if message.author.bot:
             return
@@ -87,7 +88,7 @@ class Setup(commands.Cog):
         except AttributeError:
             return
 
-    @commands.Cog.listener()
+    @core.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
         if self.bot.user.id != 756257170521063444:
             return
@@ -127,7 +128,7 @@ class Setup(commands.Cog):
             channel = channels[0]
         await channel.send(embed=embed)
 
-    @commands.Cog.listener()
+    @core.Cog.listener()
     async def on_guild_remove(self, guild):
         if self.bot.user.id != 756257170521063444:
             return
@@ -138,7 +139,7 @@ class Setup(commands.Cog):
         ]
         await self.guild_webhook.send("\n".join(message), username="Left Guild")
 
-    @commands.Cog.listener("on_command")
+    @core.Cog.listener("on_command")
     async def on_command(self, ctx: AvimetryContext):
         try:
             self.bot.command_usage[str(ctx.command)] += 1

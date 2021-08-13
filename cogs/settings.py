@@ -25,7 +25,7 @@ from discord.ext import commands
 from utils import AvimetryBot, AvimetryContext, Prefix, preview_message
 
 
-class Settings(commands.Cog):
+class Settings(core.Cog):
     """
     Configure bot settings.
     """
@@ -611,6 +611,7 @@ class Settings(commands.Cog):
 
     @verification.command(name="role")
     @core.has_permissions(manage_guild=True)
+    @core.bot_has_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
     async def verification_role(self, ctx: AvimetryContext, role: discord.Role):
         """
         Set verification role.
@@ -629,6 +630,7 @@ class Settings(commands.Cog):
 
     @verification.command(name="channel")
     @core.has_permissions(manage_guild=True)
+    @core.bot_has_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
     async def verification_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
         """
         Set verification channel.

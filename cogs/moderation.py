@@ -37,7 +37,7 @@ class PurgeAmount(commands.Converter):
         return number
 
 
-class Moderation(commands.Cog):
+class Moderation(core.Cog):
     """
     Moderation commands.
     """
@@ -52,7 +52,7 @@ class Moderation(commands.Cog):
         """
         Kicks someone from the server.
 
-        You can not kick someone with a role higher than you or higher permissions.
+        You can not kick people with higher permissions than you.
         """
         reason = reason or f"{ctx.author}: No reason provided"
         kick_embed = discord.Embed(
@@ -70,7 +70,7 @@ class Moderation(commands.Cog):
         """
         Mass kick people from the server.
 
-        You can not kick people with a role higher than you or higher permissions.
+        You can not kick people with higher permissions than you.
         """
         reason = reason or f"{ctx.author}: No reason provided"
         if not targets:
@@ -96,7 +96,7 @@ class Moderation(commands.Cog):
 
         Softban bans then unbans a person.
         This is like kicking them and deleting their messages.
-        You can not kick someone with a role higher than you or higher permissions.
+        You can not kick people with higher permissions than you.
         """
         reason = reason or f"{ctx.author}: No reason provided"
         soft_ban_embed = discord.Embed(
@@ -116,7 +116,7 @@ class Moderation(commands.Cog):
 
         You can ban people whether they are in the server or not.
 
-        You can not ban someone with a role higher than you or higher permissions.
+        You can not ban people with higher permissions than you.
         """
         reason = reason or f"{ctx.author}: No reason provided"
         ban_embed = discord.Embed(
@@ -139,7 +139,7 @@ class Moderation(commands.Cog):
         """
         Mass ban people from the server.
 
-        You can not kick people with a role higher than you or higher permissions.
+        You can not ban people with a role higher than you or higher permissions.
         """
         reason = reason or f"{ctx.author}: No reason provided"
         if not targets:
@@ -181,7 +181,7 @@ class Moderation(commands.Cog):
         """
         Mute someone indefinitely.
 
-        You can not mute someone with a role higher than you or higher permissions.
+        You can not mute people with higher permissions than you.
         This command mutes people indefinitely. For temporary mutes, use tempmute.
         """
         reason = reason or f"{ctx.author}: No reason provided"
@@ -200,7 +200,7 @@ class Moderation(commands.Cog):
         Temporarily mutes a member in the server.
 
         This requres a muterole to be setup.
-        You can not mute someone with a role higher than you or higher permissions.
+        You can not mute people with higher permissions than you.
         """
         pass
 

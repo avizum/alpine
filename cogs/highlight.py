@@ -1,15 +1,15 @@
 import discord
 import re
 
-from discord.ext import commands
+from utils import core
 from utils import AvimetryBot
 
 
-class Highlight(commands.Cog):
+class Highlight(core.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
 
-    @commands.Cog.listener("on_message")
+    @core.Cog.listener("on_message")
     async def on_message(self, message: discord.Message):
         if not message.guild:
             return

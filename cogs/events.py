@@ -22,20 +22,21 @@ import asyncio
 import base64
 import re
 
-from discord.ext import commands, tasks
+from discord.ext import tasks
 from utils import AvimetryBot, Gist
+from utils import core
 
 TOKEN_REGEX = r'[a-zA-Z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27}'
 
 
-class BotLogs(commands.Cog):
+class BotLogs(core.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.clear_cache.start()
         self.gist = Gist(self.bot, self.bot.session)
 
-    @commands.Cog.listener("on_message")
+    @core.Cog.listener("on_message")
     async def on_message(self, message: discord.Message):
         if message.author == self.bot.user or message.author.id == 80528701850124288:
             return
@@ -73,7 +74,7 @@ class BotLogs(commands.Cog):
             except discord.Forbidden:
                 return
 
-    @commands.Cog.listener("on_message_delete")
+    @core.Cog.listener("on_message_delete")
     async def logging_delete(self, message: discord.Message):
         context = await self.bot.get_context(message)
         if context.valid:
@@ -108,7 +109,7 @@ class BotLogs(commands.Cog):
         channel = discord.utils.get(message.guild.channels, id=channel_id)
         await channel.send(embed=embed)
 
-    @commands.Cog.listener("on_message_edit")
+    @core.Cog.listener("on_message_edit")
     async def logging_edit(self, before: discord.Message, after: discord.Message):
         context = await self.bot.get_context(after)
         if context.valid:
@@ -135,7 +136,7 @@ class BotLogs(commands.Cog):
         channel = discord.utils.get(before.guild.channels, id=channel_id)
         await channel.send(embed=embed)
 
-    @commands.Cog.listener("on_member_ban")
+    @core.Cog.listener("on_member_ban")
     async def logging_ban(self, guild: discord.Guild, user: discord.User):
         data = self.bot.cache.logging.get(guild.id)
         if not data or data["enabled"] is not True or not data["member_ban"] or not data["channel_id"]:
@@ -154,7 +155,7 @@ class BotLogs(commands.Cog):
             embed.set_thumbnail(url=user.avatar_url)
             await channel.send(embed=embed)
 
-    @commands.Cog.listener("on_member_remove")
+    @core.Cog.listener("on_member_remove")
     async def loggging_kick(self, member: discord.Member):
         data = self.bot.cache.logging.get(member.guild.id)
         if not data or data["enabled"] is not True or not data["member_kick"] or not data["channel_id"]:
@@ -172,7 +173,7 @@ class BotLogs(commands.Cog):
             embed.set_thumbnail(url=member.avatar_url)
             await channel.send(embed=embed)
 
-    @commands.Cog.listener("on_guild_channel_create")
+    @core.Cog.listener("on_guild_channel_create")
     async def logging_channel_one(self, channel: discord.abc.GuildChannel):
         thing = self.bot.cache.logging.get(channel.guild.id)
         if not thing:
@@ -186,7 +187,7 @@ class BotLogs(commands.Cog):
         channel = self.bot.get_channel(thing["channel_id"])
         await channel.send(f"Channel has been created: {channel.mention}")
 
-    @commands.Cog.listener("on_guild_channel_delete")
+    @core.Cog.listener("on_guild_channel_delete")
     async def logging_channel_two(self, channel: discord.abc.GuildChannel):
         thing = self.bot.cache.logging.get(channel.guild.id)
         if not thing:
@@ -200,7 +201,7 @@ class BotLogs(commands.Cog):
         channel = self.bot.get_channel(thing["channel_id"])
         await channel.send(f"Channel has been deleted: {channel.name}")
 
-    @commands.Cog.listener("on_guild_channel_edit")
+    @core.Cog.listener("on_guild_channel_edit")
     async def logging_channel_three(self, before: discord.abc.GuildChannel, after: discord.abc.GuildChannel):
         thing = self.bot.cache.logging.get(before.guild.id)
         if not thing:
@@ -212,7 +213,7 @@ class BotLogs(commands.Cog):
         if not thing["channel_id"]:
             return
 
-    @commands.Cog.listener("on_guild_update")
+    @core.Cog.listener("on_guild_update")
     async def logging_guild(self, before: discord.Guild, after: discord.Guild):
         pass
 

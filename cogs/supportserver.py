@@ -93,7 +93,7 @@ class Servers(commands.Cog, name="Servers"):
     def get(self, channel_id: int):
         return self.bot.get_channel(channel_id)
 
-    @commands.Cog.listener()
+    @core.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         if payload.user_id in self.bot.cache.blacklist:
             return
@@ -117,7 +117,7 @@ class Servers(commands.Cog, name="Servers"):
         except Exception:
             return
 
-    @commands.Cog.listener()
+    @core.Cog.listener()
     async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
         try:
             emojis = ROLE_MAP[payload.message_id]
@@ -159,7 +159,7 @@ class Servers(commands.Cog, name="Servers"):
     async def before_update_count(self):
         await self.bot.wait_until_ready()
 
-    @commands.Cog.listener("on_member_update")
+    @core.Cog.listener("on_member_update")
     async def member_update(self, before: discord.Member, after: discord.Member):
         if after.guild.id != 751490725555994716:
             return

@@ -29,7 +29,7 @@ from discord.ext import commands
 from utils import AvimetryBot, AvimetryContext
 
 
-class Fun(commands.Cog):
+class Fun(core.Cog):
     """
     Fun commands for you and friends.
     """

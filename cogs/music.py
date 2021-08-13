@@ -25,9 +25,10 @@ import re
 import typing
 import wavelink
 import collections
+import datetime
 
 from utils import core
-from utils import AvimetryContext, AvimetryPages, format_seconds
+from utils import AvimetryBot, AvimetryContext, AvimetryPages, format_seconds
 from discord.ext import commands, menus
 
 URL_REG = re.compile(r'https?://(?:www\.)?.+')
@@ -215,12 +216,13 @@ class PaginatorSource(menus.ListPageSource):
         return embed
 
 
-class Music(commands.Cog):
+class Music(core.Cog):
     """
     Music commands for music.
     """
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     def is_privileged(self, ctx: commands.Context):
         """
@@ -231,21 +233,21 @@ class Music(commands.Cog):
         player: Player = ctx.voice_client
         return player.dj == ctx.author or ctx.author.guild_permissions.kick_members
 
-    @commands.Cog.listener('on_wavelink_track_exception')
+    @core.Cog.listener('on_wavelink_track_exception')
     async def on_player_stop(self, node: wavelink.Node, payload):
         player: Player = payload.player
         await player.context.send(f"Error:{node.identifier}: {payload.error}")
 
-    @commands.Cog.listener('on_wavelink_track_end')
+    @core.Cog.listener('on_wavelink_track_end')
     async def track_end(self, player: Player, track: Track, reason):
         print("redaslkdj")
         await player.do_next()
 
-    @commands.Cog.listener('on_wavelink_track_stuck')
+    @core.Cog.listener('on_wavelink_track_stuck')
     async def track_stuck(self, player: Player, track: Track, threshold):
         await player.do_next()
 
-    @commands.Cog.listener("on_voice_state_update")
+    @core.Cog.listener("on_voice_state_update")
     async def vs_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
         if member.bot:
             return

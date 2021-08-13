@@ -97,7 +97,7 @@ class AkinatorMenu(menus.Menu):
         await super().stop(payload)
 
 
-class Games(commands.Cog):
+class Games(core.Cog):
     """
     Game commands.
     """

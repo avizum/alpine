@@ -46,7 +46,7 @@ class ErrorSource(menus.ListPageSource):
         return embed
 
 
-class Owner(commands.Cog):
+class Owner(core.Cog):
     """
     Commands for the bot developers.
     """
@@ -65,7 +65,7 @@ class Owner(commands.Cog):
             return True
         raise commands.NotOwner("Stay away.")
 
-    @commands.Cog.listener()
+    @core.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member):
         waste = "\U0001f5d1\U0000fe0f"
         if reaction.emoji == waste and await self.bot.is_owner(user) and reaction.message.author == self.bot.user:

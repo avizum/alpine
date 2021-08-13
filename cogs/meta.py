@@ -50,7 +50,7 @@ class RTFMPageSource(menus.ListPageSource):
         return embed
 
 
-class Meta(commands.Cog):
+class Meta(core.Cog):
     """
     Extra commands that do not lie in any category.
     """

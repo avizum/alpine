@@ -23,10 +23,9 @@ from utils import core
 from io import BytesIO
 from utils.utils import Timer
 from utils import AvimetryContext, AvimetryBot
-from discord.ext import commands
 
 
-class Animals(commands.Cog):
+class Animals(core.Cog):
     """
     Get images of animals.
     """

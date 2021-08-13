@@ -15,9 +15,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 import functools
 import inspect
 import discord
+import datetime
 
 from discord.ext import commands
 
@@ -73,6 +75,12 @@ class AvimetryGroup(AvimetryCommand, commands.Group):
             return result
 
         return decorator
+
+
+class Cog(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self.load_time = datetime.datetime.now(tz=datetime.timezone.utc)
 
 
 def command(name=None, cls=None, **kwargs):

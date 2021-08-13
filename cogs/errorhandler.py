@@ -24,11 +24,12 @@ import traceback as tb
 
 from prettify_exceptions import DefaultFormatter
 from utils import AvimetryBot, AvimetryContext, Blacklisted, Maintenance
+from utils import core
 from discord.ext import commands
 from difflib import get_close_matches
 
 
-class ErrorHandler(commands.Cog):
+class ErrorHandler(core.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
@@ -48,7 +49,7 @@ class ErrorHandler(commands.Cog):
         except Exception:
             pass
 
-    @commands.Cog.listener()
+    @core.Cog.listener()
     async def on_command_error(self, ctx: AvimetryContext, error):
         error = getattr(error, "original", error)
         if hasattr(ctx.command, 'on_error'):
