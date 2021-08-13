@@ -160,7 +160,6 @@ class AvimetryBot(commands.Bot):
 
         api = self.settings["api_tokens"]
         self.session = aiohttp.ClientSession()
-        self.wavelink = wavelink.Client(bot=self, session=self.session)
         self.topgg = topgg.DBLClient(self, api["TopGG"], autopost_interval=None, session=self.session)
         self.sr = sr_api.Client(session=self.session)
         self.dagpi = asyncdagpi.Client(api["DagpiAPI"], session=self.session)
@@ -199,22 +198,13 @@ class AvimetryBot(commands.Bot):
     async def start_nodes(self) -> None:
         await self.wait_until_ready()
 
-        if self.wavelink.nodes:
-            previous = self.bot.wavelink.nodes.copy()
-
-            for node in previous.values():
-                await node.destroy()
-
-        nodes = {'MAIN': {'host': '0.0.0.0',
-                          'port': 2333,
-                          'rest_uri': 'http://0.0.0.0:2333',
-                          'password': 'youshallnotpass',
-                          'identifier': 'MAIN',
-                          'region': 'us_central'
-                          }}
-
-        for n in nodes.values():
-            await self.wavelink.initiate_node(**n)
+        await wavelink.NodePool.create_node(
+            bot=self,
+            host="127.0.0.1",
+            port=2333,
+            password="youshallnotpass",
+            identifier="MAIN"
+        )
 
     async def on_ready(self):
         timenow = datetime.datetime.now(datetime.timezone.utc).strftime("%I:%M %p")

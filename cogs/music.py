@@ -116,16 +116,17 @@ class Track(wavelink.Track):
     def __init__(self, *args, **kwargs):
         super().__init__(*args)
 
+        self.thumb = kwargs.get('thumb', None)
         self.requester = kwargs.get('requester')
 
 
 class Player(wavelink.Player):
     """Custom wavelink Player class."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, context=None, **kwargs):
+        self.context: AvimetryContext = context
         super().__init__(*args, **kwargs)
 
-        self.context: AvimetryContext = kwargs.get('context', None)
         if self.context:
             self.dj: discord.Member = self.context.author
 
@@ -141,7 +142,7 @@ class Player(wavelink.Player):
         self.stop_votes = set()
 
     async def do_next(self) -> None:
-        if self.is_playing or self.waiting:
+        if self.is_playing() or self.waiting:
             return
 
         self.pause_votes.clear()
@@ -166,25 +167,24 @@ class Player(wavelink.Player):
         """
         Builds the "now playing" embed
         """
-        track = self.current
+        track: Track = self.source
         if not track:
             return
 
-        channel = self.bot.get_channel(int(self.channel_id))
-
-        embed = discord.Embed(title=f'Now Playing in {channel.guild.name}')
+        embed = discord.Embed(title='Now Playing')
         if self.context:
             embed.color = await self.context.determine_color()
-        time = f'Length: {format_seconds(track.length // 1000)}\n\n'
+        time = f'Length: {format_seconds(track.length)}\n\n'
         if position:
-            time = f'Position {format_seconds(position//1000)}/{format_seconds(track.length // 1000)}\n\n'
+            time = f'Position {format_seconds(position)}/{format_seconds(track.length)}\n\n'
         embed.description = (
             f'Song: [{track.title}]({track.uri})\n\n'
             f'{time}'
             f"Requested by: {track.requester.mention} (`{track.requester}`)\n\n"
             f"Up next: {self.queue.up_next or 'Add more songs!'}"
         )
-        embed.set_thumbnail(url=track.thumb)
+        if track.thumb:
+            embed.set_thumbnail(url=track.thumb)
         return embed
 
     async def build_added(self, track: Track) -> typing.Optional[discord.Embed]:
@@ -195,14 +195,12 @@ class Player(wavelink.Player):
         embed.description = (
             f"Song: [{track.title}]({track.uri})"
         )
-        embed.set_thumbnail(url=track.thumb)
+        if track.thumb:
+            embed.set_thumbnail(url=track.thumb)
         return embed
 
     async def teardown(self):
-        try:
-            await self.destroy()
-        except KeyError:
-            pass
+        await self.disconnect(force=False)
 
 
 class PaginatorSource(menus.ListPageSource):
@@ -217,7 +215,7 @@ class PaginatorSource(menus.ListPageSource):
         return embed
 
 
-class Music(commands.Cog, wavelink.WavelinkMixin):
+class Music(commands.Cog):
     """
     Music commands for music.
     """
@@ -230,38 +228,40 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
         If they aren't then this will return false.
         """
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+        player: Player = ctx.voice_client
         return player.dj == ctx.author or ctx.author.guild_permissions.kick_members
 
-    @wavelink.WavelinkMixin.listener()
-    async def on_node_ready(self, node: wavelink.Node):
-        print(f'Node {node.identifier} is ready!')
-
-    @wavelink.WavelinkMixin.listener('on_track_exception')
-    async def on_player_stop(self, node: wavelink.Node, payload: wavelink.events.TrackException):
+    @commands.Cog.listener('on_wavelink_track_exception')
+    async def on_player_stop(self, node: wavelink.Node, payload):
         player: Player = payload.player
         await player.context.send(f"Error:{node.identifier}: {payload.error}")
 
-    @wavelink.WavelinkMixin.listener('on_track_stuck')
-    @wavelink.WavelinkMixin.listener('on_track_end')
-    async def track_stuck(self, node: wavelink.Node, payload):
-        await payload.player.do_next()
+    @commands.Cog.listener('on_wavelink_track_end')
+    async def track_end(self, player: Player, track: Track, reason):
+        print("redaslkdj")
+        await player.do_next()
+
+    @commands.Cog.listener('on_wavelink_track_stuck')
+    async def track_stuck(self, player: Player, track: Track, threshold):
+        await player.do_next()
 
     @commands.Cog.listener("on_voice_state_update")
     async def vs_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
         if member.bot:
             return
 
-        player: Player = self.bot.wavelink.get_player(member.guild.id, cls=Player)
+        player: Player = member.guild.voice_client
 
-        if not player.channel_id or not player.context:
-            player.node.players.pop(member.guild.id)
-            return
+        channel = player.channel
 
-        channel = self.bot.get_channel(int(player.channel_id))
+        def check(mem, bef, aft):
+            return mem == member and bef.channel is None and aft.channel == channel
 
-        if after.channel is None and not channel.members:
-            await player.teardown()
+        if after.channel is None and len(channel.members) == 1 and member.guild.me in channel.members:
+            try:
+                await self.bot.wait_for('voice_state_update', timeout=10, check=check)
+            except asyncio.TimeoutError:
+                return await player.teardown()
 
         if member == player.dj and after.channel is None:
             for m in channel.members:
@@ -282,7 +282,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
         return True
 
-    async def cog_before_invoke(self, ctx: AvimetryContext):
+    async def cog_beforeasdjkl_invoke(self, ctx: AvimetryContext):
         """
         Check whether the author is inside the player's bound channel.
         """
@@ -305,8 +305,8 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
     def required(self, ctx: AvimetryContext):
         """Method which returns required votes based on amount of members in a channel."""
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
-        channel = self.bot.get_channel(int(player.channel_id))
+        player: Player = ctx.voice_client
+        channel = player.channel
         required = math.ceil((len(channel.members) - 1) / 2.5)
 
         if ctx.command.name == 'stop' and len(channel.members) == 3:
@@ -317,74 +317,95 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
     @core.command(aliases=["join"])
     async def connect(self, ctx: AvimetryContext):
         """Connect to a voice channel."""
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
-
-        if player.is_connected and ctx.author.voice:
+        try:
             channel = ctx.author.voice.channel
-            message = f"Moved to {channel.mention}"
+        except AttributeError:
+            return await ctx.send("You need to be in a channel to use this command.")
 
-        elif ctx.author.voice:
-            channel = ctx.author.voice.channel
-            message = f"Joined {channel.mention}"
-        else:
-            return await ctx.send("You need to be in a channel to use this.")
+        player = Player(context=ctx)
+        voice_client = await channel.connect(cls=player)
+        await ctx.send(f"Joined {voice_client.channel.mention}.")
+        return voice_client
 
-        await player.connect(channel.id)
-        await ctx.send(message)
+    @core.command(aliases=['stop', 'leave', 'fuckoff'])
+    async def disconnect(self, ctx: AvimetryContext):
+        """
+        Stop the player and leave the channel.
 
-    @core.command(aliases=["enqueue", "p"])
-    async def play(self, ctx: AvimetryContext, *, query: str):
-        """Play or queue a song with the given query."""
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+        If you are the DJ or mod, It will always leave.
+        If you are not, your vote will be added.
+        """
+        player: Player = ctx.voice_client
 
-        if not player.is_connected:
-            await ctx.invoke(self.connect)
-        if player.is_paused:
-            await ctx.invoke(self.resume)
-        if not player.channel_id:
+        if not player.is_connected():
             return
 
-        query = query.strip('<>')
-        if not URL_REG.match(query):
-            query = f'ytsearch:{query}'
+        if self.is_privileged(ctx):
+            await ctx.send('Goodbye! :wave:')
+            return await player.teardown()
 
-        tracks = await self.bot.wavelink.get_tracks(query)
-        if not tracks:
-            return await ctx.send('No songs were found with that query. Please try again.')
+        required = self.required(ctx)
+        player.stop_votes.add(ctx.author)
 
-        if isinstance(tracks, wavelink.TrackPlaylist):
+        if len(player.stop_votes) >= required:
+            await ctx.send('Vote to stop passed. Goodbye! :wave:')
+            await player.teardown()
+        else:
+            await ctx.send(f'{ctx.author.display_name} has voted to stop the player.')
+
+    @core.command(aliases=["enqueue", "p"])
+    async def play(self, ctx: AvimetryContext, *, query: wavelink.YouTubeTrack):
+        """Play or queue a song with the given query."""
+        player: Player = ctx.voice_client
+
+        if not player:
+            player = await ctx.invoke(self.connect)
+        if player.is_paused():
+            await ctx.invoke(self.resume)
+        if not player.channel:
+            print("no channel")
+            return
+
+        tracks = query
+
+        if isinstance(tracks, wavelink.YouTubePlaylist):
             for track in tracks.tracks:
-                track = Track(track.id, track.info, requester=ctx.author)
+                track = Track(track.id, track.info, requester=ctx.author, thumb=track.thumb)
                 await player.queue.put(track)
 
             embed = discord.Embed(
                 title="Enqueued playlist",
                 description=(
-                    f"Playlist {tracks.data['playlistInfo']['name']} with {len(tracks.tracks)} added to the queue."
+                    f"Playlist {tracks.name} with {len(tracks.tracks)} tracks added to the queue."
                 )
             )
-            embed.set_thumbnail(url=tracks.tracks[0].thumb)
+            if track.thumb:
+                embed.set_thumbnail(url=tracks[0].thumb)
             await ctx.send(embed=embed)
         else:
-            track = Track(tracks[0].id, tracks[0].info, requester=ctx.author)
+            track = Track(tracks.id, tracks.info, requester=ctx.author, thumb=tracks.thumb)
             await ctx.send(embed=await player.build_added(track))
             await player.queue.put(track)
+            print(player.queue)
 
-        if not player.is_playing:
+        if not player.is_playing():
+            print(player)
+            print(player.is_playing())
             await player.do_next()
+            print("p")
 
     @core.command(aliases=["ptop"])
     async def playtop(self, ctx: AvimetryContext, *, query: str):
         """
         Adds a song to the top of the queue.
         """
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+        player: Player = ctx.voice_client
 
-        if not player.is_connected:
-            await ctx.invoke(self.connect)
-        if player.is_paused:
+        if not player:
+            player = await ctx.invoke(self.connect)
+        if player.is_paused():
             await ctx.invoke(self.resume)
-        if not player.channel_id:
+        if not player.channel:
             return
 
         if self.is_privileged(ctx):
@@ -444,9 +465,9 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         If you are the DJ or mod, It will always play.
         If you are not, your vote will be added.
         """
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+        player: Player = ctx.voice_client
 
-        if not player.is_paused or not player.is_connected:
+        if not player.is_paused() or not player.is_connected():
             return
 
         if self.is_privileged(ctx):
@@ -506,7 +527,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if not player.is_connected:
             return
         if self.is_privileged(ctx):
-            await player.seek(seconds*1000)
+            await player.seek(player.position+seconds*1000)
             return await ctx.send(f":fast_forward: Fast forwarded {seconds} seconds")
         await ctx.send("Only the DJ can fast forward.")
 
@@ -526,35 +547,9 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if not player.is_connected:
             return
         if self.is_privileged(ctx):
-            await player.seek(player.position+seconds*1000)
+            await player.seek(seconds*1000)
             return await ctx.send(f"Set track position to {seconds} seconds")
         await ctx.send("Only the DJ can seek.")
-
-    @core.command(aliases=['disconnect', 'leave', 'fuckoff'])
-    async def stop(self, ctx: AvimetryContext):
-        """
-        Stop the player and leave the channel.
-
-        If you are the DJ or mod, It will always leave.
-        If you are not, your vote will be added.
-        """
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
-
-        if not player.is_connected:
-            return
-
-        if self.is_privileged(ctx):
-            await ctx.send('Goodbye! :wave:')
-            return await player.teardown()
-
-        required = self.required(ctx)
-        player.stop_votes.add(ctx.author)
-
-        if len(player.stop_votes) >= required:
-            await ctx.send('Vote to stop passed. Goodbye! :wave:')
-            await player.teardown()
-        else:
-            await ctx.send(f'{ctx.author.display_name} has voted to stop the player.')
 
     @core.command(aliases=['v', 'vol'])
     async def volume(self, ctx: AvimetryContext, *, vol: int):
@@ -673,9 +668,9 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         """
         Show the currenly playing song.
         """
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+        player: Player = ctx.voice_client
 
-        if not player.is_connected:
+        if not player:
             return
         pos = player.position
         await ctx.send(embed=await player.build_now_playing(position=pos))
