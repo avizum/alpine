@@ -159,6 +159,7 @@ class AvimetryBot(commands.Bot):
             self.settings = toml.loads(token.read())
 
         api = self.settings["api_tokens"]
+        self.news = self.settings["news"]["news"]
         self.session = aiohttp.ClientSession()
         self.topgg = topgg.DBLClient(self, api["TopGG"], autopost_interval=None, session=self.session)
         self.sr = sr_api.Client(session=self.session)

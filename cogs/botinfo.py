@@ -57,14 +57,18 @@ class BotInfo(commands.Cog, name="Bot Info"):
             await command(ctx)
 
     @core.command()
+    async def news(self, ctx: AvimetryContext):
+        await ctx.send(self.bot.news)
+
+    @core.command()
     async def about(self, ctx: AvimetryContext):
         """
         Show some information about Avimetry.
         """
         embed = discord.Embed(title="Info about Avimetry")
         embed.add_field(
-            name="Latest Updates",
-            value=":tada: Music is now in the bot! Use `a.help music` to see the commands you can use. Enjoy!",
+            name="Latest News",
+            value=self.bot.news,
             inline=False
         )
         pid = psutil.Process(os.getpid())
