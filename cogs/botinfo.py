@@ -23,12 +23,12 @@ import humanize
 import pathlib
 import inspect
 import os
+import core
 
 from typing import Union
 from discord.ext import commands
 from topgg import NotFound
 from utils import AvimetryContext, AvimetryBot, Timer
-from utils import core
 
 
 class BotInfo(commands.Cog, name="Bot Info"):
@@ -110,10 +110,10 @@ class BotInfo(commands.Cog, name="Bot Info"):
         """
         credit_list = [
             (self.bot.get_user(750135653638865017), 'Developer', 'https://github.com/avizum'),
-            (self.bot.get_user(547280209284562944), 'Tester', 'https://github.com/LereUwU'),
+            (self.bot.get_user(547280209284562944), 'Testing', 'https://github.com/LereUwU'),
             (self.bot.get_user(672122220566413312), 'Avatar', 'https://discord.com/users/672122220566413312'),
-            (self.bot.get_user(171539705043615744), 'Help Command', 'https://github.com/iDutchy'),
-            (self.bot.get_user(733370212199694467), 'Contributor', 'https://github.com/MrArkon/')
+            (self.bot.get_user(171539705043615744), 'Help Command, Error Tracking', 'https://github.com/iDutchy'),
+            (self.bot.get_user(733370212199694467), 'Contributor, Noob', 'https://github.com/MrArkon/')
         ]
 
         embed = discord.Embed(

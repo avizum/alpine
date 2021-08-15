@@ -19,8 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import discord
 import typing
 import datetime
+import core
 
-from utils import core
 from discord.ext import commands
 from asyncdagpi import ImageFeatures, Image
 from twemoji_parser import emoji_to_url

@@ -21,8 +21,8 @@ import discord
 import datetime
 import asyncio
 import utils
+import core
 
-from utils import core
 from utils.converters import ModReason
 from discord.ext import commands, menus
 from jishaku.codeblocks import codeblock_converter
@@ -46,7 +46,7 @@ class ErrorSource(menus.ListPageSource):
         return embed
 
 
-class Owner(core.Cog):
+class Owner(commands.Cog):
     """
     Commands for the bot developers.
     """
@@ -65,7 +65,7 @@ class Owner(core.Cog):
             return True
         raise commands.NotOwner("Stay away.")
 
-    @core.Cog.listener()
+    @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member):
         waste = "\U0001f5d1\U0000fe0f"
         if reaction.emoji == waste and await self.bot.is_owner(user) and reaction.message.author == self.bot.user:

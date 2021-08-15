@@ -122,9 +122,8 @@ class AvimetryContext(commands.Context):
         self.bot.command_cache[self.message.id] = message
         return message
 
-    async def codeblock(self, content: str, language: str = 'py', **kwargs):
-        content = f"```{language}\n{content}\n```"
-        await self.send(content=content, **kwargs)
+    def codeblock(self, content: str, language: str = 'py'):
+        return f"```{language}\n{content}\n```"
 
     async def confirm(
         self, message=None, embed: discord.Embed = None, confirm_message=None, *,

@@ -21,10 +21,10 @@ import discord
 import humanize
 import sys
 import traceback as tb
+import core
 
 from prettify_exceptions import DefaultFormatter
 from utils import AvimetryBot, AvimetryContext, Blacklisted, Maintenance
-from utils import core
 from discord.ext import commands
 from difflib import get_close_matches
 
@@ -34,6 +34,7 @@ class ErrorHandler(core.Cog):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.blacklist_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
+        self.no_dm_command_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
         self.error_webhook = discord.Webhook.from_url(
             self.bot.settings["webhooks"]["error_log"],
             adapter=discord.AsyncWebhookAdapter(self.bot.session),
@@ -53,9 +54,11 @@ class ErrorHandler(core.Cog):
     async def on_command_error(self, ctx: AvimetryContext, error):
         error = getattr(error, "original", error)
         if hasattr(ctx.command, 'on_error'):
-            return
-        if ctx.cog and ctx.cog._get_overridden_method(ctx.cog.cog_command_error) is not None:
-            return
+            if not hasattr(ctx, 'eh'):
+                return
+        elif ctx.cog and ctx.cog._get_overridden_method(ctx.cog.cog_command_error) is not None:
+            if not hasattr(ctx, 'eh'):
+                return
 
         reinvoke = (
             commands.CommandOnCooldown,
@@ -88,11 +91,21 @@ class ErrorHandler(core.Cog):
             retry_after = bucket.update_rate_limit()
             if not retry_after:
                 return await ctx.send(embed=blacklisted, delete_after=30)
-            else:
-                return
+            return
 
         if isinstance(error, Maintenance):
             return await ctx.send(f'{self.bot.user.name} has maintenance mode enabled. Try again later.')
+
+        if isinstance(error, commands.NoPrivateMessage):
+            embed = discord.Embed(
+                title="No DM commands",
+                description="Commands do not work in DMs because I work best in servers."
+            )
+            bucket = self.no_dm_command_cooldown(ctx.message)
+            retry_after = bucket.update_rate_limit()
+            if not retry_after:
+                return await ctx.semd(embed=embed)
+            return
 
         elif isinstance(error, commands.CommandNotFound):
             if ctx.author.id in ctx.cache.blacklist:
@@ -226,8 +239,6 @@ class ErrorHandler(core.Cog):
             )
             return await ctx.send(embed=embed)
 
-        elif isinstance(error, commands.NoPrivateMessage):
-            return
         else:
             self.reset(ctx)
             DefaultFormatter().theme["_ansi_enabled"] = False

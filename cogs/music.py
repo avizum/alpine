@@ -26,8 +26,8 @@ import typing
 import wavelink
 import collections
 import datetime
+import core
 
-from utils import core
 from utils import AvimetryBot, AvimetryContext, AvimetryPages, format_seconds
 from discord.ext import commands, menus
 
@@ -102,7 +102,7 @@ class IncorrectChannelError(commands.CommandError):
     pass
 
 
-class NotDJ(commands.CheckFailure):
+class NotInVoice(commands.CheckFailure):
     """
     Error raised when someone tries do to something when they are not DJ.
     """
@@ -143,7 +143,7 @@ class Player(wavelink.Player):
         self.stop_votes = set()
 
     async def do_next(self) -> None:
-        if self.is_playing() or self.waiting:
+        if self.waiting:
             return
 
         self.pause_votes.clear()
@@ -212,8 +212,18 @@ class PaginatorSource(menus.ListPageSource):
     async def format_page(self, menu: menus.Menu, page):
         embed = discord.Embed(title=f'Queue for {self.ctx.guild}', color=await self.ctx.determine_color())
         embed.description = '\n'.join(page)
-        embed.set_footer(text=f"Page {menu.current_page+1}/{self.get_max_pages()}")
+        embed.set_footer(text=f"Page {menu.current_page+1}/{self.get_max_pages()}", icon_url=self.ctx.author.avatar_url)
+        if self.ctx.guild.icon_url:
+            embed.set_thumbnail(url=self.ctx.guild.icon_url)
         return embed
+
+
+def in_voice():
+    def predicate(ctx):
+        if ctx.author.voice:
+            return True
+        raise NotInVoice
+    return commands.check(predicate)
 
 
 class Music(core.Cog):
@@ -224,23 +234,13 @@ class Music(core.Cog):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
-    def is_privileged(self, ctx: commands.Context):
-        """
-        Check whether is author is a mod or DJ.
-
-        If they aren't then this will return false.
-        """
-        player: Player = ctx.voice_client
-        return player.dj == ctx.author or ctx.author.guild_permissions.kick_members
-
     @core.Cog.listener('on_wavelink_track_exception')
-    async def on_player_stop(self, node: wavelink.Node, payload):
-        player: Player = payload.player
-        await player.context.send(f"Error:{node.identifier}: {payload.error}")
+    async def on_player_stop(self, player, track, error):
+        player: Player = player
+        await player.context.send(f"Error:{error.identifier}: {error.error}")
 
     @core.Cog.listener('on_wavelink_track_end')
     async def track_end(self, player: Player, track: Track, reason):
-        print("redaslkdj")
         await player.do_next()
 
     @core.Cog.listener('on_wavelink_track_stuck')
@@ -253,6 +253,9 @@ class Music(core.Cog):
             return
 
         player: Player = member.guild.voice_client
+
+        if not player:
+            return
 
         channel = player.channel
 
@@ -275,6 +278,21 @@ class Music(core.Cog):
 
         elif after.channel == channel and player.dj not in channel.members:
             player.dj = member
+
+    def is_privileged(self, ctx: commands.Context):
+        """
+        Check whether is author is a mod or DJ.
+
+        If they aren't then this will return false.
+        """
+        player: Player = ctx.voice_client
+        return player.dj == ctx.author or ctx.author.guild_permissions.kick_members
+
+    async def cog_command_error(self, ctx, error):
+        if isinstance(error, NotInVoice):
+            return await ctx.send("You must be in a voice channel to use this command.")
+        else:
+            ctx.eh = True
 
     async def cog_check(self, ctx: AvimetryContext):
         """Cog wide check, which disallows commands in DMs."""
@@ -316,13 +334,21 @@ class Music(core.Cog):
 
         return required
 
+    @core.command()
+    async def testplaylist(self, ctx: AvimetryContext, query: wavelink.YouTubeTrack):
+        await ctx.send(query)
+
     @core.command(aliases=["join"])
+    @in_voice()
     async def connect(self, ctx: AvimetryContext):
         """Connect to a voice channel."""
-        try:
-            channel = ctx.author.voice.channel
-        except AttributeError:
-            return await ctx.send("You need to be in a channel to use this command.")
+        player: Player = ctx.voice_client
+        channel = ctx.author.voice.channel
+        if player:
+            if player.channel == channel:
+                return await ctx.send("Already in channel.")
+            else:
+                return await player.move_to(channel)
 
         player = Player(context=ctx)
         voice_client = await channel.connect(cls=player)
@@ -339,7 +365,7 @@ class Music(core.Cog):
         """
         player: Player = ctx.voice_client
 
-        if not player.is_connected():
+        if not player:
             return
 
         if self.is_privileged(ctx):
@@ -356,7 +382,7 @@ class Music(core.Cog):
             await ctx.send(f'{ctx.author.display_name} has voted to stop the player.')
 
     @core.command(aliases=["enqueue", "p"])
-    async def play(self, ctx: AvimetryContext, *, query: wavelink.YouTubeTrack):
+    async def play(self, ctx: AvimetryContext, *, query: typing.Union[wavelink.YouTubeTrack, wavelink.YouTubePlaylist]):
         """Play or queue a song with the given query."""
         player: Player = ctx.voice_client
 
@@ -397,7 +423,7 @@ class Music(core.Cog):
             print("p")
 
     @core.command(aliases=["ptop"])
-    async def playtop(self, ctx: AvimetryContext, *, query: str):
+    async def playtop(self, ctx: AvimetryContext, *, query: wavelink.YouTubeTrack):
         """
         Adds a song to the top of the queue.
         """
@@ -410,26 +436,36 @@ class Music(core.Cog):
         if not player.channel:
             return
 
+        tracks = query
         if self.is_privileged(ctx):
-            query = query.strip('<>')
-            if not URL_REG.match(query):
-                query = f'ytsearch:{query}'
 
-            tracks = await self.bot.wavelink.get_tracks(query)
-            if not tracks:
-                return await ctx.send('No songs found. Please try again.')
+            if isinstance(tracks, wavelink.YouTubePlaylist):
+                for track in tracks.tracks:
+                    track = Track(track.id, track.info, requester=ctx.author, thumb=track.thumb)
+                    await player.queue.put(track)
 
-            if isinstance(tracks, wavelink.TrackPlaylist):
-                return await ctx.send("Can't add a playlist to the top.")
+                embed = discord.Embed(
+                    title="Enqueued playlist",
+                    description=(
+                        f"Playlist {tracks.name} with {len(tracks.tracks)} tracks added to the queue."
+                    )
+                )
+                if track.thumb:
+                    embed.set_thumbnail(url=tracks[0].thumb)
+                await ctx.send(embed=embed)
             else:
-                track = Track(tracks[0].id, tracks[0].info, requester=ctx.author)
-                await ctx.send(f"Enqueued {track.title} to the top of the queue.")
-                await player.queue.put(track, left=True)
+                track = Track(tracks.id, tracks.info, requester=ctx.author, thumb=tracks.thumb)
+                await ctx.send(embed=await player.build_added(track))
+                await player.queue.put(track)
+                print(player.queue)
 
-            if not player.is_playing:
+            if not player.is_playing():
+                print(player)
+                print(player.is_playing())
                 await player.do_next()
+                print("p")
         else:
-            await ctx.send("Only the DJ can add songs to the top of the queue.")
+            await ctx.send("Only the DJ can add songs to the top of the playlist.")
 
     @core.command()
     async def pause(self, ctx: AvimetryContext):
@@ -439,15 +475,17 @@ class Music(core.Cog):
         If you are the DJ or mod, It will always pause.
         If you are not, your vote will be added.
         """
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+        player: Player = ctx.voice_client
 
-        if player.is_paused or not player.is_connected:
+        if not player:
+            return
+        if not player.is_playing():
             return
 
         if self.is_privileged(ctx):
             await ctx.send(f':pause_button: {ctx.author.display_name} has paused the player.')
             player.pause_votes.clear()
-            return await player.set_pause(True)
+            return await player.pause()
 
         required = self.required(ctx)
         player.pause_votes.add(ctx.author)
@@ -455,11 +493,11 @@ class Music(core.Cog):
         if len(player.pause_votes) >= required:
             await ctx.send(':pause_button: Pausing because vote to pause passed.')
             player.pause_votes.clear()
-            await player.set_pause(True)
+            await player.pause()
         else:
             await ctx.send(f'{ctx.author.display_name} has voted to pause the player.')
 
-    @core.command()
+    @core.command(aliases=["unpause"])
     async def resume(self, ctx: AvimetryContext):
         """
         Resume the currently playing song.
@@ -469,14 +507,16 @@ class Music(core.Cog):
         """
         player: Player = ctx.voice_client
 
-        if not player.is_paused() or not player.is_connected():
+        if not player:
+            return
+        if not player.is_playing():
             return
 
         if self.is_privileged(ctx):
             await ctx.send(f':arrow_forward: {ctx.author.display_name} has resumed the player.')
             player.resume_votes.clear()
 
-            return await player.set_pause(False)
+            return await player.resume()
 
         required = self.required(ctx)
         player.resume_votes.add(ctx.author)
@@ -484,7 +524,7 @@ class Music(core.Cog):
         if len(player.resume_votes) >= required:
             await ctx.send(':arrow_forward: Resuming because vote to resume passed.')
             player.resume_votes.clear()
-            await player.set_pause(False)
+            await player.resume()
         else:
             await ctx.send(f'{ctx.author.display_name} has voted to resume the player.')
 
@@ -496,9 +536,9 @@ class Music(core.Cog):
         If you are the DJ or mod, It will always skip.
         If you are not, your vote will be added.
         """
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+        player: Player = ctx.voice_client
 
-        if not player.is_connected:
+        if not player:
             return
 
         if self.is_privileged(ctx):
@@ -525,8 +565,8 @@ class Music(core.Cog):
 
     @core.command(aliases=["ff", "fastf", "fforward"])
     async def fastforward(self, ctx: AvimetryContext, seconds: int):
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
-        if not player.is_connected:
+        player: Player = ctx.voice_client
+        if not player:
             return
         if self.is_privileged(ctx):
             await player.seek(player.position+seconds*1000)
@@ -535,8 +575,8 @@ class Music(core.Cog):
 
     @core.command(aliases=["rw"])
     async def rewind(self, ctx: AvimetryContext, seconds: int):
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
-        if not player.is_connected:
+        player: Player = ctx.voice_client
+        if not player:
             return
         if self.is_privileged(ctx):
             await player.seek(player.position-seconds*1000)
@@ -545,8 +585,8 @@ class Music(core.Cog):
 
     @core.command(aliases=["sk"])
     async def seek(self, ctx: AvimetryContext, seconds: int):
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
-        if not player.is_connected:
+        player: Player = ctx.voice_client
+        if not player:
             return
         if self.is_privileged(ctx):
             await player.seek(seconds*1000)
@@ -560,9 +600,9 @@ class Music(core.Cog):
 
         You must be a DJ or mod to change the volume.
         """
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+        player: Player = ctx.voice_client
 
-        if not player.is_connected:
+        if not player:
             return
 
         if not self.is_privileged(ctx):
@@ -582,9 +622,9 @@ class Music(core.Cog):
         If you are the DJ or mod, It will shuffle the queue.
         If you are not, your vote will be added.
         """
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+        player: Player = ctx.voice_client
 
-        if not player.is_connected:
+        if not player:
             return
 
         if self.is_privileged(ctx):
@@ -605,12 +645,12 @@ class Music(core.Cog):
         else:
             await ctx.send(f'{ctx.author.display_name} has voted to shuffle the playlist.', delete_after=15)
 
-    @core.command(aliases=['eq'])
+    @core.command(aliases=['eq'], enabled=False)
     async def equalizer(self, ctx: AvimetryContext, *, equalizer: str):
         """Change the players equalizer."""
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+        player: Player = ctx.voice_client
 
-        if not player.is_connected:
+        if not player:
             return
 
         if not self.is_privileged(ctx):
@@ -633,9 +673,9 @@ class Music(core.Cog):
     @core.command(aliases=['q', 'upnext', 'next'])
     async def queue(self, ctx: AvimetryContext):
         """Display the players queued songs."""
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+        player: Player = ctx.voice_client
 
-        if not player.is_connected:
+        if not player:
             return
 
         if player.queue.size == 0:
@@ -652,9 +692,9 @@ class Music(core.Cog):
         """
         Clears the player's queue.
         """
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+        player: Player = ctx.voice_client
 
-        if not player.is_connected:
+        if not player:
             return
         if player.queue.size == 0:
             return await ctx.send("The queue is empty. You can't clear an empty queue.")
@@ -680,15 +720,15 @@ class Music(core.Cog):
     @core.command(aliases=['swap', 'new_dj'])
     async def swap_dj(self, ctx: AvimetryContext, *, member: discord.Member = None):
         """Swap the current DJ to another member in the voice channel."""
-        player: Player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+        player: Player = ctx.voice_client
 
-        if not player.is_connected:
+        if not player:
             return
 
         if not self.is_privileged(ctx):
             return await ctx.send('Only admins and the DJ may use this command.')
 
-        members = self.bot.get_channel(int(player.channel_id)).members
+        members = player.channel.members
 
         if member and member not in members:
             return await ctx.send(f'{member} is not currently in voice, so can not be a DJ.')

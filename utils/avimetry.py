@@ -29,12 +29,12 @@ import asyncpg
 import asyncdagpi
 import logging
 import wavelink
+import core
 
-from . import core
 from discord.ext import commands
+from core import AvimetryCommand, AvimetryGroup
 from .exceptions import Blacklisted, Maintenance
 from .cache import AvimetryCache
-from .core import AvimetryCommand, AvimetryGroup
 
 
 os.environ["JISHAKU_HIDE"] = "True"
@@ -58,7 +58,10 @@ logger.addHandler(handler)
 
 async def get_prefix(bot: "AvimetryBot", message: discord.Message):
     prefixes = [f"<@{bot.user.id}>", f"<@!{bot.user.id}>"]
-    if not message.guild:
+    commands = ['dev', 'developer', 'jsk', 'jishaku']
+    if await bot.is_owner(message.author) and message.content.startswith(tuple(commands)):
+        prefixes.append("")
+    elif not message.guild:
         prefixes.extend(DEFAULT_PREFIXES)
         return prefixes
     get_prefix = await bot.cache.get_prefix(message.guild.id)
@@ -69,9 +72,6 @@ async def get_prefix(bot: "AvimetryBot", message: discord.Message):
         prefixes.extend(DEFAULT_PREFIXES)
     else:
         prefixes.extend(get_prefix)
-    commands = ['dev', 'developer', 'jsk', 'jishaku']
-    if await bot.is_owner(message.author) and message.content.startswith(tuple(commands)):
-        prefixes.append("")
     command_prefix = "|".join(map(re.escape, prefixes))
     prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
     if prefix:
@@ -94,7 +94,7 @@ intents = discord.Intents(
 activity = discord.Game("Loading...")
 
 
-class AvimetryBot(commands.Bot):
+class AvimetryBot(commands.AutoShardedBot):
     def __init__(self, **kwargs):
         super().__init__(
             **kwargs,
@@ -105,7 +105,8 @@ class AvimetryBot(commands.Bot):
             intents=intents,
             status=discord.Status.idle,
             strip_after_prefix=True,
-            chunk_guilds_at_startup=True
+            chunk_guilds_at_startup=True,
+            shard_count=1
         )
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
         self.owner_ids = OWNER_IDS

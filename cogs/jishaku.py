@@ -161,7 +161,10 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                     f" and can see {cache_summary}"
                 )
         elif self.bot.shard_count:
-            summary.append(f"This bot is manually sharded and {cache_summary}")
+            summary.append(
+                f"This bot is manually sharded (Shard {self.bot.shard_id} of {self.bot.shard_count})"
+                f" and can see {cache_summary}"
+            )
         else:
             summary.append(f"This bot is not sharded and {cache_summary}")
 

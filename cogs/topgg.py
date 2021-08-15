@@ -18,10 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import datetime
+import core
 
 from utils import AvimetryBot
 from discord.ext import tasks
-from utils import core
 
 
 class TopGG(core.Cog):

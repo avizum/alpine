@@ -1,7 +1,7 @@
 import discord
 import re
+import core
 
-from utils import core
 from utils import AvimetryBot
 
 

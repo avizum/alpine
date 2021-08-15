@@ -21,8 +21,8 @@ import random
 import asyncio
 import typing
 import datetime
+import core
 
-from utils import core
 from aiogtts import aiogTTS
 from io import BytesIO
 from discord.ext import commands

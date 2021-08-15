@@ -19,10 +19,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import aiohttp
 import discord
 import datetime
-
+import core
 
 from discord.ext import commands
-from utils import core
 from utils import AvimetryContext, AvimetryBot
 
 
@@ -57,6 +56,9 @@ class Setup(core.Cog):
 
     @core.Cog.listener()
     async def on_message(self, message: discord.Message):
+        ctx = await self.bot.get_context(message)
+        if ctx.valid:
+            return
         if message.author.bot:
             return
         if message.guild is None:
@@ -141,20 +143,20 @@ class Setup(core.Cog):
 
     @core.Cog.listener("on_command")
     async def on_command(self, ctx: AvimetryContext):
+        if not ctx.guild:
+            return
         try:
             self.bot.command_usage[str(ctx.command)] += 1
         except KeyError:
             self.bot.command_usage[str(ctx.command)] = 1
         if ctx.author.id in ctx.cache.blacklist or self.bot.user.id != 756257170521063444:
             return
-        embed = discord.Embed(
-            description=(
-                f"Command: {ctx.command.qualified_name}\n"
-                f"Message: {ctx.message.content}\n"
-                f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
-                f"Channel: {ctx.channel} ({ctx.channel.id})\n"
-            ),
-            color=await ctx.determine_color()
+        embed = discord.Embed(color=await ctx.determine_color())
+        embed.description = (
+            f"Command: {ctx.command.qualified_name}\n"
+            f"Message: {ctx.message.content}\n"
+            f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
+            f"Channel: {ctx.channel} ({ctx.channel.id})\n"
         )
         embed.set_author(name=ctx.author, icon_url=str(ctx.author.avatar_url_as(format="png", size=512)))
         embed.timestamp = datetime.datetime.now(datetime.timezone.utc)

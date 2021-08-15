@@ -21,10 +21,10 @@ import datetime
 import asyncio
 import base64
 import re
+import core
 
 from discord.ext import tasks
 from utils import AvimetryBot, Gist
-from utils import core
 
 TOKEN_REGEX = r'[a-zA-Z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27}'
 
@@ -141,7 +141,7 @@ class BotLogs(core.Cog):
         data = self.bot.cache.logging.get(guild.id)
         if not data or data["enabled"] is not True or not data["member_ban"] or not data["channel_id"]:
             return
-        await asyncio.sleep(1)
+        await asyncio.sleep(2)
         entry = (await guild.audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten())[0]
         if entry.target == user:
             channel = self.bot.get_channel(data["channel_id"])

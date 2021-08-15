@@ -19,10 +19,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import discord
 import humanize
 import datetime
+import core
 
 from discord.ext import commands, menus
 from difflib import get_close_matches
-from utils import core
 from utils import AvimetryBot, AvimetryContext, AvimetryPages
 
 
@@ -293,7 +293,8 @@ class HelpCommand(core.Cog):
                 hidden=True,
                 aliases=["halp", "helps", "hlp", "hlep", "hep"],
                 usage="[command|module]",
-                checks=[core.bot_has_permissions(add_reactions=True).predicate]
+                checks=[core.bot_has_permissions(add_reactions=True).predicate],
+                cooldown=commands.Cooldown(1, 3, commands.BucketType.user)
             )
         )
         help_command.cog = self

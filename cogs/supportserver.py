@@ -19,8 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import discord
 import re
 import datetime
+import core
 
-from utils import core
 from discord.ext import commands, tasks
 from utils import AvimetryBot, AvimetryContext, PrivateServer
 

@@ -21,12 +21,12 @@ import datetime
 import typing
 import asyncio
 import random
+import core
 
 from akinator.async_aki import Akinator
 from akinator import CantGoBackAnyFurther
 from discord.ext import commands, menus
 from utils import AvimetryContext, AvimetryBot, Timer
-from utils import core
 
 
 class AkinatorMenu(menus.Menu):

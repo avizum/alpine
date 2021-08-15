@@ -19,8 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import datetime
 import discord
 import json
+import core
 
-from utils import core
 from tagformatter import Parser
 from utils import AvimetryBot
 

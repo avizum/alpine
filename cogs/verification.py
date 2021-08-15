@@ -21,8 +21,8 @@ import string
 import random
 import asyncio
 import datetime
+import core
 
-from utils import core
 from utils import AvimetryBot, AvimetryContext
 
 

@@ -18,8 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import datetime
+import core
 
-from utils import core
 from io import BytesIO
 from utils.utils import Timer
 from utils import AvimetryContext, AvimetryBot
