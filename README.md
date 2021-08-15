@@ -28,7 +28,18 @@ In the help command, you can see all the commands. If you need help reading the 
 |  \<argument\>  |  required argument |
 |   [argument]   | optional arguments |
 | [arguments...] | multiple arguments |
-| {--flags}      | Coming soon        |
 
 ## Running the bot
-Please do not run your own instance of this bot. It is recommended to use the hosted one [here](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)
+It is not recommended to run your own instance. Use the one [here.](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)
+
+If you don't care, Here are instructions on how to run your own version of Avimetry.
+
+1. Have Python 3.8 installed
+Python has to be installed. This is a Python bot.
+2. Install requirements
+Do `pip install -U -r requirements.txt`
+3. Bot Configuration
+Put your tokens in a `config.toml` file. Check `config_example.toml` for an example.
+In `utils/avimetry.py`, change `OWNER_IDS` to your Discord IDs and change `PUBLIC_BOT_ID` to your bot's ID.
+Set your PostgreSQL database (Will add more instructions soon)
+Run main file.

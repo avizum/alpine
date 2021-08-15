@@ -1,20 +1,22 @@
 [bot_tokens]
-    Main = ""
-    Testing = ""
+    Avimetry = "Bot Token Here"
 
 [api_tokens]
-    DagpiAPI = ""
-    TopGG = ""
-    GitHub = ""
-
-[webhooks]
-    join_log = ""
-    error_log = ""
-    command_log = ""
+    DagpiAPI = "Dagpi token here"
+    TopGG = "Top.gg token here"
+    GitHub = "GitHub token here"
 
 [postgresql]  
-    host = ""
+    host = "localhost"
     port = 5432
-    user = ""
-    database = ""
-    password = ""
+    user = "admin"
+    database = "avimetry"
+
+[webhooks]
+    join_log = "Webhook for bot guild joins"
+    error_log = "Webhook for bot errors"
+    command_log = "Webhook for command logging"
+    request_log = "Webhook for DM logging and `request` logging"
+
+[news]
+    news = "Please do not run your own instance of Avimetry."
