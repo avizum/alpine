@@ -167,7 +167,10 @@ class ErrorHandler(core.Cog):
                 title="Missing Permissions",
                 description=f"I need the following permissions to run this command:\n{fmt}"
             )
-            return await ctx.send(embed=bnp)
+            try:
+                await ctx.send(embed=bnp)
+            except discord.HTTPException:
+                await ctx.send(f"{bnp.description}\n\nGive me embed links permissions.")
 
         elif isinstance(error, commands.MissingPermissions):
             missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]

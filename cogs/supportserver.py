@@ -175,7 +175,7 @@ class Servers(commands.Cog, name="Servers"):
             except discord.Forbidden:
                 pass
 
-    @core.command(hidden=True)
+    @core.command(hidden=True, aliased=["tester"])
     async def testing(self, ctx: AvimetryContext):
         """
         Gives testing role.
