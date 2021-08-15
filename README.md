@@ -35,10 +35,15 @@ It is not recommended to run your own instance. Use the one [here.](https://disc
 If you don't care, Here are instructions on how to run your own version of Avimetry.
 
 1. Have Python 3.8 installed
+
 Python has to be installed. This is a Python bot.
+
 2. Install requirements
+
 Do `pip install -U -r requirements.txt`
+
 3. Bot Configuration
+
 Put your tokens in a `config.toml` file. Check `config_example.toml` for an example.
 In `utils/avimetry.py`, change `OWNER_IDS` to your Discord IDs and change `PUBLIC_BOT_ID` to your bot's ID.
 Set your PostgreSQL database (Will add more instructions soon)
