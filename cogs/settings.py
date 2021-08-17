@@ -718,6 +718,14 @@ class Settings(core.Cog):
             new["color"] = color.value
         embed = discord.Embed(description=f'Set your theme to {color}', color=color)
         await ctx.send(embed=embed)
+    
+    @theme.command()
+    async def view(self, ctx: AvimetryContext):
+        """
+        Show your current theme preview.
+        """
+        embed = discord.Embed(title="Preview", description="This is how your embeds will look like.")
+        await ctx.send(embed=embed)
 
     @core.command(hidden=True)
     async def getowner(self, ctx: AvimetryContext):

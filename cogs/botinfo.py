@@ -21,7 +21,6 @@ import datetime
 import psutil
 import humanize
 import pathlib
-import inspect
 import os
 import core
 
@@ -113,7 +112,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             (self.bot.get_user(547280209284562944), 'Testing', 'https://github.com/LereUwU'),
             (self.bot.get_user(672122220566413312), 'Avatar', 'https://discord.com/users/672122220566413312'),
             (self.bot.get_user(171539705043615744), 'Help Command, Error Tracking', 'https://github.com/iDutchy'),
-            (self.bot.get_user(733370212199694467), 'Contributor, Noob', 'https://github.com/MrArkon/')
+            (self.bot.get_user(733370212199694467), 'Contributor', 'https://github.com/MrArkon/')
         ]
 
         embed = discord.Embed(
@@ -186,7 +185,21 @@ class BotInfo(commands.Cog, name="Bot Info"):
         """
         Hello!
         """
-        await ctx.send(f'Hello, {ctx.author}, I am a bot made by avizum#8771!')
+        embed = discord.Embed(
+            title='\U0001f44b Hey, I am Avimetry!',
+            description=f'Hello {ctx.author.mention}, I am a bot made by [avizum.](https://github.com/avizum)',
+            color=ctx.guild.owner.color
+        )
+        embed.add_field(name=f'{ctx.clean_prefix}help', value='Sends the help page.', inline=False)
+        embed.add_field(
+            name=f'{ctx.clean_prefix}prefix add',
+            value='Adds a prefix to this server. (You can have up to 15 prefixes)',
+            inline=False
+        )
+        embed.add_field(name=f'{ctx.clean_prefix}about', value='Show some info about the bot.', inline=False)
+        embed.add_field(name=f'{ctx.clean_prefix}vote', value='Support Avimetry by voting! Thank you!', inline=False)
+        embed.set_footer(text='Made by avizum :)')
+        await ctx.send(embed=embed)
 
     @core.group(invoke_without_command=True)
     async def invite(self, ctx: AvimetryContext, bot: Union[discord.Member, discord.User] = None):
@@ -311,62 +324,22 @@ class BotInfo(commands.Cog, name="Bot Info"):
         vote_embed.set_thumbnail(url=self.bot.user.avatar_url)
         await ctx.send(embed=vote_embed)
 
-    # Please do not remove this command.
-    # - avizum
     @core.command()
-    async def source(self, ctx: AvimetryContext, *, command: str = None):
+    async def source(self, ctx: AvimetryContext):
         """
-        Send the bot's source or a source of a command.
+        Send the bot's "Source"
 
-        Typing a command will send the source of a command instead.
+        That's a nice source am I right?!
         """
-        source_embed = discord.Embed(
-                title=f"{self.bot.user.name}'s source",
-                timestamp=datetime.datetime.now(datetime.timezone.utc)
+        embed = discord.Embed(
+            title="Source",
+            description=(
+                f"Here is the [source]({self.bot.support}), follow the "
+                "[license](https://top.gg/bot/756257170521063444/vote).\n"
+                "Made by [avizum](https://github.com/avizum/)."
             )
-        git_link = "https://github.com/avimetry/avimetry/blob/master/"
-        license_link = "https://github.com/avimetry/avimetry/blob/master/LICENSE"
-        if not command:
-            if self.bot.user.id != 756257170521063444:
-                source_embed.description = (
-                    "This bot is an instance of [Avimetry](https://github.com/avimetry/avimetry), "
-                    "Made by [avizum](https://github.com/avizum/). "
-                    f"Follow the [license]({license_link})"
-                )
-            else:
-                source_embed.description = (
-                    "Here is my [source](https://github.com/avimetry/avimetry). "
-                    "I am made by [avizum](https://github.com/avizum/).\n"
-                    f"Follow the [license]({license_link})"
-                )
-            return await ctx.send(embed=source_embed)
-
-        if command == "help":
-            command = self.bot.help_command
-        else:
-            command = self.bot.get_command(command)
-        if not command:
-            source_embed.description = "That command could not be found."
-            return await ctx.send(embed=source_embed)
-
-        if isinstance(command, commands.HelpCommand):
-            lines, number_one = inspect.getsourcelines(type(command))
-            src = command.__module__
-        else:
-            lines, number_one = inspect.getsourcelines(command.callback.__code__)
-            src = command.callback.__module__
-
-        path = f"{src.replace('.', '/')}.py"
-
-        number_two = number_one + len(lines) - 1
-        command = "help" if isinstance(command, commands.HelpCommand) else command
-        link = f"{git_link}{path}#L{number_one}-L{number_two}"
-        source_embed.description = (
-            f"[Here is the source]({link}) for `{command}`. "
-            f"Follow the [license]({license_link})."
-            f"Made by [avizum](https://github.com/avizum/)"
-            )
-        await ctx.send(embed=source_embed)
+        )
+        await ctx.send(embed=embed)
 
     @core.command(
         aliases=[

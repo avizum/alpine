@@ -382,6 +382,7 @@ class Music(core.Cog):
             await ctx.send(f'{ctx.author.display_name} has voted to stop the player.')
 
     @core.command(aliases=["enqueue", "p"])
+    @in_voice()
     async def play(self, ctx: AvimetryContext, *, query: typing.Union[wavelink.YouTubeTrack, wavelink.YouTubePlaylist]):
         """Play or queue a song with the given query."""
         player: Player = ctx.voice_client
