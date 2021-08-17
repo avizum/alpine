@@ -140,8 +140,8 @@ class FindBan(commands.Converter):
         raise commands.BadArgument("That user isn't banned")
 
 
-PREFIX_CHAR_LIMIT = 20
-MAX_PREFIX_AMOUNT = 15
+PREFIX_CHAR_LIMIT = 35
+MAX_PREFIX_AMOUNT = 20
 
 
 class Prefix(commands.Converter):
