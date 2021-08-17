@@ -24,6 +24,8 @@ import re
 from .avimetry import AvimetryBot
 from discord.ext import commands
 
+emoji_regex = '<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>'
+
 
 class AvimetryContext(commands.Context):
     def __init__(self, bot: AvimetryBot, *args, **kwargs):
@@ -44,12 +46,13 @@ class AvimetryContext(commands.Context):
 
     @property
     def clean_prefix(self):
-        prefix = re.sub(
-            f"<@!?{self.bot.user.id}>", f"@{self.me.display_name}", self.prefix
+        match = re.match(emoji_regex, self.prefix)
+        if match:
+            return re.sub(emoji_regex, match.group(2), self.prefix)
+
+        return re.sub(
+            f"<@!?{self.bot.user.id}>", f"@{self.me.display_name} ", self.prefix
         )
-        if prefix.endswith("  "):
-            prefix = f"{prefix.strip()} "
-        return prefix
 
     @property
     def content(self):
