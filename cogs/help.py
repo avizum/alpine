@@ -205,15 +205,34 @@ class AvimetryHelp(commands.HelpCommand):
         return self.context
 
     async def send_bot_help(self, mapping):
+        emoji_map = {
+            "animals": "\U0001f98a Animals",
+            "fun": "🎱 Fun",
+            "games": "🎮 Games",
+            "images": "📷 Images",
+            "meta": "<:avimetry:848820318117691432> Meta",
+            "moderation": "🔫 Moderation",
+            "server management": "<:avimetry:848820318117691432> Server Management",
+            "settings": "⚙️ Settings",
+            "music": "🎵 Music",
+            "bot info": "ℹ️ Bot Info"
+        }
         items = []
         for cog in mapping:
             if not cog:
                 continue
             filtered = await self.filter_commands(cog.get_commands())
             if filtered:
-                thing = f"{cog.qualified_name} - {cog.description or 'No description'}"
-                items.append(thing)
-        menu = AvimetryPages(MainHelp(self.context, items, self))
+                items.append(cog)
+        items.sort(key=lambda c: c.qualified_name)
+        cogs = []
+        for cog in items:
+            try:
+                thing = f"{emoji_map[cog.qualified_name.lower()]} - {cog.description or 'No description'}"
+            except KeyError:
+                thing = f"<:avimetry:848820318117691432> {cog.qualified_name} - {cog.description or 'No description'}"
+            cogs.append(thing)
+        menu = AvimetryPages(MainHelp(self.context, cogs, self))
         await menu.start(self.context)
 
     async def send_cog_help(self, cog: commands.Cog):
