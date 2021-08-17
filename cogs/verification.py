@@ -62,7 +62,10 @@ class MemberJoin(core.Cog):
                 f"{member.mention}", embed=x,
                 allowed_mentions=discord.AllowedMentions(users=True)
             )
-            self.messages[member.id] = message
+            try:
+                self.messages[member.id] = message
+            except KeyError:
+                pass
 
     @core.Cog.listener()
     async def on_member_join(self, member: discord.Member):
@@ -90,6 +93,7 @@ class MemberJoin(core.Cog):
 
         This command only works if the server has verification enabled.
         """
+        await ctx.message.delete()
         member = ctx.author
         config = self.bot.cache.verification.get(member.guild.id)
         if not config:
@@ -136,7 +140,9 @@ class MemberJoin(core.Cog):
                 break
             else:
                 await send_message.delete()
-                await self.messages[member.id].delete()
+                message = self.messages.get(member.id)
+                if message:
+                    await message.delete()
                 if msg.content != randomkey:
                     await msg.add_reaction(self.bot.emoji_dictionary["red_tick"])
                 else:
