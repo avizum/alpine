@@ -94,7 +94,7 @@ intents = discord.Intents(
 activity = discord.Game("Loading...")
 
 
-class AvimetryBot(commands.AutoShardedBot):
+class AvimetryBot(commands.Bot):
     def __init__(self, **kwargs):
         super().__init__(
             **kwargs,
@@ -105,8 +105,7 @@ class AvimetryBot(commands.AutoShardedBot):
             intents=intents,
             status=discord.Status.idle,
             strip_after_prefix=True,
-            chunk_guilds_at_startup=True,
-            shard_count=1
+            chunk_guilds_at_startup=True
         )
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
         self.owner_ids = OWNER_IDS
@@ -120,6 +119,7 @@ class AvimetryBot(commands.AutoShardedBot):
         self.cache = AvimetryCache(self)
         self.invite = str(discord.utils.oauth_url(PUBLIC_BOT_ID, discord.Permissions(8)))
         self.support = "https://discord.gg/KaqqPhfwS4"
+        self.source = "https://github.com/avimetry/avimetry"
         self.emoji_dictionary = {
             "red_tick": '<:redtick:777096756865269760>',
             "green_tick": '<:greentick:777096731438874634>',
@@ -149,9 +149,9 @@ class AvimetryBot(commands.AutoShardedBot):
             "cogs.joinsandleaves",
             "cogs.meta",
             "cogs.moderation",
+            "cogs.music",
             "cogs.servermanagement",
             "cogs.settings",
-            "cogs.music",
             "cogs.supportserver",
             "cogs.topgg",
             "cogs.verification",
@@ -209,7 +209,7 @@ class AvimetryBot(commands.AutoShardedBot):
         )
 
     async def on_ready(self):
-        timenow = datetime.datetime.now(datetime.timezone.utc).strftime("%I:%M %p")
+        timenow = datetime.datetime.now().strftime("%I:%M %p")
         print(
             "Successfully logged in:\n"
             f"Username: {self.user.name}\n"
