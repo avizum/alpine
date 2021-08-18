@@ -54,7 +54,7 @@ class Settings(core.Cog):
             return await ctx.send(f"Hey {ctx.author}, the prefix for {ctx.guild.name} is `{guild_prefix[0]}`")
         await ctx.send(f"Hey {ctx.author}, here are the prefixes for {ctx.guild.name}:\n`{'` | `'.join(guild_prefix)}`")
 
-    @prefix.command(name="add")
+    @prefix.command(name="add", aliases=["append"])
     @core.has_permissions(manage_guild=True)
     async def prefix_add(self, ctx: AvimetryContext, *, prefix: Prefix):
         """
@@ -456,7 +456,12 @@ class Settings(core.Cog):
                     command = self.bot.get_command("leave-message setup")
                     await command(ctx)
                 return
-        query = "UPDATE join_leave SET leave_enabled = $1 WHERE guild_id = $2"
+        query = (
+            "INSERT INTO join_leave (guild_id, join_enabled) "
+            "VALUES ($1, $2) "
+            "ON CONFLICT (guild_id) DO "
+            "UPDATE SET join_enabled = $2"
+        )
         await self.bot.pool.execute(query, ctx.guild.id, toggle)
         ctx.cache.join_leave[ctx.guild.id]["leave_enabled"] = toggle
         await ctx.send(f"{self.map[toggle]} leave message")
@@ -718,7 +723,7 @@ class Settings(core.Cog):
             new["color"] = color.value
         embed = discord.Embed(description=f'Set your theme to {color}', color=color)
         await ctx.send(embed=embed)
-    
+
     @theme.command()
     async def view(self, ctx: AvimetryContext):
         """

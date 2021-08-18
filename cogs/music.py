@@ -392,7 +392,6 @@ class Music(core.Cog):
         if player.is_paused():
             await ctx.invoke(self.resume)
         if not player.channel:
-            print("no channel")
             return
 
         tracks = query
@@ -415,13 +414,9 @@ class Music(core.Cog):
             track = Track(tracks.id, tracks.info, requester=ctx.author, thumb=tracks.thumb)
             await ctx.send(embed=await player.build_added(track))
             await player.queue.put(track)
-            print(player.queue)
 
         if not player.is_playing():
-            print(player)
-            print(player.is_playing())
             await player.do_next()
-            print("p")
 
     @core.command(aliases=["ptop"])
     async def playtop(self, ctx: AvimetryContext, *, query: wavelink.YouTubeTrack):

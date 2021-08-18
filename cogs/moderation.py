@@ -364,7 +364,7 @@ class Moderation(core.Cog):
         """
         await ctx.send_help("role")
 
-    @role.command()
+    @role.command(aliases=["append"])
     @core.has_permissions(manage_roles=True)
     async def add(self, ctx: AvimetryContext, member: discord.Member, role: discord.Role):
         """
@@ -423,7 +423,7 @@ class Moderation(core.Cog):
         """
         Ban yourself from the server.
 
-        This not actually ban them, This command is just a joke.
+        This not actually ban them, This command is just a joke, Like you.
         """
         conf = await ctx.confirm("Are you sure you want to ban yourself?")
         if conf:
@@ -435,7 +435,7 @@ class Moderation(core.Cog):
         """
         Kick yourself from the server.
 
-        This not actually ban them, This command is just a joke.
+        This not actually ban them, This command is just a joke, Like you.
         """
         conf = await ctx.confirm("Are you sure you want to kick yourself?")
         if conf:

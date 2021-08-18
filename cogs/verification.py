@@ -87,6 +87,7 @@ class MemberJoin(core.Cog):
             await self.do_verify(after)
 
     @core.command(hidden=True)
+    @core.bot_has_permissions(manage_messages=True, manage_roles=True)
     async def verify(self, ctx: AvimetryContext):
         """
         Verify.

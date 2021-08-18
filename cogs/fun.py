@@ -119,19 +119,7 @@ class Fun(core.Cog):
 
         This command has a high cooldown to prevent abuse.
         """
-        await ctx.no_reply(message)
-
-    @core.command()
-    @commands.cooldown(1, 120, commands.BucketType.member)
-    @core.has_permissions(manage_messages=True)
-    async def dsay(self, ctx: AvimetryContext, *, message):
-        """
-        Same as say, but I delete your message also.
-
-        This command has a high cooldown to prevent abuse.
-        """
-        await ctx.message.delete()
-        await ctx.no_reply(message)
+        await ctx.send(message)
 
     @core.command()
     @core.bot_has_permissions(manage_webhooks=True)

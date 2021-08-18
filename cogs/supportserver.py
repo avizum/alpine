@@ -186,7 +186,7 @@ class Servers(commands.Cog, name="Servers"):
             return
         role = ctx.guild.get_role(836105548457574410)
         if role in ctx.author.roles:
-            return await ctx.message.add_reaction(self.bot.emoji_dictionary["red_tick"])
+            return await ctx.author.remove_roles(role)
         await ctx.author.add_roles(role, reason="Public testing")
         await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
 

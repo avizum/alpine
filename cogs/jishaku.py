@@ -99,7 +99,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.send(f"System battery is at {percent}% and {'Plugged in' if plugged else 'Unplugged'}")
 
     @Feature.Command(name="jishaku", aliases=["jsk"], hidden=Flags.HIDE,
-                     invoke_without_command=True, ignore_extra=False)
+                     invoke_without_command=True, ignore_extra=True)
     async def jsk(self, ctx: AvimetryContext):
         """
         The Jishaku debug and diagnostic commands.

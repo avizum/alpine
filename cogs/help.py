@@ -207,15 +207,13 @@ class AvimetryHelp(commands.HelpCommand):
     async def send_bot_help(self, mapping):
         emoji_map = {
             "animals": "\U0001f98a Animals",
-            "fun": "🎱 Fun",
-            "games": "🎮 Games",
-            "images": "📷 Images",
-            "meta": "<:avimetry:848820318117691432> Meta",
-            "moderation": "🔫 Moderation",
-            "server management": "<:avimetry:848820318117691432> Server Management",
-            "settings": "⚙️ Settings",
-            "music": "🎵 Music",
-            "bot info": "ℹ️ Bot Info"
+            "fun": "\U0001f3b1 Fun",
+            "games": "\U0001f3ae Games",
+            "images": "\U0001f4f7 Images",
+            "moderation": "\U0001f52b Moderation",
+            "settings": "\U00002699 Settings",
+            "music": "\U0001f3b5 Music",
+            "bot info": "\U00002139 Bot Info"
         }
         items = []
         for cog in mapping:
