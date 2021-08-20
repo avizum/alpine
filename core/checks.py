@@ -72,6 +72,16 @@ def bot_has_permissions(**perms):
     return check(predicate, bot_permissions=perms)
 
 
+def cooldown(rate, per, type=commands.BucketType.default):
+    def decorator(func):
+        if isinstance(func, AvimetryCommand):
+            func._buckets = commands.CooldownMapping(commands.Cooldown(rate, per, type))
+        else:
+            func.__commands_cooldown__ = commands.Cooldown(rate, per, type)
+        return func
+    return decorator
+
+
 def is_owner():
     async def predicate(ctx):
         if not await ctx.bot.is_owner(ctx.author):

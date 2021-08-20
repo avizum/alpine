@@ -277,7 +277,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=embed)
 
     @core.command(brief="Request a feature to be added to the bot.")
-    @commands.cooldown(1, 300, commands.BucketType.user)
+    @core.cooldown(1, 300, commands.BucketType.user)
     async def request(self, ctx: AvimetryContext, *, request):
         """
         Request a feature to be added to Avimetry.
@@ -331,6 +331,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
     async def source(self, ctx: AvimetryContext, *, command: str = None):
         """
         Send the bot's source or a source of a command.
+
         Typing a command will send the source of a command instead.
         """
         source_embed = discord.Embed(
@@ -348,9 +349,9 @@ class BotInfo(commands.Cog, name="Bot Info"):
                 )
             else:
                 source_embed.description = (
-                    f"Here is my [source]({self.bot.source}).\n"
+                    f"Here is the whole [source]({self.bot.source}).\n"
                     "I am made by [avizum](https://github.com/avizum/).\n"
-                    f"Follow the [license]({license_link})"
+                    f"Follow the [license]({license_link}) and please star :)"
                 )
             return await ctx.send(embed=source_embed)
 
@@ -377,7 +378,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         source_embed.description = (
             f"[Here is the source]({link}) for `{command}`.\n"
             f"Follow the [license]({license_link}).\n"
-            f"Made by [avizum](https://github.com/avizum/)"
+            f"Made by [avizum](https://github.com/avizum/)."
             )
         await ctx.send(embed=source_embed)
 

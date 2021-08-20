@@ -106,7 +106,7 @@ class Games(core.Cog):
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     @core.command(aliases=["\U0001F36A", "vookir", "kookie"])
-    @commands.cooldown(5, 10, commands.BucketType.member)
+    @core.cooldown(5, 10, commands.BucketType.member)
     @commands.max_concurrency(2, commands.BucketType.channel)
     async def cookie(self, ctx: AvimetryContext, member: typing.Optional[discord.Member] = None):
         """
@@ -178,7 +178,7 @@ class Games(core.Cog):
     @core.command(
         name="akinator",
         aliases=["aki", "avinator"])
-    @commands.cooldown(1, 60, commands.BucketType.member)
+    @core.cooldown(1, 60, commands.BucketType.member)
     @commands.max_concurrency(1, commands.BucketType.channel)
     @core.bot_has_permissions(add_reactions=True)
     async def fun_akinator(self, ctx: AvimetryContext, mode="en"):
@@ -240,7 +240,7 @@ class Games(core.Cog):
         name="guessthatlogo",
         aliases=["gtl"]
     )
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_guess_that_logo(self, ctx: AvimetryContext):
         """
         Try to guess the logo given to you.
@@ -287,7 +287,7 @@ class Games(core.Cog):
             await message.edit(embed=embed)
 
     @core.command()
-    @commands.cooldown(1, 10, commands.BucketType.channel)
+    @core.cooldown(1, 10, commands.BucketType.channel)
     @core.bot_has_permissions(add_reactions=True)
     async def reaction(self, ctx: AvimetryContext):
         """

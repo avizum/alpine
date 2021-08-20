@@ -653,7 +653,7 @@ class Settings(core.Cog):
         return await ctx.send(f"Set verification channel to {channel.mention}")
 
     @core.group(invoke_without_command=True, case_insensitive=True)
-    @commands.cooldown(1, 60, commands.BucketType.user)
+    @core.cooldown(1, 60, commands.BucketType.user)
     async def theme(self, ctx: AvimetryContext, *, color: discord.Color):
         """
         Set the theme.

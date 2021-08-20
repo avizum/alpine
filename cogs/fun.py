@@ -42,7 +42,7 @@ class Fun(core.Cog):
         return "".join(random.choice([mock.upper, mock.lower])() for mock in string)
 
     @core.command(aliases=["8ball", "8b"])
-    @commands.cooldown(5, 15, commands.BucketType.member)
+    @core.cooldown(5, 15, commands.BucketType.member)
     async def eightball(self, ctx: AvimetryContext, *, question):
         """
         Ask the magic 8 ball a question.
@@ -79,7 +79,7 @@ class Fun(core.Cog):
         await ctx.send(embed=ballembed)
 
     @core.command(aliases=["murder"])
-    @commands.cooldown(2, 30, commands.BucketType.member)
+    @core.cooldown(2, 30, commands.BucketType.member)
     async def kill(self, ctx: AvimetryContext, member: discord.Member):
         """
         Kill some people.
@@ -112,7 +112,7 @@ class Fun(core.Cog):
             await ctx.send(f"{random.choice(kill_response)}")
 
     @core.command()
-    @commands.cooldown(1, 120, commands.BucketType.member)
+    @core.cooldown(1, 120, commands.BucketType.member)
     async def say(self, ctx: AvimetryContext, *, message):
         """
         Makes me say something.
@@ -123,7 +123,7 @@ class Fun(core.Cog):
 
     @core.command()
     @core.bot_has_permissions(manage_webhooks=True)
-    @commands.cooldown(1, 120, commands.BucketType.user)
+    @core.cooldown(1, 120, commands.BucketType.user)
     async def copy(self, ctx: AvimetryContext, member: typing.Union[discord.User, discord.Member], *, text):
         """
         Makes it look like a person said something.
@@ -222,7 +222,7 @@ class Fun(core.Cog):
         await ctx.send(embed=pp_embed)
 
     @core.command()
-    @commands.cooldown(1, 15, commands.BucketType.member)
+    @core.cooldown(1, 15, commands.BucketType.member)
     async def reddit(self, ctx: AvimetryContext, subreddit):
         """
         Gets a random post from a subreddit you provide.
@@ -270,7 +270,7 @@ class Fun(core.Cog):
         return await ctx.send(embed=embed)
 
     @core.command()
-    @commands.cooldown(1, 15, commands.BucketType.member)
+    @core.cooldown(1, 15, commands.BucketType.member)
     async def meme(self, ctx: AvimetryContext):
         """
         Get a meme from Reddit.

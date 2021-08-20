@@ -217,7 +217,7 @@ class Moderation(core.Cog):
     @core.group(invoke_without_command=True)
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
-    @commands.cooldown(5, 30, commands.BucketType.member)
+    @core.cooldown(5, 30, commands.BucketType.member)
     async def purge(self, ctx: AvimetryContext, amount: PurgeAmount):
         """
         Mass delete messages in the current channel.
@@ -418,7 +418,7 @@ class Moderation(core.Cog):
         await ctx.send(embed=nickembed)
 
     @core.command()
-    @commands.cooldown(1, 60, commands.BucketType.member)
+    @core.cooldown(1, 60, commands.BucketType.member)
     async def selfban(self, ctx: AvimetryContext):
         """
         Ban yourself from the server.
@@ -430,7 +430,7 @@ class Moderation(core.Cog):
             return await ctx.send("Sike")
 
     @core.command()
-    @commands.cooldown(1, 60, commands.BucketType.member)
+    @core.cooldown(1, 60, commands.BucketType.member)
     async def selfkick(self, ctx: AvimetryContext):
         """
         Kick yourself from the server.

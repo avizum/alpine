@@ -60,15 +60,15 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         Load cogs.
         """
         command = self.bot.get_command("dev load")
-        await command(ctx, module=module)
+        await command(ctx, module)
 
     @Feature.Command(parent="jsk", name="unload", aliases=["u"])
-    async def jsk_unload(self, ctx: AvimetryContext, *module: CogConverter):
+    async def jsk_unload(self, ctx: AvimetryContext, module: CogConverter):
         """
         Unload cogs.
         """
         command = self.bot.get_command("dev unload")
-        await command(ctx, module=module)
+        await command(ctx, module)
 
     @Feature.Command(parent="jsk", name="reload", aliases=["r"])
     async def jsk_reload(self, ctx: AvimetryContext, module: CogConverter):
@@ -76,7 +76,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         Reload cogs
         """
         command = self.bot.get_command("dev reload")
-        await command(ctx, module=module)
+        await command(ctx, module)
 
     @Feature.Command(parent="jsk", name="sync", aliases=["pull"])
     async def jsk_sync(self, ctx: AvimetryContext):

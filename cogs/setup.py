@@ -57,11 +57,11 @@ class Setup(core.Cog):
     @core.Cog.listener()
     async def on_message(self, message: discord.Message):
         ctx = await self.bot.get_context(message)
-        if ctx.valid:
+        if await self.bot.is_owner(ctx.author) and ctx.valid:
             return
         if message.author.bot:
             return
-        if message.guild is None:
+        if isinstance(message.channel, discord.DMChannel):
             cache = self.bot.cache.users.get(message.author.id)
             if cache:
                 dmed = cache.get('dmed')

@@ -60,7 +60,7 @@ class Meta(core.Cog):
         self.scraper = AsyncScraper(self.bot.loop, self.bot.session)
 
     @core.command()
-    @commands.cooldown(1, 300, commands.BucketType.user)
+    @core.cooldown(1, 300, commands.BucketType.user)
     async def poll(self, ctx: AvimetryContext, question, *options: str):
         """
         Send a poll for people to vote to.
@@ -103,7 +103,7 @@ class Meta(core.Cog):
         await react_message.edit(embed=embed)
 
     @core.command()
-    @commands.cooldown(1, 1, commands.BucketType.member)
+    @core.cooldown(1, 1, commands.BucketType.member)
     async def pick(self, ctx: AvimetryContext, *, options):
         """
         Pick one of your options you provided.
@@ -117,7 +117,7 @@ class Meta(core.Cog):
         return await ctx.send(random.choice(opt))
 
     @core.command(aliases=["ui", "uinfo", "whois"])
-    @commands.cooldown(1, 15, commands.BucketType.user)
+    @core.cooldown(1, 15, commands.BucketType.user)
     async def userinfo(self, ctx: AvimetryContext, *, member: typing.Union[discord.Member, discord.User] = None):
         """
         Get info about a user.
@@ -286,7 +286,7 @@ class Meta(core.Cog):
         await ctx.send(f"Set timezone to {timezones}")
 
     @core.command()
-    @commands.cooldown(1, 15, commands.BucketType.guild)
+    @core.cooldown(1, 15, commands.BucketType.guild)
     async def firstmessage(self, ctx: AvimetryContext, *, channel: discord.TextChannel = None):
         """
         Get the first message of the channel.
@@ -366,7 +366,7 @@ class Meta(core.Cog):
         await menu.start(ctx)
 
     @core.command()
-    @commands.cooldown(1, 300, commands.BucketType.member)
+    @core.cooldown(1, 300, commands.BucketType.member)
     async def embed(self, ctx: AvimetryContext, *, thing: str):
         """
         Make embeds with JSON.
@@ -405,7 +405,7 @@ class Meta(core.Cog):
         raise error
 
     @core.command()
-    @commands.cooldown(1, 60, commands.BucketType.user)
+    @core.cooldown(1, 60, commands.BucketType.user)
     async def gist(self, ctx: AvimetryContext, *, code: codeblock_converter):
         """
         Posts a gist.
