@@ -20,33 +20,20 @@ import datetime
 from discord.ext import commands
 
 
+def to_list(thing):
+    if isinstance(thing, str):
+        return [thing]
+    else:
+        return list(thing)
+
+
 class AvimetryCommand(commands.Command):
     def __init__(self, func, **kwargs):
-        try:
-            user_permissions = func.user_permissions
-        except AttributeError:
-            user_permissions = kwargs.get('user_permissions', 'Send Messages')
-        finally:
-            if isinstance(user_permissions, str):
-                self.user_permissions = [user_permissions]
-            elif isinstance(user_permissions, dict):
-                self.user_permissions = list(user_permissions)
-            elif isinstance(user_permissions, list):
-                self.user_permissions = user_permissions
-        try:
-            bot_permissions = func.bot_permissions
-        except AttributeError:
-            bot_permissions = kwargs.get('bot_permissions', 'Send Messages')
-        finally:
-            if isinstance(bot_permissions, str):
-                self.bot_permissions = [bot_permissions]
-            elif isinstance(bot_permissions, dict):
-                self.bot_permissions = list(bot_permissions)
-            elif isinstance(bot_permissions, list):
-                self.bot_permissions = bot_permissions
+        self.user_permissions = to_list(getattr(func, 'user_permissions', None))
+        self.bot_permissions = to_list(getattr(func, 'bot_permissions', None))
         super().__init__(func, **kwargs)
         if not self._buckets._cooldown:
-            self._buckets = commands.CooldownMapping(commands.Cooldown(1, 199), commands.BucketType.user)
+            self._buckets = commands.CooldownMapping(commands.Cooldown(1, 3), commands.BucketType.user)
             self._buckets._cooldown = commands.Cooldown(1, 3)
 
 
