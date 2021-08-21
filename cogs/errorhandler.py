@@ -140,7 +140,7 @@ class ErrorHandler(core.Cog):
                 bucket1 = self.not_found_cooldown_content.get_bucket(ctx.message).update_rate_limit()
                 bucket2 = self.not_found_cooldown.get_bucket(ctx.message).update_rate_limit()
                 if not bucket1 or not bucket2:
-                    conf = await ctx.confirm(embed=embed)
+                    conf = await ctx.confirm(embed=embed, remove_view_after=True)
                     if conf.result:
                         new = copy.copy(ctx.message)
                         new._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
@@ -176,7 +176,7 @@ class ErrorHandler(core.Cog):
             return await ctx.send(embed=max_uses)
 
         elif isinstance(error, commands.BotMissingPermissions):
-            missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
+            missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_permissions]
 
             if len(missing) > 2:
                 fmt = '{}, and {}'.format(", ".join(missing[:-1]), missing[-1])
@@ -193,7 +193,7 @@ class ErrorHandler(core.Cog):
                 await ctx.send(f"{bnp.description}\n\nGive me embed links permissions.")
 
         elif isinstance(error, commands.MissingPermissions):
-            missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
+            missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_permissions]
 
             if len(missing) > 2:
                 fmt = '{}, and `{}`'.format(", ".join(missing[:-1]), missing[-1])
