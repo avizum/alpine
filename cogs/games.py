@@ -57,8 +57,6 @@ class AkinatorGameView(discord.ui.View):
 
     async def on_error(self, error, item, interaction):
         await self.ctx.send(error)
-        print(item)
-        print(interaction)
 
     async def stop(self, *args, **kwargs):
         await self.akiclient.close()
@@ -84,9 +82,10 @@ class AkinatorGameView(discord.ui.View):
             except CantGoBackAnyFurther:
                 await interaction.response.send_message('You can not go back any further.', ephemeral=True)
         elif self.akiclient.progression <= 80:
+            await interaction.response.defer()
             next = await self.akiclient.answer(answer)
             self.embed.description = f'{self.akiclient.step+1}. {next}'
-            await interaction.response.edit_message(embed=self.embed)
+            await self.message.edit(embed=self.embed)
         else:
             await self.akiclient.win()
             client = self.akiclient

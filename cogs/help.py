@@ -123,8 +123,8 @@ class GroupHelp(menus.ListPageSource):
             name="Required Permissions",
             value=(
                 f"Can Use: {await self.hc.can_run(self.group, self.ctx)}\n"
-                f"Bot Permissions: `{await self.hc.get_bot_perms(self.group)}`\n"
-                f"User Permissions: `{await self.hc.get_user_perms(self.group)}`"
+                f"Bot Permissions: `{self.hc.get_perms('bot_permissions', self.group)}`\n"
+                f"User Permissions: `{self.hc.get_perms('user_permissions', self.group)}`"
             ),
             inline=False)
 
@@ -156,12 +156,8 @@ class GroupHelp(menus.ListPageSource):
 
 
 class AvimetryHelp(commands.HelpCommand):
-    async def get_bot_perms(self, command):
-        permissions = getattr(command, 'bot_permissions', ["send_messages"])
-        return ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
-
-    async def get_user_perms(self, command):
-        permissions = getattr(command, 'user_permissions', ["send_messages"])
+    def get_perms(self, perm_type: str, command: commands.Command):
+        permissions = getattr(command, perm_type, None) or command.extras.get(perm_type, ['send_messages'])
         return ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
 
     async def can_run(self, command, ctx):
@@ -267,8 +263,8 @@ class AvimetryHelp(commands.HelpCommand):
             name="Required Permissions",
             value=(
                 f"Can Use: {await self.can_run(command, self.context)}\n"
-                f"Bot Permissions: `{await self.get_bot_perms(command)}`\n"
-                f"User Permissions: `{await self.get_user_perms(command)}`"),
+                f"Bot Permissions: `{self.get_perms('bot_perms', command)}`\n"
+                f"User Permissions: `{self.get_perms('user_permissions', command)}`"),
             inline=False)
         cooldown = self.get_cooldown(command)
         if cooldown:
