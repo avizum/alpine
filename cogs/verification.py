@@ -79,7 +79,10 @@ class MemberJoin(core.Cog):
     async def on_member_remove(self, member: discord.Member):
         message = self.messages.get(member.id)
         if message:
-            await message.delete()
+            try:
+                await message.delete()
+            except discord.NotFound:
+                pass
 
     @core.Cog.listener()
     async def on_member_update(self, before: discord.Member, after: discord.Member):

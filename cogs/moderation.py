@@ -77,7 +77,7 @@ class Moderation(core.Cog):
             return await ctx.send("One or more members can not be kick by you. Try again.")
         new_targets = ', '.join(str(i) for i in targets)
         conf = await ctx.confirm(f"Do you want to kick {new_targets} ({len(targets)} members) with reason {reason}?")
-        if conf:
+        if conf.result:
             fail = 0
             m = await ctx.send("Kicking...")
             for member in targets:
@@ -146,7 +146,7 @@ class Moderation(core.Cog):
             return await ctx.send("One or more members can not be banned by you. Try again.")
         new_targets = ', '.join(str(i) for i in targets)
         conf = await ctx.confirm(f"Do you want to ban {new_targets} ({len(targets)} members) with reason {reason}?")
-        if conf:
+        if conf.result:
             fail = 0
             m = await ctx.send("Banning...")
             for member in targets:
@@ -217,7 +217,7 @@ class Moderation(core.Cog):
     @core.group(invoke_without_command=True)
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
-    @core.cooldown(5, 30, commands.BucketType.member)
+    @commands.cooldown(5, 30, commands.BucketType.member)
     async def purge(self, ctx: AvimetryContext, amount: PurgeAmount):
         """
         Mass delete messages in the current channel.
@@ -249,7 +249,7 @@ class Moderation(core.Cog):
 
         This removes up to 100 messages.
         """
-        purged = await ctx.channel.purge(limit=100, check=lambda m: text in m.content)
+        purged = await ctx.channel.purge(limit=100, check=lambda m: text in m.content, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(ctx, purged))
 
     @purge.command(aliases=["sw", "starts"])
@@ -418,7 +418,7 @@ class Moderation(core.Cog):
         await ctx.send(embed=nickembed)
 
     @core.command()
-    @core.cooldown(1, 60, commands.BucketType.member)
+    @commands.cooldown(1, 60, commands.BucketType.member)
     async def selfban(self, ctx: AvimetryContext):
         """
         Ban yourself from the server.
@@ -426,11 +426,11 @@ class Moderation(core.Cog):
         This not actually ban them, This command is just a joke, Like you.
         """
         conf = await ctx.confirm("Are you sure you want to ban yourself?")
-        if conf:
+        if conf.result:
             return await ctx.send("Sike")
 
     @core.command()
-    @core.cooldown(1, 60, commands.BucketType.member)
+    @commands.cooldown(1, 60, commands.BucketType.member)
     async def selfkick(self, ctx: AvimetryContext):
         """
         Kick yourself from the server.
@@ -438,7 +438,7 @@ class Moderation(core.Cog):
         This not actually ban them, This command is just a joke, Like you.
         """
         conf = await ctx.confirm("Are you sure you want to kick yourself?")
-        if conf:
+        if conf.result:
             return await ctx.send("Sike")
 
 

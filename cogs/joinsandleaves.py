@@ -55,7 +55,7 @@ def member_discriminator(env):
 
 @member.tag("avatar", aliases=["image", "pfp", "picture", "pic", "icon"])
 def member_avatar(env):
-    return str(env.member.avatar_url_as(format="png", static_format="png", size=512))
+    return str(env.member.avatar.replace(format="png", static_format="png", size=512))
 
 
 @parser.tag("guild", alias="server")

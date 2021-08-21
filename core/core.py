@@ -46,7 +46,8 @@ class AvimetryCommand(commands.Command):
                 self.bot_permissions = bot_permissions
         super().__init__(func, **kwargs)
         if not self._buckets._cooldown:
-            self._buckets._cooldown = commands.Cooldown(1, 3, commands.BucketType.user)
+            self._buckets = commands.CooldownMapping(commands.Cooldown(1, 199), commands.BucketType.user)
+            self._buckets._cooldown = commands.Cooldown(1, 3)
 
 
 class AvimetryGroup(AvimetryCommand, commands.Group):

@@ -117,7 +117,7 @@ class AvimetryBot(commands.Bot):
         self.command_usage = {}
         self.command_cache = {}
         self.cache = AvimetryCache(self)
-        self.invite = str(discord.utils.oauth_url(PUBLIC_BOT_ID, discord.Permissions(8)))
+        self.invite = str(discord.utils.oauth_url(PUBLIC_BOT_ID, permissions=discord.Permissions(8)))
         self.support = "https://discord.gg/KaqqPhfwS4"
         self.source = "https://github.com/avimetry/avimetry"
         self.emoji_dictionary = {
@@ -237,17 +237,6 @@ class AvimetryBot(commands.Bot):
 
     async def get_context(self, message, *, cls=None):
         return await super().get_context(message, cls=cls or self.context)
-
-    async def process_commands(self, message: discord.Message):
-        ctx = await self.get_context(message)
-        if message.author == self.user:
-            return
-        if message.author.bot:
-            return
-        await self.invoke(ctx)
-
-    async def on_message(self, message):
-        await self.process_commands(message)
 
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
         if before.content == after.content:

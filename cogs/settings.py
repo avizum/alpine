@@ -103,7 +103,7 @@ class Settings(core.Cog):
         query = "UPDATE guild_settings SET mute_role = $1 WHERE guild_id = $2"
         await self.bot.pool.execute(query, role.id, ctx.guild.id)
         conf = await ctx.confirm("Should I edit this role to deny send messages in all channels?")
-        if conf:
+        if conf.result:
             for channel in ctx.guild.channels:
                 perms = channel.overwrites_for(role)
                 perms.update(send_messages=False)
@@ -288,7 +288,7 @@ class Settings(core.Cog):
                     )
                 )
                 confirm = await ctx.confirm(embed=embed)
-                if confirm:
+                if confirm.result:
                     command = self.bot.get_command("join-message setup")
                     await command(ctx)
                 return
@@ -315,10 +315,10 @@ class Settings(core.Cog):
         conf_message = "Does this look good to you?"
         thing = await preview_message(message, ctx)
         if type(thing) is discord.Embed:
-            conf = await ctx.confirm(conf_message, embed=thing, raw=True)
+            conf = await ctx.confirm(conf_message, embed=thing, no_reply=True)
         else:
-            conf = await ctx.confirm(f"{conf_message}\n\n{thing}", raw=True)
-        if conf:
+            conf = await ctx.confirm(f"{conf_message}\n\n{thing}", no_reply=True)
+        if conf.result:
             query = (
                 """
                 INSERT INTO join_leave (guild_id, join_message)
@@ -330,7 +330,7 @@ class Settings(core.Cog):
             await self.bot.pool.execute(query, ctx.guild.id, message)
             ctx.cache.join_leave[ctx.guild.id]["join_message"] = message
             return await ctx.send("Succesfully set the join message.")
-        return await ctx.send("Cancelled")
+        return await conf.message.edit(content="Cancelled")
 
     @join_message.command(name="channel")
     @core.has_permissions(manage_guild=True)
@@ -402,10 +402,10 @@ class Settings(core.Cog):
             conf_message = "Does this look good to you?"
             preview = await preview_message(message, ctx)
             if type(preview) is discord.Embed:
-                conf = await ctx.confirm(conf_message, embed=preview, raw=True)
+                conf = await ctx.confirm(conf_message, embed=preview, no_reply=True)
             else:
-                conf = await ctx.confirm(f"{conf_message}\n=====\n{preview}", raw=True)
-            if conf:
+                conf = await ctx.confirm(f"{conf_message}\n=====\n{preview}", no_reply=True)
+            if conf.result:
                 query = (
                     """
                     INSERT INTO join_leave (guild_id, join_enabled, join_message, join_channel)
@@ -452,7 +452,7 @@ class Settings(core.Cog):
                     )
                 )
                 confirm = await ctx.confirm(embed=embed)
-                if confirm:
+                if confirm.result:
                     command = self.bot.get_command("leave-message setup")
                     await command(ctx)
                 return
@@ -477,10 +477,10 @@ class Settings(core.Cog):
         conf_message = "Does this look good to you?"
         thing = await preview_message(message, ctx)
         if type(thing) is discord.Embed:
-            conf = await ctx.confirm(conf_message, embed=thing, raw=True)
+            conf = await ctx.confirm(conf_message, embed=thing, no_reply=True)
         else:
-            conf = await ctx.confirm(f"{conf_message}\n\n{thing}", raw=True)
-        if conf:
+            conf = await ctx.confirm(f"{conf_message}\n\n{thing}", no_reply=True)
+        if conf.result:
             query = (
                 """
                 INSERT INTO join_leave (guild_id, leave_message)
@@ -564,10 +564,10 @@ class Settings(core.Cog):
             conf_message = "Does this look good to you?"
             preview = await preview_message(message, ctx)
             if type(preview) is discord.Embed:
-                conf = await ctx.confirm(conf_message, embed=preview, raw=True)
+                conf = await ctx.confirm(conf_message, embed=preview, no_reply=True)
             else:
-                conf = await ctx.confirm(f"{conf_message}\n=====\n{preview}", raw=True)
-            if conf:
+                conf = await ctx.confirm(f"{conf_message}\n=====\n{preview}", no_reply=True)
+            if conf.result:
                 query = (
                     "INSERT INTO join_leave (guild_id, leave_enabled, leave_message, leave_channel) "
                     "VALUES ($1, $2, $3, $4) "
@@ -653,7 +653,7 @@ class Settings(core.Cog):
         return await ctx.send(f"Set verification channel to {channel.mention}")
 
     @core.group(invoke_without_command=True, case_insensitive=True)
-    @core.cooldown(1, 60, commands.BucketType.user)
+    @commands.cooldown(1, 60, commands.BucketType.user)
     async def theme(self, ctx: AvimetryContext, *, color: discord.Color):
         """
         Set the theme.
@@ -662,7 +662,7 @@ class Settings(core.Cog):
         """
         embed = discord.Embed(description='Does this look good?', color=color)
         conf = await ctx.confirm(embed=embed)
-        if conf:
+        if conf.result:
             query = (
                 "INSERT INTO user_settings (user_id, color) "
                 "VALUES ($1, $2) "
@@ -686,7 +686,7 @@ class Settings(core.Cog):
         This will remove the color used for embeds and will use your top role color instead.
         """
         conf = await ctx.confirm('Are you sure you want to remove your theme?')
-        if conf:
+        if conf.result:
             query = (
                 "INSERT INTO user_settings (user_id, color) "
                 "VALUES ($1, $2) "

@@ -27,10 +27,64 @@ from discord.ext import commands
 emoji_regex = '<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>'
 
 
+class TrashView(discord.ui.View):
+    def __init__(self, timeout, ctx):
+        super().__init__(timeout=timeout)
+        self.ctx = ctx
+
+    async def interaction_check(self, interaction):
+        if interaction.user != self.ctx.author:
+            return await interaction.response.send_message('no', ephemeral=True)
+        return True
+
+    @discord.ui.button(emoji='<:redtick:777096756865269760>', style=discord.ButtonStyle.danger)
+    async def trash(self, button, interaction):
+        await self.message.delete()
+
+
+class ConfirmView(discord.ui.View):
+    def __init__(self, timeout: int, ctx: "AvimetryContext"):
+        super().__init__(timeout=timeout)
+        self.ctx = ctx
+        self.value = None
+
+    async def stop(self):
+        for button in self.children:
+            button.disabled = True
+        await self.message.edit(view=self)
+        super().stop()
+
+    async def interaction_check(self, interaction):
+        if interaction.user != self.ctx.author:
+            return await interaction.response.send_message(
+                f"This confirm menu belongs to {self.ctx.author.mention}, not you.",
+                ephemeral=True
+            )
+        return True
+
+    @discord.ui.button(label='Yes', style=discord.ButtonStyle.green)
+    async def yes(self, button, interaction):
+        self.value = True
+        await self.stop()
+
+    @discord.ui.button(label='No', style=discord.ButtonStyle.red)
+    async def no(self, button, interaction):
+        self.value = False
+        await self.stop()
+
+
+class ConfirmResult:
+    def __init__(self, message: discord.Message, result: bool):
+        self.message = message
+        self.result = result
+
+    def __repr__(self):
+        return f"<ConfirmResult result={self.result}>"
+
+
 class AvimetryContext(commands.Context):
-    def __init__(self, bot: AvimetryBot, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.bot = bot
+    def __init__(self, *, bot: AvimetryBot, **kwargs):
+        super().__init__(bot=bot, **kwargs)
         self.tokens = []
         self.tokens.extend(self.bot.settings['bot_tokens'].values())
         self.tokens.extend(self.bot.settings['api_tokens'].values())
@@ -106,22 +160,23 @@ class AvimetryContext(commands.Context):
             if not embed.footer:
                 embed.set_footer(
                     text=f"Requested by {self.author}",
-                    icon_url=str(self.author.avatar_url)
+                    icon_url=str(self.author.avatar.url)
                 )
                 embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
             if not embed.color:
                 embed.color = await self.determine_color()
-        if self.message.id in self.bot.command_cache and not kwargs.get('file') and self.message.edited_at:
+        if self.message.id in self.bot.command_cache and self.message.edited_at:
             message = self.bot.command_cache[self.message.id]
-            await message.edit(content=content, embed=embed, mention_author=False, file=None, files=None)
-        else:
             try:
-                if no_reply:
-                    message = await super().send(content=content, embed=embed, mention_author=False, **kwargs)
-                else:
-                    message = await self.reply(content=content, embed=embed, mention_author=False, **kwargs)
-            except discord.HTTPException:
-                message = await super().send(content=content, embed=embed, mention_author=False, **kwargs)
+                await message.edit(content=content, embed=embed, **kwargs)
+            except Exception:
+                self.message._edited_timestamp = None
+                self.send(content=content, embed=embed, mention_author=False, **kwargs)
+        elif no_reply:
+            message = await super().send(content=content, embed=embed, mention_author=False, **kwargs)
+        else:
+            message = await self.reply(content=content, embed=embed, mention_author=False, **kwargs)
+
         self.bot.command_cache[self.message.id] = message
         return message
 
@@ -130,37 +185,26 @@ class AvimetryContext(commands.Context):
 
     async def confirm(
         self, message=None, embed: discord.Embed = None, confirm_message=None, *,
-        timeout=60, delete_after=True, raw=False
+        timeout=60, delete_after=False, no_reply=False, remove_view_after=False
     ):
-        emojis = self.bot.emoji_dictionary
-        yes_no = [emojis['green_tick'], emojis['red_tick']]
-        check_message = confirm_message or f"React with {yes_no[0]} to accept, or {yes_no[1]} to deny."
-        if raw is True:
-            send = await self.no_reply(content=message, embed=embed)
+
+        view = ConfirmView(timeout=timeout, ctx=self)
+        check_message = confirm_message or 'Press "yes" to accept, or press "no" to deny.'
+        if no_reply is True:
+            send = await self.no_reply(content=message, embed=embed, view=view)
         elif message:
             message = f"{message}\n\n{check_message}"
-            send = await self.send(message)
+            send = await self.send(message, view=view)
         elif embed:
             embed.description = f"{embed.description}\n\n{check_message}"
-            send = await self.send(embed=embed)
-        for emoji in yes_no:
-            await send.add_reaction(emoji)
-
-        def check(reaction, user):
-            return str(reaction.emoji) in yes_no and user == self.author and reaction.message.id == send.id
-
-        try:
-            reaction, user = await self.bot.wait_for('reaction_add', check=check, timeout=timeout)
-        except asyncio.TimeoutError:
-            confirm = False
-        else:
-            if str(reaction.emoji) == yes_no[0]:
-                confirm = True
-            if str(reaction.emoji) == yes_no[1]:
-                confirm = False
+            send = await self.send(embed=embed, view=view)
+        view.message = send
+        await view.wait()
         if delete_after:
             await send.delete()
-        return confirm
+        if remove_view_after:
+            await view.message.edit(view=None)
+        return ConfirmResult(send, view.value)
 
     async def prompt(
         self, message=None, embed: discord.Embed = None, *,
@@ -190,16 +234,8 @@ class AvimetryContext(commands.Context):
         return confirm
 
     async def can_delete(self, *args, **kwargs):
-        emoji = self.bot.emoji_dictionary["red_tick"]
-        message = await self.send(*args, **kwargs)
-        await message.add_reaction(emoji)
-
-        def check(reaction, user):
-            return str(reaction.emoji) in emoji and user == self.author and reaction.message.id == message.id
-
-        reaction, user = await self.bot.wait_for("reaction_add", check=check)
-        if str(reaction.emoji) == emoji:
-            await message.delete()
+        view = TrashView(timeout=None, ctx=self)
+        view.message = await self.send(*args, **kwargs, view=view)
 
 
 def setup(bot):

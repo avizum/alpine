@@ -65,7 +65,7 @@ class BotLogs(core.Cog):
                 color=discord.Color.red(),
                 timestamp=datetime.datetime.now(datetime.timezone.utc)
             )
-            embed.set_author(name=message.author, icon_url=message.author.avatar_url)
+            embed.set_author(name=message.author, icon_url=message.author.avatar.url)
             mentions = discord.AllowedMentions.all()
             try:
                 if message.guild is not None and message.guild.id == 336642139381301249:
@@ -103,7 +103,7 @@ class BotLogs(core.Cog):
             ):
                 embed.set_footer(
                     text=f"Deleted by {deleted_by.user}",
-                    icon_url=deleted_by.user.avatar_url,
+                    icon_url=deleted_by.user.avatar.url,
                 )
         channel_id = data["channel_id"]
         channel = discord.utils.get(message.guild.channels, id=channel_id)
@@ -152,7 +152,7 @@ class BotLogs(core.Cog):
             )
             embed.add_field(name="Responsible Moderator:", value=entry.user, inline=False)
             embed.add_field(name="Ban Reason:", value=entry.reason, inline=False)
-            embed.set_thumbnail(url=user.avatar_url)
+            embed.set_thumbnail(url=user.avatar.url)
             await channel.send(embed=embed)
 
     @core.Cog.listener("on_member_remove")
@@ -170,7 +170,7 @@ class BotLogs(core.Cog):
             )
             embed.add_field(name="Responsible Moderator:", value=entry.user, inline=False)
             embed.add_field(name="Kick Reason:", value=entry.reason, inline=False)
-            embed.set_thumbnail(url=member.avatar_url)
+            embed.set_thumbnail(url=member.avatar.url)
             await channel.send(embed=embed)
 
     @core.Cog.listener("on_guild_channel_create")

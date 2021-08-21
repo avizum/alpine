@@ -151,7 +151,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
         conf = await ctx.confirm(f"Are you sure you want to delete {channel.mention}?")
         if conf:
             return await ctx.channel.delete()
-        return await ctx.send('Aborted.')
+        return await conf.message.edit(content='Aborted.')
 
     @core.command(aliases=["steal-emoji", "stealemoji"])
     @core.has_permissions(manage_emojis=True)

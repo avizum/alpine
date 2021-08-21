@@ -18,10 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
 import discord
-import humanize
 import sys
 import traceback as tb
 import core
+import copy
 
 from prettify_exceptions import DefaultFormatter
 from utils import AvimetryBot, AvimetryContext, Blacklisted, Maintenance
@@ -29,19 +29,27 @@ from discord.ext import commands
 from difflib import get_close_matches
 
 
+class CooldownByContent(commands.CooldownMapping):
+    def _bucket_key(self, message):
+        return (message.channel.id, message.content)
+
+
 class ErrorHandler(core.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.blacklist_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
+        self.maintenance_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.channel)
         self.no_dm_command_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
+        self.not_found_cooldown_content = CooldownByContent.from_cooldown(1, 15, commands.BucketType.user)
+        self.not_found_cooldown = commands.CooldownMapping.from_cooldown(2, 30, commands.BucketType.user)
         self.error_webhook = discord.Webhook.from_url(
             self.bot.settings["webhooks"]["error_log"],
-            adapter=discord.AsyncWebhookAdapter(self.bot.session),
+            session=self.bot.session,
         )
         self.beta_webhook = discord.Webhook.from_url(
             self.bot.settings["webhooks"]["error_log2"],
-            adapter=discord.AsyncWebhookAdapter(self.bot.session),
+            session=self.bot.session,
         )
 
     def reset(self, ctx: AvimetryContext):
@@ -94,7 +102,9 @@ class ErrorHandler(core.Cog):
             return
 
         if isinstance(error, Maintenance):
-            return await ctx.send(f'{self.bot.user.name} has maintenance mode enabled. Try again later.')
+            bucket = self.maintenance_cooldown.get_bucket(ctx.message).update_rate_limit()
+            if not bucket:
+                return await ctx.send(f'{self.bot.user.name} has maintenance mode enabled. Try again later.')
 
         if isinstance(error, commands.NoPrivateMessage):
             embed = discord.Embed(
@@ -113,7 +123,6 @@ class ErrorHandler(core.Cog):
             cog = self.bot.get_cog(ctx.invoked_with)
             if cog:
                 return await ctx.send_help(cog)
-            not_found_embed = discord.Embed(title="Invalid Command")
             not_found = ctx.invoked_with
             all_commands = []
             for cmd in self.bot.commands:
@@ -124,24 +133,35 @@ class ErrorHandler(core.Cog):
                         all_commands.extend(cmd.aliases)
                 except commands.CommandError:
                     continue
-            match = "\n".join(get_close_matches(not_found, all_commands))
+            match = get_close_matches(not_found, all_commands)
             if match:
-                not_found_embed.description = f'"{not_found}" was not found. Did you mean...\n`{match}`'
-                not_found_embed.set_footer(
-                    text=f"Use {ctx.clean_prefix}help to see the whole list of commands."
-                )
-                await ctx.send(embed=not_found_embed)
+                embed = discord.Embed(title="Invalid Command")
+                embed.description = f'I couldn\'t find a command "{not_found}". Did you mean {match[0]}?'
+                bucket1 = self.not_found_cooldown_content.get_bucket(ctx.message).update_rate_limit()
+                bucket2 = self.not_found_cooldown.get_bucket(ctx.message).update_rate_limit()
+                if not bucket1 or not bucket2:
+                    conf = await ctx.confirm(embed=embed)
+                    if conf.result:
+                        new = copy.copy(ctx.message)
+                        new._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
+                        new.content = new.content.replace(ctx.invoked_with, match[0])
+                        ctx = await self.bot.get_context(new)
+                        try:
+                            await self.bot.invoke(ctx)
+                        except commands.CommandInvokeError:
+                            await ctx.send("Something failed while trying to invoke. Try again?")
+                    return
 
         elif isinstance(error, commands.CommandOnCooldown):
             rate = error.cooldown.rate
             per = error.cooldown.per
-            cd_type = 'globally' if error.cooldown.type.name == 'default' else f'per {error.cooldown.type.name}'
+            cd_type = 'globally' if error.type.name == 'default' else f'per {error.type.name}'
             cd = discord.Embed(
                 title="Slow down",
                 description=(
-                    f"This command can only be used {rate} {'time' if rate == 1 else 'times'} "
+                    f"This command can be used {rate} {'time' if rate == 1 else 'times'} "
                     f"every {per} seconds {cd_type}.\n"
-                    f"Try again in {humanize.naturaldelta(error.retry_after)}."
+                    f"Please try again in {error.retry_after:,.2f} seconds."
                 )
             )
             return await ctx.send(embed=cd)
@@ -203,7 +223,7 @@ class ErrorHandler(core.Cog):
                 )
             )
             conf = await ctx.confirm(embed=a)
-            if conf:
+            if conf.result:
                 return await ctx.send_help(ctx.command)
             return
 

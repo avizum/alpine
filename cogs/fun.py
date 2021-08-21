@@ -42,7 +42,7 @@ class Fun(core.Cog):
         return "".join(random.choice([mock.upper, mock.lower])() for mock in string)
 
     @core.command(aliases=["8ball", "8b"])
-    @core.cooldown(5, 15, commands.BucketType.member)
+    @commands.cooldown(5, 15, commands.BucketType.member)
     async def eightball(self, ctx: AvimetryContext, *, question):
         """
         Ask the magic 8 ball a question.
@@ -79,7 +79,7 @@ class Fun(core.Cog):
         await ctx.send(embed=ballembed)
 
     @core.command(aliases=["murder"])
-    @core.cooldown(2, 30, commands.BucketType.member)
+    @commands.cooldown(2, 30, commands.BucketType.member)
     async def kill(self, ctx: AvimetryContext, member: discord.Member):
         """
         Kill some people.
@@ -112,7 +112,7 @@ class Fun(core.Cog):
             await ctx.send(f"{random.choice(kill_response)}")
 
     @core.command()
-    @core.cooldown(1, 120, commands.BucketType.member)
+    @commands.cooldown(1, 120, commands.BucketType.member)
     async def say(self, ctx: AvimetryContext, *, message):
         """
         Makes me say something.
@@ -123,7 +123,7 @@ class Fun(core.Cog):
 
     @core.command()
     @core.bot_has_permissions(manage_webhooks=True)
-    @core.cooldown(1, 120, commands.BucketType.user)
+    @commands.cooldown(1, 120, commands.BucketType.user)
     async def copy(self, ctx: AvimetryContext, member: typing.Union[discord.User, discord.Member], *, text):
         """
         Makes it look like a person said something.
@@ -139,10 +139,10 @@ class Fun(core.Cog):
         if not avimetry_webhook:
             avimetry_webhook = await ctx.channel.create_webhook(
                 name="Avimetry", reason="For Avimetry copy command.",
-                avatar=await self.bot.user.avatar_url.read())
+                avatar=await self.bot.user.avatar.url.read())
         await avimetry_webhook.send(
             text, username=member.display_name,
-            avatar_url=member.avatar_url_as(format="png"),
+            avatar_url=member.avatar.replace(format="png"),
             allowed_mentions=discord.AllowedMentions.none())
 
     @core.command(
@@ -222,7 +222,7 @@ class Fun(core.Cog):
         await ctx.send(embed=pp_embed)
 
     @core.command()
-    @core.cooldown(1, 15, commands.BucketType.member)
+    @commands.cooldown(1, 15, commands.BucketType.member)
     async def reddit(self, ctx: AvimetryContext, subreddit):
         """
         Gets a random post from a subreddit you provide.
@@ -270,7 +270,7 @@ class Fun(core.Cog):
         return await ctx.send(embed=embed)
 
     @core.command()
-    @core.cooldown(1, 15, commands.BucketType.member)
+    @commands.cooldown(1, 15, commands.BucketType.member)
     async def meme(self, ctx: AvimetryContext):
         """
         Get a meme from Reddit.
@@ -309,9 +309,9 @@ class Fun(core.Cog):
         if member is None:
             member = ctx.author
         conf = await ctx.confirm(f"Is {member.mention} gay?")
-        if conf:
-            return await ctx.send(f"{member.mention} is gay.")
-        return await ctx.send(f"{member.mention} is not gay.")
+        if conf.result:
+            return await conf.message.edit(f"{member.mention} is gay.")
+        return await conf.message.edit(f"{member.mention} is not gay.")
 
     @core.command()
     async def gayrate(self, ctx: AvimetryContext, member: discord.Member = None):

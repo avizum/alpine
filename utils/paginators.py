@@ -16,29 +16,18 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from discord.ext import menus
+from discord.ext.menus.views import ViewMenuPages
 from discord.ext.menus import button, Position
 
 
-class AvimetryPages(menus.MenuPages):
+class AvimetryPages(ViewMenuPages):
     def __init__(self, source, **kwargs):
-        super().__init__(source, clear_reactions_after=True, **kwargs)
+        super().__init__(source=source, clear_reactions_after=True, **kwargs)
 
     async def send_initial_message(self, ctx, channel):
         page = await self._source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
-        return await ctx.send(**kwargs)
-
-    async def update(self, payload):
-        if self._can_remove_reactions:
-            if payload.event_type == 'REACTION_ADD':
-                await self.bot.http.remove_reaction(
-                    payload.channel_id, payload.message_id,
-                    payload.emoji, payload.member.id
-                )
-            elif payload.event_type == 'REACTION_REMOVE':
-                return
-        await super().update(payload)
+        return await self.send_with_view(ctx, **kwargs)
 
     def _skip_double_triangle_buttons(self):
         max_pages = self._source.get_max_pages()
@@ -73,3 +62,32 @@ class AvimetryPages(menus.MenuPages):
         """go to the last page"""
         # The call here is safe because it's guarded by skip_if
         await self.show_page(self._source.get_max_pages() - 1)
+
+    async def _internal_loop(self):
+        try:
+            self.__timed_out = await self.view.wait()
+        except Exception as e:
+            print(e)
+        finally:
+            self._event.set()
+
+            try:
+                await self.finalize(self.__timed_out)
+            except Exception:
+                pass
+            finally:
+                self.__timed_out = False
+
+            if self.bot.is_closed():
+                return
+
+            try:
+                if self.delete_message_after:
+                    return await self.message.delete()
+
+                if self.clear_reactions_after:
+                    for i in self.view.children:
+                        i.disabled = True
+                    return await self.message.edit(view=self.view)
+            except Exception:
+                pass

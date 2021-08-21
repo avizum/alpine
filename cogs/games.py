@@ -23,78 +23,200 @@ import asyncio
 import random
 import core
 
+from discord.ext import commands
 from akinator.async_aki import Akinator
 from akinator import CantGoBackAnyFurther
-from discord.ext import commands, menus
 from utils import AvimetryContext, AvimetryBot, Timer
 
 
-class AkinatorMenu(menus.Menu):
-    def __init__(self, timeout=20, *, ctx, akiclient, embed):
-        super().__init__(timeout=timeout, clear_reactions_after=True)
+class AkinatorConfirmView(discord.ui.View):
+    def __init__(self, timeout=20, *, message, embed):
+        super().__init__(timeout=timeout)
+        self.message = message
+        self.embed = embed
+
+    @discord.ui.button(label="Yes", style=discord.ButtonStyle.success)
+    async def yes(self, button, interaction):
+        self.embed.description = f"{self.embed.description}\n---\nNice!"
+        await self.message.edit(embed=self.embed, view=None)
+
+    @discord.ui.button(label="No", style=discord.ButtonStyle.danger)
+    async def no(self, button, interaction):
+        self.embed.description = f"{self.embed.description}\n---\nAww, Maybe next time!"
+        await self.message.edit(embed=self.embed, view=None)
+
+
+class AkinatorGameView(discord.ui.View):
+    def __init__(self, timeout=20, *, ctx, akiclient, member, embed):
+        super().__init__(timeout=timeout)
         self.ctx = ctx
         self.akiclient = akiclient
+        self.member = member
         self.embed = embed
         self.ended = False
 
-    async def send_initial_message(self, ctx, channel):
-        return await ctx.send(embed=self.embed)
+    async def on_error(self, error, item, interaction):
+        await self.ctx.send(error)
+        print(item)
+        print(interaction)
 
-    async def answer(self, answer):
+    async def stop(self, *args, **kwargs):
+        await self.akiclient.close()
+        await self.message.edit(*args, **kwargs, view=None)
+        super().stop()
+
+    async def on_timeout(self):
+        self.embed.description = 'Game ended due to timeout.'
+        await self.stop(embed=self.embed)
+
+    async def interaction_check(self, interaction):
+        if interaction.user == self.member:
+            return True
+        else:
+            await interaction.response.send_message(f'Only {self.member.mention} can play this.', ephemeral=True)
+
+    async def answer(self, interaction, answer):
         if answer == 'back':
             try:
                 next = await self.akiclient.back()
                 self.embed.description = f'{self.akiclient.step+1}. {next}'
-                await self.message.edit(embed=self.embed)
+                await interaction.response.edit_message(embed=self.embed)
             except CantGoBackAnyFurther:
-                pass
+                await interaction.response.send_message('You can not go back any further.', ephemeral=True)
         elif self.akiclient.progression <= 80:
             next = await self.akiclient.answer(answer)
             self.embed.description = f'{self.akiclient.step+1}. {next}'
-            self.embed.set_footer(text=f"{self.akiclient.progression:,.2f}%")
-            await self.message.edit(embed=self.embed)
+            await interaction.response.edit_message(embed=self.embed)
         else:
             await self.akiclient.win()
             client = self.akiclient
-            embed = discord.Embed(
-                title='Akinator',
-                description=(
-                    f'Are you thinking of {client.first_guess["name"]} ({client.first_guess["description"]})?\n'
-                )
+            self.embed.description = (
+                f'Are you thinking of {client.first_guess["name"]} ({client.first_guess["description"]})?\n'
             )
-            embed.set_image(url=client.first_guess["absolute_picture_path"])
-            await self.message.edit(embed=embed)
+            self.embed.set_image(url=client.first_guess["absolute_picture_path"])
+            new_view = AkinatorConfirmView(message=self.message, embed=self.embed)
+            await self.stop()
+            await self.message.edit(view=new_view, embed=self.embed)
 
-    @menus.button("<:greentick:777096731438874634>")
-    async def yes(self, payload):
-        await self.answer('yes')
+    @discord.ui.button(label='Yes', style=discord.ButtonStyle.success, row=1)
+    async def game_yes(self, button: discord.Button, interaction: discord.Interaction):
+        await self.answer(interaction, 'no')
 
-    @menus.button("<:redtick:777096756865269760>")
-    async def no(self, payload):
-        await self.answer('no')
+    @discord.ui.button(label='No', style=discord.ButtonStyle.danger, row=1)
+    async def game_no(self, button: discord.Button, interaction: discord.Interaction):
+        await self.answer(interaction, 'no')
 
-    @menus.button("\U0001f937")
-    async def idk(self, payload):
-        await self.answer('idk')
+    @discord.ui.button(label='I dont know', style=discord.ButtonStyle.primary, row=1)
+    async def game_idk(self, button: discord.Button, interaction: discord.Interaction):
+        await self.answer(interaction, 'i dont know')
 
-    @menus.button("\U0001f914")
-    async def proabably(self, payload):
-        await self.answer('probably')
+    @discord.ui.button(label='Probably', style=discord.ButtonStyle.secondary, row=2)
+    async def game_probably(self, button: discord.Button, interaction: discord.Interaction):
+        await self.answer(interaction, 'probably')
 
-    @menus.button("\U0001f614")
-    async def proabably_not(self, payload):
-        await self.answer('probably not')
+    @discord.ui.button(label='Probably Not', style=discord.ButtonStyle.secondary, row=2)
+    async def game_probably_not(self, button: discord.Button, interaction: discord.Interaction):
+        await self.answer(interaction, 'probably not')
 
-    @menus.button("<:Back:815854941083664454>")
-    async def back(self, payload):
-        await self.answer('back')
+    @discord.ui.button(label='Back', style=discord.ButtonStyle.secondary, row=3)
+    async def game_back(self, button: discord.Button, interaction: discord.Interaction):
+        await self.answer(interaction, 'back')
 
-    @menus.button("<:Stop:815859174667452426>")
-    async def stop(self, payload):
+    @discord.ui.button(label='Stop', style=discord.ButtonStyle.danger, row=3)
+    async def game_stop(self, button: discord.Button, interaction: discord.Interaction):
         await self.akiclient.win()
-        await self.akiclient.close()
-        await self.message.edit("Game stopped.", embed=None)
-        await super().stop(payload)
+        self.embed.description = 'Game stopped.'
+        await interaction.response.edit_message(embed=self.embed, view=None)
+        await self.stop()
+
+
+class AkinatorFlags(commands.FlagConverter):
+    mode: str = 'en'
+    child: bool = True
+
+
+class RockPaperScissorGame(discord.ui.View):
+    def __init__(self, timeout=8, *, ctx, member, embed, player):
+        super().__init__(timeout=timeout)
+        self.ctx = ctx
+        self.p1 = member
+        self.p2 = player
+        self.embed = embed
+
+    async def stop(self):
+        for i in self.children:
+            print(i.custom_id)
+            i.disabled = True
+        await self.message.edit(view=self)
+
+    async def on_timeout(self):
+        await self.stop()
+
+    async def interaction_check(self, interaction):
+        if interaction.user == self.member:
+            return True
+        else:
+            await interaction.response.send_message(f'Only {self.member.mention} can play this.', ephemeral=True)
+
+    async def answer(self, button, interaction, answer):
+        await interaction.response.defer()
+
+        game = {0: "**Rock**", 1: "**Paper**", 2: "**Scissors**"}
+        key = [
+            [0, 1, -1],
+            [-1, 0, 1],
+            [1, -1, 0]
+        ]
+        repsonses = {
+            0: "**It's a tie!**",
+            1: "**You win!**",
+            -1: "**I win!**"
+        }
+        me = random.randint(0, 2)
+        message = repsonses[key[me][answer]]
+        thing = f"You chose: {game[answer]}\nI chose: {game[me]}.\n{message}"
+        if message == repsonses[1]:
+            button.style = discord.ButtonStyle.green
+            self.embed.color = discord.Color.green()
+        elif message == repsonses[-1]:
+            button.style = discord.ButtonStyle.danger
+            self.embed.color = discord.Color.red()
+        for i in self.children:
+            i.disabled = True
+        self.embed.description = thing
+        await interaction.response.edit_message(embed=self.embed, view=self)
+        await self.stop()
+
+    @discord.ui.button(label='Rock', emoji='\U0001faa8', style=discord.ButtonStyle.secondary, row=1)
+    async def game_rock(self, button: discord.Button, interaction: discord.Interaction):
+        await self.answer(button, interaction, 0)
+        button.style = discord.ButtonStyle.success
+
+    @discord.ui.button(label='Paper', emoji='\U0001f4f0', style=discord.ButtonStyle.secondary, row=1)
+    async def game_paper(self, button: discord.Button, interaction: discord.Interaction):
+        await self.answer(button, interaction, 1)
+        button.style = discord.ButtonStyle.success
+
+    @discord.ui.button(label='Scissors', emoji='\U00002702\U0000fe0f', style=discord.ButtonStyle.secondary, row=1)
+    async def game_scissors(self, button: discord.Button, interaction: discord.Interaction):
+        await self.answer(button, interaction, 2)
+        button.style = discord.ButtonStyle.success
+
+
+class CookieView(discord.ui.View):
+    def __init__(self, timeout, ctx):
+        super().__init__(timeout=timeout)
+        self.ctx = ctx
+        self.winner = None
+
+    async def on_timeout(self):
+        await self.message.edit(embed=None, content='Nobody got the cookie', view=None)
+
+    @discord.ui.button(emoji='🍪')
+    async def cookie(self, button, interaction):
+        self.winner = interaction.user
+        button.disabled = True
+        self.stop()
 
 
 class Games(core.Cog):
@@ -106,7 +228,7 @@ class Games(core.Cog):
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     @core.command(aliases=["\U0001F36A", "vookir", "kookie"])
-    @core.cooldown(5, 10, commands.BucketType.member)
+    @commands.cooldown(5, 10, commands.BucketType.member)
     @commands.max_concurrency(2, commands.BucketType.channel)
     async def cookie(self, ctx: AvimetryContext, member: typing.Optional[discord.Member] = None):
         """
@@ -177,24 +299,29 @@ class Games(core.Cog):
 
     @core.command(
         name="akinator",
-        aliases=["aki", "avinator"])
-    @core.cooldown(1, 60, commands.BucketType.member)
+        aliases=["aki"],
+        brief="Play a game of akinator.")
+    @commands.cooldown(1, 60, commands.BucketType.member)
     @commands.max_concurrency(1, commands.BucketType.channel)
-    @core.bot_has_permissions(add_reactions=True)
-    async def fun_akinator(self, ctx: AvimetryContext, mode="en"):
-        """
-        Play a game of akinator.
-
-        This command has a high cooldown because a lot of reactions can cause ratelimits.
-        Discord can be thanked for this.
-        """
-        aki_client = Akinator()
+    async def fun_akinator(self, ctx: AvimetryContext, *, flags: AkinatorFlags):
+        fm = await ctx.send("Starting game, please wait...")
+        akiclient = Akinator()
         async with ctx.channel.typing():
-            game = await aki_client.start_game()
-            embed = discord.Embed(title='Akinator', description=f'{aki_client.step+1}. {game}')
-            embed.set_footer(text=f"{aki_client.progression:,.2f}%")
-        menu = AkinatorMenu(ctx=ctx, akiclient=aki_client, embed=embed)
-        await menu.start(ctx)
+            game = await akiclient.start_game(language=flags.mode, child_mode=flags.child)
+            if akiclient.child_mode is False and ctx.channel.nsfw is False:
+                return await ctx.send('Child mode can only be disabled in NSFW channels.')
+            embed = discord.Embed(title='Akinator', description=f'{akiclient.step+1}. {game}')
+        view = AkinatorGameView(ctx=ctx, akiclient=akiclient, member=ctx.author, embed=embed)
+        await fm.delete()
+        view.message = await ctx.send(embed=embed, view=view)
+
+    @core.command(aliases=["rps"])
+    @commands.max_concurrency(1, commands.BucketType.channel)
+    @commands.cooldown(2, 5, commands.BucketType.member)
+    async def rockpaperscissors(self, ctx: AvimetryContext, person: discord.Member):
+        embed = discord.Embed(title='Rock Paper Scissors', description='Who will win?')
+        view = RockPaperScissorGame(timeout=20, ctx=ctx, member=ctx.author, embed=embed, player=person)
+        view.message = await ctx.send(embed=embed, view=view)
 
     @core.command(name="10s")
     @core.bot_has_permissions(add_reactions=True)
@@ -240,7 +367,7 @@ class Games(core.Cog):
         name="guessthatlogo",
         aliases=["gtl"]
     )
-    @core.cooldown(2, 10, commands.BucketType.member)
+    @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_guess_that_logo(self, ctx: AvimetryContext):
         """
         Try to guess the logo given to you.
@@ -287,7 +414,7 @@ class Games(core.Cog):
             await message.edit(embed=embed)
 
     @core.command()
-    @core.cooldown(1, 10, commands.BucketType.channel)
+    @commands.cooldown(1, 10, commands.BucketType.channel)
     @core.bot_has_permissions(add_reactions=True)
     async def reaction(self, ctx: AvimetryContext):
         """

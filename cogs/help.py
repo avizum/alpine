@@ -55,9 +55,9 @@ class MainHelp(menus.ListPageSource):
             color=await self.ctx.determine_color()
         )
         embed.add_field(name="Modules", value="\n".join(modules))
-        embed.set_thumbnail(url=bot.user.avatar_url)
+        embed.set_thumbnail(url=bot.user.avatar.url)
         embed.set_footer(
-            icon_url=self.ctx.author.avatar_url,
+            icon_url=self.ctx.author.avatar.url,
             text=(
                 f"{self.help_command.ending_note()} | "
                 f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.mapping)} Modules)"))
@@ -77,7 +77,7 @@ class CogHelp(menus.ListPageSource):
             description=self.cog.description or 'No description provided',
             color=await self.ctx.determine_color()
         )
-        embed.set_thumbnail(url=self.ctx.bot.user.avatar_url)
+        embed.set_thumbnail(url=self.ctx.bot.user.avatar.url)
         thing = [
             f"{command.name} - {command.short_doc or 'No help provided'}"
             for command in commands
@@ -135,7 +135,7 @@ class GroupHelp(menus.ListPageSource):
                 value=cooldown,
                 inline=False)
 
-        embed.set_thumbnail(url=self.ctx.bot.user.avatar_url)
+        embed.set_thumbnail(url=self.ctx.bot.user.avatar.url)
         thing = [
             f"{command.name} - {command.short_doc or 'No help provided'}"
             for command in commands
@@ -175,13 +175,13 @@ class AvimetryHelp(commands.HelpCommand):
     def get_cooldown(self, command):
         try:
             rate = command._buckets._cooldown.rate
-            cd_type = command._buckets._cooldown.type.name
+            cd_type = command._buckets.type.name
             per = humanize.precisedelta(command._buckets._cooldown.per)
             time = "time"
             if rate > 1:
                 time = "times"
             return f"{per} every {rate} {time} per {cd_type}"
-        except Exception:
+        except AttributeError:
             return None
 
     def ending_note(self):
@@ -275,7 +275,7 @@ class AvimetryHelp(commands.HelpCommand):
             embed.add_field(
                 name="Cooldown",
                 value=cooldown)
-        embed.set_thumbnail(url=str(self.context.bot.user.avatar_url))
+        embed.set_thumbnail(url=str(self.context.bot.user.avatar.url))
         embed.set_footer(text=self.ending_note())
         await self.get_destination().send(embed=embed)
 
@@ -311,7 +311,7 @@ class HelpCommand(core.Cog):
                 aliases=["halp", "helps", "hlp", "hlep", "hep"],
                 usage="[command|module]",
                 checks=[core.bot_has_permissions(add_reactions=True).predicate],
-                cooldown=commands.Cooldown(1, 3, commands.BucketType.user)
+                cooldown=commands.CooldownMapping(commands.Cooldown(1, 10), commands.BucketType.user)
             )
         )
         help_command.cog = self

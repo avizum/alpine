@@ -40,7 +40,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.request_wh = discord.Webhook.from_url(
             self.bot.settings["webhooks"]["request_log"],
-            adapter=discord.AsyncWebhookAdapter(self.bot.session)
+            session=self.bot.session
         )
 
     @core.Cog.listener()
@@ -97,7 +97,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             name="Credits",
             value="\n".join(f"[{user}]({credit}) ({role})" for user, role, credit in credits_list)
         )
-        embed.set_thumbnail(url=ctx.me.avatar_url)
+        embed.set_thumbnail(url=ctx.me.avatar.url)
         embed.set_footer(text="Contribute to Avimetry by doing magic!!")
         await ctx.send(embed=embed)
 
@@ -219,7 +219,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
                     "is the invite link."
                 ),
             )
-            invite_embed.set_thumbnail(url=self.bot.user.avatar_url)
+            invite_embed.set_thumbnail(url=self.bot.user.avatar.url)
             await ctx.send(embed=invite_embed)
         elif bot.bot:
             invite_embed = discord.Embed(title=f"{bot.name} Invite")
@@ -277,7 +277,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=embed)
 
     @core.command(brief="Request a feature to be added to the bot.")
-    @core.cooldown(1, 300, commands.BucketType.user)
+    @commands.cooldown(1, 300, commands.BucketType.user)
     async def request(self, ctx: AvimetryContext, *, request):
         """
         Request a feature to be added to Avimetry.
@@ -322,7 +322,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
                 f"**__top.gg__**\n[__`Vote Here`__]({top_gg})\n\n"
                 f"**__discordbotlist.com__**\n[__`Vote Here`__]({bot_list})")
         )
-        vote_embed.set_thumbnail(url=self.bot.user.avatar_url)
+        vote_embed.set_thumbnail(url=self.bot.user.avatar.url)
         await ctx.send(embed=vote_embed)
 
     # Please do not remove this command.
@@ -407,7 +407,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             color=discord.Color.red()
         )
         conf = await ctx.confirm(embed=embed)
-        if conf:
+        if conf.result:
             user_settings = self.bot.cache.users.get(ctx.author.id)
             if not user_settings:
                 return await ctx.send("You are not in my database.")
@@ -418,7 +418,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             await self.bot.pool.execute(query, ctx.author.id)
             self.bot.cache.users.pop(ctx.author.id)
             return await ctx.send("Okay, I deleted all your data.")
-        return await ctx.send("Aborted.")
+        return await conf.message.edit(content="Aborted.")
 
     @core.command()
     async def error(self, ctx: AvimetryContext, error_id: int = None):

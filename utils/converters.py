@@ -175,8 +175,9 @@ class CogConverter(commands.Converter):
         if argument in ["~", "*", "a", "all"]:
             exts.extend(ctx.bot.extensions)
         elif argument not in ctx.bot.extensions:
-            argument = get_close_matches(argument, ctx.bot.extensions)
-            exts.extend(argument)
+            arg = get_close_matches(argument, ctx.bot.extensions)
+            if arg:
+                exts.append(arg[0])
         else:
             exts.append(argument)
         return exts
@@ -194,7 +195,7 @@ class GetAvatar(commands.Converter):
         try:
             member_converter = commands.MemberConverter()
             member = await member_converter.convert(ctx, argument)
-            image = member.avatar_url_as(format="png", static_format="png", size=1024)
+            image = member.avatar.replace(format="png", static_format="png", size=1024)
             return str(image)
         except Exception:
             try:

@@ -75,9 +75,9 @@ def bot_has_permissions(**perms):
 def cooldown(rate, per, type=commands.BucketType.default):
     def decorator(func):
         if isinstance(func, AvimetryCommand):
-            func._buckets = commands.CooldownMapping(commands.Cooldown(rate, per, type))
+            func._buckets = commands.CooldownMapping(commands.Cooldown(rate, per), type)
         else:
-            func.__commands_cooldown__ = commands.Cooldown(rate, per, type)
+            func.__commands_cooldown__ = commands.CooldownMapping(commands.Cooldown(rate, per), type)
         return func
     return decorator
 

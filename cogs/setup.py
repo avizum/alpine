@@ -39,19 +39,19 @@ class Setup(core.Cog):
         self.webhooks = self.bot.settings["webhooks"]
         self.guild_webhook = discord.Webhook.from_url(
             self.webhooks["join_log"],
-            adapter=discord.AsyncWebhookAdapter(self.bot.session)
+            session=self.bot.session
         )
         self.command_webhook = discord.Webhook.from_url(
             self.webhooks["command_log"],
-            adapter=discord.AsyncWebhookAdapter(self.bot.session)
+            session=self.bot.session
         )
         self.command_webhook2 = discord.Webhook.from_url(
             self.webhooks["command_log2"],
-            adapter=discord.AsyncWebhookAdapter(self.bot.session)
+            session=self.bot.session
         )
         self.request_wh = discord.Webhook.from_url(
             self.webhooks["request_log"],
-            adapter=discord.AsyncWebhookAdapter(self.bot.session)
+            session=self.bot.session
         )
 
     @core.Cog.listener()
@@ -158,7 +158,7 @@ class Setup(core.Cog):
             f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
             f"Channel: {ctx.channel} ({ctx.channel.id})\n"
         )
-        embed.set_author(name=ctx.author, icon_url=str(ctx.author.avatar_url_as(format="png", size=512)))
+        embed.set_author(name=ctx.author, icon_url=str(ctx.author.avatar.replace(format="png", size=512)))
         embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
         try:
             if await self.bot.is_owner(ctx.author):

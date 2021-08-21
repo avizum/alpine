@@ -182,10 +182,10 @@ class Owner(commands.Cog):
             description=f"Are you sure you want to {ctx.invoked_with}?"
         )
         conf = await ctx.confirm(embed=sm)
-        if conf:
+        if conf.result:
             await self.bot.close()
         if not conf:
-            await ctx.send(f"{ctx.invoked_with.capitalize()} Aborted", delete_after=5)
+            await conf.message.edit(content=f"{ctx.invoked_with.capitalize()} Aborted", embed=None, delete_after=5)
 
     @developer.command()
     async def eval(self, ctx: AvimetryContext, *, code: codeblock_converter):
@@ -206,10 +206,10 @@ class Owner(commands.Cog):
         Command to leave a guild that may be abusing the bot.
         """
         conf = await ctx.confirm(f"Are you sure you want me to leave {guild.name} ({guild.id})?")
-        if conf:
+        if conf.result:
             await ctx.guild.leave()
             return await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
-        await ctx.send("Okay, Aborted.")
+        await conf.message.edit(content="Okay, Aborted.")
 
     @developer.group(
         invoke_without_command=True,
