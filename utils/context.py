@@ -171,11 +171,11 @@ class AvimetryContext(commands.Context):
                 await message.edit(content=content, embed=embed, **kwargs)
             except Exception:
                 self.message._edited_timestamp = None
-                self.send(content=content, embed=embed, mention_author=False, **kwargs)
+                await self.send(content=content, embed=embed, **kwargs)
         elif no_reply:
-            message = await super().send(content=content, embed=embed, mention_author=False, **kwargs)
+            message = await super().send(content=content, embed=embed, **kwargs)
         else:
-            message = await self.reply(content=content, embed=embed, mention_author=False, **kwargs)
+            message = await self.reply(content=content, embed=embed, **kwargs)
 
         self.bot.command_cache[self.message.id] = message
         return message
