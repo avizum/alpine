@@ -197,31 +197,28 @@ class BotInfo(commands.Cog, name="Bot Info"):
         If you mention a bot, I will try to find their Top.GG page and send it. If I can't find it, then
         I will generate an invite link and send it.
         """
+        view = discord.ui.View()
         if bot is None:
             invite_embed = discord.Embed(
                 title=f"{self.bot.user.name} Invite",
-                description=(
-                    "Invite me to your server! Here is the invite link.\n"
-                    f"[Here]({str(discord.utils.oauth_url(self.bot.user.id, discord.Permissions(8)))}) "
-                    "is the invite link."
-                ),
+                description="Invite me to your server! Here is the invite link.",
             )
             invite_embed.set_thumbnail(url=self.bot.user.avatar.url)
-            await ctx.send(embed=invite_embed)
+            view.add_item(discord.ui.Button(style=discord.ButtonStyle.link, url=self.bot.invite, label="Invite me"))
+            await ctx.send(embed=invite_embed, view=view)
         elif bot.bot:
             invite_embed = discord.Embed(title=f"{bot.name} Invite")
+            invite_embed.set_thumbnail(url=bot.avatar.url)
             try:
                 await self.bot.topgg.get_bot_info(bot.id)
-                invite_embed.description = (
-                    f"Invite {bot.name} to your server! Here is the invite link.\n"
-                    f"[Here! (top.gg)](https://top.gg/bot/{bot.id})"
-                )
+                invite_embed.description = f"Invite {bot.name} to your server! Here is the invite link."
+                link = f"https://top.gg/bot/{bot.id}"
+                view.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label=f"{bot.name} (top.gg)", url=link))
             except NotFound:
-                invite_embed.description = (
-                    f"Invite {bot.name} to your server! Here is the invite link.\n"
-                    f"[Click here!]({str(discord.utils.oauth_url(bot.id, discord.Permissions(8)))})"
-                )
-            await ctx.send(embed=invite_embed)
+                invite_embed.description = f"Invite {bot.name} to your server! Here is the invite link."
+                link = str(discord.utils.oauth_url(bot.id, permissions=discord.Permissions(8)))
+                view.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label=f"{bot.name} Invite", url=link))
+            await ctx.send(embed=invite_embed, view=view)
         else:
             await ctx.send("That is not a bot.")
 
@@ -231,37 +228,43 @@ class BotInfo(commands.Cog, name="Bot Info"):
         Check how many lines of code the bot has.
         """
         path = pathlib.Path('./')
-        comment_count = corutine_count = function_count = class_count = line_count = file_count = 0
-        for files in path.rglob('*.py'):
-            if str(files).startswith("venv"):
+        comments = coros = funcs = classes = lines = imports = files = char = 0
+        for item in path.rglob('*.py'):
+            if str(item).startswith("venv"):
                 continue
-            file_count += 1
-            with files.open() as of:
+            files += 1
+            with item.open() as of:
                 for line in of.readlines():
                     line = line.strip()
                     if line.startswith('class'):
-                        class_count += 1
+                        classes += 1
                     if line.startswith('def'):
-                        function_count += 1
+                        funcs += 1
                     if line.startswith('async def'):
-                        corutine_count += 1
+                        coros += 1
+                    if 'import' in line:
+                        imports += 1
                     if '#' in line:
-                        comment_count += 1
-                    line_count += 1
+                        comments += 1
+                    lines += 1
+                    char += len(line)
         embed = discord.Embed(
             title="Line Count",
             description=(
                 "```py\n"
-                f"Files: {file_count}\n"
-                f"Lines: {line_count}\n"
-                f"Classes: {class_count}\n"
-                f"Functions: {function_count}\n"
-                f"Coroutines: {corutine_count}\n"
-                f"Comments: {comment_count}"
+                f"Files: {files:,}\n"
+                f"Characters: {char:,}\n"
+                f"Lines: {lines:,}\n"
+                f"Classes: {classes:,}\n"
+                f"Functions: {funcs:,}\n"
+                f"Coroutines: {coros:,}\n"
+                f"Comments: {comments:,}"
                 "```"
             )
         )
-        await ctx.send(embed=embed)
+        view = discord.ui.View()
+        view.add_item(discord.ui.Button(style=discord.ui.Button, url=self.bot.support, label="Source"))
+        await ctx.send(embed=embed, view=view)
 
     @core.command(brief="Request a feature to be added to the bot.")
     @commands.cooldown(1, 300, commands.BucketType.user)
@@ -271,23 +274,27 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
         Spamming this command or sending spam requests will get you blacklisted from the bot.
         """
-        req_send = discord.Embed(
-            title=f"Request from {str(ctx.author)}",
-            description=f"```{request}```"
-        )
-        await self.request_wh.send(embed=req_send)
-        req_embed = discord.Embed(
-            title="Request sent",
-            description=(
-                "Thank you for your request! It has been sent to the [support](https://discord.gg/KaqqPhfwS4) server. "
-                f"Spam will get you permanently blacklisted from this {self.bot.user.name}."
+        conf = await ctx.confirm(f"Are sure you want to send this request?\n> {request}")
+        if conf.result:
+
+            req_send = discord.Embed(
+                title=f"Request from {str(ctx.author)}",
+                description=f"```{request}```"
             )
-        )
-        req_embed.add_field(
-            name="Your request",
-            value=f"```{request}```"
-        )
-        await ctx.send(embed=req_embed)
+            await self.request_wh.send(embed=req_send)
+            req_embed = discord.Embed(
+                title="Request sent",
+                description=(
+                    "Thank you for your request! It has been sent to the support server. "
+                    f"Spam will get you permanently blacklisted from this {self.bot.user.name}."
+                )
+            )
+            req_embed.add_field(
+                name="Your request",
+                value=f"```{request}```"
+            )
+            return await ctx.send(embed=req_embed)
+        return await conf.message.edit(content="Okay, I will not send it.")
 
     @core.command()
     async def support(self, ctx: AvimetryContext):

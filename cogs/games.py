@@ -26,12 +26,12 @@ import core
 from discord.ext import commands
 from akinator.async_aki import Akinator
 from akinator import CantGoBackAnyFurther
-from utils import AvimetryContext, AvimetryBot, Timer
+from utils import AvimetryContext, AvimetryBot, Timer, AvimetryView
 
 
-class AkinatorConfirmView(discord.ui.View):
-    def __init__(self, timeout=20, *, message, embed):
-        super().__init__(timeout=timeout)
+class AkinatorConfirmView(AvimetryView):
+    def __init__(self, *, member: discord.Member, timeout: int = 60, message: discord.Message, embed: discord.Embed):
+        super().__init__(member=member, timeout=timeout)
         self.message = message
         self.embed = embed
 
@@ -46,11 +46,11 @@ class AkinatorConfirmView(discord.ui.View):
         await self.message.edit(embed=self.embed, view=None)
 
 
-class AkinatorGameView(discord.ui.View):
-    def __init__(self, timeout=20, *, ctx, akiclient, member, embed):
-        super().__init__(timeout=timeout)
+class AkinatorGameView(AvimetryView):
+    def __init__(self, *, member: discord.Member, ctx: AvimetryContext, client: Akinator, embed: discord.Embed):
+        super().__init__(member=member)
         self.ctx = ctx
-        self.akiclient = akiclient
+        self.client = client
         self.member = member
         self.embed = embed
         self.ended = False
@@ -59,7 +59,7 @@ class AkinatorGameView(discord.ui.View):
         await self.ctx.send(error)
 
     async def stop(self, *args, **kwargs):
-        await self.akiclient.close()
+        await self.client.close()
         await self.message.edit(*args, **kwargs, view=None)
         super().stop()
 
@@ -67,34 +67,27 @@ class AkinatorGameView(discord.ui.View):
         self.embed.description = 'Game ended due to timeout.'
         await self.stop(embed=self.embed)
 
-    async def interaction_check(self, interaction):
-        if interaction.user == self.member:
-            return True
-        else:
-            await interaction.response.send_message(f'Only {self.member.mention} can play this.', ephemeral=True)
-
     async def answer(self, interaction, answer):
         if answer == 'back':
             try:
-                next = await self.akiclient.back()
-                self.embed.description = f'{self.akiclient.step+1}. {next}'
+                next = await self.client.back()
+                self.embed.description = f'{self.client.step+1}. {next}'
                 await interaction.response.edit_message(embed=self.embed)
             except CantGoBackAnyFurther:
                 await interaction.response.send_message('You can not go back any further.', ephemeral=True)
-        elif self.akiclient.progression <= 80:
+        elif self.client.progression <= 80:
             await interaction.response.defer()
-            next = await self.akiclient.answer(answer)
-            self.embed.description = f'{self.akiclient.step+1}. {next}'
+            next = await self.client.answer(answer)
+            self.embed.description = f'{self.client.step+1}. {next}'
             await self.message.edit(embed=self.embed)
         else:
-            print(self.akiclient.progression)
-            await self.akiclient.win()
-            client = self.akiclient
+            await self.client.win()
+            client = self.client
             self.embed.description = (
                 f'Are you thinking of {client.first_guess["name"]} ({client.first_guess["description"]})?\n'
             )
             self.embed.set_image(url=client.first_guess["absolute_picture_path"])
-            new_view = AkinatorConfirmView(message=self.message, embed=self.embed)
+            new_view = AkinatorConfirmView(member=self.member, message=self.message, embed=self.embed)
             await self.stop()
             await self.message.edit(view=new_view, embed=self.embed)
 
@@ -124,7 +117,7 @@ class AkinatorGameView(discord.ui.View):
 
     @discord.ui.button(label='Stop', style=discord.ButtonStyle.danger, row=3)
     async def game_stop(self, button: discord.Button, interaction: discord.Interaction):
-        await self.akiclient.win()
+        await self.client.win()
         self.embed.description = 'Game stopped.'
         await interaction.response.edit_message(embed=self.embed, view=None)
         await self.stop()
@@ -135,32 +128,21 @@ class AkinatorFlags(commands.FlagConverter):
     child: bool = True
 
 
-class RockPaperScissorGame(discord.ui.View):
-    def __init__(self, timeout=8, *, ctx, member, embed, player):
-        super().__init__(timeout=timeout)
+class RockPaperScissorGame(AvimetryView):
+    def __init__(self, timeout=8, *, ctx, member, embed):
+        super().__init__(timeout=timeout, member=member)
         self.ctx = ctx
-        self.p1 = member
-        self.p2 = player
         self.embed = embed
 
     async def stop(self):
         for i in self.children:
-            print(i.custom_id)
             i.disabled = True
         await self.message.edit(view=self)
 
     async def on_timeout(self):
         await self.stop()
 
-    async def interaction_check(self, interaction):
-        if interaction.user == self.member:
-            return True
-        else:
-            await interaction.response.send_message(f'Only {self.member.mention} can play this.', ephemeral=True)
-
     async def answer(self, button, interaction, answer):
-        await interaction.response.defer()
-
         game = {0: "**Rock**", 1: "**Paper**", 2: "**Scissors**"}
         key = [
             [0, 1, -1],
@@ -314,19 +296,19 @@ class Games(core.Cog):
             if akiclient.child_mode is False and ctx.channel.nsfw is False:
                 return await ctx.send('Child mode can only be disabled in NSFW channels.')
             embed = discord.Embed(title='Akinator', description=f'{akiclient.step+1}. {game}')
-        view = AkinatorGameView(ctx=ctx, akiclient=akiclient, member=ctx.author, embed=embed)
+        view = AkinatorGameView(member=ctx.author, ctx=ctx, client=akiclient, embed=embed)
         await fm.delete()
         view.message = await ctx.send(embed=embed, view=view)
 
     @core.command(aliases=["rps"])
     @commands.max_concurrency(1, commands.BucketType.channel)
     @commands.cooldown(2, 5, commands.BucketType.member)
-    async def rockpaperscissors(self, ctx: AvimetryContext, person: discord.Member):
+    async def rockpaperscissors(self, ctx: AvimetryContext):
         """
         Play a game of rock paper scissors.
         """
         embed = discord.Embed(title='Rock Paper Scissors', description='Who will win?')
-        view = RockPaperScissorGame(timeout=20, ctx=ctx, member=ctx.author, embed=embed, player=person)
+        view = RockPaperScissorGame(ctx=ctx, member=ctx.author, embed=embed)
         view.message = await ctx.send(embed=embed, view=view)
 
     @core.command(name="10s")

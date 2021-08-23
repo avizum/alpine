@@ -164,7 +164,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
         You can provide a reason.
         """
         reason = reason or f"{ctx.author}: No reason provided"
-        asset = await emoji.url.read()
+        asset = await emoji.read()
         await ctx.guild.create_custom_emoji(name=emoji.name, image=asset, reason=reason)
 
     @core.command()

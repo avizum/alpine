@@ -222,7 +222,8 @@ class ErrorHandler(core.Cog):
                     f"Do you need help for `{ctx.command.qualified_name}`?"
                 )
             )
-            conf = await ctx.confirm(embed=a)
+            ctx.message._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
+            conf = await ctx.confirm(embed=a, remove_view_after=True)
             if conf.result:
                 return await ctx.send_help(ctx.command)
             return
@@ -307,6 +308,10 @@ class ErrorHandler(core.Cog):
                     f"You can check the error status using `{ctx.prefix}error {check['id']}`\n\n"
                     f"Error:```py\n{error}```"
                 )
+            view = discord.ui.View()
+            view.add_item(
+                discord.ui.Button(style=discord.ButtonStyle.link, label="Support Server", url=self.bot.support)
+            )
             await ctx.send(embed=error_embed)
             await self.error_webhook.send(embed=webhook_error_embed, username="Command Error")
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
