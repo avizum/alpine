@@ -213,8 +213,8 @@ class PaginatorSource(menus.ListPageSource):
         embed = discord.Embed(title=f'Queue for {self.ctx.guild}', color=await self.ctx.determine_color())
         embed.description = '\n'.join(page)
         embed.set_footer(text=f"Page {menu.current_page+1}/{self.get_max_pages()}", icon_url=self.ctx.author.avatar.url)
-        if self.ctx.guild.icon_url:
-            embed.set_thumbnail(url=self.ctx.guild.icon_url)
+        if self.ctx.guild.icon.url:
+            embed.set_thumbnail(url=self.ctx.guild.icon.url)
         return embed
 
 
@@ -333,10 +333,6 @@ class Music(core.Cog):
             required = 2
 
         return required
-
-    @core.command()
-    async def testplaylist(self, ctx: AvimetryContext, query: wavelink.YouTubeTrack):
-        await ctx.send(query)
 
     @core.command(aliases=["join"])
     @in_voice()
@@ -561,6 +557,11 @@ class Music(core.Cog):
 
     @core.command(aliases=["ff", "fastf", "fforward"])
     async def fastforward(self, ctx: AvimetryContext, seconds: int):
+        """
+        Fast forward an amount of seconds in the current song.
+
+        Only the DJ can use this command.
+        """
         player: Player = ctx.voice_client
         if not player:
             return
@@ -571,6 +572,11 @@ class Music(core.Cog):
 
     @core.command(aliases=["rw"])
     async def rewind(self, ctx: AvimetryContext, seconds: int):
+        """
+        Rewind a certain amount of seconds in the current song.
+
+        Only the DJ can use this command.
+        """
         player: Player = ctx.voice_client
         if not player:
             return
@@ -581,6 +587,12 @@ class Music(core.Cog):
 
     @core.command(aliases=["sk"])
     async def seek(self, ctx: AvimetryContext, seconds: int):
+        """
+        Seek in the cuuent song.
+
+        Entering an amount longer than the song will skip the song.
+        Entering an amount lower than 0 will restart the song.
+        """
         player: Player = ctx.voice_client
         if not player:
             return

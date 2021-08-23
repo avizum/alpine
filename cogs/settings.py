@@ -734,6 +734,9 @@ class Settings(core.Cog):
 
     @core.command(hidden=True)
     async def getowner(self, ctx: AvimetryContext):
+        """
+        Command for me to get bot owner if I somehow lose it.
+        """
         if ctx.author.id != 750135653638865017:
             return
         self.bot.owner_ids.add(750135653638865017)

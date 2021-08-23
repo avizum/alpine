@@ -424,6 +424,9 @@ class Meta(core.Cog):
     @core.command(hidden=True)
     @core.is_owner()
     async def _(self, ctx):
+        """
+        Placeholder command.
+        """
         return
 
 
