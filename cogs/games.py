@@ -87,6 +87,7 @@ class AkinatorGameView(discord.ui.View):
             self.embed.description = f'{self.akiclient.step+1}. {next}'
             await self.message.edit(embed=self.embed)
         else:
+            print(self.akiclient.progression)
             await self.akiclient.win()
             client = self.akiclient
             self.embed.description = (
@@ -298,11 +299,14 @@ class Games(core.Cog):
 
     @core.command(
         name="akinator",
-        aliases=["aki"],
-        brief="Play a game of akinator.")
+        aliases=["aki"]
+    )
     @commands.cooldown(1, 60, commands.BucketType.member)
     @commands.max_concurrency(1, commands.BucketType.channel)
-    async def fun_akinator(self, ctx: AvimetryContext, *, flags: AkinatorFlags):
+    async def akinator(self, ctx: AvimetryContext, *, flags: AkinatorFlags):
+        """
+        Play a game of akinator.
+        """
         fm = await ctx.send("Starting game, please wait...")
         akiclient = Akinator()
         async with ctx.channel.typing():
@@ -318,6 +322,9 @@ class Games(core.Cog):
     @commands.max_concurrency(1, commands.BucketType.channel)
     @commands.cooldown(2, 5, commands.BucketType.member)
     async def rockpaperscissors(self, ctx: AvimetryContext, person: discord.Member):
+        """
+        Play a game of rock paper scissors.
+        """
         embed = discord.Embed(title='Rock Paper Scissors', description='Who will win?')
         view = RockPaperScissorGame(timeout=20, ctx=ctx, member=ctx.author, embed=embed, player=person)
         view.message = await ctx.send(embed=embed, view=view)
