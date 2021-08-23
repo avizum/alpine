@@ -22,6 +22,7 @@ import datetime
 import re
 
 from .avimetry import AvimetryBot
+from .gist import Gist
 from discord.ext import commands
 
 emoji_regex = '<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>'
@@ -124,12 +125,12 @@ class AvimetryContext(commands.Context):
     async def no_reply(self, *args, **kwargs):
         return await super().send(*args, **kwargs)
 
-    async def post(self, content, syntax=None, gist: bool = False):
+    async def post(self, content, syntax: str = 'py', gist: bool = False):
         if gist:
-            raise NotImplementedError("Will add later")
-        if syntax is None:
-            syntax = "python"
-        link = await self.bot.myst.post(content, syntax=syntax)
+            gist = Gist(self.bot, self.bot.session)
+            link = await gist.post(filename=f"output.{syntax}", description=str(self.author), content=content)
+        else:
+            link = await self.bot.myst.post(content, syntax=syntax)
         embed = discord.Embed(
             description=f"Output for {self.command.qualified_name}: [Here]({link})"
         )
