@@ -38,6 +38,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
+        self.process = psutil.Process(os.getpid())
         self.request_wh = discord.Webhook.from_url(
             self.bot.settings["webhooks"]["request_log"],
             session=self.bot.session
@@ -58,6 +59,9 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @core.command()
     async def news(self, ctx: AvimetryContext):
+        """
+        Show the bot's news.
+        """
         await ctx.send(self.bot.news)
 
     @core.command()
@@ -66,39 +70,22 @@ class BotInfo(commands.Cog, name="Bot Info"):
         Show some information about Avimetry.
         """
         embed = discord.Embed(title="Info about Avimetry")
+        embed.add_field(name="Latest News", value=self.bot.news, inline=False)
+        async with self.bot.session.get("https://api.github.com/repos/avimetry/avimetry/commits") as resp:
+            items = await resp.json()
+        try:
+            commits = "\n".join(f"[`{cm['sha'][:7]}`]({cm['html_url']}) {cm['commit']['message']}" for cm in items[:3])
+        except KeyError:
+            commits = "Error lol"
+        embed.add_field(name="Latest Commits", value=commits, inline=False)
+        delta_uptime = datetime.datetime.now(datetime.timezone.utc) - self.bot.launch_time
         embed.add_field(
-            name="Latest News",
-            value=self.bot.news,
-            inline=False
-        )
-        pid = psutil.Process(os.getpid())
-        used = pid.memory_info().rss / 1024 ** 2
-        total = psutil.virtual_memory().total / 1024 ** 2
-        developer = self.bot.get_user(750135653638865017)
-        embed.add_field(name="Developer", value=f"{developer} (Main)")
-        embed.add_field(name="Ping", value=f"`{round(self.bot.latency * 1000)}ms`")
-        embed.add_field(name="Guild Count", value=f"{len(self.bot.guilds)} Guilds")
-        embed.add_field(name="User Count", value=f"{len(self.bot.users)} Users")
-        embed.add_field(name="CPU Usage", value=f"{psutil.cpu_percent()}%")
-        embed.add_field(name="Memory Usage", value=f"{used:,.2f}/{total} MB")
-        embed.add_field(
-            name="Bot Invite",
-            value=f"[here]({self.bot.invite})",
-        )
-        embed.add_field(name="Commands", value=f"{len(self.bot.commands)} loaded")
-        embed.add_field(name="Commands ran", value=self.bot.commands_ran)
-        credits_list = [
-            (self.bot.get_user(547280209284562944), 'Tester', 'https://github.com/LereUwU'),
-            (self.bot.get_user(672122220566413312), 'Avatar', 'https://discord.com/users/672122220566413312'),
-            (self.bot.get_user(171539705043615744), 'Help Command', 'https://github.com/iDutchy'),
-            (self.bot.get_user(733370212199694467), 'Contributor', 'https://github.com/MrArkon/')
-        ]
-        embed.add_field(
-            name="Credits",
-            value="\n".join(f"[{user}]({credit}) ({role})" for user, role, credit in credits_list)
-        )
+            name="Info",
+            value=f"Up for {humanize.precisedelta(delta_uptime)},\n`{round(self.bot.latency*1000)}ms` latency")
+        embed.add_field(name="Stats", value=f"{len(self.bot.guilds)} Servers\n{len(self.bot.users)} Users")
         embed.set_thumbnail(url=ctx.me.avatar.url)
-        embed.set_footer(text="Contribute to Avimetry by doing magic!!")
+        owner = self.bot.get_user(750135653638865017)
+        embed.set_footer(text=f"Made by {owner} :)", icon_url=owner.avatar.url)
         await ctx.send(embed=embed)
 
     @core.command(name="credits")
@@ -123,12 +110,12 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
         await ctx.send(embed=embed)
 
-    @core.command()
+    @core.command(aliases=["github"])
     async def commits(self, ctx: AvimetryContext):
         """
-        Gets the recent commits.
+        Gets the recent commits in the Avimetry repo.
 
-        This shows the recent commits on the Avimetry repo.
+        This shows the recent commits on the repo.
         You can contribute on the repo.
         """
         async with self.bot.session.get("https://api.github.com/repos/avimetry/avimetry/commits") as resp:
@@ -158,9 +145,9 @@ class BotInfo(commands.Cog, name="Bot Info"):
         """
         Check the bot's latencies.
 
-        Websocket: latency between the bot and the server.
-        Typing: how long it takes for bot to send typing to the channel.
-        Database: how long it takes for the bot to query the database.
+        Websocket: latency between the bot and Discord's servers.
+        Typing: how long it takes to send typing to the channel.
+        Database: how long it takes to query the database.
         """
         async with Timer() as api:
             await ctx.trigger_typing()
@@ -334,6 +321,8 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
         Typing a command will send the source of a command instead.
         """
+        button = discord.ui.Button
+        view = discord.ui.View(timeout=None)
         source_embed = discord.Embed(
                 title=f"{self.bot.user.name}'s source",
                 timestamp=datetime.datetime.now(datetime.timezone.utc)
@@ -343,17 +332,20 @@ class BotInfo(commands.Cog, name="Bot Info"):
         if not command:
             if self.bot.user.id != 756257170521063444:
                 source_embed.description = (
-                    f"This bot is an instance of [Avimetry]({self.bot.source}).\n"
-                    "Made by [avizum](https://github.com/avizum/).\n"
-                    f"Follow the [license]({license_link})."
+                    "This bot is an instance of Avimetry.\n"
+                    "Click below for the source."
+                    "Made by avizum\n"
+                    "Follow the license"
                 )
             else:
                 source_embed.description = (
-                    f"Here is the whole [source]({self.bot.source}).\n"
-                    "I am made by [avizum](https://github.com/avizum/).\n"
-                    f"Follow the [license]({license_link}) and please star :)"
+                    "Click below for the source of Avimetry.\n"
+                    "I am made by avizum\n"
+                    "Follow the license and please star :)"
                 )
-            return await ctx.send(embed=source_embed)
+            view.add_item(button(style=discord.ButtonStyle.link, label="Source", url=self.bot.source))
+            view.add_item(button(style=discord.ButtonStyle.link, label="License", url=license_link))
+            return await ctx.send(embed=source_embed, view=view)
 
         if command == "help":
             command = self.bot.help_command
@@ -376,11 +368,13 @@ class BotInfo(commands.Cog, name="Bot Info"):
         command = "help" if isinstance(command, commands.HelpCommand) else command
         link = f"{git_link}{path}#L{number_one}-L{number_two}"
         source_embed.description = (
-            f"[Here is the source]({link}) for `{command}`.\n"
-            f"Follow the [license]({license_link}).\n"
-            f"Made by [avizum](https://github.com/avizum/)."
+            f"Click below for the source of `{command}`.\n"
+            "Remember to follow the license.\n"
+            "Made by avizum."
             )
-        await ctx.send(embed=source_embed)
+        view.add_item(button(style=discord.ButtonStyle.link, label=f"Source for {command}", url=link))
+        view.add_item(button(style=discord.ButtonStyle.link, label="License", url=license_link))
+        await ctx.send(embed=source_embed, view=view)
 
     @core.command(
         aliases=[
@@ -443,4 +437,4 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
 
 def setup(bot):
-    bot.add_cog(BotInfo((bot)))
+    bot.add_cog(BotInfo(bot))
