@@ -1,5 +1,5 @@
 """
-Initialize
+Base View to make things easier.
 Copyright (C) 2021 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -16,14 +16,17 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-# flake8: noqa
-from .avimetry import AvimetryBot
-from .cache import AvimetryCache
-from .context import AvimetryContext
-from .converters import TimeConverter, ModReason, TargetMember, FindBan, Prefix, CogConverter, GetAvatar
-from .exceptions import TimeZoneError, BlacklistWarn, Blacklisted, PrivateServer, Maintenance
-from .utils import Timer, format_string, format_list, timestamp, format_seconds
-from .parser import preview_message
-from .gist import Gist
-from .paginators import AvimetryPages
-from .view import AvimetryView
+import discord
+
+
+class AvimetryView(discord.ui.View):
+    def __init__(self, *, member: discord.Member, timeout: int = 180):
+        self.member = member
+        super().__init__(timeout=timeout)
+
+    async def interaction_check(self, interaction: discord.Interaction):
+        if interaction.user != self.memberh:
+            embed = discord.Embed(description=f"This can only be used by {self.member}.")
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return False
+        return True
