@@ -190,7 +190,7 @@ class ErrorHandler(core.Cog):
             try:
                 await ctx.send(embed=bnp)
             except discord.HTTPException:
-                await ctx.send(f"{bnp.description}\n\nGive me embed links permissions.")
+                return
 
         elif isinstance(error, commands.MissingPermissions):
             missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_permissions]
@@ -308,11 +308,11 @@ class ErrorHandler(core.Cog):
                     f"You can check the error status using `{ctx.prefix}error {check['id']}`\n\n"
                     f"Error:```py\n{error}```"
                 )
-            view = discord.ui.View()
+            view = discord.ui.View(timeout=None)
             view.add_item(
                 discord.ui.Button(style=discord.ButtonStyle.link, label="Support Server", url=self.bot.support)
             )
-            await ctx.send(embed=error_embed)
+            await ctx.send(embed=error_embed, view=view)
             await self.error_webhook.send(embed=webhook_error_embed, username="Command Error")
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
             tb.print_exception(type(error), error, error.__traceback__, file=sys.stderr)

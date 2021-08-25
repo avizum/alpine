@@ -95,16 +95,6 @@ class BotLogs(core.Cog):
             embed.add_field(name="Deleted content", value=f">>> {message.content}")
         if not message.content:
             return
-        if message.guild.me.guild_permissions.view_audit_log is True:
-            deleted_by = (await message.guild.audit_logs(limit=1).flatten())[0]
-            if (
-                deleted_by.action == discord.AuditLogAction.message_delete
-                and deleted_by.target == message.author
-            ):
-                embed.set_footer(
-                    text=f"Deleted by {deleted_by.user}",
-                    icon_url=deleted_by.user.avatar.url,
-                )
         channel_id = data["channel_id"]
         channel = discord.utils.get(message.guild.channels, id=channel_id)
         await channel.send(embed=embed)
