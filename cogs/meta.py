@@ -204,6 +204,31 @@ class Meta(core.Cog):
         embed.set_image(url=str(member.avatar.url))
         await ctx.send(embed=embed)
 
+    @core.command()
+    @core.cooldown(2, 10, commands.BucketType.guild)
+    async def banner(self, ctx: AvimetryContext, member: typing.Union[discord.Member, discord.User] = None):
+        """
+        Send the banner of a member.
+
+        If they have no banner and have an accent color, it will send the accent color instead.
+
+        """
+        member = member or ctx.author
+        fetched = await self.bot.fetch_user(member.id)
+        banner = fetched.banner
+        print(banner)
+        if banner:
+            embed = discord.Embed(title=f"{member}'s banner")
+            embed.set_image(url=banner.url.replace("cdn", "media").replace(".com", ".net"))
+        elif fetched.accent_color:
+            embed = discord.Embed(
+                description=f"This person does not have a banner. Their accent color is {fetched.accent_color}.",
+                color=fetched.accent_color
+            )
+        else:
+            return await ctx.send("This person does not have a banner.")
+        await ctx.send(embed=embed)
+
     @core.group(invoke_without_command=True)
     async def qr(self, ctx: AvimetryContext, *, content):
         """
