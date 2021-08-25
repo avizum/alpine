@@ -159,22 +159,6 @@ class Servers(commands.Cog, name="Servers"):
     async def before_update_count(self):
         await self.bot.wait_until_ready()
 
-    @core.Cog.listener("on_member_update")
-    async def member_update(self, before: discord.Member, after: discord.Member):
-        if after.guild.id != 751490725555994716:
-            return
-        if not after.nick:
-            return
-        if "bot" in after.nick.lower():
-            if after == self.bot.user:
-                return
-            if after.id == 750135653638865017:
-                return
-            try:
-                return await after.edit(nick=after.name, reason='Nick can not be "bot"')
-            except discord.Forbidden:
-                pass
-
     @core.command(hidden=True, aliases=["tester"])
     async def testing(self, ctx: AvimetryContext):
         """
