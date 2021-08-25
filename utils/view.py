@@ -25,7 +25,7 @@ class AvimetryView(discord.ui.View):
         super().__init__(timeout=timeout)
 
     async def interaction_check(self, interaction: discord.Interaction):
-        if interaction.user != self.memberh:
+        if interaction.user != self.member:
             embed = discord.Embed(description=f"This can only be used by {self.member}.")
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return False

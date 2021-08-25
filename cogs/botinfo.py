@@ -197,7 +197,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         If you mention a bot, I will try to find their Top.GG page and send it. If I can't find it, then
         I will generate an invite link and send it.
         """
-        view = discord.ui.View()
+        view = discord.ui.View(timeout=None)
         if bot is None:
             invite_embed = discord.Embed(
                 title=f"{self.bot.user.name} Invite",
@@ -262,7 +262,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
                 "```"
             )
         )
-        view = discord.ui.View()
+        view = discord.ui.View(timeout=None)
         view.add_item(discord.ui.Button(style=discord.ui.Button, url=self.bot.support, label="Source"))
         await ctx.send(embed=embed, view=view)
 

@@ -23,31 +23,15 @@ import re
 
 from .avimetry import AvimetryBot
 from .gist import Gist
+from .view import AvimetryView
 from discord.ext import commands
 
 emoji_regex = '<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>'
 
 
-class TrashView(discord.ui.View):
-    def __init__(self, timeout, ctx):
-        super().__init__(timeout=timeout)
-        self.ctx = ctx
-
-    async def interaction_check(self, interaction):
-        if interaction.user != self.ctx.author:
-            return await interaction.response.send_message('no', ephemeral=True)
-        return True
-
-    @discord.ui.button(emoji='<:redtick:777096756865269760>', style=discord.ButtonStyle.danger)
-    async def trash(self, button, interaction):
-        await self.message.delete()
-
-
-class ConfirmView(discord.ui.View):
-    def __init__(self, timeout: int, ctx: "AvimetryContext"):
-        super().__init__(timeout=timeout)
-        self.ctx = ctx
-        self.value = None
+class TrashView(AvimetryView):
+    def __init__(self, *, member: discord.Member, timeout: int = 60):
+        super().__init__(member=member, timeout=timeout)
 
     async def stop(self):
         for button in self.children:
@@ -55,23 +39,28 @@ class ConfirmView(discord.ui.View):
         await self.message.edit(view=self)
         super().stop()
 
-    async def interaction_check(self, interaction):
-        if interaction.user != self.ctx.author:
-            return await interaction.response.send_message(
-                f"This confirm menu belongs to {self.ctx.author.mention}, not you.",
-                ephemeral=True
-            )
-        return True
+    async def on_timeout(self):
+        await self.stop()
+
+    @discord.ui.button(emoji='\U0001f5d1', style=discord.ButtonStyle.danger)
+    async def trash(self, button, interaction):
+        await self.message.delete()
+
+
+class ConfirmView(AvimetryView):
+    def __init__(self, *, member: discord.Member, timeout=None):
+        super().__init__(member=member, timeout=timeout)
+        self.value = None
 
     @discord.ui.button(label='Yes', style=discord.ButtonStyle.green)
     async def yes(self, button, interaction):
         self.value = True
-        await self.stop()
+        self.stop()
 
     @discord.ui.button(label='No', style=discord.ButtonStyle.red)
     async def no(self, button, interaction):
         self.value = False
-        await self.stop()
+        self.stop()
 
 
 class ConfirmResult:
@@ -167,12 +156,12 @@ class AvimetryContext(commands.Context):
             if not embed.color:
                 embed.color = await self.determine_color()
         if self.message.id in self.bot.command_cache and self.message.edited_at:
-            message = self.bot.command_cache[self.message.id]
+            edited_message = self.bot.command_cache[self.message.id]
             try:
-                await message.edit(content=content, embed=embed, **kwargs)
+                message = await edited_message.edit(content=content, embed=embed, **kwargs)
             except Exception:
                 self.message._edited_timestamp = None
-                await self.send(content=content, embed=embed, **kwargs)
+                message = await self.send(content=content, embed=embed, **kwargs)
         elif no_reply:
             message = await super().send(content=content, embed=embed, **kwargs)
         else:
@@ -189,7 +178,7 @@ class AvimetryContext(commands.Context):
         timeout=60, delete_after=False, no_reply=False, remove_view_after=False
     ):
 
-        view = ConfirmView(timeout=timeout, ctx=self)
+        view = ConfirmView(member=self.author)
         check_message = confirm_message or 'Press "yes" to accept, or press "no" to deny.'
         if no_reply is True:
             send = await self.no_reply(content=message, embed=embed, view=view)
@@ -235,7 +224,7 @@ class AvimetryContext(commands.Context):
         return confirm
 
     async def can_delete(self, *args, **kwargs):
-        view = TrashView(timeout=None, ctx=self)
+        view = TrashView(member=self.author)
         view.message = await self.send(*args, **kwargs, view=view)
 
 
