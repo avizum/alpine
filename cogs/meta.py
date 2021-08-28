@@ -189,7 +189,7 @@ class Meta(core.Cog):
                     if val is True
                 ]
                 ie.add_field(name="Public Flags", value=", ".join(flags))
-        ie.set_thumbnail(url=member.avatar.url)
+        ie.set_thumbnail(url=member.display_avatar.url)
         await ctx.send(embed=ie)
 
     @core.command()
@@ -201,7 +201,7 @@ class Meta(core.Cog):
         embed = discord.Embed(
             title=f"{member}'s avatar"
         )
-        embed.set_image(url=str(member.avatar.url))
+        embed.set_image(url=str(member.display_avatar.url))
         await ctx.send(embed=embed)
 
     @core.command()
@@ -272,7 +272,7 @@ class Meta(core.Cog):
         format_time = time.strftime("%A, %B %d at %I:%M %p")
         time_embed = discord.Embed(description=format_time)
         time_embed.set_author(
-            name=f"{member.display_name}'s time", icon_url=member.avatar.url
+            name=f"{member.display_name}'s time", icon_url=member.display_avatar.url
         )
         time_embed.set_footer(text=f"{member.display_name}'s' timezone: {timezone}")
         await ctx.send(embed=time_embed)

@@ -55,9 +55,9 @@ class MainHelp(menus.ListPageSource):
             color=await self.ctx.determine_color()
         )
         embed.add_field(name="Modules", value="\n".join(modules))
-        embed.set_thumbnail(url=bot.user.avatar.url)
+        embed.set_thumbnail(url=bot.user.display_avatar.url)
         embed.set_footer(
-            icon_url=self.ctx.author.avatar.url,
+            icon_url=self.ctx.author.display_avatar.url,
             text=(
                 f"{self.help_command.ending_note()} | "
                 f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.mapping)} Modules)"))
@@ -77,7 +77,7 @@ class CogHelp(menus.ListPageSource):
             description=self.cog.description or 'No description provided',
             color=await self.ctx.determine_color()
         )
-        embed.set_thumbnail(url=self.ctx.bot.user.avatar.url)
+        embed.set_thumbnail(url=self.ctx.bot.user.display_avatar.url)
         thing = [
             f"{command.name} - {command.short_doc or 'No help provided'}"
             for command in commands
@@ -135,7 +135,7 @@ class GroupHelp(menus.ListPageSource):
                 value=cooldown,
                 inline=False)
 
-        embed.set_thumbnail(url=self.ctx.bot.user.avatar.url)
+        embed.set_thumbnail(url=self.ctx.bot.user.display_avatar.url)
         thing = [
             f"{command.name} - {command.short_doc or 'No help provided'}"
             for command in commands
@@ -271,7 +271,7 @@ class AvimetryHelp(commands.HelpCommand):
             embed.add_field(
                 name="Cooldown",
                 value=cooldown)
-        embed.set_thumbnail(url=str(self.context.bot.user.avatar.url))
+        embed.set_thumbnail(url=str(self.context.bot.user.display_avatar.url))
         embed.set_footer(text=self.ending_note())
         await self.get_destination().send(embed=embed)
 

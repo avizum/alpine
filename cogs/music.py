@@ -212,7 +212,10 @@ class PaginatorSource(menus.ListPageSource):
     async def format_page(self, menu: menus.Menu, page):
         embed = discord.Embed(title=f'Queue for {self.ctx.guild}', color=await self.ctx.determine_color())
         embed.description = '\n'.join(page)
-        embed.set_footer(text=f"Page {menu.current_page+1}/{self.get_max_pages()}", icon_url=self.ctx.author.avatar.url)
+        embed.set_footer(
+            text=f"Page {menu.current_page+1}/{self.get_max_pages()}",
+            icon_url=self.ctx.author.display_avatar.url
+        )
         if self.ctx.guild.icon.url:
             embed.set_thumbnail(url=self.ctx.guild.icon.url)
         return embed

@@ -65,7 +65,7 @@ class BotLogs(core.Cog):
                 color=discord.Color.red(),
                 timestamp=datetime.datetime.now(datetime.timezone.utc)
             )
-            embed.set_author(name=message.author, icon_url=message.author.avatar.url)
+            embed.set_author(name=message.author, icon_url=message.author.display_avatar.url)
             mentions = discord.AllowedMentions.all()
             try:
                 if message.guild is not None and message.guild.id == 336642139381301249:
@@ -142,7 +142,7 @@ class BotLogs(core.Cog):
             )
             embed.add_field(name="Responsible Moderator:", value=entry.user, inline=False)
             embed.add_field(name="Ban Reason:", value=entry.reason, inline=False)
-            embed.set_thumbnail(url=user.avatar.url)
+            embed.set_thumbnail(url=user.display_avatar.url)
             await channel.send(embed=embed)
 
     @core.Cog.listener("on_member_remove")
@@ -160,7 +160,7 @@ class BotLogs(core.Cog):
             )
             embed.add_field(name="Responsible Moderator:", value=entry.user, inline=False)
             embed.add_field(name="Kick Reason:", value=entry.reason, inline=False)
-            embed.set_thumbnail(url=member.avatar.url)
+            embed.set_thumbnail(url=member.display_avatar.url)
             await channel.send(embed=embed)
 
     @core.Cog.listener("on_guild_channel_create")

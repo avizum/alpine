@@ -139,7 +139,7 @@ class Fun(core.Cog):
         if not avimetry_webhook:
             avimetry_webhook = await ctx.channel.create_webhook(
                 name="Avimetry", reason="For Avimetry copy command.",
-                avatar=await self.bot.user.avatar.url.read())
+                avatar=await self.bot.user.display_avatar.url.read())
         await avimetry_webhook.send(
             text, username=member.display_name,
             avatar_url=member.avatar.replace(format="png"),

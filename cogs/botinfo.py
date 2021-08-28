@@ -83,9 +83,9 @@ class BotInfo(commands.Cog, name="Bot Info"):
             name="Info",
             value=f"Up for {humanize.precisedelta(delta_uptime)},\n`{round(self.bot.latency*1000)}ms` latency")
         embed.add_field(name="Stats", value=f"{len(self.bot.guilds)} Servers\n{len(self.bot.users)} Users")
-        embed.set_thumbnail(url=ctx.me.avatar.url)
+        embed.set_thumbnail(url=ctx.me.display_avatar.url)
         owner = self.bot.get_user(750135653638865017)
-        embed.set_footer(text=f"Made by {owner} :)", icon_url=owner.avatar.url)
+        embed.set_footer(text=f"Made by {owner} :)", icon_url=owner.display_avatar.url)
         await ctx.send(embed=embed)
 
     @core.command(name="credits")
@@ -203,12 +203,12 @@ class BotInfo(commands.Cog, name="Bot Info"):
                 title=f"{self.bot.user.name} Invite",
                 description="Invite me to your server! Here is the invite link.",
             )
-            invite_embed.set_thumbnail(url=self.bot.user.avatar.url)
+            invite_embed.set_thumbnail(url=self.bot.user.display_avatar.url)
             view.add_item(discord.ui.Button(style=discord.ButtonStyle.link, url=self.bot.invite, label="Invite me"))
             await ctx.send(embed=invite_embed, view=view)
         elif bot.bot:
             invite_embed = discord.Embed(title=f"{bot.name} Invite")
-            invite_embed.set_thumbnail(url=bot.avatar.url)
+            invite_embed.set_thumbnail(url=bot.display_avatar.url)
             try:
                 await self.bot.topgg.get_bot_info(bot.id)
                 invite_embed.description = f"Invite {bot.name} to your server! Here is the invite link."
@@ -316,7 +316,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
                 f"**__top.gg__**\n[__`Vote Here`__]({top_gg})\n\n"
                 f"**__discordbotlist.com__**\n[__`Vote Here`__]({bot_list})")
         )
-        vote_embed.set_thumbnail(url=self.bot.user.avatar.url)
+        vote_embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         await ctx.send(embed=vote_embed)
 
     # Please do not remove this command.
