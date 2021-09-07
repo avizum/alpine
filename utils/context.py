@@ -158,7 +158,8 @@ class AvimetryContext(commands.Context):
         if self.message.id in self.bot.command_cache and self.message.edited_at:
             edited_message = self.bot.command_cache[self.message.id]
             try:
-                message = await edited_message.edit(content=content, embed=embed, **kwargs)
+                view = kwargs.pop("view", None)
+                message = await edited_message.edit(content=content, embed=embed, view=view, **kwargs)
             except Exception:
                 self.message._edited_timestamp = None
                 message = await self.send(content=content, embed=embed, **kwargs)
