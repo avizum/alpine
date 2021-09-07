@@ -150,7 +150,8 @@ class ErrorHandler(core.Cog):
                             await self.bot.invoke(ctx)
                         except commands.CommandInvokeError:
                             await ctx.send("Something failed while trying to invoke. Try again?")
-                    return
+                    else:
+                        return await conf.message.delete()
 
         elif isinstance(error, commands.CommandOnCooldown):
             rate = error.cooldown.rate

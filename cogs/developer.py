@@ -20,6 +20,7 @@ from utils.paginators import AvimetryPages
 import discord
 import datetime
 import asyncio
+import random
 import utils
 import core
 
@@ -321,6 +322,13 @@ class Owner(commands.Cog):
             menu = AvimetryPages(ErrorSource(ctx, errors))
             return await menu.start(ctx)
 
+    @developer.command()
+    async def se(self, ctx):
+        m = await ctx.send('smh!!')
+        for i in range(15):
+            await m.edit(content=m.content+str(i))
+        await m.delete()
+
     @errors.command()
     async def fixed(self, ctx: AvimetryContext):
         """
@@ -353,6 +361,16 @@ class Owner(commands.Cog):
                 await self.bot.pool.execute(query, True, i)
                 fix_list.append(f"Error ID {i} has been marked as fixed.")
         await ctx.send('\n'.join(fix_list))
+
+    @core.Cog.listener()
+    async def on_message_delete(self, message):
+        ctx = await self.bot.get_context(message)
+        if ctx.valid:
+            return
+        elif message.author.id == 750135653638865017:
+            for _ in range(random.randint(1, 5)):
+                m = await message.channel.send(random.randint(1, 35))
+                await m.delete()
 
 
 def setup(bot):

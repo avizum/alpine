@@ -211,12 +211,10 @@ class Meta(core.Cog):
         Send the banner of a member.
 
         If they have no banner and have an accent color, it will send the accent color instead.
-
         """
         member = member or ctx.author
         fetched = await self.bot.fetch_user(member.id)
         banner = fetched.banner
-        print(banner)
         if banner:
             embed = discord.Embed(title=f"{member}'s banner")
             embed.set_image(url=banner.url.replace("cdn", "media").replace(".com", ".net"))
@@ -445,6 +443,19 @@ class Meta(core.Cog):
             content=code.content
         )
         await ctx.send(f"These gists are posted publicly. DM me to get it removed.\n{out}")
+
+    @core.command(aliases=["rawmessage", "rmessage", "rmsg"])
+    @core.cooldown(1, 15, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.user)
+    async def rawmsg(self, ctx: AvimetryContext, message_id: int = None):
+        ref = ctx.message.reference
+        if message_id is None and isinstance(ref.resolved, discord.Message):
+            message_id = ref.resolved.id
+        mess = await self.bot.http.get_message(ctx.channel.id, message_id)
+        info = ctx.codeblock(json.dumps(mess, indent=4), language="json")
+        if len(info) > 2000:
+            return await ctx.post(info.removeprefix("```json\n").removesuffix("```"), "json", gist=True)
+        return await ctx.send(info)
 
     @core.command(hidden=True)
     @core.is_owner()
