@@ -71,8 +71,9 @@ class BotInfo(commands.Cog, name="Bot Info"):
         """
         embed = discord.Embed(title="Info about Avimetry")
         embed.add_field(name="Latest News", value=self.bot.news, inline=False)
-        async with self.bot.session.get("https://api.github.com/repos/avimetry/avimetry/commits") as resp:
-            items = await resp.json()
+        async with ctx.channel.typing():
+            async with self.bot.session.get("https://api.github.com/repos/avimetry/avimetry/commits") as resp:
+                items = await resp.json()
         try:
             commits = "\n".join(f"[`{cm['sha'][:7]}`]({cm['html_url']}) {cm['commit']['message']}" for cm in items[:3])
         except KeyError:
@@ -97,10 +98,12 @@ class BotInfo(commands.Cog, name="Bot Info"):
         """
         credit_list = [
             (self.bot.get_user(750135653638865017), 'Developer', 'https://github.com/avizum'),
+            (self.bot.get_user(80088516616269824), 'Developer of discord.py', 'https://github.com/Rapptz'),
             (self.bot.get_user(547280209284562944), 'Testing', 'https://github.com/LereUwU'),
             (self.bot.get_user(672122220566413312), 'Avatar', 'https://discord.com/users/672122220566413312'),
             (self.bot.get_user(171539705043615744), 'Help Command, Error Tracking', 'https://github.com/iDutchy'),
-            (self.bot.get_user(733370212199694467), 'Contributor', 'https://github.com/MrArkon/')
+            (self.bot.get_user(733370212199694467), 'Contributor', 'https://github.com/MrArkon/'),
+            (self.bot.get_user(797044260196319282), 'Noob', 'https://github.com/jottew')
         ]
 
         embed = discord.Embed(
@@ -118,8 +121,9 @@ class BotInfo(commands.Cog, name="Bot Info"):
         This shows the recent commits on the repo.
         You can contribute on the repo.
         """
-        async with self.bot.session.get("https://api.github.com/repos/avimetry/avimetry/commits") as resp:
-            items = await resp.json()
+        async with ctx.channel.typing():
+            async with self.bot.session.get("https://api.github.com/repos/avimetry/avimetry/commits") as resp:
+                items = await resp.json()
         try:
             commit_list = [f"[`{cm['sha'][:7]}`]({cm['html_url']}) {cm['commit']['message']}" for cm in items[:10]]
         except KeyError:
@@ -205,15 +209,26 @@ class BotInfo(commands.Cog, name="Bot Info"):
             )
             invite_embed.set_thumbnail(url=self.bot.user.display_avatar.url)
             view.add_item(discord.ui.Button(style=discord.ButtonStyle.link, url=self.bot.invite, label="Invite me"))
+            view.add_item(discord.ui.Button(
+                    style=discord.ButtonStyle.link,
+                    url=self.bot.support,
+                    label="Avimetry support server")
+                )
             await ctx.send(embed=invite_embed, view=view)
         elif bot.bot:
             invite_embed = discord.Embed(title=f"{bot.name} Invite")
             invite_embed.set_thumbnail(url=bot.display_avatar.url)
             try:
-                await self.bot.topgg.get_bot_info(bot.id)
+                top = await self.bot.topgg.get_bot_info(bot.id)
                 invite_embed.description = f"Invite {bot.name} to your server! Here is the invite link."
                 link = f"https://top.gg/bot/{bot.id}"
                 view.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label=f"{bot.name} (top.gg)", url=link))
+                view.add_item(discord.ui.Button(
+                        style=discord.ButtonStyle.link,
+                        label=f"{bot.name}'s support server",
+                        url=f"https://discord.gg/{top.support}"
+                    )
+                )
             except NotFound:
                 invite_embed.description = f"Invite {bot.name} to your server! Here is the invite link."
                 link = str(discord.utils.oauth_url(bot.id, permissions=discord.Permissions(8)))
