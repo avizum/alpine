@@ -126,21 +126,28 @@ class Player(wavelink.Player):
 
     def __init__(self, *args, context=None, **kwargs):
         self.context: AvimetryContext = context
+        self.reg = re.compile(r'https?://(?:www\.)?.+')
         super().__init__(*args, **kwargs)
-
         if self.context:
             self.dj: discord.Member = self.context.author
-
         self.queue = Queue()
-
         self.waiting = False
         self.updating = False
-
         self.pause_votes = set()
         self.resume_votes = set()
         self.skip_votes = set()
         self.shuffle_votes = set()
         self.stop_votes = set()
+
+    async def get_tracks(self, query: str):
+        search_type = "" if self.reg.match(query) else "ytsearch:"
+        try:
+            tracks = await self.node.get_tracks(wavelink.YouTubeTrack, f"{search_type}{query}")
+            if tracks:
+                return tracks[0]
+            return tracks
+        except Exception:
+            return await self.node.get_playlist(wavelink.YouTubePlaylist, f"{search_type}{query}")
 
     async def do_next(self) -> None:
         if self.waiting:
@@ -382,7 +389,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["enqueue", "p"])
     @in_voice()
-    async def play(self, ctx: AvimetryContext, *, query: typing.Union[wavelink.YouTubeTrack, wavelink.YouTubePlaylist]):
+    async def play(self, ctx: AvimetryContext, *, query: str):
         """Play or queue a song with the given query."""
         player: Player = ctx.voice_client
 
@@ -393,7 +400,9 @@ class Music(core.Cog):
         if not player.channel:
             return
 
-        tracks = query
+        tracks = await player.get_tracks(query)
+        if not tracks:
+            return await ctx.send("Could not find anything. Try again.")
 
         if isinstance(tracks, wavelink.YouTubePlaylist):
             for track in tracks.tracks:
@@ -406,8 +415,8 @@ class Music(core.Cog):
                     f"Playlist {tracks.name} with {len(tracks.tracks)} tracks added to the queue."
                 )
             )
-            if track.thumb:
-                embed.set_thumbnail(url=tracks[0].thumb)
+            if tracks.tracks[0].thumb:
+                embed.set_thumbnail(url=tracks.tracks[0].thumb)
             await ctx.send(embed=embed)
         else:
             track = Track(tracks.id, tracks.info, requester=ctx.author, thumb=tracks.thumb)
@@ -452,13 +461,9 @@ class Music(core.Cog):
                 track = Track(tracks.id, tracks.info, requester=ctx.author, thumb=tracks.thumb)
                 await ctx.send(embed=await player.build_added(track))
                 await player.queue.put(track)
-                print(player.queue)
 
             if not player.is_playing():
-                print(player)
-                print(player.is_playing())
                 await player.do_next()
-                print("p")
         else:
             await ctx.send("Only the DJ can add songs to the top of the playlist.")
 
