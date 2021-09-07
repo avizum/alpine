@@ -108,7 +108,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         All other functionality is within its subcommands.
         """
         summary = [
-            f"Jishaku `v{jishaku.__version__}`, discord.py `v{discord.__version__}`, "
+            f"Jishaku `v{jishaku.__version__}`, discord.py (official fork) `v{discord.__version__}`, "
             f"Python `{sys.version}` on `{sys.platform}`, ".replace("\n", ""),
             f"Jishaku was loaded {timestamp(self.load_time, 'R')} "
             f"and module was loaded {timestamp(self.start_time, 'R')}.",

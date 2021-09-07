@@ -307,7 +307,7 @@ class HelpCommand(core.Cog):
                 aliases=["halp", "helps", "hlp", "hlep", "hep"],
                 usage="[command|module]",
                 checks=[core.bot_has_permissions(add_reactions=True).predicate],
-                cooldown=commands.CooldownMapping(commands.Cooldown(1, 10), commands.BucketType.user)
+                cooldown=commands.CooldownMapping(commands.Cooldown(10, 30), commands.BucketType.user)
             )
         )
         help_command.cog = self

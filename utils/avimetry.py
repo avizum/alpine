@@ -159,7 +159,6 @@ class AvimetryBot(commands.Bot):
         ]
         with open("config.toml") as token:
             self.settings = toml.loads(token.read())
-
         api = self.settings["api_tokens"]
         self.news = self.settings["news"]["news"]
         self.session = aiohttp.ClientSession()
