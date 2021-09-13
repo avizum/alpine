@@ -208,6 +208,8 @@ class Player(wavelink.Player):
         return embed
 
     async def teardown(self):
+        self.queue.clear()
+        await self.stop()
         await self.disconnect(force=False)
 
 
