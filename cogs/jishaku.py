@@ -24,6 +24,7 @@ import math
 
 from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 from jishaku import Feature
+from jishaku.models import copy_context_with
 from jishaku.flags import Flags
 from utils import AvimetryBot, AvimetryContext, CogConverter, timestamp
 
@@ -97,6 +98,30 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         plugged = battery.power_plugged
         percent = str(battery.percent)
         await ctx.send(f"System battery is at {percent}% and {'Plugged in' if plugged else 'Unplugged'}")
+
+    @Feature.Command(parent="jsk", name="su")
+    async def jsk_su(self, ctx: AvimetryContext, member: discord.Member, *, command_string):
+        """
+        Run a command as someone else.
+        """
+        alt_ctx = await copy_context_with(ctx, author=member, content=f"{ctx.prefix}{command_string}")
+        if alt_ctx.command is None:
+            return await ctx.send(f'Command "{alt_ctx.invoked_with}" does not exist.')
+        return await alt_ctx.command.invoke(alt_ctx)
+
+    @Feature.Command(parent="jsk", name="sudo", aliases=["admin", "bypass"])
+    async def jsk_sudo(self, ctx: AvimetryContext, *, command_string):
+        alt_ctx = await copy_context_with(ctx, content=f"{ctx.prefix}{command_string}")
+        if alt_ctx.command is None:
+            return await ctx.send(f'Command "{alt_ctx.invoked_with}" does not exist.')
+        return await alt_ctx.command.reinvoke(alt_ctx)
+
+    @Feature.Command(parent="jsk", name="in", aliases=["channel", "inside"])
+    async def jsk_in(self, ctx: AvimetryContext, channel: discord.TextChannel, *, command_string):
+        alt_ctx = await copy_context_with(ctx, channel=channel)
+        if alt_ctx.command is None:
+            return await ctx.send(f'Command "{alt_ctx.invoked_with}" does not exist.')
+        return await alt_ctx.command.invoke(alt_ctx)
 
     @Feature.Command(name="jishaku", aliases=["jsk"], hidden=Flags.HIDE,
                      invoke_without_command=True, ignore_extra=True, extras={'user_permissions': ['bot_owner']})
