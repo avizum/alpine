@@ -20,7 +20,6 @@ import discord
 import datetime
 import core
 
-from typing import Union
 from discord.ext import commands
 from utils import AvimetryBot, AvimetryContext, ModReason
 
@@ -118,10 +117,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @channel.command()
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def clone(self, ctx: AvimetryContext, channel: Union[discord.CategoryChannel,
-                                                               discord.TextChannel,
-                                                               discord.VoiceChannel,
-                                                               discord.StageChannel]):
+    async def clone(self, ctx: AvimetryContext, channel: discord.abc.GuildChannel):
         """
         Clones a channel.
 
@@ -130,7 +126,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
         if isinstance(channel, discord.CategoryChannel):
             new = await channel.clone()
             for channels in channel.channels:
-                thing = await channels.clone(reason="because")
+                thing = await channels.clone(reason="Clone")
                 await thing.edit(category=new)
             return await ctx.send(f"Successfully cloned {channel.mention}.")
         await channel.clone(reason="because")
@@ -139,10 +135,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @channel.command()
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def delete(self, ctx: AvimetryContext, channel: Union[discord.CategoryChannel,
-                                                                discord.TextChannel,
-                                                                discord.VoiceChannel,
-                                                                discord.StageChannel]):
+    async def delete(self, ctx: AvimetryContext, channel: discord.abc.GuildChannel):
         """
         Deletes a channel.
 

@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from utils.paginators import AvimetryPages
 import discord
 import datetime
 import asyncio
@@ -24,6 +23,7 @@ import random
 import utils
 import core
 
+from utils.paginators import AvimetryPages
 from utils.converters import ModReason
 from discord.ext import commands, menus
 from jishaku.codeblocks import codeblock_converter
@@ -101,7 +101,7 @@ class Owner(commands.Cog):
             except (commands.ExtensionError, ModuleNotFoundError) as e:
                 load_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
         embed = discord.Embed(title="Loaded cogs", description="\n".join(load_list))
-        await ctx.send(embed=embed, delete_after=15)
+        await ctx.send(embed=embed)
 
     @developer.command(aliases=["u"])
     async def unload(self, ctx: AvimetryContext, module: CogConverter):
@@ -116,7 +116,7 @@ class Owner(commands.Cog):
             except (commands.ExtensionError, ModuleNotFoundError) as e:
                 unload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
         embed = discord.Embed(title="Unloaded cogs", description="\n".join(unload_list))
-        await ctx.send(embed=embed, delete_after=15)
+        await ctx.send(embed=embed)
 
     @developer.command(aliases=["r"])
     async def reload(self, ctx: AvimetryContext, module: CogConverter):
@@ -132,7 +132,7 @@ class Owner(commands.Cog):
                 reload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
         description = "\n".join(reload_list)
         embed = discord.Embed(title="Reloaded cogs", description=description)
-        await ctx.send(embed=embed, delete_after=15)
+        await ctx.send(embed=embed)
 
     @developer.command()
     async def sync(self, ctx: AvimetryContext):
@@ -172,7 +172,7 @@ class Owner(commands.Cog):
         else:
             value = "\n".join(reload_list)
         sync_embed.add_field(name="Reloaded Modules", value=value)
-        await edit_sync.edit(embed=sync_embed, delete_after=15)
+        await edit_sync.edit(embed=sync_embed)
 
     @developer.command(aliases=["shutdown"])
     async def reboot(self, ctx: AvimetryContext):
@@ -281,7 +281,8 @@ class Owner(commands.Cog):
             return m.author == self.bot.user
         perms = ctx.channel.permissions_for(ctx.me).manage_messages
         purged = await ctx.channel.purge(limit=amount, check=check, bulk=perms)
-        await ctx.can_delete(f'Purged {len(purged)} messages')
+        cog = self.bot.get_cog("moderation")
+        await ctx.can_delete(embed=await cog.do_affected(purged))
 
     @developer.command()
     async def maintenance(self, ctx: AvimetryContext, toggle: bool):

@@ -26,7 +26,7 @@ import core
 from discord.ext import tasks
 from utils import AvimetryBot, Gist
 
-TOKEN_REGEX = r'[a-zA-Z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27}'
+TOKEN_REGEX = r'([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}|mfa\.[a-zA-Z0-9_\-]{84})'
 
 
 class BotLogs(core.Cog):
@@ -59,7 +59,7 @@ class BotLogs(core.Cog):
             embed = discord.Embed(
                 description=(
                     f"Hey {message.author.name},\n"
-                    f"It appears that you posted a Discord token here. I uploaded it [here.]({gist})\n"
+                    f"It appears that you posted a Discord authentication token here. I uploaded it [here.]({gist})\n"
                     f"You can get a new token [here.](https://discord.com/developers/applications/{uid}/bot)"
                 ),
                 color=discord.Color.red(),

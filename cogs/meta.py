@@ -396,7 +396,7 @@ class Meta(core.Cog):
 
         This command has a high cooldown to prevent abuse.
         """
-        if '"content":' in thing or "'content':" in thing:
+        if '"content":' in thing:
             return await ctx.send('Remove the "content" part from your message and try again.')
         try:
             thing = json.loads(thing)
