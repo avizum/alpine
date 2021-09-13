@@ -24,7 +24,7 @@ import core
 import copy
 
 from prettify_exceptions import DefaultFormatter
-from utils import AvimetryBot, AvimetryContext, Blacklisted, Maintenance
+from utils import AvimetryBot, AvimetryContext, Blacklisted, Maintenance, NotGuildOwner
 from discord.ext import commands
 from difflib import get_close_matches
 
@@ -214,6 +214,13 @@ class ErrorHandler(core.Cog):
             )
             return await ctx.send(embed=no)
 
+        elif isinstance(error, NotGuildOwner):
+            no = discord.Embed(
+                title="Missing Permissions",
+                description="You do not own this server."
+            )
+            return await ctx.send(embed=no)
+
         elif isinstance(error, commands.MissingRequiredArgument):
             self.reset(ctx)
             a = discord.Embed(
@@ -301,6 +308,7 @@ class ErrorHandler(core.Cog):
                         f"Command: {ctx.command.qualified_name}\n"
                         f"Message: {ctx.message.content}\n"
                         f"Invoker: {ctx.author}\n"
+                        f"Error ID: {insert['id']}"
                     )
                 )
             elif check["error"] == str(error):
