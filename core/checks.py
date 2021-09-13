@@ -4,6 +4,7 @@ import discord
 
 from discord.ext import commands
 from .core import AvimetryCommand
+from utils.exceptions import NotGuildOwner
 
 
 def check(predicate, user_permissions=None, bot_permissions=None):
@@ -89,3 +90,12 @@ def is_owner():
         return True
 
     return check(predicate, user_permissions=['bot_owner'])
+
+
+def is_guild_owner():
+    async def predicate(ctx):
+        if ctx.author != ctx.guild.owner:
+            raise NotGuildOwner
+        return True
+
+    return check(predicate, user_permissions=['guild_owner'])

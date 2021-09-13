@@ -29,6 +29,12 @@ class TimeZoneError(commands.BadArgument):
         )
 
 
+class NotGuildOwner(commands.CheckFailure):
+    def __init__(self, message=None, *args):
+        message = message or "You do not own this server."
+        super().__init__(message=message, *args)
+
+
 class BlacklistWarn(commands.CheckFailure):
     def __init__(self, reason):
         self.reason = reason

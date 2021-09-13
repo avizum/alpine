@@ -21,7 +21,7 @@ from .avimetry import AvimetryBot
 from .cache import AvimetryCache
 from .context import AvimetryContext
 from .converters import TimeConverter, ModReason, TargetMember, FindBan, Prefix, CogConverter, GetAvatar
-from .exceptions import TimeZoneError, BlacklistWarn, Blacklisted, PrivateServer, Maintenance
+from .exceptions import TimeZoneError, BlacklistWarn, Blacklisted, PrivateServer, Maintenance, NotGuildOwner
 from .utils import Timer, format_string, format_list, timestamp, format_seconds
 from .parser import preview_message
 from .gist import Gist
