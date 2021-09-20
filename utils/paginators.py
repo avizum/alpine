@@ -135,7 +135,7 @@ class AvimetryPages(AvimetryView):
         """
         await self.show_page(interaction, self.source.get_max_pages() - 1)
 
-    @discord.ui.button(emoji="\U000023f9\U0000fe0f")
+    @discord.ui.button(emoji="\U000023f9\U0000fe0f", style=discord.ButtonStyle.red)
     async def stop_view(self, button: discord.ui.Button, interaction: discord.Interaction):
         """
         Stops the paginator and view.
