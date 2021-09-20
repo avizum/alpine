@@ -323,13 +323,6 @@ class Owner(commands.Cog):
             menu = AvimetryPages(ErrorSource(ctx, errors))
             return await menu.start(ctx)
 
-    @developer.command()
-    async def se(self, ctx):
-        m = await ctx.send('smh!!')
-        for i in range(15):
-            await m.edit(content=m.content+str(i))
-        await m.delete()
-
     @errors.command()
     async def fixed(self, ctx: AvimetryContext):
         """
@@ -362,6 +355,17 @@ class Owner(commands.Cog):
                 await self.bot.pool.execute(query, True, i)
                 fix_list.append(f"Error ID {i} has been marked as fixed.")
         await ctx.send('\n'.join(fix_list))
+
+    @developer.command(aliases=["dmsg", "dmessage", "delmsg", "deletem", "deletemsg", "delmessage"])
+    async def deletemessage(self, ctx: AvimetryContext, message: discord.Message = None):
+        if message is None and ctx.reference is not None:
+            if ctx.reference.author == ctx.me:
+                await ctx.reference.delete()
+            else:
+                return await ctx.message.add_reaction(self.bot.emoji_dictionary["red_tick"])
+        if message and message.author == ctx.me:
+            await message.delete()
+        return await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
 
     @core.Cog.listener()
     async def on_message_delete(self, message):
