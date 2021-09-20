@@ -45,10 +45,12 @@ class AvimetryPages(AvimetryView):
             elif max_pages > 2:
                 self.add_item(self.skip_to_first)
                 self.add_item(self.go_back_one)
+                self.add_item(self.show_page_number)
                 self.add_item(self.go_forward_one)
                 self.add_item(self.skip_to_last)
             else:
                 self.add_item(self.go_back_one)
+                self.add_item(self.show_page_number)
                 self.add_item(self.go_forward_one)
 
             self.add_item(self.stop_view)
@@ -60,10 +62,19 @@ class AvimetryPages(AvimetryView):
             f"This menu can only be used by {self.ctx.author}, not you.", ephemeral=True)
         return False
 
+    def _update(self):
+        if self.show_page_number.emoji:
+            self.show_page_number.emoji = None
+        current = self.current_page + 1
+        last = self.source.get_max_pages()
+        self.show_page_number.label = f"{current}/{last}"
+
     async def show_page(self, interaction: discord.Interaction, page_num: int):
         page = await self.source.get_page(page_num)
         self.current_page = page_num
+        self._update()
         kwargs = await self._get_kwargs_from_page(page)
+
         if interaction.response.is_done():
             if self.message:
                 await self.message.edit(**kwargs, view=self)
@@ -105,6 +116,7 @@ class AvimetryPages(AvimetryView):
         await self.source._prepare_once()
         page = await self.source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
+        self._update()
         self.message = await self.ctx.send(**kwargs, view=self)
 
     @discord.ui.button(emoji="\U000023ee\U0000fe0f")
@@ -121,6 +133,10 @@ class AvimetryPages(AvimetryView):
         """
         await self.show_checked_page(interaction, self.current_page - 1)
 
+    @discord.ui.button(emoji="<:avimetry:877445146709463081>", disabled=True, style=discord.ButtonStyle.blurple)
+    async def show_page_number(self, button: discord.ui.Button, interaction: discord.Interaction):
+        pass
+
     @discord.ui.button(emoji="\U000025b6\U0000fe0f")
     async def go_forward_one(self, button: discord.ui.Button, interaction: discord.Interaction):
         """
@@ -135,7 +151,7 @@ class AvimetryPages(AvimetryView):
         """
         await self.show_page(interaction, self.source.get_max_pages() - 1)
 
-    @discord.ui.button(emoji="\U000023f9\U0000fe0f", style=discord.ButtonStyle.red)
+    @discord.ui.button(emoji="\U000023f9\U0000fe0f", label="Stop", style=discord.ButtonStyle.red, row=2)
     async def stop_view(self, button: discord.ui.Button, interaction: discord.Interaction):
         """
         Stops the paginator and view.
@@ -143,6 +159,7 @@ class AvimetryPages(AvimetryView):
         if self.disable_view_after:
             for item in self.children:
                 item.disabled = True
+            button.label = "Disabled"
             await interaction.response.edit_message(view=self)
         elif self.remove_view_after:
             await interaction.response.edit_message(view=None)

@@ -28,6 +28,11 @@ from utils import AvimetryBot, AvimetryContext, AvimetryPages
 
 # This help command is inspired by R. Danny, When I am not lazy I might make my own
 class MainHelp(menus.PageSource):
+    def __init__(self, ctx: AvimetryContext, help: "AvimetryHelp"):
+        self.ctx = ctx
+        self.help = help
+        super().__init__()
+
     def is_paginating(self):
         return True
 
@@ -38,18 +43,30 @@ class MainHelp(menus.PageSource):
         self.index = page_number
         return self
 
-    def format_page(self, menu, page):
-        return discord.Embed(
-            title="Avimetry Help Menu",
-            description=(
-                "Made by [avizum](https://github.com/avizum).\n"
-                "```\n<> is a required argument\n"
-                "[] is an optional argument\n"
-                "[...] accepts multiple arguments```\n"
-                "Do not use these when using commands.\n"
-                "Please select a category that you want help with."
-            )
+    async def format_page(self, menu, page):
+        bot = self.ctx.bot
+        commands = list(bot.commands)
+        embed = discord.Embed(title="Avimetry Help Menu", color=await self.ctx.determine_color())
+        info = " | ".join([
+            f"[Support Server]({self.ctx.bot.support})",
+            f"[Invite]({self.ctx.bot.invite})",
+            "[Vote](https://top.gg/bot/756257170521063444/vote)",
+            f"[Source]({self.ctx.bot.support})"
+        ])
+        embed.description = (
+            f"{info}\n"
+            f"Total amount of commands: {len(commands)}\n"
+            f"Amount of commands that you can use here: {len(await self.help.filter_commands(commands))}\n\n"
+            "Reading command signatures\n"
+            "<argument> is Required\n"
+            "[argument] is Optional\n"
+            "[argument...] can accept multiple\n"
+            "You do not need to type these when using commands.\n\n"
+            "To get started, please select a module that you need help with."
         )
+        embed.set_thumbnail(url=bot.user.avatar.url)
+        embed.set_footer(text=self.help.ending_note())
+        return embed
 
 
 class CogHelp(menus.ListPageSource):
@@ -71,18 +88,8 @@ class CogHelp(menus.ListPageSource):
             for command in commands
         ]
 
-        embed.add_field(
-            name=f"Commands in {self.cog.qualified_name.title()}",
-            value="\n".join(thing) or 'error'
-        )
-        if self.get_max_pages() != 1:
-            embed.set_footer(
-                text=f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.cog.get_commands())} Commands)"
-            )
-        else:
-            embed.set_footer(
-                text=self.help_command.ending_note()
-            )
+        embed.add_field(name=f"Commands in {self.cog.qualified_name.title()}", value="\n".join(thing) or 'error')
+        embed.set_footer(text=self.help_command.ending_note())
         return embed
 
 
@@ -134,12 +141,7 @@ class GroupHelp(menus.ListPageSource):
             value="\n".join(thing),
             inline=False
         )
-        if self.get_max_pages() != 1:
-            embed.set_footer(
-                text=f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.group.commands)} Commands)"
-            )
-        else:
-            embed.set_footer(text=self.hc.ending_note())
+        embed.set_footer(text=self.hc.ending_note())
         return embed
 
 
@@ -147,26 +149,43 @@ class HelpSelect(discord.ui.Select):
     def __init__(self, ctx: AvimetryContext, hc, cogs: list[core.Cog]):
         self.ctx = ctx
         self.hc = hc
-        super().__init__(
-            placeholder="Select a module...",
-            options=[
+        self.current_module = None
+        options = [discord.SelectOption(label="Home", description="Home page of the help command", emoji="\U0001f3e0")]
+        for cog in cogs:
+            options.append(
                 discord.SelectOption(
                     label=cog.qualified_name,
                     description=cog.description,
                     emoji=getattr(cog, "emoji", "<:avimetry:848820318117691432>")
-                ) for cog in cogs
-            ]
+                )
+            )
+        super().__init__(
+            placeholder="Select a module...",
+            options=options
         )
 
     async def callback(self, interaction: discord.Interaction):
         cog = self.ctx.bot.get_cog(self.values[0])
-        thing = CogHelp(self.ctx, cog.get_commands(), cog, self.hc)
-        await self.view.edit_source(thing, interaction)
+        if self.current_module == cog:
+            return
+        elif self.values[0] == "Home":
+            await self.view.edit_source(MainHelp(self.ctx, self.hc), interaction)
+        else:
+            thing = CogHelp(self.ctx, cog.get_commands(), cog, self.hc)
+            await self.view.edit_source(thing, interaction)
+            self.current_module = cog
 
 
 class HelpPages(AvimetryPages):
     def __init__(self, source: menus.PageSource, *, ctx: AvimetryContext):
         super().__init__(source, ctx=ctx, remove_view_after=True)
+
+    def _update(self):
+        if self.show_page_number.emoji:
+            self.show_page_number.emoji = None
+        current = self.current_page + 1
+        last = self.source.get_max_pages()
+        self.show_page_number.label = f"Page {current}/{last}"
 
     async def edit_source(self, source, interaction):
         self.source = source
@@ -178,6 +197,7 @@ class HelpPages(AvimetryPages):
         await self.source._prepare_once()
         page = await self.source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
+        self._update()
         await interaction.response.edit_message(**kwargs, view=self)
 
 
@@ -235,7 +255,7 @@ class AvimetryHelp(commands.HelpCommand):
             if filtered:
                 items.append(cog)
         items.sort(key=lambda c: c.qualified_name)
-        menu = HelpPages(MainHelp(), ctx=self.context)
+        menu = HelpPages(MainHelp(self.context, self), ctx=self.context)
         menu.clear_items()
         menu.add_item(HelpSelect(self.context, self, items))
         menu.add_items()

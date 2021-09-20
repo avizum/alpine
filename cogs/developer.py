@@ -42,7 +42,6 @@ class ErrorSource(menus.ListPageSource):
             value=f"```\n{page['error']}```",
             inline=False
         )
-        embed.set_footer(text=f"Page {menu.current_page+1}/{self.get_max_pages()}")
         embed.color = await self.ctx.determine_color()
         return embed
 
@@ -320,8 +319,8 @@ class Owner(commands.Cog):
             embed = discord.Embed(title="Errors", description="No active errors have been found.")
             return await ctx.send(embed=embed)
         else:
-            menu = AvimetryPages(ErrorSource(ctx, errors))
-            return await menu.start(ctx)
+            menu = AvimetryPages(ErrorSource(ctx, errors), ctx=ctx)
+            return await menu.start()
 
     @errors.command()
     async def fixed(self, ctx: AvimetryContext):
@@ -332,8 +331,8 @@ class Owner(commands.Cog):
         if not errors:
             return await ctx.send("An error occured while fetching errors.")
         else:
-            menu = AvimetryPages(ErrorSource(ctx, errors, per_page=2))
-            return await menu.start(ctx)
+            menu = AvimetryPages(ErrorSource(ctx, errors, per_page=2), ctx=ctx)
+            return await menu.start()
 
     @errors.command()
     async def fix(self, ctx: AvimetryContext, *error_id: int):

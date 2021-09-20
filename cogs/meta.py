@@ -46,7 +46,7 @@ class RTFMPageSource(menus.ListPageSource):
             ),
             color=await self.ctx.determine_color()
         )
-        embed.set_footer(text=f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.items)} results)")
+        embed.set_footer(text=f"{len(self.items)} results found")
         return embed
 
 
@@ -337,8 +337,8 @@ class Meta(core.Cog):
         Get the docs for the discord.py library.
         """
         q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/stable/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Discord.py"))
-        await menu.start(ctx)
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Discord.py"), ctx=ctx)
+        await menu.start()
 
     @rtfm.command()
     async def master(self, ctx: AvimetryContext, query):
@@ -346,8 +346,8 @@ class Meta(core.Cog):
         Get the docs for the discord.py master branch library.
         """
         q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/master/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Discord.py 2.0"))
-        await menu.start(ctx)
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Discord.py 2.0"), ctx=ctx)
+        await menu.start()
 
     @rtfm.command(aliases=['py'])
     async def python(self, ctx: AvimetryContext, query):
@@ -355,8 +355,8 @@ class Meta(core.Cog):
         Get the docs for the latest Python version
         """
         q = await self.scraper.search(query, page="https://docs.python.org/3/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Python"))
-        await menu.start(ctx)
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Python"), ctx=ctx)
+        await menu.start()
 
     @rtfm.command(aliases=['ob'])
     async def obsidian(self, ctx: AvimetryContext, query):
@@ -364,8 +364,8 @@ class Meta(core.Cog):
         Get the docs for the Obsidian.py library
         """
         q = await self.scraper.search(query, page="https://obsidianpy.readthedocs.io/en/latest/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Obsidian"))
-        await menu.start(ctx)
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Obsidian"), ctx=ctx)
+        await menu.start()
 
     @rtfm.command(aliases=['wl'])
     async def wavelink(self, ctx: AvimetryContext, query):
@@ -373,8 +373,8 @@ class Meta(core.Cog):
         Get the docs for the Wavelink library
         """
         q = await self.scraper.search(query, page="https://wavelink.readthedocs.io/en/latest/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Wavelink"))
-        await menu.start(ctx)
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Wavelink"), ctx=ctx)
+        await menu.start()
 
     @rtfm.command(aliases=['c'])
     async def custom(self, ctx: AvimetryContext, doc_url, query):
@@ -385,8 +385,8 @@ class Meta(core.Cog):
             q = await self.scraper.search(query, page=doc_url)
         except Exception as e:
             return await ctx.send(e)
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Custom Docs"))
-        await menu.start(ctx)
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Custom Docs"), ctx=ctx)
+        await menu.start()
 
     @core.command()
     @commands.cooldown(1, 300, commands.BucketType.member)
