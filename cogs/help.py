@@ -26,42 +26,30 @@ from difflib import get_close_matches
 from utils import AvimetryBot, AvimetryContext, AvimetryPages
 
 
-class MainHelp(menus.ListPageSource):
-    def __init__(self, ctx: AvimetryContext, mapping, help_command: "AvimetryHelp"):
-        super().__init__(entries=mapping, per_page=4)
-        self.ctx = ctx
-        self.mapping = mapping
-        self.help_command = help_command
+# This help command is inspired by R. Danny, When I am not lazy I might make my own
+class MainHelp(menus.PageSource):
+    def is_paginating(self):
+        return True
 
-    async def format_page(self, menu, modules):
-        bot = self.ctx.bot
-        command = list(bot.commands)
-        usable = (
-            f"Total Commands: {len(command)} | "
-            f"Usable by you here: {len(await self.help_command.filter_commands(command))}"
-        )
-        info = [
-            f"[Support Server]({self.ctx.bot.support})",
-            f"[Invite]({self.ctx.bot.invite})",
-            "[Vote](https://top.gg/bot/756257170521063444/vote)",
-            f"[Source]({self.ctx.bot.support})"
-        ]
-        embed = discord.Embed(
-            title=f"Avimetry {self.help_command.invoked_with.title()} Menu",
+    def get_max_pages(self):
+        return 1
+
+    async def get_page(self, page_number):
+        self.index = page_number
+        return self
+
+    def format_page(self, menu, page):
+        return discord.Embed(
+            title="Avimetry Help Menu",
             description=(
-                f"{self.help_command.command_signature()}\n"
-                f"{usable}\n{' | '.join(info)}"
-            ),
-            color=await self.ctx.determine_color()
+                "Made by [avizum](https://github.com/avizum).\n"
+                "```\n<> is a required argument\n"
+                "[] is an optional argument\n"
+                "[...] accepts multiple arguments```\n"
+                "Do not use these when using commands.\n"
+                "Please select a category that you want help with."
+            )
         )
-        embed.add_field(name="Modules", value="\n".join(modules))
-        embed.set_thumbnail(url=bot.user.display_avatar.url)
-        embed.set_footer(
-            icon_url=self.ctx.author.display_avatar.url,
-            text=(
-                f"{self.help_command.ending_note()} | "
-                f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.mapping)} Modules)"))
-        return embed
 
 
 class CogHelp(menus.ListPageSource):
@@ -155,6 +143,44 @@ class GroupHelp(menus.ListPageSource):
         return embed
 
 
+class HelpSelect(discord.ui.Select):
+    def __init__(self, ctx: AvimetryContext, hc, cogs: list[core.Cog]):
+        self.ctx = ctx
+        self.hc = hc
+        super().__init__(
+            placeholder="Select a module...",
+            options=[
+                discord.SelectOption(
+                    label=cog.qualified_name,
+                    description=cog.description,
+                    emoji=getattr(cog, "emoji", "<:avimetry:848820318117691432>")
+                ) for cog in cogs
+            ]
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        cog = self.ctx.bot.get_cog(self.values[0])
+        thing = CogHelp(self.ctx, cog.get_commands(), cog, self.hc)
+        await self.view.edit_source(thing, interaction)
+
+
+class HelpPages(AvimetryPages):
+    def __init__(self, source: menus.PageSource, *, ctx: AvimetryContext):
+        super().__init__(source, ctx=ctx, remove_view_after=True)
+
+    async def edit_source(self, source, interaction):
+        self.source = source
+        self.current_page = 0
+        select = [i for i in self.children if isinstance(i, discord.ui.Select)][0]
+        self.clear_items()
+        self.add_item(select)
+        self.add_items()
+        await self.source._prepare_once()
+        page = await self.source.get_page(0)
+        kwargs = await self._get_kwargs_from_page(page)
+        await interaction.response.edit_message(**kwargs, view=self)
+
+
 class AvimetryHelp(commands.HelpCommand):
     def get_perms(self, perm_type: str, command: commands.Command):
         permissions = getattr(command, perm_type, None) or command.extras.get(perm_type, ['send_messages'])
@@ -201,16 +227,6 @@ class AvimetryHelp(commands.HelpCommand):
         return self.context
 
     async def send_bot_help(self, mapping):
-        emoji_map = {
-            "animals": "\U0001f98a Animals",
-            "fun": "\U0001f3b1 Fun",
-            "games": "\U0001f3ae Games",
-            "images": "\U0001f4f7 Images",
-            "moderation": "\U0001f52b Moderation",
-            "settings": "\U00002699 Settings",
-            "music": "\U0001f3b5 Music",
-            "bot info": "\U00002139 Bot Info"
-        }
         items = []
         for cog in mapping:
             if not cog:
@@ -219,29 +235,25 @@ class AvimetryHelp(commands.HelpCommand):
             if filtered:
                 items.append(cog)
         items.sort(key=lambda c: c.qualified_name)
-        cogs = []
-        for cog in items:
-            try:
-                thing = f"{emoji_map[cog.qualified_name.lower()]} - {cog.description or 'No description'}"
-            except KeyError:
-                thing = f"<:avimetry:848820318117691432> {cog.qualified_name} - {cog.description or 'No description'}"
-            cogs.append(thing)
-        menu = AvimetryPages(MainHelp(self.context, cogs, self))
-        await menu.start(self.context)
+        menu = HelpPages(MainHelp(), ctx=self.context)
+        menu.clear_items()
+        menu.add_item(HelpSelect(self.context, self, items))
+        menu.add_items()
+        await menu.start()
 
     async def send_cog_help(self, cog: commands.Cog):
         filtered = await self.filter_commands(cog.get_commands(), sort=False)
         if not filtered:
             return
-        menu = AvimetryPages(CogHelp(self.context, filtered, cog, self))
-        await menu.start(self.context)
+        menu = HelpPages(CogHelp(self.context, filtered, cog, self), ctx=self.context)
+        await menu.start()
 
     async def send_group_help(self, group):
         filtered = await self.filter_commands(group.commands, sort=False)
         if not filtered:
             return
-        menu = AvimetryPages(GroupHelp(self.context, filtered, group, self))
-        await menu.start(self.context)
+        menu = HelpPages(GroupHelp(self.context, filtered, group, self), ctx=self.context)
+        await menu.start()
 
     async def send_command_help(self, command: commands.Command):
         embed = discord.Embed(
@@ -304,7 +316,6 @@ class HelpCommand(core.Cog):
             show_hidden=False,
             command_attrs=dict(
                 hidden=True,
-                aliases=["halp", "helps", "hlp", "hlep", "hep"],
                 usage="[command|module]",
                 checks=[core.bot_has_permissions(add_reactions=True).predicate],
                 cooldown=commands.CooldownMapping(commands.Cooldown(10, 30), commands.BucketType.user)
