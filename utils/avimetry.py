@@ -119,7 +119,7 @@ class AvimetryBot(commands.Bot):
         self.command_cache = {}
         self.cache = AvimetryCache(self)
         self.invite = str(discord.utils.oauth_url(PUBLIC_BOT_ID, permissions=discord.Permissions(8)))
-        self.support = "https://discord.gg/KaqqPhfwS4"
+        self.support = "https://discord.gg/muTVFgDvKf"
         self.source = "https://github.com/avimetry/avimetry"
         self.emoji_dictionary = {
             "red_tick": '<:redtick:777096756865269760>',
