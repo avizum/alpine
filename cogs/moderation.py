@@ -43,6 +43,7 @@ class Moderation(core.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.emoji = "\U0001f52b"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     @core.command(usage="<member> [reason]")

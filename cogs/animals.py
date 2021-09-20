@@ -32,6 +32,7 @@ class Animals(core.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
+        self.emoji = "\U0001f98a"
 
     async def do_animal(self, ctx: AvimetryContext, animal: str):
         async with ctx.channel.typing():

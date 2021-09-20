@@ -37,6 +37,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.emoji = "\U00002139"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.process = psutil.Process(os.getpid())
         self.request_wh = discord.Webhook.from_url(

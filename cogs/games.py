@@ -207,6 +207,7 @@ class Games(core.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.emoji = "\U0001f3ae"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     @core.command(aliases=["\U0001F36A", "vookir", "kookie"])

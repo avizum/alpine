@@ -36,6 +36,7 @@ class Image(commands.Cog, name="Images"):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.image = "\U0001f4f7"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     async def do_dagpi(self, ctx: AvimetryContext, feature: ImageFeatures, argument, gif: bool = False):

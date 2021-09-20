@@ -244,6 +244,7 @@ class Music(core.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.emoji = "\U0001f3b5"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     @core.Cog.listener('on_wavelink_track_exception')
