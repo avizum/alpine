@@ -110,9 +110,10 @@ class JoinsAndLeaves(core.Cog):
         }
         message = parser.parse(join_message, env=env)
         final = await self.convert(message)
+        am = discord.AllowedMentions(everyone=False, users=True)
         if type(final) is discord.Embed:
-            return await join_channel.send(embed=final)
-        return await join_channel.send(final)
+            return await join_channel.send(embed=final, allowed_mentions=am)
+        return await join_channel.send(final, allowed_mentions=am)
 
     @core.Cog.listener()
     async def on_member_remove(self, member: discord.Member):

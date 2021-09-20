@@ -31,11 +31,12 @@ class Settings(core.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.emoji = "\U00002699"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.map = {
             True: "Enabled",
             False: "Disabled",
-            None: "Disabled"}
+            None: "Not Set"}
 
     @core.group(
         case_insensitive=True,

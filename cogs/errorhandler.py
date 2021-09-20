@@ -92,7 +92,7 @@ class ErrorHandler(core.Cog):
                 description=(
                     f"Blacklist reason: `{error.reason}`\n"
                     "If you think this message is an error, "
-                    "Please join the [support](https://discord.gg/KaqqPhfwS4) server to appeal."
+                    "Please join the [support](https://discord.gg/muTVFgDvKf) server to appeal."
                 ),
             )
             bucket = self.blacklist_cooldown.get_bucket(ctx.message)
