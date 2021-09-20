@@ -30,7 +30,8 @@ emoji_regex = '<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22
 
 
 class TrashView(AvimetryView):
-    def __init__(self, *, member: discord.Member, timeout: int = 60):
+    def __init__(self, *, member: discord.Member, timeout: int = 60, ctx):
+        self.ctx = ctx
         super().__init__(member=member, timeout=timeout)
 
     async def stop(self):
@@ -45,6 +46,7 @@ class TrashView(AvimetryView):
     @discord.ui.button(emoji='\U0001f5d1', style=discord.ButtonStyle.danger)
     async def trash(self, button, interaction):
         await self.message.delete()
+        await self.ctx.message.add_reaction(self.ctx.bot.emoji_dictionary["green_tick"])
 
 
 class ConfirmView(AvimetryView):
@@ -110,6 +112,13 @@ class AvimetryContext(commands.Context):
         if not prefix:
             return "`a.`"
         return f"`{'` | `'.join(prefix)}`"
+
+    @property
+    def reference(self):
+        ref = self.message.reference
+        if isinstance(ref.resolved, discord.Message):
+            return ref.resolved
+        return None
 
     async def no_reply(self, *args, **kwargs):
         return await super().send(*args, **kwargs)
@@ -225,7 +234,7 @@ class AvimetryContext(commands.Context):
         return confirm
 
     async def can_delete(self, *args, **kwargs):
-        view = TrashView(member=self.author)
+        view = TrashView(member=self.author, ctx=self)
         view.message = await self.send(*args, **kwargs, view=view)
 
 
