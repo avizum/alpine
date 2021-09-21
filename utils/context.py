@@ -134,17 +134,18 @@ class AvimetryContext(commands.Context):
         )
         await self.send(embed=embed)
 
-    async def determine_color(self):
-        base = self.author.color
-        data = self.cache.users.get(self.author.id)
+    async def determine_color(self, member: discord.Member = None):
+        member = member or self.author
+        base = member.color
+        data = self.cache.users.get(member.id)
         try:
             color = data.get('color')
             if not color:
                 color = base
         except AttributeError:
-            color = self.author.color
+            color = member
         if color == discord.Color(0):
-            if await self.bot.is_owner(self.author):
+            if await self.bot.is_owner(member):
                 color = discord.Color(0x01b9c0)
             else:
                 color = discord.Color(0x2F3136)

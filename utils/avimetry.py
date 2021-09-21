@@ -132,30 +132,30 @@ class AvimetryBot(commands.Bot):
             "status_streaming": '<:status_streaming:810683604812169276>'
         }
         self.primary_extensions = [
-            "cogs.developer",
-            "cogs.events",
-            "cogs.jishaku",
-            "cogs.setup",
+            "ext.commands.developer",
+            "ext.listeners.events",
+            "ext.commands.jishaku",
+            "ext.extras.setup",
             "utils.context"
         ]
         self.secondary_extensions = [
-            "cogs.animals",
-            "cogs.botinfo",
-            "cogs.errorhandler",
-            "cogs.fun",
-            "cogs.games",
-            "cogs.help",
+            "ext.commands.animals",
+            "ext.commands.botinfo",
+            "ext.listeners.errorhandler",
+            "ext.commands.fun",
+            "ext.commands.games",
+            "ext.commands.help",
             # "cogs.highlight",
-            "cogs.images",
-            "cogs.joinsandleaves",
-            "cogs.meta",
-            "cogs.moderation",
-            "cogs.music",
-            "cogs.servermanagement",
-            "cogs.settings",
-            "cogs.supportserver",
-            "cogs.topgg",
-            "cogs.verification",
+            "ext.commands.images",
+            "ext.listeners.joinsandleaves",
+            "ext.commands.meta",
+            "ext.commands.moderation",
+            "ext.commands.music",
+            "ext.commands.servermanagement",
+            "ext.commands.settings",
+            "ext.extras.supportserver",
+            "ext.extras.topgg",
+            "ext.commands.verification",
         ]
         with open("config.toml") as token:
             self.settings = toml.loads(token.read())

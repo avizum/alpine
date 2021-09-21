@@ -73,7 +73,7 @@ class AvimetryPages(AvimetryView):
         page = await self.source.get_page(page_num)
         self.current_page = page_num
         self._update()
-        kwargs = await self._get_kwargs_from_page(page)
+        kwargs = await self.get_page_kwargs(page)
 
         if interaction.response.is_done():
             if self.message:
@@ -89,7 +89,7 @@ class AvimetryPages(AvimetryView):
         except IndexError:
             pass
 
-    async def _get_kwargs_from_page(self, page: int):
+    async def get_page_kwargs(self, page: int):
         value = await discord.utils.maybe_coroutine(self.source.format_page, self, page)
         if isinstance(value, dict):
             return value
@@ -115,7 +115,7 @@ class AvimetryPages(AvimetryView):
     async def start(self):
         await self.source._prepare_once()
         page = await self.source.get_page(0)
-        kwargs = await self._get_kwargs_from_page(page)
+        kwargs = await self.get_page_kwargs(page)
         self._update()
         self.message = await self.ctx.send(**kwargs, view=self)
 
@@ -175,7 +175,7 @@ class OldAvimetryPages(ViewMenuPages):
 
     async def send_initial_message(self, ctx, channel, interaction=None):
         page = await self._source.get_page(0)
-        kwargs = await self._get_kwargs_from_page(page)
+        kwargs = await self.get_page_kwargs(page)
         if interaction:
             return await interaction.response.edit_message(**kwargs, view=self.build_view())
         return await self.send_with_view(ctx, **kwargs)
