@@ -196,7 +196,7 @@ class HelpPages(AvimetryPages):
         self.add_items()
         await self.source._prepare_once()
         page = await self.source.get_page(0)
-        kwargs = await self._get_kwargs_from_page(page)
+        kwargs = await self.get_page_kwargs(page)
         self._update()
         await interaction.response.edit_message(**kwargs, view=self)
 
@@ -246,7 +246,8 @@ class AvimetryHelp(commands.HelpCommand):
     def get_destination(self):
         return self.context
 
-    async def send_bot_help(self, mapping):
+    async def filter_cogs(self, mapping=None):
+        mapping = mapping or self.get_bot_mapping()
         items = []
         for cog in mapping:
             if not cog:
@@ -255,6 +256,10 @@ class AvimetryHelp(commands.HelpCommand):
             if filtered:
                 items.append(cog)
         items.sort(key=lambda c: c.qualified_name)
+        return items
+
+    async def send_bot_help(self, mapping):
+        items = await self.filter_cogs(mapping)
         menu = HelpPages(MainHelp(self.context, self), ctx=self.context)
         menu.clear_items()
         menu.add_item(HelpSelect(self.context, self, items))
@@ -265,7 +270,11 @@ class AvimetryHelp(commands.HelpCommand):
         filtered = await self.filter_commands(cog.get_commands(), sort=False)
         if not filtered:
             return
+        items = await self.filter_cogs()
         menu = HelpPages(CogHelp(self.context, filtered, cog, self), ctx=self.context)
+        menu.clear_items()
+        menu.add_item(HelpSelect(self.context, self, items))
+        menu.add_items()
         await menu.start()
 
     async def send_group_help(self, group):

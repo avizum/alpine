@@ -143,7 +143,7 @@ class AvimetryContext(commands.Context):
             if not color:
                 color = base
         except AttributeError:
-            color = member
+            color = base
         if color == discord.Color(0):
             if await self.bot.is_owner(member):
                 color = discord.Color(0x01b9c0)
