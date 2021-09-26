@@ -62,17 +62,32 @@ class AvimetryPages(AvimetryView):
             f"This menu can only be used by {self.ctx.author}, not you.", ephemeral=True)
         return False
 
-    def _update(self):
+    def _update(self, page: int):
+        self.go_forward_one.disabled = False
+        self.go_back_one.disabled = False
+        self.skip_to_last.disabled = False
+        self.skip_to_first.disabled = False
+
         if self.show_page_number.emoji:
             self.show_page_number.emoji = None
         current = self.current_page + 1
-        last = self.source.get_max_pages()
-        self.show_page_number.label = f"{current}/{last}"
+        most = self.source.get_max_pages()
+        self.show_page_number.label = f"{current}/{most}"
+
+        self.skip_to_first.label = "1"
+        self.skip_to_last.label = str(most)
+
+        if page + 1 == most:
+            self.go_forward_one.disabled = True
+            self.skip_to_last.disabled = True
+        if page == 0:
+            self.go_back_one.disabled = True
+            self.skip_to_first.disabled = True
 
     async def show_page(self, interaction: discord.Interaction, page_num: int):
         page = await self.source.get_page(page_num)
         self.current_page = page_num
-        self._update()
+        self._update(page_num)
         kwargs = await self.get_page_kwargs(page)
 
         if interaction.response.is_done():
@@ -116,7 +131,7 @@ class AvimetryPages(AvimetryView):
         await self.source._prepare_once()
         page = await self.source.get_page(0)
         kwargs = await self.get_page_kwargs(page)
-        self._update()
+        self._update(0)
         self.message = await self.ctx.send(**kwargs, view=self)
 
     @discord.ui.button(emoji="\U000023ee\U0000fe0f")
