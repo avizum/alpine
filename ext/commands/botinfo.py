@@ -294,9 +294,9 @@ class BotInfo(commands.Cog, name="Bot Info"):
         if conf.result:
 
             req_send = discord.Embed(
-                title=f"Request from {str(ctx.author)}",
-                description=f"```{request}```"
+                title=f'Request from {ctx.author}', description=f"```{request}```"
             )
+
             await self.request_wh.send(embed=req_send)
             req_embed = discord.Embed(
                 title="Request sent",

@@ -43,7 +43,7 @@ class Moderation(core.Cog):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-        self.emoji = "\U0001f52b"
+        self.emoji = "\U0001f6e1"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     @core.command(usage="<member> [reason]")
@@ -130,7 +130,7 @@ class Moderation(core.Cog):
             return await ctx.send(embed=ban_embed)
 
         await member.ban(reason=reason)
-        ban_embed.description = f"**{str(member)}** has been banned from the server."
+        ban_embed.description = f'**{member}** has been banned from the server.'
         await ctx.send(embed=ban_embed)
 
     @core.command()
@@ -170,9 +170,10 @@ class Moderation(core.Cog):
         await ctx.guild.unban(member, reason=reason)
         unban_embed = discord.Embed(
             title="Unbanned Member",
-            description=f"**{str(member)}** has been unbanned from the server.",
-            color=discord.Color.green()
+            description=f'**{member}** has been unbanned from the server.',
+            color=discord.Color.green(),
         )
+
         await ctx.send(embed=unban_embed)
 
     @core.command()

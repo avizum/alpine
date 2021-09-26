@@ -36,7 +36,7 @@ class Image(commands.Cog, name="Images"):
     """
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
-        self.image = "\U0001f4f7"
+        self.emoji = "\U0001f4f7"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     async def do_dagpi(self, ctx: AvimetryContext, feature: ImageFeatures, argument, gif: bool = False):
@@ -281,7 +281,7 @@ class Image(commands.Cog, name="Images"):
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_satan(self, ctx: AvimetryContext, *, item=None):
         """
-        Puts your image on an angel. How bad.
+        Puts your image on a demon. How bad.
         """
         meth = await self.do_dagpi(ctx, ImageFeatures.satan(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)

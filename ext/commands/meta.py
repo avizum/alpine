@@ -98,8 +98,9 @@ class Meta(core.Cog):
         for reaction in reactions[:len(options)]:
             await react_message.add_reaction(reaction)
         embed.set_footer(
-            text=f"Poll from: {str(ctx.author)}\nMessage ID: {react_message.id}"
+            text=f'Poll from: {ctx.author}\nMessage ID: {react_message.id}'
         )
+
         await react_message.edit(embed=embed)
 
     @core.command()
@@ -175,7 +176,7 @@ class Meta(core.Cog):
                 top_role = "@everyone"
             userroles = ", ".join(userroles)
             if len(userroles) > 1024:
-                userroles = f"{str(member.display_name)} has too many roles to show here."
+                userroles = f'{member.display_name} has too many roles to show here.'
             ie.add_field(name="Top Role", value=top_role, inline=False)
             ie.add_field(
                 name=f"Roles [{len(member.roles)}]",
