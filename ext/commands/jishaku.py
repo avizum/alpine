@@ -133,7 +133,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         All other functionality is within its subcommands.
         """
         summary = [
-            f"Jishaku `v{jishaku.__version__}`, discord.py (official fork) `v{discord.__version__}`, "
+            f"Jishaku `v{jishaku.__version__}`, discord.py (official spork) `v{discord.__version__}`, "
             f"Python `{sys.version}` on `{sys.platform}`, ".replace("\n", ""),
             f"Jishaku was loaded {timestamp(self.load_time, 'R')} "
             f"and module was loaded {timestamp(self.start_time, 'R')}.",
@@ -202,7 +202,7 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         if discord.version_info >= (1, 5, 0):
             presence_intent = f"Presences intent `{'enabled' if self.bot.intents.presences else 'disabled'}`"
             members_intent = f"Members intent `{'enabled' if self.bot.intents.members else 'disabled'}`"
-            summary.append(f" {presence_intent} and {members_intent}.")
+            summary.append(f"{presence_intent} and {members_intent}.")
         else:
             guild_subs = self.bot._connection.guild_subscriptions
             guild_subscriptions = f"`guild subscriptions` are `{'enabled' if guild_subs else 'disabled'}`"

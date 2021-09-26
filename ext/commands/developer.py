@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import discord
 import datetime
 import asyncio
-import random
 import utils
 import core
 
@@ -43,6 +42,27 @@ class ErrorSource(menus.ListPageSource):
             inline=False
         )
         embed.color = await self.ctx.determine_color()
+        return embed
+
+
+class GuildPageSource(menus.ListPageSource):
+    def __init__(self, ctx: AvimetryContext, guilds: list[discord.Guild]):
+        self.ctx = ctx
+        super().__init__(guilds, per_page=2)
+
+    async def format_page(self, menu, page):
+        embed = discord.Embed(color=await self.ctx.determine_color())
+        for guild in page:
+            embed.add_field(
+                name=guild.name,
+                value=(
+                    f"Owner: {guild.owner}\n"
+                    f"Members: {guild.member_count}\n"
+                    f"Created at: {discord.utils.format_dt(guild.created_at)}\n"
+                    f"Joined at: {discord.utils.format_dt(guild.me.joined_at)}"
+                ),
+                inline=False
+            )
         return embed
 
 
@@ -267,7 +287,7 @@ class Owner(commands.Cog):
         query = "DELETE FROM blacklist WHERE user_id=$1"
         await self.bot.pool.execute(query, user.id)
         self.bot.cache.blacklist.pop(user.id)
-        await ctx.send(f"Unblacklisted {str(user)}. Reason: {reason}")
+        await ctx.send(f"Unblacklisted {user}. Reason: {reason}")
 
     @developer.command()
     async def cleanup(self, ctx: AvimetryContext, amount: int = 15):
@@ -309,6 +329,12 @@ class Owner(commands.Cog):
         embed = discord.Embed(title="Loaded Cogs", description='\n'.join(thing_list))
         await ctx.send(embed=embed)
 
+    @developer.command()
+    async def guilds(self, ctx: AvimetryContext):
+        source = GuildPageSource(ctx, guilds=self.bot.guilds)
+        pages = AvimetryPages(source, ctx=ctx, disable_view_after=True)
+        await pages.start()
+
     @developer.group(invoke_without_command=True, aliases=["error"])
     async def errors(self, ctx: AvimetryContext):
         """
@@ -319,7 +345,7 @@ class Owner(commands.Cog):
             embed = discord.Embed(title="Errors", description="No active errors have been found.")
             return await ctx.send(embed=embed)
         else:
-            menu = AvimetryPages(ErrorSource(ctx, errors), ctx=ctx)
+            menu = AvimetryPages(ErrorSource(ctx, errors), ctx=ctx, delete_message_after=True)
             return await menu.start()
 
     @errors.command()
@@ -327,11 +353,12 @@ class Owner(commands.Cog):
         """
         Shows all fixed errors.
         """
-        errors = await self.bot.pool.fetch('SELECT * FROM command_errors where fixed = true')
+        errors = await self.bot.pool.fetch('SELECT * FROM command_errors WHERE fixed = True')
         if not errors:
-            return await ctx.send("An error occured while fetching errors.")
+            embed = discord.Embed(title="Errors", description="No fixed errors have been found.")
+            return await ctx.send(embed=embed)
         else:
-            menu = AvimetryPages(ErrorSource(ctx, errors, per_page=2), ctx=ctx)
+            menu = AvimetryPages(ErrorSource(ctx, errors, per_page=2), ctx=ctx, delete_message_after=True)
             return await menu.start()
 
     @errors.command()
@@ -365,16 +392,6 @@ class Owner(commands.Cog):
         if message and message.author == ctx.me:
             await message.delete()
         return await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
-
-    @core.Cog.listener()
-    async def on_message_delete(self, message):
-        ctx = await self.bot.get_context(message)
-        if ctx.valid:
-            return
-        elif message.author.id == 750135653638865017:
-            for _ in range(random.randint(1, 5)):
-                m = await message.channel.send(random.randint(1, 35))
-                await m.delete()
 
 
 def setup(bot):

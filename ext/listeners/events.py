@@ -113,8 +113,18 @@ class BotLogs(core.Cog):
             return
         if before.content == after.content:
             return
-        bef_con = f"{str(before.content[:1017])}..." if len(before.content) > 1024 else before.content
-        aft_con = f"{str(after.content[:1017])}..." if len(after.content) > 1024 else after.content
+        bef_con = (
+            f'{before.content[:1017]}...'
+            if len(before.content) > 1024
+            else before.content
+        )
+
+        aft_con = (
+            f'{after.content[:1017]}...'
+            if len(after.content) > 1024
+            else after.content
+        )
+
         embed = discord.Embed(
             title="Message Edit", timestamp=datetime.datetime.now(datetime.timezone.utc),
             description=f"Message was edited by {before.author.mention} in {before.channel.mention}"
