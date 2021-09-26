@@ -31,6 +31,16 @@ class MainHelp(menus.PageSource):
     def __init__(self, ctx: AvimetryContext, help: "AvimetryHelp"):
         self.ctx = ctx
         self.help = help
+        self.buttons = [
+            discord.ui.Button(
+                style=discord.ButtonStyle.link, label="Support server",
+                emoji="<:avimetry:877445146709463081>", url=ctx.bot.support
+            ),
+            discord.ui.Button(
+                style=discord.ButtonStyle.link, label="Vote",
+                emoji="<:topgg:891479608141176862>", url="https://top.gg/bot/756257170521063444/vote"
+            )
+        ]
         super().__init__()
 
     def is_paginating(self):
@@ -178,14 +188,7 @@ class HelpSelect(discord.ui.Select):
 
 class HelpPages(AvimetryPages):
     def __init__(self, source: menus.PageSource, *, ctx: AvimetryContext):
-        super().__init__(source, ctx=ctx, remove_view_after=True)
-
-    def _update(self):
-        if self.show_page_number.emoji:
-            self.show_page_number.emoji = None
-        current = self.current_page + 1
-        last = self.source.get_max_pages()
-        self.show_page_number.label = f"Page {current}/{last}"
+        super().__init__(source, ctx=ctx, remove_view_after=True, timeout=45)
 
     async def edit_source(self, source, interaction):
         self.source = source
@@ -193,11 +196,14 @@ class HelpPages(AvimetryPages):
         select = [i for i in self.children if isinstance(i, discord.ui.Select)][0]
         self.clear_items()
         self.add_item(select)
+        if getattr(source, "buttons", None):
+            for i in source.buttons:
+                self.add_item(i)
         self.add_items()
         await self.source._prepare_once()
         page = await self.source.get_page(0)
         kwargs = await self.get_page_kwargs(page)
-        self._update()
+        self._update(0)
         await interaction.response.edit_message(**kwargs, view=self)
 
 
@@ -219,9 +225,7 @@ class AvimetryHelp(commands.HelpCommand):
             rate = command._buckets._cooldown.rate
             cd_type = command._buckets.type.name
             per = humanize.precisedelta(command._buckets._cooldown.per)
-            time = "time"
-            if rate > 1:
-                time = "times"
+            time = "times" if rate > 1 else "time"
             return f"{per} every {rate} {time} per {cd_type}"
         except AttributeError:
             return None
@@ -236,15 +240,11 @@ class AvimetryHelp(commands.HelpCommand):
             "[...] accepts multiple arguments```"
         )
 
-    async def send_error_message(self, error):
-        embed = discord.Embed(
-            title="Help Error", description=error, color=discord.Color.red()
-        )
-        embed.set_footer(text=self.ending_note())
-        await self.get_destination().send(embed=embed)
+    async def send_error_message(self, _):
+        pass
 
-    def get_destination(self):
-        return self.context
+    async def on_help_command_error(self, ctx, error):
+        await ctx.can_delete(error)
 
     async def filter_cogs(self, mapping=None):
         mapping = mapping or self.get_bot_mapping()
@@ -260,9 +260,12 @@ class AvimetryHelp(commands.HelpCommand):
 
     async def send_bot_help(self, mapping):
         items = await self.filter_cogs(mapping)
-        menu = HelpPages(MainHelp(self.context, self), ctx=self.context)
+        source = MainHelp(self.context, self)
+        menu = HelpPages(source, ctx=self.context)
         menu.clear_items()
         menu.add_item(HelpSelect(self.context, self, items))
+        for i in source.buttons:
+            menu.add_item(i)
         menu.add_items()
         await menu.start()
 
@@ -314,7 +317,7 @@ class AvimetryHelp(commands.HelpCommand):
                 value=cooldown)
         embed.set_thumbnail(url=str(self.context.bot.user.display_avatar.url))
         embed.set_footer(text=self.ending_note())
-        await self.get_destination().send(embed=embed)
+        await self.context.send(embed=embed)
 
     async def command_not_found(self, string):
         all_commands = []
@@ -326,13 +329,34 @@ class AvimetryHelp(commands.HelpCommand):
                     all_commands.extend(cmd.aliases)
             except commands.CommandError:
                 continue
-        match = "\n".join(get_close_matches(string, all_commands))
+        match = get_close_matches(string, all_commands)
         if match:
-            return f'"{string}" is not a command or module. Did you mean...\n`{match}`'
+            embed = discord.Embed(
+                title="Command not found",
+                description=f'"{string}" is not a command or module. Did you mean {match[0]}?'
+            )
+            conf = await self.context.confirm(embed=embed)
+            if conf.result:
+                self.context.message._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
+                return await self.send_command_help(self.context.bot.get_command(match[0]))
+            else:
+                return
         return f'"{string}" is not a command or module. I couln\'t find any similar commands.'
 
     async def subcommand_not_found(self, command, string):
         return f'"{string}" is not a subcommand of "{command}".'
+
+
+class AllCommandsPageSource(menus.ListPageSource):
+    def __init__(self, commands, ctx):
+        self.ctx = ctx
+        super().__init__(commands, per_page=4)
+
+    async def format_page(self, menu, page):
+        embed = discord.Embed(title="Commands", color=await self.ctx.determine_color())
+        for i in page:
+            embed.add_field(name=i.qualified_name, value=i.help, inline=False)
+        return embed
 
 
 class HelpCommand(core.Cog):
@@ -352,6 +376,11 @@ class HelpCommand(core.Cog):
         )
         help_command.cog = self
         self.bot.help_command = help_command
+
+    @core.command()
+    async def allcommands(self, ctx: AvimetryContext):
+        menu = AvimetryPages(AllCommandsPageSource(list(self.bot.commands), ctx), ctx=ctx, remove_view_after=True)
+        await menu.start()
 
     def cog_unload(self):
         self.bot.help_command = self.default
