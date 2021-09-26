@@ -20,11 +20,12 @@ import asyncio
 import discord
 import datetime
 import re
+import typing
 
 from .avimetry import AvimetryBot
 from .gist import Gist
 from .view import AvimetryView
-from discord.ext import commands
+from discord.ext import commands, menus
 
 emoji_regex = '<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>'
 
@@ -72,6 +73,21 @@ class ConfirmResult:
 
     def __repr__(self):
         return f"<ConfirmResult result={self.result}>"
+
+
+class AutoPageSource(menus.ListPageSource):
+    def __init__(self, entry: typing.Union[str, list], lang=None):
+        if isinstance(entry, list):
+            entries = entry
+        elif isinstance(entry, str):
+            if lang:
+                entries = [f"```{lang}\n{entry[i:i+1990]}```" for i in range(0, len(entry), 1990)]
+            else:
+                entries = [entry[i:i+1990] for i in range(0, len(entry), 1990)]
+        super().__init__(entries, per_page=1)
+
+    async def format_page(self, menu, page):
+        return page
 
 
 class AvimetryContext(commands.Context):
@@ -151,11 +167,18 @@ class AvimetryContext(commands.Context):
                 color = discord.Color(0x2F3136)
         return color
 
+    async def paginate(self, entry: typing.Union[str, list[discord.Embed]], lang: str = None):
+        from .paginators import AvimetryPages
+        menu = AvimetryPages(AutoPageSource(entry, lang), ctx=self, remove_view_after=True)
+        await menu.start()
+
     async def send(self, content: str = None, embed: discord.Embed = None, no_reply: bool = False, **kwargs):
         if content:
             content = str(content)
             for token in self.tokens:
                 content = content.replace(token, "[config omitted]")
+            if len(content) >= 2000:
+                return await self.paginate(content)
         if embed:
             if not embed.footer:
                 embed.set_footer(
