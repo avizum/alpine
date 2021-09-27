@@ -31,7 +31,7 @@ class MainHelp(menus.PageSource):
     def __init__(self, ctx: AvimetryContext, help: "AvimetryHelp"):
         self.ctx = ctx
         self.help = help
-        self.buttons = [
+        self.buttonsa = [
             discord.ui.Button(
                 style=discord.ButtonStyle.link, label="Support server",
                 emoji="<:avimetry:877445146709463081>", url=ctx.bot.support
@@ -47,7 +47,7 @@ class MainHelp(menus.PageSource):
         return True
 
     def get_max_pages(self):
-        return 1
+        return 3
 
     async def get_page(self, page_number):
         self.index = page_number
@@ -57,23 +57,29 @@ class MainHelp(menus.PageSource):
         bot = self.ctx.bot
         commands = list(bot.commands)
         embed = discord.Embed(title="Avimetry Help Menu", color=await self.ctx.determine_color())
-        info = " | ".join([
-            f"[Support Server]({self.ctx.bot.support})",
-            f"[Invite]({self.ctx.bot.invite})",
-            "[Vote](https://top.gg/bot/756257170521063444/vote)",
-            f"[Source]({self.ctx.bot.support})"
+        info = "\n".join([
+            f"[Avimetry support server]({self.ctx.bot.support})",
+            f"[Invite Avimetry here]({self.ctx.bot.invite})",
+            "[Vote links](https://avimetry.github.io/)",
+            f"[Avimetry's source code]({self.ctx.bot.support})"
         ])
-        embed.description = (
-            f"{info}\n"
-            f"Total amount of commands: {len(commands)}\n"
-            f"Amount of commands that you can use here: {len(await self.help.filter_commands(commands))}\n\n"
-            "Reading command signatures\n"
-            "<argument> is Required\n"
-            "[argument] is Optional\n"
-            "[argument...] can accept multiple\n"
-            "You do not need to type these when using commands.\n\n"
-            "To get started, please select a module that you need help with."
-        )
+        if self.index == 0:
+            embed.description = (
+                f"Total amount of commands: {len(commands)}\n"
+                f"Amount of commands that you can use here: {len(await self.help.filter_commands(commands))}\n\n"
+                "To get started, please select a module that you need help with."
+            )
+        if self.index == 1:
+            embed.description = (
+                "Reading command signatures:\n\n"
+                "**<>** means the argument is REQUIRED\n"
+                "**[]** means the argument is OPTIONAL\n"
+                "**[...]** means you can have MULTIPLE arguments\n"
+                "Do NOT type these when writing your command.\n"
+                "Have fun using Avimetry!"
+            )
+        if self.index == 2:
+            embed.description = f"You can support Avimetry by voting. Here are some links.\n{info}"
         embed.set_thumbnail(url=bot.user.avatar.url)
         embed.set_footer(text=self.help.ending_note())
         return embed
@@ -170,7 +176,7 @@ class HelpSelect(discord.ui.Select):
                 )
             )
         super().__init__(
-            placeholder="Select a module...",
+            placeholder=f"Select a module ({len(cogs)} modules)",
             options=options
         )
 
@@ -188,7 +194,7 @@ class HelpSelect(discord.ui.Select):
 
 class HelpPages(AvimetryPages):
     def __init__(self, source: menus.PageSource, *, ctx: AvimetryContext):
-        super().__init__(source, ctx=ctx, remove_view_after=True, timeout=45)
+        super().__init__(source, ctx=ctx, delete_message_after=True, timeout=45)
 
     async def edit_source(self, source, interaction):
         self.source = source
@@ -196,9 +202,6 @@ class HelpPages(AvimetryPages):
         select = [i for i in self.children if isinstance(i, discord.ui.Select)][0]
         self.clear_items()
         self.add_item(select)
-        if getattr(source, "buttons", None):
-            for i in source.buttons:
-                self.add_item(i)
         self.add_items()
         await self.source._prepare_once()
         page = await self.source.get_page(0)
@@ -264,8 +267,8 @@ class AvimetryHelp(commands.HelpCommand):
         menu = HelpPages(source, ctx=self.context)
         menu.clear_items()
         menu.add_item(HelpSelect(self.context, self, items))
-        for i in source.buttons:
-            menu.add_item(i)
+        # for i in source.buttons:
+        #     menu.add_item(i)
         menu.add_items()
         await menu.start()
 

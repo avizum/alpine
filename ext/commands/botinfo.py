@@ -324,16 +324,20 @@ class BotInfo(commands.Cog, name="Bot Info"):
         """
         Support Avimetry by voting!
         """
-        top_gg = "https://top.gg/bot/756257170521063444/vote"
-        bot_list = "https://discordbotlist.com/bots/avimetry/upvote"
+        view = discord.ui.View()
+        links = [
+            ("Top.gg", "https://top.gg/bot/756257170521063444/vote"),
+            ("Discord Bot List", "https://discordbotlist.com/bots/avimetry/upvote"),
+            ("Discord Boats", "https://discord.boats/bot/756257170521063444/vote")
+        ]
+        for name, link in links:
+            view.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label=name, url=link))
         vote_embed = discord.Embed(
             title=f"Vote for {self.bot.user.name}",
-            description=(
-                f"**__top.gg__**\n[__`Vote Here`__]({top_gg})\n\n"
-                f"**__discordbotlist.com__**\n[__`Vote Here`__]({bot_list})")
+            description="Thank you for voting for me!\nYour support is greatly appreciated :)"
         )
         vote_embed.set_thumbnail(url=self.bot.user.display_avatar.url)
-        await ctx.send(embed=vote_embed)
+        await ctx.send(embed=vote_embed, view=view)
 
     # Please do not remove this command.
     # - avizum

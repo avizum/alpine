@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import datetime
 from utils.view import AvimetryView
 import discord
 from utils.context import AvimetryContext
@@ -58,8 +59,11 @@ class AvimetryPages(AvimetryView):
     async def interaction_check(self, interaction: discord.Interaction):
         if interaction.user and interaction.user.id in (*self.ctx.bot.owner_ids, self.ctx.author.id):
             return True
-        await interaction.response.send_message(
-            f"This menu can only be used by {self.ctx.author}, not you.", ephemeral=True)
+        embed = discord.Embed(
+            title="Error",
+            description=f"This may only be used by {self.ctx.author}, not you. Sorry!",
+            color=discord.Color.red(), timestamp=datetime.datetime.now(datetime.timezone.utc))
+        await interaction.response.send_message(embed=embed, ephemeral=True)
         return False
 
     def _update(self, page: int):
@@ -179,7 +183,7 @@ class AvimetryPages(AvimetryView):
         elif self.remove_view_after:
             await interaction.response.edit_message(view=None)
         elif self.delete_message_after:
-            await interaction.delete_original_message()
+            await interaction.message.delete()
         await self.ctx.message.add_reaction(self.ctx.bot.emoji_dictionary["green_tick"])
         self.stop()
 
