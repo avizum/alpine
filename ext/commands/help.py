@@ -380,7 +380,7 @@ class HelpCommand(core.Cog):
         help_command.cog = self
         self.bot.help_command = help_command
 
-    @core.command()
+    @core.command(hidden=True)
     async def allcommands(self, ctx: AvimetryContext):
         menu = AvimetryPages(AllCommandsPageSource(list(self.bot.commands), ctx), ctx=ctx, remove_view_after=True)
         await menu.start()

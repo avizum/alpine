@@ -24,6 +24,8 @@ from discord.ext.menus.views import ViewMenuPages
 from discord.ext.menus import button, Position, PageSource
 
 
+# This paginator is essentially discord.ext.menus but changed a bit so that it uses buttons instead of reactions.
+# https://github.com/Rapptz/discord-ext-menus
 class AvimetryPages(AvimetryView):
     def __init__(self, source: PageSource, *, ctx: AvimetryContext, message: discord.Message = None, timeout: int = 180,
                  disable_view_after: bool = False, remove_view_after: bool = False, delete_message_after: bool = False):
