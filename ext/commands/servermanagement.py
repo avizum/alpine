@@ -173,5 +173,5 @@ class ServerManagement(commands.Cog, name="Server Management"):
         await ctx.guild.create_role(name=name, color=color, reason=reason)
 
 
-def setup(bot):
+def setup(bot: AvimetryBot):
     bot.add_cog(ServerManagement(bot))

@@ -155,5 +155,5 @@ class MemberJoin(core.Cog):
                     break
 
 
-def setup(bot):
+def setup(bot: AvimetryBot):
     bot.add_cog(MemberJoin(bot))

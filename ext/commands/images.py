@@ -541,5 +541,5 @@ class Image(commands.Cog, name="Images"):
         await ctx.send(result)
 
 
-def setup(bot):
+def setup(bot: AvimetryBot):
     bot.add_cog(Image(bot))

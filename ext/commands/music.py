@@ -765,5 +765,5 @@ class Music(core.Cog):
                 return await ctx.send(f'{member.mention} is now the DJ.')
 
 
-def setup(bot: commands.Bot):
+def setup(bot: AvimetryBot):
     bot.add_cog(Music(bot))

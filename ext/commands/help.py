@@ -31,16 +31,6 @@ class MainHelp(menus.PageSource):
     def __init__(self, ctx: AvimetryContext, help: "AvimetryHelp"):
         self.ctx = ctx
         self.help = help
-        self.buttonsa = [
-            discord.ui.Button(
-                style=discord.ButtonStyle.link, label="Support server",
-                emoji="<:avimetry:877445146709463081>", url=ctx.bot.support
-            ),
-            discord.ui.Button(
-                style=discord.ButtonStyle.link, label="Vote",
-                emoji="<:topgg:891479608141176862>", url="https://top.gg/bot/756257170521063444/vote"
-            )
-        ]
         super().__init__()
 
     def is_paginating(self):
@@ -53,7 +43,7 @@ class MainHelp(menus.PageSource):
         self.index = page_number
         return self
 
-    async def format_page(self, menu, page):
+    async def format_page(self, menu: menus.Menu, page: str):
         bot = self.ctx.bot
         commands = list(bot.commands)
         embed = discord.Embed(title="Avimetry Help Menu", color=await self.ctx.determine_color())
@@ -267,8 +257,6 @@ class AvimetryHelp(commands.HelpCommand):
         menu = HelpPages(source, ctx=self.context)
         menu.clear_items()
         menu.add_item(HelpSelect(self.context, self, items))
-        # for i in source.buttons:
-        #     menu.add_item(i)
         menu.add_items()
         await menu.start()
 
@@ -283,7 +271,7 @@ class AvimetryHelp(commands.HelpCommand):
         menu.add_items()
         await menu.start()
 
-    async def send_group_help(self, group):
+    async def send_group_help(self, group: commands.Group):
         filtered = await self.filter_commands(group.commands, sort=False)
         if not filtered:
             return
@@ -322,7 +310,7 @@ class AvimetryHelp(commands.HelpCommand):
         embed.set_footer(text=self.ending_note())
         await self.context.send(embed=embed)
 
-    async def command_not_found(self, string):
+    async def command_not_found(self, string: str):
         all_commands = []
         for cmd in self.context.bot.commands:
             try:
@@ -351,11 +339,11 @@ class AvimetryHelp(commands.HelpCommand):
 
 
 class AllCommandsPageSource(menus.ListPageSource):
-    def __init__(self, commands, ctx):
+    def __init__(self, commands: list[discord.Command], ctx: AvimetryContext):
         self.ctx = ctx
         super().__init__(commands, per_page=4)
 
-    async def format_page(self, menu, page):
+    async def format_page(self, menu: menus.Menu, page: str):
         embed = discord.Embed(title="Commands", color=await self.ctx.determine_color())
         for i in page:
             embed.add_field(name=i.qualified_name, value=i.help, inline=False)
@@ -389,5 +377,5 @@ class HelpCommand(core.Cog):
         self.bot.help_command = self.default
 
 
-def setup(bot):
+def setup(bot: AvimetryBot):
     bot.add_cog(HelpCommand(bot))

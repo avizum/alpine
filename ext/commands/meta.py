@@ -467,5 +467,5 @@ class Meta(core.Cog):
         return
 
 
-def setup(bot):
+def setup(bot: AvimetryBot):
     bot.add_cog(Meta(bot))

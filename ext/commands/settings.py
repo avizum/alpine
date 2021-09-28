@@ -743,5 +743,5 @@ class Settings(core.Cog):
             self.bot.owner_ids = set()
 
 
-def setup(bot):
+def setup(bot: AvimetryBot):
     bot.add_cog(Settings(bot))

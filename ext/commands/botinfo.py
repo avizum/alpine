@@ -463,5 +463,5 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=embed)
 
 
-def setup(bot):
+def setup(bot: AvimetryBot):
     bot.add_cog(BotInfo(bot))

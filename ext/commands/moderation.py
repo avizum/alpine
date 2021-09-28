@@ -446,5 +446,5 @@ class Moderation(core.Cog):
             return await ctx.send("Sike")
 
 
-def setup(bot):
+def setup(bot: AvimetryBot):
     bot.add_cog(Moderation(bot))

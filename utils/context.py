@@ -262,9 +262,9 @@ class AvimetryContext(commands.Context):
         view.message = await self.send(*args, **kwargs, view=view)
 
 
-def setup(bot):
+def setup(bot: AvimetryBot):
     bot.context = AvimetryContext
 
 
-def teardown(bot):
+def teardown(bot: AvimetryBot):
     bot.context = commands.Context

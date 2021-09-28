@@ -389,5 +389,5 @@ class Fun(core.Cog):
         await ctx.send(file=file)
 
 
-def setup(bot):
+def setup(bot: AvimetryBot):
     bot.add_cog(Fun(bot))
