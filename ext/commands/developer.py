@@ -19,8 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import discord
 import datetime
 import asyncio
+
+import toml
 import utils
 import core
+import importlib
 
 from utils.paginators import AvimetryPages
 from utils.converters import ModReason
@@ -103,6 +106,24 @@ class Owner(commands.Cog):
         """
         jishaku = self.bot.get_command('jishaku')
         await jishaku(ctx)
+
+    @developer.command()
+    async def news(self, ctx: AvimetryContext, *, news: str):
+        with open("config.toml", "r") as afile:
+            load = toml.loads(afile.read())
+            load["news"]["news"] = news
+        with open("config.toml", "w") as bfile:
+            toml.dump(load, bfile)
+            self.bot.news = news
+        await ctx.send(f"News set to: {news}")
+
+    @developer.command()
+    async def ilreload(self, ctx: AvimetryContext, module: str):
+        try:
+            m = importlib.reload(__import__(module))
+            await ctx.send(f"Reloaded Sucessfully: `{m}`")
+        except Exception as exc:
+            await ctx.send(exc)
 
     @developer.command(aliases=["l"])
     async def load(self, ctx: AvimetryContext, *module: str):

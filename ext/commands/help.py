@@ -57,6 +57,7 @@ class MainHelp(menus.PageSource):
             embed.description = (
                 f"Total amount of commands: {len(commands)}\n"
                 f"Amount of commands that you can use here: {len(await self.help.filter_commands(commands))}\n\n"
+                f"Current Bot news:\n{self.ctx.bot.news}\n\n"
                 "To get started, please select a module that you need help with."
             )
         if self.index == 1:
@@ -339,7 +340,7 @@ class AvimetryHelp(commands.HelpCommand):
 
 
 class AllCommandsPageSource(menus.ListPageSource):
-    def __init__(self, commands: list[discord.Command], ctx: AvimetryContext):
+    def __init__(self, commands: list[commands.Command], ctx: AvimetryContext):
         self.ctx = ctx
         super().__init__(commands, per_page=4)
 
