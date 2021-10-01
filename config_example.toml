@@ -1,22 +1,25 @@
 [bot_tokens]
-    Avimetry = "Bot Token Here"
+Avimetry = "Stable Bot Token"
+AvimetryII = "Beta Bot Token"
 
 [api_tokens]
-    DagpiAPI = "Dagpi token here"
-    TopGG = "Top.gg token here"
-    GitHub = "GitHub token here"
+DagpiAPI = "Token for Dagpi API here"
+TopGG = "Token for Top.GG API"
+GitHub = "GitHub access token"
 
-[postgresql]  
-    host = "localhost"
-    port = 5432
-    user = "admin"
-    database = "avimetry"
+[postgresql]
+host = "localhost"
+port = 5432
+user = "admin"
+database = "avimetry"
 
 [webhooks]
-    join_log = "Webhook for bot guild joins"
-    error_log = "Webhook for bot errors"
-    command_log = "Webhook for command logging"
-    request_log = "Webhook for DM logging and `request` logging"
+join_log = "Token for bot join logs here"
+error_log = "Token for error logs here"
+error_log2 = "Token for beta bot error logs here"
+command_log = "Token for command logs here"
+command_log2 = "Token for beta bot command logs here"
+request_log = "Token for requests here"
 
 [news]
-    news = "Please do not run your own instance of Avimetry."
+news = "PeePeeHead?!?"

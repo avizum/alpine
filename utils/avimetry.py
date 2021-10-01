@@ -163,7 +163,7 @@ class AvimetryBot(commands.Bot):
         self.news = self.settings["news"]["news"]
         self.session = aiohttp.ClientSession()
         self.topgg = topgg.DBLClient(self, api["TopGG"], autopost_interval=None, session=self.session)
-        self.sr = sr_api.Client(session=self.session)
+        self.sr = sr_api.Client()
         self.dagpi = asyncdagpi.Client(api["DagpiAPI"], session=self.session)
         self.myst = mystbin.Client(session=self.session)
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
@@ -275,6 +275,7 @@ class AvimetryBot(commands.Bot):
 
     async def close(self):
         await self.session.close()
+        await self.sr.close()
         await super().close()
         timenow = datetime.datetime.now(datetime.timezone.utc).strftime("%I:%M %p")
         print(
