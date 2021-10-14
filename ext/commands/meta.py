@@ -191,7 +191,11 @@ class Meta(core.Cog):
                 ]
                 ie.add_field(name="Public Flags", value=", ".join(flags))
         ie.set_thumbnail(url=member.display_avatar.url)
-        await ctx.send(embed=ie)
+        view = discord.ui.View()
+        view.add_item(
+            discord.ui.Button(label="Profile", style=discord.ButtonStyle.link, url=f"discord://-/users/{member.id}")
+        )
+        await ctx.send(embed=ie, view=view)
 
     @core.command()
     async def avatar(self, ctx: AvimetryContext, member: discord.Member = None):

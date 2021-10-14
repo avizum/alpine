@@ -7,10 +7,10 @@ git+https://github.com/Rapptz/discord-ext-menus@master
 doc-search
 humanize
 mystbin.py
-git+https://github.com/ShineyDev/prettify.py@master
+git+https://github.com/ShineyDev/prettify.py.git
 psutil
 sr-api
 tag-formatter
 toml
 topggpy
-https://github.com/edugomez102/twemoji-parser
+git+https://github.com/edugomez102/twemoji-parser

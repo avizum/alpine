@@ -239,9 +239,7 @@ class AvimetryBot(commands.Bot):
         return await super().get_context(message, cls=cls or self.context)
 
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
-        if before.content == after.content:
-            return
-        if after.attachments:
+        if before.content == after.content or after.attachments:
             return
         await self.process_commands(after)
 

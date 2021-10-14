@@ -76,14 +76,14 @@ class ConfirmResult:
 
 
 class AutoPageSource(menus.ListPageSource):
-    def __init__(self, entry: typing.Union[str, list], lang=None):
+    def __init__(self, entry: typing.Union[str, list], lang=None, *, limit: int = 1000):
         if isinstance(entry, list):
             entries = entry
         elif isinstance(entry, str):
             if lang:
-                entries = [f"```{lang}\n{entry[i:i+1990]}```" for i in range(0, len(entry), 1990)]
+                entries = [f"```{lang}\n{entry[i:i+limit]}```" for i in range(0, len(entry), limit)]
             else:
-                entries = [entry[i:i+1990] for i in range(0, len(entry), 1990)]
+                entries = [entry[i:i+limit] for i in range(0, len(entry), limit)]
         super().__init__(entries, per_page=1)
 
     async def format_page(self, menu, page):
@@ -167,9 +167,14 @@ class AvimetryContext(commands.Context):
                 color = discord.Color(0x2F3136)
         return color
 
-    async def paginate(self, entry: typing.Union[str, list[discord.Embed]], lang: str = None):
+    async def paginate(self, entry: typing.Union[str, list[discord.Embed]], lang: str = None, *, limit: int = 1000,
+                       delete_message_after: bool = False, remove_view_after: bool = False,
+                       disable_view_after: bool = False):
         from .paginators import AvimetryPages
-        menu = AvimetryPages(AutoPageSource(entry, lang), ctx=self, remove_view_after=True)
+        menu = AvimetryPages(AutoPageSource(entry, lang, limit=limit), ctx=self,
+                             remove_view_after=remove_view_after,
+                             delete_message_after=delete_message_after,
+                             disable_view_after=disable_view_after)
         await menu.start()
 
     async def send(self, content: str = None, embed: discord.Embed = None, no_reply: bool = False, **kwargs):
@@ -209,10 +214,10 @@ class AvimetryContext(commands.Context):
 
     async def confirm(
         self, message=None, embed: discord.Embed = None, confirm_message=None, *,
-        timeout=60, delete_after=False, no_reply=False, remove_view_after=False
+        timeout=60, delete_after=False, no_reply=False, remove_view_after=True
     ):
 
-        view = ConfirmView(member=self.author)
+        view = ConfirmView(member=self.author, timeout=timeout)
         check_message = confirm_message or 'Press "yes" to accept, or press "no" to deny.'
         if no_reply is True:
             send = await self.no_reply(content=message, embed=embed, view=view)

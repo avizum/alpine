@@ -357,13 +357,13 @@ class HelpCommand(core.Cog):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         help_command = AvimetryHelp(
-            verify_checks=False,
+            verify_checks=True,
             show_hidden=False,
             command_attrs=dict(
                 hidden=True,
                 usage="[command|module]",
-                checks=[core.bot_has_permissions(add_reactions=True).predicate],
-                cooldown=commands.CooldownMapping(commands.Cooldown(10, 30), commands.BucketType.user)
+                aliases=["h"],
+                cooldown=commands.CooldownMapping(commands.Cooldown(1, 3), commands.BucketType.user)
             )
         )
         help_command.cog = self

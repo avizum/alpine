@@ -22,10 +22,12 @@ import sys
 import psutil
 import math
 
+from discord.ext import commands
 from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 from jishaku import Feature
 from jishaku.models import copy_context_with
 from jishaku.flags import Flags
+from jishaku.paginators import PaginatorInterface
 from utils import AvimetryBot, AvimetryContext, CogConverter, timestamp
 
 
@@ -122,6 +124,25 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         if alt_ctx.command is None:
             return await ctx.send(f'Command "{alt_ctx.invoked_with}" does not exist.')
         return await alt_ctx.command.invoke(alt_ctx)
+
+    @Feature.Command(parent="jsk", name="tasks")
+    async def jsk_tasks(self, ctx: AvimetryContext):
+        """
+        Shows the currently running jishaku tasks.
+        """
+
+        if not self.tasks:
+            return await ctx.send("No currently running tasks.")
+
+        paginator = commands.Paginator(max_size=1985, prefix="", suffix="")
+
+        for task in self.tasks:
+            paginator.add_line(f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "
+                               f"{discord.utils.format_dt(task.ctx.message.created_at)} "
+                               f"({discord.utils.format_dt(task.ctx.message.created_at, 'R')})")
+
+        interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+        return await interface.send_to(ctx)
 
     @Feature.Command(name="jishaku", aliases=["jsk"], hidden=Flags.HIDE,
                      invoke_without_command=True, ignore_extra=True, extras={'user_permissions': ['bot_owner']})
