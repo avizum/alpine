@@ -26,9 +26,63 @@ from discord.ext.menus import button, Position, PageSource
 
 # This paginator is essentially discord.ext.menus but changed a bit so that it uses buttons instead of reactions.
 # https://github.com/Rapptz/discord-ext-menus
+class ButtonPages(AvimetryView):
+    def __init__(self, source: PageSource, *, ctx: AvimetryContext, timeout: int = 180,
+                 delete_message_after: bool = False, remove_view_after: bool = False,
+                 disable_view_after: bool = False, message: discord.Message = None):
+
+        self.source = source
+        self.ctx = ctx
+        self.timeout = timeout
+        self.delete_message_after = delete_message_after
+        self.remove_view_after = remove_view_after
+        self.disable_view_after = disable_view_after,
+        self.message = message
+        self.current_page = 0
+        self.message = message
+        super().__init__(member=ctx.author, timeout=timeout)
+        self.put_stop()
+
+    def put_stop(self):
+        """
+        Lazy way to make stop button last
+        """
+        self.remove_item(self.stop_view)
+        self.add_item(self.stop_view)
+
+    @discord.ui.button(emoji="\U000023f9\U0000fe0f", label="Stop", style=discord.ButtonStyle.red, row=2)
+    async def stop_view(self, button: discord.ui.Button, interaction: discord.Interaction):
+        """
+        Stops the paginator and view.
+        """
+        if self.disable_view_after:
+            for item in self.children:
+                item.disabled = True
+            button.label = "Stopped"
+            await interaction.response.edit_message(view=self)
+        elif self.remove_view_after:
+            await interaction.response.edit_message(view=None)
+        elif self.delete_message_after:
+            await interaction.message.delete()
+        await self.ctx.message.add_reaction(self.ctx.bot.emoji_dictionary["green_tick"])
+        self.stop()
+
+    async def get_page_kwargs(self, page: int):
+        value = await discord.utils.maybe_coroutine(self.source.format_page, self, page)
+        if isinstance(value, dict):
+            return value
+        elif isinstance(value, str):
+            return {'content': value, 'embed': None}
+        elif isinstance(value, discord.Embed):
+            return {'embed': value, 'content': None}
+        else:
+            return {}
+
+
 class AvimetryPages(AvimetryView):
-    def __init__(self, source: PageSource, *, ctx: AvimetryContext, message: discord.Message = None, timeout: int = 180,
-                 disable_view_after: bool = False, remove_view_after: bool = False, delete_message_after: bool = False):
+    def __init__(self, source: PageSource, *, ctx: AvimetryContext, timeout: int = 180,
+                 delete_message_after: bool = False, remove_view_after: bool = False,
+                 disable_view_after: bool = False, message: discord.Message = None):
         self.source = source
         self.ctx = ctx
         self.disable_view_after = disable_view_after
@@ -55,8 +109,7 @@ class AvimetryPages(AvimetryView):
                 self.add_item(self.go_back_one)
                 self.add_item(self.show_page_number)
                 self.add_item(self.go_forward_one)
-
-            self.add_item(self.stop_view)
+        self.add_item(self.stop_view)
 
     async def interaction_check(self, interaction: discord.Interaction):
         if interaction.user and interaction.user.id in (*self.ctx.bot.owner_ids, self.ctx.author.id):
@@ -122,16 +175,21 @@ class AvimetryPages(AvimetryView):
             return {}
 
     async def on_timeout(self):
-        if self.message:
-            if self.disable_view_after:
-                for item in self.children:
-                    item.disabled = True
-                await self.message.edit(view=self)
-            elif self.remove_view_after:
-                await self.message.edit(view=None)
-            elif self.delete_message_after:
+        if not self.message:
+            return
+        if self.disable_view_after:
+            for item in self.children:
+                item.disabled = True
+            self.stop_view.label = "Disabled"
+            await self.message.edit(view=self)
+        elif self.remove_view_after:
+            await self.message.edit(view=None)
+        elif self.delete_message_after:
+            try:
                 await self.message.delete()
-            await self.ctx.message.add_reaction(self.ctx.bot.emoji_dictionary["green_tick"])
+            except discord.NotFound:
+                pass
+        await self.ctx.message.add_reaction(self.ctx.bot.emoji_dictionary["green_tick"])
 
     async def start(self):
         await self.source._prepare_once()
@@ -180,7 +238,7 @@ class AvimetryPages(AvimetryView):
         if self.disable_view_after:
             for item in self.children:
                 item.disabled = True
-            button.label = "Disabled"
+            button.label = "Stopped"
             await interaction.response.edit_message(view=self)
         elif self.remove_view_after:
             await interaction.response.edit_message(view=None)
