@@ -1,6 +1,6 @@
 """
 Game commands
-Copyright (C) 2021 avizum
+Copyright (C) 2021 - present avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -199,6 +199,24 @@ class CookieView(discord.ui.View):
         self.winner = interaction.user
         button.disabled = True
         self.stop()
+
+
+class RPSButton(discord.ui.Button):
+    def __init__(self, label: str, player_one: discord.Member, player_two: discord.Member):
+        self.player_one = player_one
+        self.player_two = player_two
+        self.pa = None
+        self.pt = None
+        super().__init__(style=discord.ButtonStyle.success, label=label)
+
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user == self.player_one and not getattr(self.player_one, "answer", None):
+            await interaction.response.send_message(content="You picked {self.label}!")
+            self.pa = self.label
+        elif interaction.user == self.player_two and not getattr(self.player_two, "answer", None):
+            await interaction.response.send_message(content="You picked {self.label}!")
+            self.pt = self.label
+        print(f"Player one: {self.pt}\nPlayer two: {self.pa}")
 
 
 class Games(core.Cog):
@@ -447,5 +465,5 @@ class Games(core.Cog):
                 return await first.edit(embed=embed)
 
 
-def setup(bot):
+def setup(bot: AvimetryBot):
     bot.add_cog(Games(bot))

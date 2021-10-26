@@ -1,6 +1,6 @@
 """
 Handle bot cache for quick and easy access.
-Copyright (C) 2021 avizum
+Copyright (C) 2021 - present avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
