@@ -332,11 +332,11 @@ class AvimetryHelp(commands.HelpCommand):
                 self.context.message._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
                 return await self.send_command_help(self.context.bot.get_command(match[0]))
             else:
-                return
-        return f'"{string}" is not a command or module. I couln\'t find any similar commands.'
+                return await conf.message.delete()
+        return await self.context.send("Command not found.")
 
     async def subcommand_not_found(self, command, string):
-        return f'"{string}" is not a subcommand of "{command}".'
+        return await self.context.send(f'"{string}" is not a subcommand of "{command}".')
 
 
 class AllCommandsPageSource(menus.ListPageSource):

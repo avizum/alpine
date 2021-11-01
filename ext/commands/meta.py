@@ -456,6 +456,8 @@ class Meta(core.Cog):
         ref = ctx.message.reference
         if message_id is None and isinstance(ref.resolved, discord.Message):
             message_id = ref.resolved.id
+        elif not ref:
+            return await ctx.send("Give you a message you filthy noob")
         mess = await self.bot.http.get_message(ctx.channel.id, message_id)
         info = ctx.codeblock(json.dumps(mess, indent=4), language="json")
         if len(info) > 2000:

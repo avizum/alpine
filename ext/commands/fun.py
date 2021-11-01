@@ -362,6 +362,7 @@ class Fun(core.Cog):
         await ctx.send(output)
 
     @core.command()
+    @core.cooldown(5, 100, commands.BucketType.user)
     async def recursion(self, ctx: AvimetryContext):
         """
         Did you mean recursion?
@@ -371,7 +372,9 @@ class Fun(core.Cog):
             description='"recursion" was not found. Did you mean...\n`recursion`'
         )
         embed.set_footer(text=f'Use {ctx.prefix}help to see the whole list of commands.')
-        await ctx.send(embed=embed)
+        conf = await ctx.confirm(embed=embed)
+        if conf.result:
+            await ctx.message.delete()
 
     @core.command()
     async def tts(self, ctx: AvimetryContext, *, text):
