@@ -28,7 +28,7 @@ import collections
 import datetime
 import core
 
-from utils import AvimetryBot, AvimetryContext, AvimetryPages, format_seconds
+from utils import AvimetryBot, AvimetryContext, AvimetryPages, format_seconds, AvimetryView
 from discord.ext import commands, menus
 
 URL_REG = re.compile(r'https?://(?:www\.)?.+')
@@ -139,12 +139,15 @@ class Player(wavelink.Player):
         self.shuffle_votes = set()
         self.stop_votes = set()
 
-    async def get_tracks(self, query: str):
+    async def get_tracks(self, query: str, bulk: bool = False):
         search_type = "" if self.reg.match(query) else "ytsearch:"
         try:
             tracks = await self.node.get_tracks(wavelink.YouTubeTrack, f"{search_type}{query}")
             if tracks:
-                return tracks[0]
+                if bulk:
+                    return tracks
+                else:
+                    return tracks[0]
             return tracks
         except Exception:
             return await self.node.get_playlist(wavelink.YouTubePlaylist, f"{search_type}{query}")
@@ -226,6 +229,34 @@ class PaginatorSource(menus.ListPageSource):
         return embed
 
 
+class SearchView(AvimetryView):
+    def __init__(self, *, ctx: AvimetryContext):
+        self.ctx = ctx
+        self.option = None
+        super().__init__(member=ctx.author, timeout=180)
+
+    @discord.ui.button(label="Stop", style=discord.ButtonStyle.red)
+    async def stop_view(self, button, interaction):
+        await self.ctx.message.delete()
+        await self.stop()
+
+
+class SearchSelect(discord.ui.Select):
+    def __init__(self, *, options: list[Track]):
+        options = [discord.SelectOption(label=f"{number+1}) {track.title}") for number, track in enumerate(options)]
+        super().__init__(
+            placeholder="Select the songs you want to play",
+            options=options,
+            min_values=1, max_values=1,
+            disabled=False
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        self.view.option = self.values
+        self.view.stop()
+
+
 def in_voice():
     def predicate(ctx):
         if ctx.author.voice:
@@ -254,6 +285,7 @@ class Music(core.Cog):
 
     @core.Cog.listener('on_wavelink_track_stuck')
     async def track_stuck(self, player: Player, track: Track, threshold):
+        await player.context.send("Track got stuck xd")
         await player.do_next()
 
     @core.Cog.listener("on_voice_state_update")
@@ -424,6 +456,21 @@ class Music(core.Cog):
 
         if not player.is_playing():
             await player.do_next()
+
+    @core.command()
+    @in_voice()
+    @core.is_owner()
+    async def search(self, ctx: AvimetryContext, *, query: str):
+        player: Player = ctx.voice_client
+        if not player:
+            return await ctx.send("I am not in a voice channel.")
+        tracks = await player.get_tracks(query, bulk=True)
+        if tracks:
+            view = SearchView(ctx=ctx)
+            view.add_item(SearchSelect(options=tracks))
+            await ctx.send(f"Found {len(tracks)}. Please Select ", view=view)
+            await view.wait()
+            await ctx.invoke(self.play, query=view.option[0].title)
 
     @core.command(aliases=["ptop"])
     async def playtop(self, ctx: AvimetryContext, *, query: wavelink.YouTubeTrack):
@@ -698,7 +745,7 @@ class Music(core.Cog):
 
         entries = [f"`{index+1})` [{track.title}]({track.uri})" for index, track in enumerate(player.queue._queue)]
         pages = PaginatorSource(entries=entries, ctx=ctx)
-        paginator = AvimetryPages(source=pages, timeout=120, ctx=ctx)
+        paginator = AvimetryPages(source=pages, timeout=120, ctx=ctx, disable_view_after=True)
         await paginator.start()
 
     @core.command(aliases=["clq", "clqueue", "cqueue"])

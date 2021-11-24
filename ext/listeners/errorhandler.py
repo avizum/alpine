@@ -231,7 +231,7 @@ class ErrorHandler(core.Cog):
                 )
             )
             ctx.message._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
-            conf = await ctx.confirm(embed=a, remove_view_after=True)
+            conf = await ctx.confirm(embed=a, delete_after=True)
             if conf.result:
                 return await ctx.send_help(ctx.command)
             return
