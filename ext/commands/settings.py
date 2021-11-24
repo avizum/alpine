@@ -676,8 +676,8 @@ class Settings(core.Cog):
             except KeyError:
                 new = await ctx.cache.new_user(ctx.author.id)
                 new["color"] = color.value
-            return await ctx.send(f"Set theme to {color}")
-        return await ctx.send('Aborted.')
+            return await conf.message.edit(content=f"Set theme to {color}", embed=None)
+        return await conf.message.edit(content='Aborted.', embed=None)
 
     @theme.command(aliases=['none', 'no', 'not', 'gone'])
     async def remove(self, ctx: AvimetryContext):
@@ -698,9 +698,9 @@ class Settings(core.Cog):
             try:
                 ctx.cache.users[ctx.author.id]["color"] = None
             except KeyError:
-                return await ctx.send('You do not have a theme.')
-            return await ctx.send("Removed your theme.")
-        return await ctx.send('Aborted.')
+                return await conf.message.edit(content="You do not have a theme.")
+            return await conf.message.edit(content="Removed your theme.")
+        return await conf.message.edit(content="Aborted.")
 
     @theme.command()
     async def random(self, ctx: AvimetryContext):
