@@ -16,9 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import asyncio
 import datetime
-from utils.view import AvimetryView
 import discord
+
+from utils.view import AvimetryView
 from utils.context import AvimetryContext
 from discord.ext.menus.views import ViewMenuPages
 from discord.ext.menus import button, Position, PageSource
@@ -136,6 +138,7 @@ class AvimetryPages(AvimetryView):
         self.skip_to_first.label = "1"
         self.skip_to_last.label = str(most)
 
+        # Disable buttons if at first/last page
         if page + 1 == most:
             self.go_forward_one.disabled = True
             self.skip_to_last.disabled = True
@@ -161,7 +164,10 @@ class AvimetryPages(AvimetryView):
             if max_pages is None or max_pages > page_num >= 0:
                 await self.show_page(interaction, page_num)
         except IndexError:
-            pass
+            if page_num > max_pages:
+                await self.show_page(interaction, max_pages)
+            if page_num < 0:
+                await self.show_page(interaction, 0)
 
     async def get_page_kwargs(self, page: int):
         value = await discord.utils.maybe_coroutine(self.source.format_page, self, page)
@@ -212,9 +218,29 @@ class AvimetryPages(AvimetryView):
         """
         await self.show_checked_page(interaction, self.current_page - 1)
 
-    @discord.ui.button(emoji="<:avimetry:877445146709463081>", disabled=True, style=discord.ButtonStyle.blurple)
+    @discord.ui.button(emoji="<:avimetry:877445146709463081>", disabled=False, style=discord.ButtonStyle.blurple)
     async def show_page_number(self, button: discord.ui.Button, interaction: discord.Interaction):
-        pass
+        """
+        Shows the current page number.
+        This button also is used for skipping to pages.
+        """
+        await interaction.response.send_message(
+            f"Which page would you like to go to? (1-{self.source.get_max_pages()})", ephemeral=True)
+
+        def check(m: discord.Message):
+            return m.author == self.ctx.author and m.channel == self.ctx.channel and m.content.isdigit()
+
+        try:
+            message = await self.ctx.bot.wait_for("message", check=check, timeout=10)
+        except asyncio.TimeoutError:
+            await interaction.followup.send('You took too long to respond.', ephemeral=True)
+        else:
+            page = int(message.content)
+            await self.show_checked_page(interaction, page_num=page-1)
+            try:
+                await message.delete()
+            except (discord.Forbidden, discord.NotFound):
+                pass
 
     @discord.ui.button(emoji="\U000025b6\U0000fe0f")
     async def go_forward_one(self, button: discord.ui.Button, interaction: discord.Interaction):
