@@ -84,6 +84,8 @@ class AutoPageSource(menus.ListPageSource):
                 entries = [f"```{lang}\n{entry[i:i+limit]}```" for i in range(0, len(entry), limit)]
             else:
                 entries = [entry[i:i+limit] for i in range(0, len(entry), limit)]
+        elif isinstance(entry, commands.Paginator):
+            entries = entry.pages
         super().__init__(entries, per_page=1)
 
     async def format_page(self, menu, page):
@@ -168,7 +170,7 @@ class AvimetryContext(commands.Context):
         return color
 
     async def paginate(self, entry: typing.Union[str, list[discord.Embed]], lang: str = None, *, limit: int = 1000,
-                       delete_message_after: bool = False, remove_view_after: bool = False,
+                       delete_message_after: bool = True, remove_view_after: bool = False,
                        disable_view_after: bool = False):
         from .paginators import AvimetryPages
         menu = AvimetryPages(AutoPageSource(entry, lang, limit=limit), ctx=self,
@@ -181,7 +183,7 @@ class AvimetryContext(commands.Context):
         if content:
             content = str(content)
             for token in self.tokens:
-                content = content.replace(token, "[config omitted]")
+                content = content.replace(token, "[token omitted (trolled xdxd)]")
             if len(content) >= 2000:
                 return await self.paginate(content)
         if embed:
