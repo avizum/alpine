@@ -140,7 +140,7 @@ class ErrorHandler(core.Cog):
                 bucket1 = self.not_found_cooldown_content.get_bucket(ctx.message).update_rate_limit()
                 bucket2 = self.not_found_cooldown.get_bucket(ctx.message).update_rate_limit()
                 if not bucket1 or not bucket2:
-                    conf = await ctx.confirm(embed=embed, remove_view_after=True)
+                    conf = await ctx.confirm(embed=embed, delete_after=True)
                     if conf.result:
                         new = copy.copy(ctx.message)
                         new._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
@@ -150,8 +150,6 @@ class ErrorHandler(core.Cog):
                             await self.bot.invoke(ctx)
                         except commands.CommandInvokeError:
                             await ctx.send("Something failed while trying to invoke. Try again?")
-                    else:
-                        return await conf.message.delete()
 
         elif isinstance(error, commands.CommandOnCooldown):
             rate = error.cooldown.rate
