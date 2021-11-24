@@ -64,17 +64,17 @@ class AkinatorGameView(AvimetryView):
         super().stop()
 
     async def on_timeout(self):
-        self.embed.description = 'Game ended due to timeout.'
+        self.embed.description = "Game ended due to timeout."
         await self.stop(embed=self.embed)
 
     async def answer(self, interaction, answer):
-        if answer == 'back':
+        if answer == "back":
             try:
                 next = await self.client.back()
-                self.embed.description = f'{self.client.step+1}. {next}'
+                self.embed.description = f"{self.client.step+1}. {next}"
                 await interaction.response.edit_message(embed=self.embed)
             except CantGoBackAnyFurther:
-                await interaction.response.send_message('You can not go back any further.', ephemeral=True)
+                await interaction.response.send_message("You can't go back. Sorry.", ephemeral=True)
         elif self.client.progression <= 80:
             await interaction.response.defer()
             next = await self.client.answer(answer)
@@ -84,47 +84,47 @@ class AkinatorGameView(AvimetryView):
             await self.client.win()
             client = self.client
             self.embed.description = (
-                f'Are you thinking of {client.first_guess["name"]} ({client.first_guess["description"]})?\n'
+                f"Are you thinking of {client.first_guess['name']} ({client.first_guess['description']})?\n"
             )
-            self.embed.set_image(url=client.first_guess["absolute_picture_path"])
+            self.embed.set_image(url=client.first_guess['absolute_picture_path'])
             new_view = AkinatorConfirmView(member=self.member, message=self.message, embed=self.embed)
             await self.stop()
             await self.message.edit(view=new_view, embed=self.embed)
 
-    @discord.ui.button(label='Yes', style=discord.ButtonStyle.success, row=1)
+    @discord.ui.button(label="Yes", style=discord.ButtonStyle.success, row=1)
     async def game_yes(self, button: discord.Button, interaction: discord.Interaction):
-        await self.answer(interaction, 'yes')
+        await self.answer(interaction, "yes")
 
-    @discord.ui.button(label='No', style=discord.ButtonStyle.danger, row=1)
+    @discord.ui.button(label="No", style=discord.ButtonStyle.danger, row=1)
     async def game_no(self, button: discord.Button, interaction: discord.Interaction):
-        await self.answer(interaction, 'no')
+        await self.answer(interaction, "no")
 
-    @discord.ui.button(label='I dont know', style=discord.ButtonStyle.primary, row=1)
+    @discord.ui.button(label="I don't know", style=discord.ButtonStyle.primary, row=1)
     async def game_idk(self, button: discord.Button, interaction: discord.Interaction):
-        await self.answer(interaction, 'i dont know')
+        await self.answer(interaction, "i dont know")
 
-    @discord.ui.button(label='Probably', style=discord.ButtonStyle.secondary, row=2)
+    @discord.ui.button(label="Probably", style=discord.ButtonStyle.secondary, row=2)
     async def game_probably(self, button: discord.Button, interaction: discord.Interaction):
-        await self.answer(interaction, 'probably')
+        await self.answer(interaction, "probably")
 
-    @discord.ui.button(label='Probably Not', style=discord.ButtonStyle.secondary, row=2)
+    @discord.ui.button(label="Probably Not", style=discord.ButtonStyle.secondary, row=2)
     async def game_probably_not(self, button: discord.Button, interaction: discord.Interaction):
-        await self.answer(interaction, 'probably not')
+        await self.answer(interaction, "probably not")
 
-    @discord.ui.button(label='Back', style=discord.ButtonStyle.secondary, row=3)
+    @discord.ui.button(label="Back", style=discord.ButtonStyle.secondary, row=3)
     async def game_back(self, button: discord.Button, interaction: discord.Interaction):
-        await self.answer(interaction, 'back')
+        await self.answer(interaction, "back")
 
-    @discord.ui.button(label='Stop', style=discord.ButtonStyle.danger, row=3)
+    @discord.ui.button(label="Stop", style=discord.ButtonStyle.danger, row=3)
     async def game_stop(self, button: discord.Button, interaction: discord.Interaction):
         await self.client.win()
-        self.embed.description = 'Game stopped.'
+        self.embed.description = "Game stopped."
         await interaction.response.edit_message(embed=self.embed, view=None)
         await self.stop()
 
 
 class AkinatorFlags(commands.FlagConverter):
-    mode: str = 'en'
+    mode: str = "en"
     child: bool = True
 
 
@@ -169,17 +169,17 @@ class RockPaperScissorGame(AvimetryView):
         await interaction.response.edit_message(embed=self.embed, view=self)
         await self.stop()
 
-    @discord.ui.button(label='Rock', emoji='\U0001faa8', style=discord.ButtonStyle.secondary, row=1)
+    @discord.ui.button(label="Rock", emoji="\U0001faa8", style=discord.ButtonStyle.secondary, row=1)
     async def game_rock(self, button: discord.Button, interaction: discord.Interaction):
         await self.answer(button, interaction, 0)
         button.style = discord.ButtonStyle.success
 
-    @discord.ui.button(label='Paper', emoji='\U0001f4f0', style=discord.ButtonStyle.secondary, row=1)
+    @discord.ui.button(label="Paper", emoji="\U0001f4f0", style=discord.ButtonStyle.secondary, row=1)
     async def game_paper(self, button: discord.Button, interaction: discord.Interaction):
         await self.answer(button, interaction, 1)
         button.style = discord.ButtonStyle.success
 
-    @discord.ui.button(label='Scissors', emoji='\U00002702\U0000fe0f', style=discord.ButtonStyle.secondary, row=1)
+    @discord.ui.button(label="Scissors", emoji="\U00002702\U0000fe0f", style=discord.ButtonStyle.secondary, row=1)
     async def game_scissors(self, button: discord.Button, interaction: discord.Interaction):
         await self.answer(button, interaction, 2)
         button.style = discord.ButtonStyle.success
@@ -192,9 +192,9 @@ class CookieView(discord.ui.View):
         self.winner = None
 
     async def on_timeout(self):
-        await self.message.edit(embed=None, content='Nobody got the cookie', view=None)
+        await self.message.edit(embed=None, content="Nobody got the cookie", view=None)
 
-    @discord.ui.button(emoji='🍪')
+    @discord.ui.button(emoji="🍪")
     async def cookie(self, button, interaction):
         self.winner = interaction.user
         button.disabled = True
@@ -313,8 +313,8 @@ class Games(core.Cog):
         async with ctx.channel.typing():
             game = await akiclient.start_game(language=flags.mode, child_mode=flags.child)
             if akiclient.child_mode is False and ctx.channel.nsfw is False:
-                return await ctx.send('Child mode can only be disabled in NSFW channels.')
-            embed = discord.Embed(title='Akinator', description=f'{akiclient.step+1}. {game}')
+                return await ctx.send("Child mode can only be disabled in NSFW channels.")
+            embed = discord.Embed(title="Akinator", description=f"{akiclient.step+1}. {game}")
         view = AkinatorGameView(member=ctx.author, ctx=ctx, client=akiclient, embed=embed)
         await fm.delete()
         view.message = await ctx.send(embed=embed, view=view)
@@ -326,7 +326,7 @@ class Games(core.Cog):
         """
         Play a game of rock paper scissors.
         """
-        embed = discord.Embed(title='Rock Paper Scissors', description='Who will win?')
+        embed = discord.Embed(title="Rock Paper Scissors", description="Who will win?")
         view = RockPaperScissorGame(ctx=ctx, member=ctx.author, embed=embed)
         view.message = await ctx.send(embed=embed, view=view)
 
