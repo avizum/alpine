@@ -93,7 +93,7 @@ class AkinatorGameView(AvimetryView):
 
     @discord.ui.button(label='Yes', style=discord.ButtonStyle.success, row=1)
     async def game_yes(self, button: discord.Button, interaction: discord.Interaction):
-        await self.answer(interaction, 'no')
+        await self.answer(interaction, 'yes')
 
     @discord.ui.button(label='No', style=discord.ButtonStyle.danger, row=1)
     async def game_no(self, button: discord.Button, interaction: discord.Interaction):

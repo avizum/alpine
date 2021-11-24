@@ -228,7 +228,7 @@ class Fun(core.Cog):
         """
         Gets a random post from a subreddit you provide.
 
-        NSFW posts will automatically show in NSFW channels. Otherwise it will give you an error.
+        NSFW posts will automatically show in NSFW channels.
         """
         if subreddit.startswith("r/"):
             subreddit = subreddit.replace("r/", "")
@@ -267,7 +267,7 @@ class Fun(core.Cog):
             if ctx.channel.is_nsfw():
                 return await ctx.send(embed=embed)
             else:
-                return await ctx.send("NSFW posts can't be send in non-nsfw channels.")
+                return await ctx.send("NSFW posts can't be sent in non-nsfw channels.")
         return await ctx.send(embed=embed)
 
     @core.command()
@@ -375,8 +375,18 @@ class Fun(core.Cog):
         conf = await ctx.confirm(embed=embed)
         if conf.result:
             await ctx.message.delete()
+            await ctx.invoke(ctx.command)
 
     @core.command()
+    async def ifyouloveme(self, ctx: AvimetryContext):
+        """
+        LET ME GOOOOOOOOOOOOOOOOOOOO
+        """
+        await ctx.send("LET ME GOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+
+    @core.command()
+    @core.cooldown(1, 60, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.user)
     async def tts(self, ctx: AvimetryContext, *, text):
         """
         Text to speech!
