@@ -115,7 +115,8 @@ class Owner(commands.Cog):
         with open("config.toml", "w") as bfile:
             toml.dump(load, bfile)
             self.bot.news = news
-        await ctx.send(f"News set to: {news}")
+        embed = discord.Embed(title="Successfully Set News.", description=f"Here is the preview.\n{news}")
+        await ctx.send(embed=embed)
 
     @developer.command()
     async def ilreload(self, ctx: AvimetryContext, module: str):

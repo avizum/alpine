@@ -63,7 +63,8 @@ class BotInfo(commands.Cog, name="Bot Info"):
         """
         Show the bot's news.
         """
-        await ctx.send(self.bot.news)
+        embed = discord.Embed(title="\U0001f4f0 Avimetry News", description=self.bot.news)
+        await ctx.send(embed=embed)
 
     @core.command()
     async def about(self, ctx: AvimetryContext):
