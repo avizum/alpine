@@ -453,6 +453,11 @@ class Meta(core.Cog):
     @core.cooldown(1, 15, commands.BucketType.user)
     @commands.max_concurrency(1, commands.BucketType.user)
     async def rawmsg(self, ctx: AvimetryContext, message_id: int = None):
+        """
+        Get the raw content of a message.
+
+        If the message is too long, it will be posted on a gist.
+        """
         ref = ctx.message.reference
         if message_id is None and isinstance(ref.resolved, discord.Message):
             message_id = ref.resolved.id

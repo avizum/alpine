@@ -373,6 +373,9 @@ class HelpCommand(core.Cog):
 
     @core.command(hidden=True)
     async def allcommands(self, ctx: AvimetryContext):
+        """
+        A list of all commands.
+        """
         menu = AvimetryPages(AllCommandsPageSource(list(self.bot.commands), ctx), ctx=ctx, remove_view_after=True)
         await menu.start()
 

@@ -170,6 +170,9 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
     @Feature.Command(parent="jsk", name="sudo", aliases=["admin", "bypass"])
     async def jsk_sudo(self, ctx: AvimetryContext, *, command_string):
+        """
+        Run a command, bypassing all checks.
+        """
         alt_ctx = await copy_context_with(ctx, content=f"{ctx.prefix}{command_string}")
         if alt_ctx.command is None:
             return await ctx.send(f'Command "{alt_ctx.invoked_with}" does not exist.')
@@ -177,6 +180,9 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
     @Feature.Command(parent="jsk", name="in", aliases=["channel", "inside"])
     async def jsk_in(self, ctx: AvimetryContext, channel: discord.TextChannel, *, command_string):
+        """
+        Run a command in another channel.
+        """
         alt_ctx = await copy_context_with(ctx, channel=channel)
         if alt_ctx.command is None:
             return await ctx.send(f'Command "{alt_ctx.invoked_with}" does not exist.')

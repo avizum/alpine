@@ -72,7 +72,7 @@ class Settings(core.Cog):
 
     @prefix.command(name="remove")
     @core.has_permissions(manage_guild=True)
-    async def prefix_remove(self, ctx: AvimetryContext, prefix):
+    async def prefix_remove(self, ctx: AvimetryContext, *, prefix):
         """
         Removes a prefix from the server.
         """

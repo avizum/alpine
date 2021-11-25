@@ -370,108 +370,162 @@ class Image(commands.Cog, name="Images"):
     @core.command(name="mosaic")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_mosaic(self, ctx: AvimetryContext, *, item=None):
+        """
+        Adds a mosaic effect to your image
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.mosiac(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="sithlord")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_sithlord(self, ctx: AvimetryContext, *, item=None):
+        """
+        Are you a sith lord?
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.sith(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="shatter")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_shatter(self, ctx: AvimetryContext, *, item=None):
+        """
+        Adds a glass break overlay to your image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.shatter(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="jail")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_jail(self, ctx: AvimetryContext, *, item=None):
+        """
+        Overlays prison bars on your image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.jail(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="pride", enabled=False)
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_pride(self, ctx: AvimetryContext, *, item=None):
+        """
+        Does something
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.pride(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="dgay", enabled=False)
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_gay(self, ctx: AvimetryContext, *, item=None):
+        """
+        Does something
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.gay(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="trash")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_trash(self, ctx: AvimetryContext, *, item=None):
+        """
+        Throwing your image away.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.trash(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="deepfry")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_deepfry(self, ctx: AvimetryContext, *, item=None):
+        """
+        Deepfries your image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.deepfry(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="ascii")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_ascii(self, ctx: AvimetryContext, *, item=None):
+        """
+        Adds an ascii effect to your image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.ascii(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="charcoal")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_charcoal(self, ctx: AvimetryContext, *, item=None):
+        """
+        Adds a charcoal effect you your image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.charcoal(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="posterize")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_posterize(self, ctx: AvimetryContext, *, item=None):
+        """
+        Posterize your image
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.poster(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="sepia")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_sepia(self, ctx: AvimetryContext, *, item=None):
+        """
+        Adds a sepia filter on to your photo.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.sepia(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="swirl")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_swirl(self, ctx: AvimetryContext, *, item=None):
+        """
+        Swirls your image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.swirl(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="paint")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_paint(self, ctx: AvimetryContext, *, item=None):
+        """
+        Makes your image look like it was painted.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.paint(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="night")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_night(self, ctx: AvimetryContext, *, item=None):
+        """
+        Makes your photo darker so that it looks like it was taken at night.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.night(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="rainbow")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_rainbow(self, ctx: AvimetryContext, *, item=None):
+        """
+        Adds a rainbow filter to your image.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.rainbow(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="magic", aliases=["magick", "magik"])
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_magic(self, ctx: AvimetryContext, *, item=None):
+        """
+        Distorts your image in a funny way.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.magik(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="5g1g")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_5g1g(self, ctx, item1: GetAvatar, item2: GetAvatar):
+        """
+        Ya know, the five guys and one girl thing...
+        """
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.five_guys_one_girl(), url=item1, url2=item2)
         await self.dag_embed(ctx, image, ctx.command.name)
@@ -479,6 +533,9 @@ class Image(commands.Cog, name="Images"):
     @core.command(name="whyareyougay", aliases=["wayg"])
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_wayg(self, ctx, item1: GetAvatar, item2: GetAvatar):
+        """
+        Well why are you??
+        """
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.why_are_you_gay(), url=item1, url2=item2)
         await self.dag_embed(ctx, image, ctx.command.name)
@@ -486,12 +543,18 @@ class Image(commands.Cog, name="Images"):
     @core.command(name="obama")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_obama(self, ctx: AvimetryContext, *, item=None):
+        """
+        You deseve an award. Here award yourself.
+        """
         meth = await self.do_dagpi(ctx, ImageFeatures.obama(), item, True)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="tweet")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_tweet(self, ctx, user: GetAvatar, username: str, *, text: str):
+        """
+        Makes it look like you or someone else tweeted something.
+        """
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.tweet(), text=text, url=user, username=username)
         await self.dag_embed(ctx, image, ctx.command.name)
@@ -499,6 +562,9 @@ class Image(commands.Cog, name="Images"):
     @core.command(name="youtube")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_youtube(self, ctx, user: discord.Member = None, *, text: str = None):
+        """
+        Generate a youtube comment.
+        """
         user_name = None
         if text is None:
             url = str(ctx.author.avatar.replace(format="png", static_format="png", size=1024))
@@ -515,6 +581,9 @@ class Image(commands.Cog, name="Images"):
     @core.command(name="discord")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_discord(self, ctx, user: discord.User = None, *, text: str = None):
+        """
+        Makes it look like someone said something.
+        """
         user_name = None
         if text is None:
             url = str(ctx.author.avatar.replace(format="png", static_format="png", size=1024))
@@ -531,12 +600,18 @@ class Image(commands.Cog, name="Images"):
     @core.command(name="captcha")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_captcha(self, ctx: AvimetryContext, text, *, item: GetAvatar):
+        """
+        Overlays your image on a captcha grid.
+        """
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.captcha(), item, text=text)
         await self.dag_embed(ctx, image, ctx.command.name)
 
-    @core.command(brief="Convert emoji to url so you can download them")
+    @core.command()
     async def emojiurl(self, ctx: AvimetryContext, emoji):
+        """
+        Convert your emoji to a url.
+        """
         result = await emoji_to_url(emoji)
         await ctx.send(result)
 

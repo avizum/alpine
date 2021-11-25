@@ -461,6 +461,9 @@ class Music(core.Cog):
     @in_voice()
     @core.is_owner()
     async def search(self, ctx: AvimetryContext, *, query: str):
+        """
+        Search for a song on youtube and play it.
+        """
         player: Player = ctx.voice_client
         if not player:
             return await ctx.send("I am not in a voice channel.")
