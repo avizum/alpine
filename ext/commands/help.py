@@ -70,7 +70,9 @@ class MainHelp(menus.PageSource):
                 "Have fun using Avimetry!"
             )
         if self.index == 2:
-            embed.description = f"You can support Avimetry by voting. Here are some links.\n{info}"
+            embed.description = (
+                f"You can support Avimetry by voting. Here are some links.\n{info}\n"
+                f"If you need help using paginators, use `{self.ctx.prefix}help paginator`")
         embed.set_thumbnail(url=bot.user.avatar.url)
         embed.set_footer(text=self.help.ending_note())
         return embed
@@ -262,7 +264,7 @@ class AvimetryHelp(commands.HelpCommand):
         await menu.start()
 
     async def send_cog_help(self, cog: commands.Cog):
-        filtered = await self.filter_commands(cog.get_commands(), sort=False)
+        filtered = await self.filter_commands(cog.get_commands(), sort=True)
         if not filtered:
             return
         items = await self.filter_cogs()
@@ -273,7 +275,7 @@ class AvimetryHelp(commands.HelpCommand):
         await menu.start()
 
     async def send_group_help(self, group: commands.Group):
-        filtered = await self.filter_commands(group.commands, sort=False)
+        filtered = await self.filter_commands(group.commands, sort=True)
         if not filtered:
             return
         menu = HelpPages(GroupHelp(self.context, filtered, group, self), ctx=self.context)

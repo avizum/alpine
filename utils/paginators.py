@@ -85,6 +85,7 @@ class AvimetryPages(AvimetryView):
     def __init__(self, source: PageSource, *, ctx: AvimetryContext, timeout: int = 180,
                  delete_message_after: bool = False, remove_view_after: bool = False,
                  disable_view_after: bool = False, message: discord.Message = None):
+        self.lock = asyncio.Lock()
         self.source = source
         self.ctx = ctx
         self.disable_view_after = disable_view_after
@@ -227,23 +228,26 @@ class AvimetryPages(AvimetryView):
         Shows the current page number.
         This button also is used for skipping to pages.
         """
-        await interaction.response.send_message(
-            f"Which page would you like to go to? (1-{self.source.get_max_pages()})", ephemeral=True)
+        if self.lock.locked():
+            return await interaction.response.send_message("You already clicked it, now send a number.", ephemeral=True)
+        async with self.lock:
+            await interaction.response.send_message(
+                f"Which page would you like to go to? (1-{self.source.get_max_pages()})", ephemeral=True)
 
-        def check(m: discord.Message):
-            return m.author == self.ctx.author and m.channel == self.ctx.channel and m.content.isdigit()
+            def check(m: discord.Message):
+                return m.author == self.ctx.author and m.channel == self.ctx.channel and m.content.isdigit()
 
-        try:
-            message = await self.ctx.bot.wait_for("message", check=check, timeout=10)
-        except asyncio.TimeoutError:
-            await interaction.followup.send('You took too long to respond.', ephemeral=True)
-        else:
-            page = int(message.content)
-            await self.show_checked_page(interaction, page_num=page-1)
             try:
-                await message.delete()
-            except (discord.Forbidden, discord.NotFound):
-                pass
+                message = await self.ctx.bot.wait_for("message", check=check, timeout=10)
+            except asyncio.TimeoutError:
+                await interaction.followup.send('You took too long to respond.', ephemeral=True)
+            else:
+                page = int(message.content)
+                await self.show_checked_page(interaction, page_num=page-1)
+                try:
+                    await message.delete()
+                except (discord.Forbidden, discord.NotFound):
+                    pass
 
     @discord.ui.button(emoji="\U000025b6\U0000fe0f")
     async def go_forward_one(self, button: discord.ui.Button, interaction: discord.Interaction):

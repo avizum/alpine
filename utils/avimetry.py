@@ -132,9 +132,8 @@ class AvimetryBot(commands.Bot):
             "status_streaming": '<:status_streaming:810683604812169276>'
         }
         self.primary_extensions = [
-            "ext.commands.developer",
             "ext.listeners.events",
-            "ext.commands.jishaku",
+            "ext.commands.developer",
             "ext.extras.setup",
             "utils.context"
         ]

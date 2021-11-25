@@ -463,6 +463,20 @@ class BotInfo(commands.Cog, name="Bot Info"):
         embed.add_field(name="Error status", value="Fixed" if error_info["fixed"] is True else "Not Fixed")
         await ctx.send(embed=embed)
 
+    @core.command(user_permissions="None, This is help for the paginator", bot_permissions="idk", hidden=True)
+    @core.is_owner()
+    async def paginator(self, ctx):
+        """
+        **How to use paginators**
+        ⏮: Goes to the first page of the paginator
+        ◀️: Goes back one page
+        ▶️: Goes forward one page
+        ⏭: Goes to the last page of the paginator
+        ⏹: Stops the paginator
+        1/x: Click on it to choose a page to jump to.
+        """
+        return
+
 
 def setup(bot: AvimetryBot):
     bot.add_cog(BotInfo(bot))
