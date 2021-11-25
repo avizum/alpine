@@ -29,8 +29,14 @@ def to_list(thing):
 
 class AvimetryCommand(commands.Command):
     def __init__(self, func, **kwargs):
-        self.user_permissions = to_list(getattr(func, 'user_permissions', ["send_messages"]))
-        self.bot_permissions = to_list(getattr(func, 'bot_permissions', ["send_messages"]))
+        self.user_permissions = to_list(
+            kwargs.get('user_permissions', None) or
+            getattr(func, 'user_permissions', ["send_messages"])
+        )
+        self.bot_permissions = to_list(
+            kwargs.get('bot_permissions') or
+            getattr(func, 'bot_permissions', ["send_messages"])
+        )
         super().__init__(func, **kwargs)
         if not self._buckets._cooldown:
             self._buckets = commands.CooldownMapping(commands.Cooldown(1, 3), commands.BucketType.user)
