@@ -32,13 +32,13 @@ import importlib
 from discord.ext import commands, menus
 from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 from jishaku import Feature
-from jishaku.models import copy_context_with
+from jishaku.codeblocks import codeblock_converter
 from jishaku.flags import Flags
+from jishaku.models import copy_context_with
 from jishaku.paginators import PaginatorInterface
 from utils import AvimetryBot, AvimetryContext, CogConverter, timestamp
 from utils.paginators import AvimetryPages
 from utils.converters import ModReason
-from jishaku.codeblocks import codeblock_converter
 
 
 def naturalsize(size_in_bytes: int):

@@ -31,6 +31,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
+        self.emoji = "<:server:913309745073504307>"
 
     @core.group(aliases=["members", "mc"])
     async def membercount(self, ctx: AvimetryContext):

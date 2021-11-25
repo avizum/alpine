@@ -287,7 +287,7 @@ class OldAvimetryPages(ViewMenuPages):
 
     async def send_initial_message(self, ctx, channel, interaction=None):
         page = await self._source.get_page(0)
-        kwargs = await self.get_page_kwargs(page)
+        kwargs = await self._get_kwargs_from_page(page)
         if interaction:
             return await interaction.response.edit_message(**kwargs, view=self.build_view())
         return await self.send_with_view(ctx, **kwargs)
