@@ -150,7 +150,12 @@ class GroupHelp(menus.ListPageSource):
             value="\n".join(thing),
             inline=False
         )
-        embed.set_footer(text=self.hc.ending_note())
+        embed.set_footer(
+            text=(
+                f"Use {self.ctx.clean_prefix}{self.ctx.invoked_with} "
+                f"{self.group.qualified_name} [subcommand] for more help on a subcommand."
+            )
+        )
         return embed
 
 
@@ -186,8 +191,8 @@ class HelpSelect(discord.ui.Select):
 
 
 class HelpPages(AvimetryPages):
-    def __init__(self, source: menus.PageSource, *, ctx: AvimetryContext):
-        super().__init__(source, ctx=ctx, delete_message_after=True, timeout=45)
+    def __init__(self, source: menus.PageSource, *, ctx: AvimetryContext, current_page=0):
+        super().__init__(source, ctx=ctx, delete_message_after=True, timeout=45, current_page=current_page)
 
     async def edit_source(self, source, interaction):
         self.source = source

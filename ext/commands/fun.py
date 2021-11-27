@@ -166,11 +166,10 @@ class Fun(core.Cog):
         """
         await ctx.message.delete()
         if member == ctx.author:
-            c = discord.Embed(description="You can't skin yourself, stupid")
-            await ctx.send(embed=c)
+            emb = discord.Embed(description="You can't skin yourself, stupid")
         else:
-            e = discord.Embed(description=f"{member.mention} was skinned.")
-            await ctx.send(embed=e)
+            emb = discord.Embed(description=f"{member.mention} was skinned.")
+        await ctx.send(embed=emb)
 
     @core.command(aliases=["sd"])
     async def selfdestruct(self, ctx: AvimetryContext):
@@ -218,7 +217,7 @@ class Fun(core.Cog):
         member = member or ctx.author
         pp_embed = discord.Embed(
             title=f"{member.name}'s pp size",
-            description=f"8{'=' * random.randint(0, 12)}D"
+            description=f"8{'=' * random.randint(1, 12)}D"
         )
         await ctx.send(embed=pp_embed)
 
@@ -229,6 +228,7 @@ class Fun(core.Cog):
         Gets a random post from a subreddit you provide.
 
         NSFW posts will automatically show in NSFW channels.
+        If the channel is not NSFW, it will not show.
         """
         if subreddit.startswith("r/"):
             subreddit = subreddit.replace("r/", "")
@@ -278,9 +278,8 @@ class Fun(core.Cog):
 
         This will get a meme from either the r/memes or r/meme subreddits.
         """
-        reddit = self.bot.get_command("reddit")
         subreddits = ["memes", "meme"]
-        await reddit(ctx, subreddit=random.choice(subreddits))
+        await ctx.invoke(self.reddit, random.choice(subreddits))
 
     @core.command(name="roast")
     async def dag_roast(self, ctx: AvimetryContext, member: discord.Member):

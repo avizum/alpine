@@ -204,9 +204,17 @@ class Meta(core.Cog):
         """
         member = member or ctx.author
         embed = discord.Embed(
-            title=f"{member}'s avatar"
+            title=f"{member}'s avatar",
+            description=(
+                f"[`png`]({member.display_avatar.with_static_format('png')}) | "
+                f"[`jpg`]({member.display_avatar.with_static_format('jpg')}) | "
+                f"[`webp`]({member.display_avatar.url})"
+            )
         )
-        embed.set_image(url=str(member.display_avatar.url))
+        avatar = member.avatar.url or member.default_avatar.url
+        embed.set_image(url=avatar)
+        if member.guild_avatar:
+            embed.set_thumbnail(url=member.guild_avatar.url)
         await ctx.send(embed=embed)
 
     @core.command()

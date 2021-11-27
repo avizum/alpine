@@ -83,15 +83,16 @@ class ButtonPages(AvimetryView):
 
 class AvimetryPages(AvimetryView):
     def __init__(self, source: PageSource, *, ctx: AvimetryContext, timeout: int = 180,
-                 delete_message_after: bool = False, remove_view_after: bool = False,
-                 disable_view_after: bool = False, message: discord.Message = None):
+                 current_page=0, delete_message_after: bool = False,
+                 remove_view_after: bool = False, disable_view_after: bool = False,
+                 message: discord.Message = None):
         self.lock = asyncio.Lock()
         self.source = source
         self.ctx = ctx
         self.disable_view_after = disable_view_after
         self.remove_view_after = remove_view_after
         self.delete_message_after = delete_message_after
-        self.current_page = 0
+        self.current_page = current_page
         self.message = message
         super().__init__(timeout=timeout, member=ctx.author)
         self.clear_items()
@@ -203,9 +204,9 @@ class AvimetryPages(AvimetryView):
 
     async def start(self):
         await self.source._prepare_once()
-        page = await self.source.get_page(0)
+        page = await self.source.get_page(self.current_page)
         kwargs = await self.get_page_kwargs(page)
-        self._update(0)
+        self._update(self.current_page)
         self.message = await self.ctx.send(**kwargs, view=self)
 
     @discord.ui.button(emoji="\U000023ee\U0000fe0f")

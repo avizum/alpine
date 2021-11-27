@@ -179,13 +179,35 @@ class AvimetryContext(commands.Context):
                              disable_view_after=disable_view_after)
         await menu.start()
 
-    async def send(self, content: str = None, embed: discord.Embed = None, no_reply: bool = False, **kwargs):
+    async def send(
+        self,
+        content: str = None,
+        *,
+        tts: bool = None,
+        embed: discord.Embed = None,
+        embeds: list[discord.Embed] = None,
+        file: discord.File = None,
+        files: list[discord.File] = None,
+        stickers: typing.Sequence[discord.GuildSticker | discord.StickerItem] = None,
+        delete_after: float = None,
+        nonce: str | int = None,
+        allowed_mentions: discord.AllowedMentions = None,
+        reference: discord.MessageReference = None,
+        mention_author: bool = None,
+        view: discord.ui.View = None,
+        paginate: bool = None,
+        post: bool = None,
+        no_reply: bool = None
+    ) -> discord.Message:
         if content:
             content = str(content)
             for token in self.tokens:
                 content = content.replace(token, "[token omitted (trolled xdxd)]")
             if len(content) >= 2000:
-                return await self.paginate(content)
+                if paginate:
+                    return await self.paginate(content)
+                elif post:
+                    return await self.post(content, "txt", True)
         if embed:
             if not embed.footer:
                 embed.set_footer(
@@ -198,15 +220,25 @@ class AvimetryContext(commands.Context):
         if self.message.id in self.bot.command_cache and self.message.edited_at:
             edited_message = self.bot.command_cache[self.message.id]
             try:
-                view = kwargs.pop("view", None)
-                message = await edited_message.edit(content=content, embed=embed, view=view, **kwargs)
+                # view = kwargs.pop("view", None)
+                message = await edited_message.edit(
+                    content=content, embed=embed, embeds=embeds, allowed_mentions=allowed_mentions, view=view)
             except Exception:
                 self.message._edited_timestamp = None
-                message = await self.send(content=content, embed=embed, **kwargs)
+                message = await self.send(
+                    content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
+                    delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference,
+                    mention_author=mention_author, view=view, paginate=paginate, post=post)
         elif no_reply:
-            message = await super().send(content=content, embed=embed, **kwargs)
+            message = await super().send(
+                content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
+                delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference,
+                mention_author=mention_author, view=view)
         else:
-            message = await self.reply(content=content, embed=embed, **kwargs)
+            message = await self.reply(
+                    content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
+                    delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions,
+                    mention_author=mention_author, view=view)
 
         self.bot.command_cache[self.message.id] = message
         return message

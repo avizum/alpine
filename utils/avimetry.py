@@ -58,8 +58,8 @@ logger.addHandler(handler)
 
 async def get_prefix(bot: "AvimetryBot", message: discord.Message):
     prefixes = [f"<@{bot.user.id}>", f"<@!{bot.user.id}>"]
-    commands = ['dev', 'developer', 'jsk', 'jishaku']
-    if await bot.is_owner(message.author) and message.content.lower().startswith(tuple(commands)):
+    commands = ('dev', 'developer', 'jsk', 'jishaku')
+    if await bot.is_owner(message.author) and message.content.lower().startswith(commands):
         prefixes.append("")
     elif not message.guild:
         prefixes.extend(DEFAULT_PREFIXES)
@@ -133,7 +133,7 @@ class AvimetryBot(commands.Bot):
         }
         self.primary_extensions = [
             "ext.listeners.events",
-            "ext.commands.developer",
+            "ext.commands.owner",
             "ext.extras.setup",
             "utils.context"
         ]
