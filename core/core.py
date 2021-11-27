@@ -31,11 +31,13 @@ class AvimetryCommand(commands.Command):
     def __init__(self, func, **kwargs):
         self.user_permissions = to_list(
             kwargs.get('user_permissions', None) or
-            getattr(func, 'user_permissions', ["send_messages"])
+            getattr(func, 'user_permissions', ["send_messages"]) or
+            kwargs.get('extras', {}).get('user_permissions')
         )
         self.bot_permissions = to_list(
             kwargs.get('bot_permissions') or
-            getattr(func, 'bot_permissions', ["send_messages"])
+            getattr(func, 'bot_permissions', ["send_messages"]) or
+            kwargs.get('extras', {}).get('bot_permissions')
         )
         super().__init__(func, **kwargs)
         if not self._buckets._cooldown:
