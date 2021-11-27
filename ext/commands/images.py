@@ -403,14 +403,21 @@ class Image(commands.Cog, name="Images"):
         meth = await self.do_dagpi(ctx, ImageFeatures.jail(), item)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
-    @core.command(name="pride", enabled=False)
+    @core.command(name="pride")
     @commands.cooldown(2, 10, commands.BucketType.member)
-    async def dag_pride(self, ctx: AvimetryContext, *, item=None):
+    async def dag_pride(self, ctx: AvimetryContext, item: GetAvatar, flag: str):
         """
-        Does something
+        Overlays a flag of choice on your image
         """
-        meth = await self.do_dagpi(ctx, ImageFeatures.pride(), item)
-        await self.dag_embed(ctx, meth, ctx.command.name)
+        flags = [
+            "asexual", "bisexual", "gay", "genderfluid", "genderqueer", "intersex",
+            "lesbian", "nonbinary", "progress", "pan", "trans"
+        ]
+        if flag.lower() not in flags:
+            return await ctx.send(f"Your flag must be one of these:\n{', '.join(flags)}")
+        async with ctx.channel.typing():
+            image = await self.bot.dagpi.image_process(ImageFeatures.pride(), url=item, flag=flag)
+        await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command(name="dgay", enabled=False)
     @commands.cooldown(2, 10, commands.BucketType.member)

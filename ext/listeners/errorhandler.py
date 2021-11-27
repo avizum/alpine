@@ -140,8 +140,10 @@ class ErrorHandler(core.Cog):
                 bucket1 = self.not_found_cooldown_content.get_bucket(ctx.message).update_rate_limit()
                 bucket2 = self.not_found_cooldown.get_bucket(ctx.message).update_rate_limit()
                 if not bucket1 or not bucket2:
-                    conf = await ctx.confirm(embed=embed, delete_after=True)
+                    conf = await ctx.confirm(embed=embed)
                     if conf.result:
+                        if conf.result is False:
+                            await ctx.message.delete()
                         new = copy.copy(ctx.message)
                         new._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
                         new.content = new.content.replace(ctx.invoked_with, match[0])
