@@ -26,13 +26,11 @@ import math
 
 import toml
 import utils
-import core
 import importlib
 
 from discord.ext import commands, menus
 from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 from jishaku import Feature
-from jishaku.codeblocks import codeblock_converter
 from jishaku.flags import Flags
 from jishaku.models import copy_context_with
 from jishaku.paginators import PaginatorInterface
@@ -92,13 +90,15 @@ class GuildPageSource(menus.ListPageSource):
         return embed
 
 
-class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
+class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     """
     Advanced debug cog for bot Developers.
     """
     def __init__(self, *args, **kwargs):
         self.emoji = "<:jishaku:913256121542791178>"
         super().__init__(*args, **kwargs)
+        for i in self.walk_commands():
+            i.user_permissions = ["Bot Owner"]
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member):
@@ -106,109 +106,8 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         if reaction.emoji == waste and await self.bot.is_owner(user) and reaction.message.author == self.bot.user:
             await reaction.message.delete()
 
-    @Feature.Command(parent="jsk", name="shutdown", aliases=["fuckoff", "logout", "die", "reboot", "rb"])
-    async def jsk_shutdown(self, ctx: AvimetryContext):
-        """
-        Reboot or shutdown the bot.
-        """
-        command = self.bot.get_command('dev reboot')
-        await command(ctx)
-
-    @Feature.Command(parent="jsk", name="load", aliases=["l"])
-    async def jsk_load(self, ctx: AvimetryContext, module: CogConverter):
-        """
-        Load cogs.
-        """
-        command = self.bot.get_command("dev load")
-        await command(ctx, module)
-
-    @Feature.Command(parent="jsk", name="unload", aliases=["u"])
-    async def jsk_unload(self, ctx: AvimetryContext, module: CogConverter):
-        """
-        Unload cogs.
-        """
-        command = self.bot.get_command("dev unload")
-        await command(ctx, module)
-
-    @Feature.Command(parent="jsk", name="reload", aliases=["r"])
-    async def jsk_reload(self, ctx: AvimetryContext, module: CogConverter):
-        """
-        Reload cogs
-        """
-        command = self.bot.get_command("dev reload")
-        await command(ctx, module)
-
-    @Feature.Command(parent="jsk", name="sync", aliases=["pull"])
-    async def jsk_sync(self, ctx: AvimetryContext):
-        """
-        Pulls from GitHub then reloads all modules.
-
-        If the command fails to unload, It will show the module and error.
-        """
-        command = self.bot.get_command("dev sync")
-        await command(ctx)
-
-    @Feature.Command(parent="jsk", name="battery")
-    async def jsk_battery(self, ctx: AvimetryContext):
-        """
-        Shows the system battery.
-        """
-        battery = psutil.sensors_battery()
-        plugged = battery.power_plugged
-        percent = str(battery.percent)
-        await ctx.send(f"System battery is at {percent}% and {'Plugged in' if plugged else 'Unplugged'}")
-
-    @Feature.Command(parent="jsk", name="su")
-    async def jsk_su(self, ctx: AvimetryContext, member: discord.Member, *, command_string):
-        """
-        Run a command as someone else.
-        """
-        alt_ctx = await copy_context_with(ctx, author=member, content=f"{ctx.prefix}{command_string}")
-        if alt_ctx.command is None:
-            return await ctx.send(f'Command "{alt_ctx.invoked_with}" does not exist.')
-        return await alt_ctx.command.invoke(alt_ctx)
-
-    @Feature.Command(parent="jsk", name="sudo", aliases=["admin", "bypass"])
-    async def jsk_sudo(self, ctx: AvimetryContext, *, command_string):
-        """
-        Run a command, bypassing all checks.
-        """
-        alt_ctx = await copy_context_with(ctx, content=f"{ctx.prefix}{command_string}")
-        if alt_ctx.command is None:
-            return await ctx.send(f'Command "{alt_ctx.invoked_with}" does not exist.')
-        return await alt_ctx.command.reinvoke(alt_ctx)
-
-    @Feature.Command(parent="jsk", name="in", aliases=["channel", "inside"])
-    async def jsk_in(self, ctx: AvimetryContext, channel: discord.TextChannel, *, command_string):
-        """
-        Run a command in another channel.
-        """
-        alt_ctx = await copy_context_with(ctx, channel=channel)
-        if alt_ctx.command is None:
-            return await ctx.send(f'Command "{alt_ctx.invoked_with}" does not exist.')
-        return await alt_ctx.command.invoke(alt_ctx)
-
-    @Feature.Command(parent="jsk", name="tasks")
-    async def jsk_tasks(self, ctx: AvimetryContext):
-        """
-        Shows the currently running jishaku tasks.
-        """
-
-        if not self.tasks:
-            return await ctx.send("No currently running tasks.")
-
-        paginator = commands.Paginator(max_size=1985, prefix="", suffix="")
-
-        for task in self.tasks:
-            paginator.add_line(f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "
-                               f"{discord.utils.format_dt(task.ctx.message.created_at)} "
-                               f"({discord.utils.format_dt(task.ctx.message.created_at, 'R')})")
-
-        interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-        return await interface.send_to(ctx)
-
-    @Feature.Command(name="jishaku", aliases=["jsk"], hidden=Flags.HIDE,
-                     invoke_without_command=True, ignore_extra=True, extras={'user_permissions': ['bot_owner']})
+    @Feature.Command(name="jishaku", aliases=["jsk", "dev", "developer"], hidden=Flags.HIDE,
+                     invoke_without_command=True, ignore_extra=False, extras={'user_permissions': ['bot_owner']})
     async def jsk(self, ctx: AvimetryContext):
         """
         The Jishaku debug and diagnostic commands.
@@ -298,20 +197,84 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         jishaku_embed = discord.Embed(description="\n".join(summary))
         await ctx.send(embed=jishaku_embed)
 
-    @core.group(
-        invoke_without_command=True,
-        aliases=["dev"],
-        user_permissions='Bot Owner',
-    )
-    async def developer(self, ctx: AvimetryContext):
+    @Feature.Command(parent="jsk", name="shutdown", aliases=["fuckoff", "logout", "die", "reboot", "rb"])
+    async def jsk_shutdown(self, ctx: AvimetryContext):
         """
-        Commands for bot devlopers.
+        Reboot or shutdown the bot.
         """
-        jishaku = self.bot.get_command('jishaku')
-        await jishaku(ctx)
+        sm = discord.Embed(
+            description=f"Are you sure you want to {ctx.invoked_with}?"
+        )
+        conf = await ctx.confirm(embed=sm)
+        if conf.result:
+            await self.bot.close()
+        if not conf:
+            await conf.message.edit(content=f"{ctx.invoked_with.capitalize()} Aborted", embed=None, delete_after=5)
 
-    @developer.command()
+    @Feature.Command(parent="jsk", name="battery")
+    async def jsk_battery(self, ctx: AvimetryContext):
+        """
+        Shows the system battery.
+        """
+        battery = psutil.sensors_battery()
+        plugged = battery.power_plugged
+        percent = str(battery.percent)
+        await ctx.send(f"System battery is at {percent}% and {'Plugged in' if plugged else 'Unplugged'}")
+
+    @Feature.Command(parent="jsk", name="su")
+    async def jsk_su(self, ctx: AvimetryContext, member: discord.Member, *, command_string):
+        """
+        Run a command as someone else.
+        """
+        alt_ctx = await copy_context_with(ctx, author=member, content=f"{ctx.prefix}{command_string}")
+        if alt_ctx.command is None:
+            return await ctx.send(f'Command "{alt_ctx.invoked_with}" does not exist.')
+        return await alt_ctx.command.invoke(alt_ctx)
+
+    @Feature.Command(parent="jsk", name="sudo", aliases=["admin", "bypass"])
+    async def jsk_sudo(self, ctx: AvimetryContext, *, command_string):
+        """
+        Run a command, bypassing all checks.
+        """
+        alt_ctx = await copy_context_with(ctx, content=f"{ctx.prefix}{command_string}")
+        if alt_ctx.command is None:
+            return await ctx.send(f'Command "{alt_ctx.invoked_with}" does not exist.')
+        return await alt_ctx.command.reinvoke(alt_ctx)
+
+    @Feature.Command(parent="jsk", name="in", aliases=["channel", "inside"])
+    async def jsk_in(self, ctx: AvimetryContext, channel: discord.TextChannel, *, command_string):
+        """
+        Run a command in another channel.
+        """
+        alt_ctx = await copy_context_with(ctx, channel=channel)
+        if alt_ctx.command is None:
+            return await ctx.send(f'Command "{alt_ctx.invoked_with}" does not exist.')
+        return await alt_ctx.command.invoke(alt_ctx)
+
+    @Feature.Command(parent="jsk", name="tasks")
+    async def jsk_tasks(self, ctx: AvimetryContext):
+        """
+        Shows the currently running jishaku tasks.
+        """
+
+        if not self.tasks:
+            return await ctx.send("No currently running tasks.")
+
+        paginator = commands.Paginator(max_size=1985, prefix="", suffix="")
+
+        for task in self.tasks:
+            paginator.add_line(f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "
+                               f"{discord.utils.format_dt(task.ctx.message.created_at)} "
+                               f"({discord.utils.format_dt(task.ctx.message.created_at, 'R')})")
+
+        interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+        return await interface.send_to(ctx)
+
+    @Feature.Command(parent="jsk")
     async def news(self, ctx: AvimetryContext, *, news: str):
+        """
+        Change the bot's current news.
+        """
         with open("config.toml", "r") as afile:
             load = toml.loads(afile.read())
             load["news"]["news"] = news
@@ -321,7 +284,7 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         embed = discord.Embed(title="Successfully Set News.", description=f"Here is the preview.\n{news}")
         await ctx.send(embed=embed)
 
-    @developer.command()
+    @Feature.Command(parent="jsk")
     async def ilreload(self, ctx: AvimetryContext, module: str):
         try:
             m = importlib.reload(__import__(module))
@@ -329,8 +292,8 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         except Exception as exc:
             await ctx.send(exc)
 
-    @developer.command(aliases=["l"])
-    async def load(self, ctx: AvimetryContext, *module: str):
+    @Feature.Command(parent="jsk", name="load", aliases=["l"])
+    async def jsk_load(self, ctx: AvimetryContext, *module: str):
         """
         Load cogs.
         """
@@ -347,8 +310,8 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         embed = discord.Embed(title="Loaded cogs", description="\n".join(load_list))
         await ctx.send(embed=embed)
 
-    @developer.command(aliases=["u"])
-    async def unload(self, ctx: AvimetryContext, module: CogConverter):
+    @Feature.Command(parent="jsk", name="unload", aliases=["u"])
+    async def jsk_unload(self, ctx: AvimetryContext, module: CogConverter):
         """
         Unload cogs.
         """
@@ -362,8 +325,8 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         embed = discord.Embed(title="Unloaded cogs", description="\n".join(unload_list))
         await ctx.send(embed=embed)
 
-    @developer.command(aliases=["r"])
-    async def reload(self, ctx: AvimetryContext, module: CogConverter):
+    @Feature.Command(parent="jsk", name="reload", aliases=["r"])
+    async def jsk_reload(self, ctx: AvimetryContext, module: CogConverter):
         """
         Reload cogs
         """
@@ -378,7 +341,7 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         embed = discord.Embed(title="Reloaded cogs", description=description)
         await ctx.send(embed=embed)
 
-    @developer.command()
+    @Feature.Command(parent="jsk")
     async def sync(self, ctx: AvimetryContext):
         """
         Pulls from GitHub then reloads all modules.
@@ -418,34 +381,7 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         sync_embed.add_field(name="Reloaded Modules", value=value)
         await edit_sync.edit(embed=sync_embed)
 
-    @developer.command(aliases=["shutdown"])
-    async def reboot(self, ctx: AvimetryContext):
-        """
-        Reboot or shutdown the bot.
-        """
-        sm = discord.Embed(
-            description=f"Are you sure you want to {ctx.invoked_with}?"
-        )
-        conf = await ctx.confirm(embed=sm)
-        if conf.result:
-            await self.bot.close()
-        if not conf:
-            await conf.message.edit(content=f"{ctx.invoked_with.capitalize()} Aborted", embed=None, delete_after=5)
-
-    @developer.command()
-    async def eval(self, ctx: AvimetryContext, *, code: codeblock_converter):
-        """
-        Direct evaluation of python code.
-
-        This command is an alias of `jishaku py`.
-        """
-        jsk = self.bot.get_command("jsk py")
-        if jsk:
-            await jsk(ctx, argument=code)
-        else:
-            await ctx.send("Jishaku is not loaded.")
-
-    @developer.command(brief="Leaves a server.")
+    @Feature.Command(parent="jsk")
     async def leave(self, ctx: AvimetryContext, guild: discord.Guild):
         """
         Command to leave a guild that may be abusing the bot.
@@ -456,10 +392,7 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             return await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
         await conf.message.edit(content="Okay, Aborted.")
 
-    @developer.group(
-        invoke_without_command=True,
-        aliases=["bl"]
-    )
+    @Feature.Command(parent="jsk", aliases=["bl"])
     async def blacklist(self, ctx: AvimetryContext):
         """
         Show the User IDs for the currently blacklisted people.
@@ -472,7 +405,7 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         )
         await ctx.send(embed=embed)
 
-    @blacklist.command(name="add", aliases=["a"])
+    @Feature.Command(parent="blacklist", name="add", aliases=["a"])
     async def blacklist_add(self, ctx: AvimetryContext, user: discord.User, *, reason: ModReason = None):
         """
         Adds a user to the global blacklist.
@@ -497,10 +430,7 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         )
         await ctx.send(embed=embed)
 
-    @blacklist.command(
-        name="remove",
-        aliases=["r"]
-    )
+    @Feature.Command(parent="blacklist", name="remove", aliases=["r"])
     async def blacklist_remove(self, ctx: AvimetryContext, user: discord.User, *, reason=None):
         """
         Removes a user from the global blacklist.
@@ -514,7 +444,7 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         self.bot.cache.blacklist.pop(user.id)
         await ctx.send(f"Unblacklisted {user}. Reason: {reason}")
 
-    @developer.command()
+    @Feature.Command(parent="jsk")
     async def cleanup(self, ctx: AvimetryContext, amount: int = 15):
         """
         Delete only the bot messages.
@@ -528,7 +458,7 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         cog = self.bot.get_cog("moderation")
         await ctx.can_delete(embed=await cog.do_affected(purged))
 
-    @developer.command()
+    @Feature.Command(parent="jsk")
     async def maintenance(self, ctx: AvimetryContext, toggle: bool):
         """
         Enables maintenance mode.
@@ -542,7 +472,7 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         self.bot.maintenance = toggle
         await ctx.send(f"Maintenance mode has been {match[toggle]}")
 
-    @developer.command()
+    @Feature.Command(parent="jsk")
     async def cogs(self, ctx: AvimetryContext, cog: str = None):
         """
         Shows all the loaded cogs and how long ago they were loaded.
@@ -554,13 +484,13 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         embed = discord.Embed(title="Loaded Cogs", description='\n'.join(thing_list))
         await ctx.send(embed=embed)
 
-    @developer.command()
+    @Feature.Command(parent="jsk")
     async def guilds(self, ctx: AvimetryContext):
         source = GuildPageSource(ctx, guilds=self.bot.guilds)
         pages = AvimetryPages(source, ctx=ctx, disable_view_after=True)
         await pages.start()
 
-    @developer.group(invoke_without_command=True, aliases=["error"])
+    @Feature.Command(parent="jsk", invoke_without_command=True, aliases=["error"])
     async def errors(self, ctx: AvimetryContext):
         """
         Show all the errors in the bot.
@@ -573,7 +503,7 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             menu = AvimetryPages(ErrorSource(ctx, errors), ctx=ctx, delete_message_after=True)
             return await menu.start()
 
-    @errors.command()
+    @Feature.Command(parent="errors")
     async def fixed(self, ctx: AvimetryContext):
         """
         Shows all fixed errors.
@@ -586,7 +516,7 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             menu = AvimetryPages(ErrorSource(ctx, errors, per_page=2), ctx=ctx, delete_message_after=True)
             return await menu.start()
 
-    @errors.command()
+    @Feature.Command(parent="errors")
     async def fix(self, ctx: AvimetryContext, *error_id: int):
         """
         Marks an error as fixed.
@@ -607,7 +537,7 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 fix_list.append(f"Error ID {i} has been marked as fixed.")
         await ctx.send('\n'.join(fix_list))
 
-    @developer.command(aliases=["dmsg", "dmessage", "delmsg", "deletem", "deletemsg", "delmessage"])
+    @Feature.Command(parent="jsk", aliases=["dmsg", "dmessage", "delmsg", "deletem", "deletemsg", "delmessage"])
     async def deletemessage(self, ctx: AvimetryContext, message: discord.Message = None):
         if message is None and ctx.reference is not None:
             if ctx.reference.author == ctx.me:
@@ -620,4 +550,4 @@ class Developer(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
 
 def setup(bot: AvimetryBot):
-    bot.add_cog(Developer(bot=bot))
+    bot.add_cog(Owner(bot=bot))
