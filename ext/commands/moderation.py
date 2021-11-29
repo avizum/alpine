@@ -228,7 +228,7 @@ class Moderation(core.Cog):
         You can only purge up to 1000 messages at a time.
         """
         purged = await ctx.channel.purge(limit=amount, check=lambda m: not m.pinned, before=ctx.message)
-        await ctx.can_delete(embed=await self.do_affected(ctx, purged))
+        await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command(aliases=['user', 'person'])
     @core.has_permissions(manage_messages=True)

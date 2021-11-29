@@ -54,18 +54,19 @@ def naturalsize(size_in_bytes: int):
 
 
 class ErrorSource(menus.ListPageSource):
-    def __init__(self, ctx: AvimetryContext, errors, *, per_page=1):
+    def __init__(self, ctx: AvimetryContext, errors, *, title="Errors", per_page=1):
         super().__init__(entries=errors, per_page=per_page)
         self.ctx = ctx
+        self.title = title
 
     async def format_page(self, menu, page):
-        embed = discord.Embed(title=f"Errors ({self.get_max_pages()} errors)")
-        embed.add_field(
-            name=f"{page['command']} | `{page['id']}`",
-            value=f"```\n{page['error']}```",
-            inline=False
-        )
-        embed.color = await self.ctx.determine_color()
+        embed = discord.Embed(title=self.title, color=await self.ctx.determine_color())
+        for error in page:
+            embed.add_field(
+                name=f"{error['command']} | `{error['id']}`",
+                value=f"```\n{error['error']}```",
+                inline=False
+            )
         return embed
 
 
@@ -495,12 +496,13 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         Show all the errors in the bot.
         """
-        errors = await self.bot.pool.fetch('SELECT * FROM command_errors WHERE fixed = false')
+        errors = await self.bot.pool.fetch('SELECT * FROM command_errors WHERE fixed = False')
         if not errors:
             embed = discord.Embed(title="Errors", description="No active errors have been found.")
             return await ctx.send(embed=embed)
         else:
-            menu = AvimetryPages(ErrorSource(ctx, errors), ctx=ctx, delete_message_after=True)
+            menu = AvimetryPages(
+                ErrorSource(ctx, errors, title="Unfixed errors", per_page=4), ctx=ctx, delete_message_after=True)
             return await menu.start()
 
     @Feature.Command(parent="errors")
@@ -513,7 +515,8 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             embed = discord.Embed(title="Errors", description="No fixed errors have been found.")
             return await ctx.send(embed=embed)
         else:
-            menu = AvimetryPages(ErrorSource(ctx, errors, per_page=2), ctx=ctx, delete_message_after=True)
+            menu = AvimetryPages(
+                ErrorSource(ctx, errors, title="Fixed errors", per_page=4), ctx=ctx, delete_message_after=True)
             return await menu.start()
 
     @Feature.Command(parent="errors")
