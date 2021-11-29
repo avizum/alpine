@@ -226,8 +226,7 @@ class AvimetryContext(commands.Context):
                 if embeds:
                     message = await edited_message.edit(
                         content=content, embeds=embeds, allowed_mentions=allowed_mentions, view=view)
-            except Exception as exc:
-                print(exc)
+            except Exception:
                 self.message._edited_timestamp = None
                 message = await self.send(
                     content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
