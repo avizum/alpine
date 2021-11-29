@@ -107,6 +107,7 @@ class Setup(core.Cog):
             summary.append("This guild may be a bot farm.")
         summary.append(f"I am now in a total of {len(self.bot.guilds)} guilds.")
         embed = discord.Embed(title="New guild", description='\n'.join(summary), color=guild.owner.color)
+        embed.set_thumbnail(url=guild.icon.url)
         await self.guild_webhook.send(embed=embed, username="Joined Guild")
         if not guild.chunked:
             await guild.chunk()
@@ -135,11 +136,14 @@ class Setup(core.Cog):
         if self.bot.user.id != 756257170521063444:
             return
         await self.bot.cache.delete_all(guild.id)
+
         message = [
-            f"I got removed from a server named {guild.name}.",
-            f"I am now in {len(self.bot.guilds)} guilds."
+            f"I got removed from a server named {guild.name} ({guild.id}).",
+            f"Guild owner is {guild.owner}",
+            f"I am now in a total of {len(self.bot.guilds)} guilds."
         ]
-        await self.guild_webhook.send("\n".join(message), username="Left Guild")
+        embed = discord.Embed(title="Left Guild", description="\n".join(message))
+        await self.guild_webhook.send(embed=embed, username="Left Guild")
 
     @core.Cog.listener("on_command")
     async def on_command(self, ctx: AvimetryContext):
