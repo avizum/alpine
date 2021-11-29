@@ -59,7 +59,7 @@ logger.addHandler(handler)
 async def get_prefix(bot: "AvimetryBot", message: discord.Message):
     prefixes = [f"<@{bot.user.id}>", f"<@!{bot.user.id}>"]
     commands = ('dev', 'developer', 'jsk', 'jishaku')
-    if await bot.is_owner(message.author) and message.content.lower().startswith(commands):
+    if await bot.is_owner(message.author) and message.content.lower().startswith(commands) and message.guild:
         prefixes.append("")
     elif not message.guild:
         prefixes.extend(DEFAULT_PREFIXES)
@@ -172,7 +172,7 @@ class AvimetryBot(commands.Bot):
 
         @self.check
         async def check(ctx):
-            if not ctx.guild:
+            if not ctx.guild and not await self.is_owner(ctx.author):
                 raise commands.NoPrivateMessage()
             if ctx.author.id in self.cache.blacklist:
                 raise Blacklisted(reason=self.cache.blacklist[ctx.author.id])

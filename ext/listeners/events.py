@@ -39,6 +39,7 @@ class BotLogs(core.Cog):
     @core.Cog.listener("on_message")
     async def on_message(self, message: discord.Message):
         if (
+            not message.guild or
             message.author == self.bot.user or
             message.author.id == 80528701850124288 or
             message.guild.id == 336642139381301249
