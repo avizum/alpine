@@ -361,22 +361,6 @@ class Fun(core.Cog):
         await ctx.send(output)
 
     @core.command()
-    @core.cooldown(5, 100, commands.BucketType.user)
-    async def recursion(self, ctx: AvimetryContext):
-        """
-        Did you mean recursion?
-        """
-        embed = discord.Embed(
-            title="Invalid Command",
-            description='"recursion" was not found. Did you mean...\n`recursion`'
-        )
-        embed.set_footer(text=f'Use {ctx.prefix}help to see the whole list of commands.')
-        conf = await ctx.confirm(embed=embed)
-        if conf.result:
-            await ctx.message.delete()
-            await ctx.invoke(ctx.command)
-
-    @core.command()
     async def ifyouloveme(self, ctx: AvimetryContext):
         """
         LET ME GOOOOOOOOOOOOOOOOOOOO
