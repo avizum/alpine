@@ -143,7 +143,10 @@ class AvimetryPages(AvimetryView):
         if most <= 2:
             self.show_page_number.disabled = True
 
-        # Disable buttons if at first/last page
+        if page + 2 == most:
+            self.skip_to_last.disabled = True
+        if page == 1:
+            self.skip_to_first.disabled = True
         if page + 1 == most:
             self.go_forward_one.disabled = True
             self.skip_to_last.disabled = True

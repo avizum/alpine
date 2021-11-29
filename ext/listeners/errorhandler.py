@@ -274,15 +274,13 @@ class ErrorHandler(core.Cog):
         else:
             self.reset(ctx)
             DefaultFormatter().theme["_ansi_enabled"] = False
-            traceback = (
-                "".join(DefaultFormatter().format_exception(type(error), error, error.__traceback__))
-            )
+            traceback = f"```{''.join(DefaultFormatter().format_exception(type(error), error, error.__traceback__))}```"
             if len(traceback) > 4096:
                 traceback = f"Error was too long: {await self.bot.myst.post(traceback, 'bash')}"
 
             webhook_error_embed = discord.Embed(
                 title="An error has occured",
-                description=f"```py\n{traceback}```",
+                description=traceback,
             )
             error_embed = discord.Embed(title="An error has occured")
 
@@ -321,10 +319,10 @@ class ErrorHandler(core.Cog):
             view.add_item(
                 discord.ui.Button(style=discord.ButtonStyle.link, label="Support Server", url=self.bot.support)
             )
-            await ctx.send(embed=error_embed, view=view)
             await self.error_webhook.send(embed=webhook_error_embed, username="Command Error")
             print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
             tb.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+            await ctx.send(embed=error_embed, view=view)
 
 
 def setup(bot):
