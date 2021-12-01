@@ -202,7 +202,7 @@ class AvimetryContext(commands.Context):
         if content:
             content = str(content)
             for token in self.tokens:
-                content = content.replace(token, "[token omitted (trolled xdxd)]")
+                content = content.replace(token, "[configuration token omitted]")
             if len(content) >= 2000:
                 if paginate:
                     return await self.paginate(content)
@@ -220,12 +220,12 @@ class AvimetryContext(commands.Context):
         if self.message.id in self.bot.command_cache and self.message.edited_at:
             edited_message = self.bot.command_cache[self.message.id]
             try:
-                if embed:
-                    message = await edited_message.edit(
-                        content=content, embed=embed, allowed_mentions=allowed_mentions, view=view)
                 if embeds:
                     message = await edited_message.edit(
                         content=content, embeds=embeds, allowed_mentions=allowed_mentions, view=view)
+                else:
+                    message = await edited_message.edit(
+                        content=content, embed=embed, allowed_mentions=allowed_mentions, view=view)
             except Exception:
                 self.message._edited_timestamp = None
                 message = await self.send(
@@ -239,9 +239,9 @@ class AvimetryContext(commands.Context):
                 mention_author=mention_author, view=view)
         else:
             message = await self.reply(
-                    content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
-                    delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions,
-                    mention_author=mention_author, view=view)
+                content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
+                delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions,
+                mention_author=mention_author, view=view)
 
         self.bot.command_cache[self.message.id] = message
         return message

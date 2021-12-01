@@ -21,7 +21,11 @@ import datetime
 import jishaku
 import discord
 import sys
-import psutil
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
 import math
 
 import toml
@@ -117,38 +121,39 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         All other functionality is within its subcommands.
         """
         summary = [
-            f"Jishaku `v{jishaku.__version__}`, discord.py (official spork) `v{discord.__version__}`, "
+            f"Jishaku `v{jishaku.__version__}`, discord.py `v{discord.__version__}`, "
             f"Python `{sys.version}` on `{sys.platform}`, ".replace("\n", ""),
             f"Jishaku was loaded {timestamp(self.load_time, 'R')} "
             f"and module was loaded {timestamp(self.start_time, 'R')}.",
             ""
         ]
-        try:
-            proc = psutil.Process()
-            with proc.oneshot():
-                try:
-                    mem = proc.memory_full_info()
-                    summary.append(
-                        f"This process is using {naturalsize(mem.rss)} physical memory and "
-                        f"{naturalsize(mem.vms)} virtual memory, "
-                        f"{naturalsize(mem.uss)} of which is unique to this process."
-                    )
-                except psutil.AccessDenied:
-                    pass
+        if psutil:
+            try:
+                proc = psutil.Process()
+                with proc.oneshot():
+                    try:
+                        mem = proc.memory_full_info()
+                        summary.append(
+                            f"This process is using {naturalsize(mem.rss)} physical memory and "
+                            f"{naturalsize(mem.vms)} virtual memory, "
+                            f"{naturalsize(mem.uss)} of which is unique to this process."
+                        )
+                    except psutil.AccessDenied:
+                        pass
 
-                try:
-                    name = proc.name()
-                    pid = proc.pid
-                    tc = proc.num_threads()
-                    summary.append(
-                        f"This process is running on Process ID `{pid}` (`{name}`) with {tc} threads.")
-                except psutil.AccessDenied:
-                    pass
+                    try:
+                        name = proc.name()
+                        pid = proc.pid
+                        tc = proc.num_threads()
+                        summary.append(
+                            f"This process is running on Process ID `{pid}` (`{name}`) with {tc} threads.")
+                    except psutil.AccessDenied:
+                        pass
+                    summary.append("")
+
+            except psutil.AccessDenied:
+                summary.append("psutil is installed but this process does not have access to display this information")
                 summary.append("")
-
-        except psutil.AccessDenied:
-            summary.append("psutil is installed but this process does not have access to display this information")
-            summary.append("")
 
         guilds = f"{len(self.bot.guilds)} guilds"
         humans = f"{sum(not m.bot for m in self.bot.users)} humans"
@@ -186,7 +191,8 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         if discord.version_info >= (1, 5, 0):
             presence_intent = f"Presences intent `{'enabled' if self.bot.intents.presences else 'disabled'}`"
             members_intent = f"Members intent `{'enabled' if self.bot.intents.members else 'disabled'}`"
-            summary.append(f"{presence_intent} and {members_intent}.")
+            message_intent = f"Message intent `{'enabled' if self.bot.intents.messages else 'disabled'}`"
+            summary.append(f"{presence_intent}, {members_intent} and {message_intent}.")
         else:
             guild_subs = self.bot._connection.guild_subscriptions
             guild_subscriptions = f"`guild subscriptions` are `{'enabled' if guild_subs else 'disabled'}`"
