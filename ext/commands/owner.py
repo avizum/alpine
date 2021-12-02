@@ -204,19 +204,26 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         jishaku_embed = discord.Embed(description="\n".join(summary))
         await ctx.send(embed=jishaku_embed)
 
-    @Feature.Command(parent="jsk", name="shutdown", aliases=["fuckoff", "logout", "die", "reboot", "rb"])
-    async def jsk_shutdown(self, ctx: AvimetryContext):
+    @Feature.Command(parent="jsk", name="restart", aliases=["reboot", "rb", "rs"])
+    async def jsk_restart(self, ctx: AvimetryContext):
         """
-        Reboot or shutdown the bot.
+        Reboot the bot.
         """
-        sm = discord.Embed(
-            description=f"Are you sure you want to {ctx.invoked_with}?"
-        )
+        sm = discord.Embed(description="Are you sure you want to reboot?")
         conf = await ctx.confirm(embed=sm)
         if conf.result:
+            with open("reboot.toml", "w") as f:
+                toml.dump(
+                    {
+                        "message_id": conf.message.id,
+                        "channel_id": ctx.channel.id,
+                        "restart_time": datetime.datetime.now(tz=datetime.timezone.utc)
+                    }, f
+                )
+            await conf.message.edit(content="Rebooting...", embed=None)
             await self.bot.close()
         if not conf:
-            await conf.message.edit(content=f"{ctx.invoked_with.capitalize()} Aborted", embed=None, delete_after=5)
+            await conf.message.edit(content="Reboot aborted", embed=None, delete_after=5)
 
     @Feature.Command(parent="jsk", name="battery")
     async def jsk_battery(self, ctx: AvimetryContext):

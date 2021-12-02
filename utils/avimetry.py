@@ -169,6 +169,7 @@ class AvimetryBot(commands.Bot):
         self.loop.create_task(self.cache.cache_all())
         self.loop.create_task(self.load_extensions())
         self.loop.create_task(self.start_nodes())
+        self.loop.create_task(self.find_restart_message())
 
         @self.check
         async def check(ctx):
@@ -195,6 +196,20 @@ class AvimetryBot(commands.Bot):
                 self.load_extension(ext)
             except commands.ExtensionError as error:
                 print(error)
+
+    async def find_restart_message(self):
+        await self.wait_until_ready()
+        with open("reboot.toml", "r+") as f:
+            info = toml.loads(f.read())
+            if info:
+                channel = self.get_channel(info["channel_id"])
+                message = channel.get_partial_message(info["message_id"])
+                if message:
+                    now = datetime.datetime.now(tz=datetime.timezone.utc)
+                    await message.edit(
+                        content=f"Took {(now - info['restart_time']).seconds} seconds to restart.")
+                f.truncate(0)
+            f.close()
 
     async def start_nodes(self) -> None:
         await self.wait_until_ready()
