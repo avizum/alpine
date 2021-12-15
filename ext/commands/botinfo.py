@@ -280,7 +280,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             )
         )
         view = discord.ui.View(timeout=None)
-        view.add_item(discord.ui.Button(style=discord.ui.Button, url=self.bot.support, label="Source"))
+        view.add_item(discord.ui.Button(style=discord.ui.Button, url=self.bot.source, label="Source"))
         await ctx.send(embed=embed, view=view)
 
     @core.command(brief="Request a feature to be added to the bot.")
