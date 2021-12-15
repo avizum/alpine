@@ -238,10 +238,16 @@ class AvimetryContext(commands.Context):
                 delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference,
                 mention_author=mention_author, view=view)
         else:
-            message = await self.reply(
-                content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
-                delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions,
-                mention_author=mention_author, view=view)
+            try:
+                message = await self.reply(
+                    content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
+                    delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions,
+                    mention_author=mention_author, view=view)
+            except Exception:
+                message = await super().send(
+                    content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
+                    delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference,
+                    mention_author=mention_author, view=view)
 
         self.bot.command_cache[self.message.id] = message
         return message
@@ -253,7 +259,8 @@ class AvimetryContext(commands.Context):
         self, message=None, embed: discord.Embed = None, confirm_message=None, *,
         timeout=60, delete_after=False, no_reply=False, remove_view_after=True
     ):
-
+        if delete_after:
+            remove_view_after = False
         view = ConfirmView(member=self.author, timeout=timeout)
         check_message = confirm_message or 'Press "yes" to accept, or press "no" to deny.'
         if no_reply is True:

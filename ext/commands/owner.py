@@ -260,7 +260,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         Run a command in another channel.
         """
-        alt_ctx = await copy_context_with(ctx, channel=channel)
+        alt_ctx = await copy_context_with(ctx, channel=channel, content=f"{ctx.prefix}{command_string}")
         if alt_ctx.command is None:
             return await ctx.send(f'Command "{alt_ctx.invoked_with}" does not exist.')
         return await alt_ctx.command.invoke(alt_ctx)
