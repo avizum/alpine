@@ -350,7 +350,7 @@ class Meta(core.Cog):
         Get the docs for the discord.py library.
         """
         q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/stable/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Discord.py"), ctx=ctx)
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Discord.py"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
     @rtfm.command()
@@ -359,7 +359,7 @@ class Meta(core.Cog):
         Get the docs for the discord.py master branch library.
         """
         q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/master/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Discord.py 2.0"), ctx=ctx)
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Discord.py 2.0"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
     @rtfm.command(aliases=['py'])
@@ -368,7 +368,7 @@ class Meta(core.Cog):
         Get the docs for the latest Python version
         """
         q = await self.scraper.search(query, page="https://docs.python.org/3/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Python"), ctx=ctx)
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Python"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
     @rtfm.command(aliases=['ob'])
@@ -377,7 +377,7 @@ class Meta(core.Cog):
         Get the docs for the Obsidian.py library
         """
         q = await self.scraper.search(query, page="https://obsidianpy.readthedocs.io/en/latest/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Obsidian"), ctx=ctx)
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Obsidian"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
     @rtfm.command(aliases=['wl'])
@@ -386,7 +386,7 @@ class Meta(core.Cog):
         Get the docs for the Wavelink library
         """
         q = await self.scraper.search(query, page="https://wavelink.readthedocs.io/en/latest/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Wavelink"), ctx=ctx)
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Wavelink"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
     @rtfm.command(aliases=['c'])
@@ -398,7 +398,7 @@ class Meta(core.Cog):
             q = await self.scraper.search(query, page=doc_url)
         except Exception as e:
             return await ctx.send(e)
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Custom Docs"), ctx=ctx)
+        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Custom Docs"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
     @core.command()
