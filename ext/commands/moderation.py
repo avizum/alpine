@@ -20,6 +20,7 @@ import discord
 import datetime
 import humanize
 import core
+import utils
 
 from discord.ext import commands
 from utils import (
@@ -176,35 +177,68 @@ class Moderation(core.Cog):
 
         await ctx.send(embed=unban_embed)
 
-    @core.command()
-    @core.has_permissions(manage_messages=True)
-    @core.bot_has_permissions(manage_roles=True)
-    async def mute(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
-        """
-        Mute someone indefinitely.
-
-        You can not mute people with higher permissions than you.
-        This command mutes people indefinitely. For temporary mutes, use tempmute.
-        """
-        reason = reason or f"{ctx.author}: No reason provided"
-        role = await ctx.cache.get_guild_settings(ctx.guild.id)
-        mute_role = ctx.guild.get_role(role["mute_role"])
-        await member.add_roles(mute_role, reason=reason)
-        await ctx.send(f"{member.mention} has been muted indefinitely.")
-
-    @core.command(enabled=False)
-    @core.has_permissions(manage_messages=True)
-    @core.bot_has_permissions(manage_roles=True)
-    async def tempmute(
-        self, ctx: AvimetryContext, member: TargetMember, time: TimeConverter, *, reason: ModReason = None
+    @core.command(aliases=["timeout", "tempmute"])
+    @core.has_permissions(moderate_members=True)
+    @core.bot_has_permissions(moderate_members=True)
+    async def mute(
+        self, ctx: AvimetryContext, member: TargetMember, duration: TimeConverter, *, reason: ModReason = None
     ):
         """
         Temporarily mutes a member in the server.
 
-        This requres a muterole to be setup.
-        You can not mute people with higher permissions than you.
+        This uses the "Time Out" feature in discord.
+        The minumum mute time is 1 second and the maximum is 28 days. (Discord Limitation.)
+        You can not mute people that are higher than you in the role hierarchy.
         """
-        pass
+        if member.timed_out:
+            conf = await ctx.confirm(
+                f"{member.mention} is already muted. Do you want to overwrite their mute?", delete_after=True)
+            if not conf.result:
+                return await ctx.send("Okay, I won't replace their mute.", delete_after=10)
+        reason = reason or f"{ctx.author}: No reason provided."
+        dur = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=duration)
+        await member.edit(timeout_until=dur, reason=reason)
+        embed = discord.Embed(
+            title="Muted Member",
+            description=f"{member.mention} will be muted until {discord.utils.format_dt(dur)}.\nReason: {reason}"
+        )
+        await ctx.send(embed=embed)
+
+    @core.command(aliases=["untimeout", "untempmute"])
+    @core.has_permissions(moderate_members=True)
+    @core.bot_has_permissions(moderate_members=True)
+    async def unmute(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
+        """
+        Unmutes a member in the server.
+
+        This removes the time out from the member.
+        You can not unmute people that are higher than you in the role hierarchy.
+        """
+        reason = reason or f"{ctx.author}: No reason provided."
+        await member.edit(timeout_until=None, reason=reason)
+        await ctx.send(f"Unmuted {member}.")
+
+    @core.command()
+    @core.bot_has_permissions(moderate_members=True)
+    async def selfmute(self, ctx: AvimetryContext, duration: TimeConverter):
+        if ctx.author.top_role > ctx.me.top_role:
+            return await ctx.send("I can not mute you because your role is higher than mine.")
+        if duration > 86400 or duration < 300:
+            return await ctx.send("Self mute time must be over 5 minutes and under 1 day.")
+        dur = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=duration)
+        conf = await ctx.confirm(
+            f"Are you sure you want to mute yourself for {utils.format_seconds(duration, friendly=True)}?",
+            delete_after=True
+        )
+        if conf.result:
+            await ctx.author.edit(timeout_until=dur, reason=f"Self mute. Expires {dur}")
+            embed = discord.Embed(
+                title="Self muted",
+                description="You have been muted. Do not complain to the moderators about your decision."
+            )
+            await ctx.send(embed=embed)
+        else:
+            await conf.message.edit("Aborted.")
 
     async def do_affected(self, messages: list[discord.Message]):
         authors = {}
@@ -418,32 +452,6 @@ class Moderation(core.Cog):
         nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
         nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
-
-    @core.command()
-    @core.bot_has_permissions(ban_members=True)
-    @core.cooldown(1, 60, commands.BucketType.member)
-    async def selfban(self, ctx: AvimetryContext):
-        """
-        Ban yourself from the server.
-
-        This not actually ban you, this command is just a joke, Like you.
-        """
-        conf = await ctx.confirm("Are you sure you want to ban yourself?")
-        if conf.result:
-            return await ctx.send("Sike")
-
-    @core.command()
-    @core.bot_has_permissions(kick_members=True)
-    @core.cooldown(1, 60, commands.BucketType.member)
-    async def selfkick(self, ctx: AvimetryContext):
-        """
-        Kick yourself from the server.
-
-        This not actually kick you, this command is just a joke, Like you.
-        """
-        conf = await ctx.confirm("Are you sure you want to kick yourself?")
-        if conf.result:
-            return await ctx.send("Sike")
 
 
 def setup(bot: AvimetryBot):
