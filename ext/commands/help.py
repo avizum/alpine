@@ -160,7 +160,7 @@ class GroupHelp(menus.ListPageSource):
 
 
 class HelpSelect(discord.ui.Select):
-    def __init__(self, ctx: AvimetryContext, hc, cogs: list[core.Cog]):
+    def __init__(self, ctx: AvimetryContext, hc: "AvimetryHelp", cogs: list[core.Cog]):
         self.ctx = ctx
         self.hc = hc
         self.current_module = None
@@ -185,7 +185,7 @@ class HelpSelect(discord.ui.Select):
         elif self.values[0] == "Home":
             await self.view.edit_source(MainHelp(self.ctx, self.hc), interaction)
         else:
-            thing = CogHelp(self.ctx, cog.get_commands(), cog, self.hc)
+            thing = CogHelp(self.ctx, await self.hc.filter_commands(cog.get_commands()), cog, self.hc)
             await self.view.edit_source(thing, interaction)
             self.current_module = cog
 
@@ -253,7 +253,7 @@ class AvimetryHelp(commands.HelpCommand):
         for cog in mapping:
             if not cog:
                 continue
-            filtered = await self.filter_commands(cog.get_commands())
+            filtered = await self.filter_commands(cog.get_commands(), sort=True)
             if filtered:
                 items.append(cog)
         items.sort(key=lambda c: c.qualified_name)
@@ -306,7 +306,7 @@ class AvimetryHelp(commands.HelpCommand):
             name="Required Permissions",
             value=(
                 f"Can Use: {await self.can_run(command, self.context)}\n"
-                f"Bot Permissions: `{self.get_perms('bot_perms', command)}`\n"
+                f"Bot Permissions: `{self.get_perms('bot_permissions', command)}`\n"
                 f"User Permissions: `{self.get_perms('user_permissions', command)}`"),
             inline=False)
         cooldown = self.get_cooldown(command)
