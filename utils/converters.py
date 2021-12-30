@@ -69,7 +69,7 @@ class TimeConverter(commands.Converter):
 
 
 class ModReason(commands.Converter):
-    async def convert(self, ctx, argument=None):
+    async def convert(self, ctx, argument=None) -> str:
         reason = f"{ctx.author}: {argument}"
         if not argument:
             reason = f"{ctx.author}: No reason was provided."
@@ -80,7 +80,7 @@ class ModReason(commands.Converter):
 
 
 class TargetMember(commands.Converter):
-    async def convert(self, ctx: AvimetryContext, argument: discord.Member):
+    async def convert(self, ctx: AvimetryContext, argument: discord.Member) -> discord.Member:
         try:
             member = await commands.MemberConverter().convert(ctx, argument)
         except Exception:
@@ -123,7 +123,7 @@ class TargetMember(commands.Converter):
 
 
 class FindBan(commands.Converter):
-    async def convert(self, ctx: AvimetryContext, argument: str):
+    async def convert(self, ctx: AvimetryContext, argument: str) -> discord.Member | discord.User:
         try:
             user = await commands.UserConverter().convert(ctx, argument)
             try:
@@ -145,7 +145,7 @@ MAX_PREFIX_AMOUNT = 20
 
 
 class Prefix(commands.Converter):
-    async def convert(self, ctx: AvimetryContext, argument):
+    async def convert(self, ctx: AvimetryContext, argument) -> str:
         user_mention = re.findall(r"<@(!?)([0-9]*)>", argument)
         role_mention = re.findall(r"<@&(\d+)>", argument)
         channel_mention = re.findall(r"<#(\d+)>", argument)
