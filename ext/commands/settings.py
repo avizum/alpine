@@ -57,11 +57,12 @@ class Settings(core.Cog):
 
     @prefix.command(name="add", aliases=["append"])
     @core.has_permissions(manage_guild=True)
-    async def prefix_add(self, ctx: AvimetryContext, *, prefix: Prefix):
+    async def prefix_add(self, ctx: AvimetryContext, prefix: Prefix):
         """
         Adds a prefix to the server.
 
         Setting one prefix will remove the default prefix. Add it back if you want.
+        If you want the prefix to have a space make sure to wrap it in quotations.
         You can have up to 15 prefixes, each up to 20 characters.
         The prefix can not be a channel, role or member mention.
         """
@@ -72,9 +73,12 @@ class Settings(core.Cog):
 
     @prefix.command(name="remove")
     @core.has_permissions(manage_guild=True)
-    async def prefix_remove(self, ctx: AvimetryContext, *, prefix):
+    async def prefix_remove(self, ctx: AvimetryContext, prefix):
         """
         Removes a prefix from the server.
+
+        If the prefix you are trying to remove has spaces,
+        make sure to wrap it in quotations, else the prefix will not be found.
         """
         prefix = prefix.lower()
         guild_cache = await ctx.cache.get_guild_settings(ctx.guild.id)
@@ -91,31 +95,6 @@ class Settings(core.Cog):
 
         self.bot.cache.guild_settings[ctx.guild.id]["prefixes"].remove(prefix)
         await ctx.send(f"Removed `{prefix}` from the list of prefixes")
-
-    @core.command()
-    @core.has_permissions(manage_roles=True)
-    @core.bot_has_permissions(manage_roles=True)
-    async def muterole(self, ctx: AvimetryContext, role: discord.Role):
-        """
-        Set the server's mute role.
-
-        This command will update channel overwrites if you let it.
-        """
-        query = "UPDATE guild_settings SET mute_role = $1 WHERE guild_id = $2"
-        await self.bot.pool.execute(query, role.id, ctx.guild.id)
-        conf = await ctx.confirm("Should I edit this role to deny send messages in all channels?")
-        if conf.result:
-            for channel in ctx.guild.channels:
-                perms = channel.overwrites_for(role)
-                perms.update(send_messages=False)
-                await channel.set_permissions(
-                    target=role,
-                    overwrite=perms,
-                    reason=f"Mute role set to {role.name} by {ctx.author}"
-                )
-        await self.bot.pool.execute(query, role.id, ctx.guild.id)
-        self.bot.cache.guild_settings[ctx.guild.id]["mute_role"] = role.id
-        await ctx.send(f"Set the mute role to {role.mention}")
 
     @core.group(invoke_without_command=True)
     @core.has_permissions(manage_guild=True)

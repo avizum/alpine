@@ -104,9 +104,9 @@ class AvimetryBot(commands.Bot):
             activity=activity,
             intents=intents,
             status=discord.Status.idle,
-            strip_after_prefix=True,
             chunk_guilds_at_startup=True,
-            max_messages=5000
+            max_messages=5000,
+            slash_commands=False
         )
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
         self.owner_ids = OWNER_IDS

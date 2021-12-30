@@ -127,5 +127,4 @@ class AvimetryCache:
             item = dict(entry)
             item.pop("guild_id")
             self.join_leave[entry["guild_id"]] = item
-
         print("(Re)Cached.")
