@@ -53,14 +53,14 @@ class Fun(core.Cog):
         responses = [
             "As I see it, yes.", "Ask again later.",
             "Better not tell you now.", "Cannot predict now.",
-            "Concentrate and ask again.", "Don’t count on it.",
+            "Concentrate and ask again.", "Don't count on it.",
             "It is certain.", "It is decidedly so.",
             "Most likely.", "My reply is no.",
             "My sources say no.", "Outlook not so good.",
             "Outlook good.", "Reply hazy, try again.",
             "Signs point to yes.", "Very doubtful.",
             "Without a doubt.", "Yes.",
-            "Yes – definitely.", "You may rely on it.",
+            "Yes - definitely.", "You may rely on it.",
         ]
         if ctx.author.id in self.bot.owner_ids and question.lower().endswith(
             "\u200b"
@@ -156,20 +156,6 @@ class Fun(core.Cog):
         if member is None:
             return await ctx.send(f"{ctx.author.mention} facepalmed.")
         return await ctx.send(f"{ctx.author.mention} facepalmed because {member.mention} was being stupid.")
-
-    @core.command()
-    async def skin(self, ctx: AvimetryContext, member: discord.Member):
-        """
-        Sends a message saying you skinned someone.
-
-        Why? Because furries.
-        """
-        await ctx.message.delete()
-        if member == ctx.author:
-            emb = discord.Embed(description="You can't skin yourself, stupid")
-        else:
-            emb = discord.Embed(description=f"{member.mention} was skinned.")
-        await ctx.send(embed=emb)
 
     @core.command(aliases=["sd"])
     async def selfdestruct(self, ctx: AvimetryContext):

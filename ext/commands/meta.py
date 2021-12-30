@@ -191,11 +191,41 @@ class Meta(core.Cog):
                 ]
                 ie.add_field(name="Public Flags", value=", ".join(flags))
         ie.set_thumbnail(url=member.display_avatar.url)
-        view = discord.ui.View()
-        view.add_item(
-            discord.ui.Button(label="Profile", style=discord.ButtonStyle.link, url=f"discord://-/users/{member.id}")
-        )
-        await ctx.send(embed=ie, view=view)
+        await ctx.send(embed=ie)
+
+    @core.command()
+    @core.is_owner()
+    async def roleinfo(self, ctx: AvimetryContext, role: discord.Role):
+        embed = discord.Embed(title="Role Info")
+        embed.add_field(name="Created At", value=discord.utils.format_dt(role.created_at))
+        embed.add_field(name="Role ID", value=role.id)
+
+    @core.group(aliases=["members", "mc"])
+    async def membercount(self, ctx: AvimetryContext):
+        """
+        Show the member count.
+        """
+        tmc = len([m for m in ctx.guild.members if not m.bot])
+        tbc = len([m for m in ctx.guild.members if m.bot])
+        amc = ctx.guild.member_count
+        mce = discord.Embed(title=f"Member Count for {ctx.guild.name}")
+        mce.add_field(name="Members:", value=f"{tmc} members", inline=False)
+        mce.add_field(name="Bots:", value=f"{tbc} bots", inline=False)
+        mce.add_field(name="Total Members:", value=f"{amc} members", inline=False)
+        await ctx.send(embed=mce)
+
+    @membercount.command()
+    async def role(self, ctx: AvimetryContext, role: discord.Role):
+        """
+        Show the members in a role.
+        """
+        tmc = sum(not m.bot for m in role.members)
+        tbc = sum(m.bot for m in role.members)
+        mce = discord.Embed(title=f"Members in role: {role}")
+        mce.add_field(name="Members:", value=f"{tmc} members", inline=False)
+        mce.add_field(name="Bots:", value=f"{tbc} bots", inline=False)
+        mce.add_field(name="Members", value=", ".join(i.mention for i in role.members[:42]))
+        await ctx.send(embed=mce)
 
     @core.command()
     async def avatar(self, ctx: AvimetryContext, member: discord.Member = None):
@@ -481,7 +511,7 @@ class Meta(core.Cog):
     @core.is_owner()
     async def _(self, ctx):
         """
-        Placeholder command.
+        Congrats have a cookie! 🍪
         """
         return
 

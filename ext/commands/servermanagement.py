@@ -33,33 +33,6 @@ class ServerManagement(commands.Cog, name="Server Management"):
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.emoji = "<:server:913309745073504307>"
 
-    @core.group(aliases=["members", "mc"])
-    async def membercount(self, ctx: AvimetryContext):
-        """
-        Show the member count.
-        """
-        tmc = len([m for m in ctx.guild.members if not m.bot])
-        tbc = len([m for m in ctx.guild.members if m.bot])
-        amc = ctx.guild.member_count
-        mce = discord.Embed(title=f"Member Count for {ctx.guild.name}")
-        mce.add_field(name="Members:", value=f"{tmc} members", inline=False)
-        mce.add_field(name="Bots:", value=f"{tbc} bots", inline=False)
-        mce.add_field(name="Total Members:", value=f"{amc} members", inline=False)
-        await ctx.send(embed=mce)
-
-    @membercount.command()
-    async def role(self, ctx: AvimetryContext, role: discord.Role):
-        """
-        Show the members in a role.
-        """
-        tmc = sum(not m.bot for m in role.members)
-        tbc = sum(m.bot for m in role.members)
-        mce = discord.Embed(title=f"Members in role: {role}")
-        mce.add_field(name="Members:", value=f"{tmc} members", inline=False)
-        mce.add_field(name="Bots:", value=f"{tbc} bots", inline=False)
-        mce.add_field(name="Members", value=", ".join(i.mention for i in role.members[:42]))
-        await ctx.send(embed=mce)
-
     @core.group(invoke_without_command=True)
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)

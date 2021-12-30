@@ -68,6 +68,13 @@ class Setup(core.Cog):
                 if not dmed:
                     await message.channel.send('Hey, these DMs are logged and sent to the support server.')
                     cache['dmed'] = True
+                    query = (
+                        "INSERT INTO user_settings (user_id, dmed) "
+                        "VALUES ($1, $2) "
+                        "ON CONFLICT (user_id) DO "
+                        "UPDATE SET dmed = $2"
+                    )
+                    await self.bot.pool.execute(query, ctx.author.id, True)
             embed = discord.Embed(title=f"DM from {message.author}", description=message.content)
             embed.set_footer(text=message.author.id)
             ts = message.created_at.timestamp()
