@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import asyncio
 import datetime
 import discord
 import sys
@@ -135,23 +136,34 @@ class ErrorHandler(core.Cog):
                     continue
             match = get_close_matches(not_found, all_commands)
             if match:
-                embed = discord.Embed(title="Invalid Command")
-                embed.description = f'I couldn\'t find a command "{not_found}". Did you mean {match[0]}?'
-                bucket1 = self.not_found_cooldown_content.get_bucket(ctx.message).update_rate_limit()
-                bucket2 = self.not_found_cooldown.get_bucket(ctx.message).update_rate_limit()
-                if not bucket1 or not bucket2:
-                    conf = await ctx.confirm(embed=embed)
-                    if conf.result:
-                        if conf.result is False:
-                            await ctx.message.delete()
-                        new = copy.copy(ctx.message)
-                        new._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
-                        new.content = new.content.replace(ctx.invoked_with, match[0])
-                        ctx = await self.bot.get_context(new)
-                        try:
-                            await self.bot.invoke(ctx)
-                        except commands.CommandInvokeError:
-                            await ctx.send("Something failed while trying to invoke. Try again?")
+                await ctx.send(
+                    embed=discord.Embed(description=f"Running `{match[0]}` because it is similar to `{not_found}`..."))
+                await asyncio.sleep(1)
+                new = copy.copy(ctx.message)
+                new._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
+                new.content = new.content.replace(ctx.invoked_with, match[0])
+                new_ctx = await self.bot.get_context(new)
+                try:
+                    await self.bot.invoke(new_ctx)
+                except commands.CommandInvokeError:
+                    await ctx.send("Error occured while running close matched command.")
+                # embed = discord.Embed(title="Invalid Command")
+                # embed.description = f'I couldn\'t find a command "{not_found}". Did you mean {match[0]}?'
+                # bucket1 = self.not_found_cooldown_content.get_bucket(ctx.message).update_rate_limit()
+                # bucket2 = self.not_found_cooldown.get_bucket(ctx.message).update_rate_limit()
+                # if not bucket1 or not bucket2:
+                #     conf = await ctx.confirm(embed=embed)
+                #     if conf.result:
+                #         if conf.result is False:
+                #             await ctx.message.delete()
+                #         new = copy.copy(ctx.message)
+                #         new._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
+                #         new.content = new.content.replace(ctx.invoked_with, match[0])
+                #         ctx = await self.bot.get_context(new)
+                #         try:
+                #             await self.bot.invoke(ctx)
+                #         except commands.CommandInvokeError:
+                #             await ctx.send("Something failed while trying to invoke. Try again?")
 
         elif isinstance(error, commands.CommandOnCooldown):
             rate = error.cooldown.rate
