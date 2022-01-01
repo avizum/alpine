@@ -174,9 +174,7 @@ class AvimetryHelp(commands.HelpCommand):
             rate = command._buckets._cooldown.rate
             cd_type = command._buckets.type.name
             per = humanize.precisedelta(command._buckets._cooldown.per)
-            time = "time"
-            if rate > 1:
-                time = "times"
+            time = "times" if rate > 1 else "time"
             return f"{per} every {rate} {time} per {cd_type}"
         except AttributeError:
             return None

@@ -335,11 +335,10 @@ class AvimetryHelp(commands.HelpCommand):
                 description=f'"{string}" is not a command or module. Did you mean {match[0]}?'
             )
             conf = await self.context.confirm(embed=embed)
-            if conf.result:
-                self.context.message._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
-                return await self.send_command_help(self.context.bot.get_command(match[0]))
-            else:
+            if not conf.result:
                 return await conf.message.delete()
+            self.context.message._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
+            return await self.send_command_help(self.context.bot.get_command(match[0]))
         return await self.context.send("Command not found.")
 
     async def subcommand_not_found(self, command, string):

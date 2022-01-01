@@ -810,9 +810,8 @@ class Music(core.Cog):
         for m in members:
             if m == player.dj or m.bot:
                 continue
-            else:
-                player.dj = m
-                return await ctx.send(f'{member.mention} is now the DJ.')
+            player.dj = m
+            return await ctx.send(f'{member.mention} is now the DJ.')
 
 
 def setup(bot: AvimetryBot):
