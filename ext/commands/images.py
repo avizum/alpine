@@ -63,7 +63,7 @@ class Image(commands.Cog, name="Images"):
         dag_image = discord.File(fp=image.image, filename=f"{title}.{image.format}")
         url = f"attachment://{dag_image.filename}"
         embed.set_image(url=url)
-        await ctx.send(file=dag_image, embed=embed)
+        await ctx.send(file=dag_image, embed=embed, no_edit=True)
 
     async def do_embed(self, ctx, file: discord.File):
         url = f"attachment://{file.filename}"

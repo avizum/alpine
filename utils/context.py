@@ -26,6 +26,7 @@ from .avimetry import AvimetryBot
 from .gist import Gist
 from .view import AvimetryView
 from discord.ext import commands, menus
+from datetime import timedelta
 
 emoji_regex = '<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>'
 
@@ -197,60 +198,66 @@ class AvimetryContext(commands.Context):
         view: discord.ui.View = None,
         paginate: bool = None,
         post: bool = None,
-        no_reply: bool = None
+        no_reply: bool = None,
+        no_edit: bool = None,
+        return_message: bool = None,
+        ephemeral: bool = None
     ) -> discord.Message:
         if content:
-            content = str(content)
+            con = str(content)
             for token in self.tokens:
-                content = content.replace(token, "[configuration token omitted]")
+                content = con.replace(token, "[configuration token omitted]")
             if len(content) >= 2000:
                 if paginate:
-                    return await self.paginate(content)
+                    return await self.paginate(content, remove_view_after=True)
                 elif post:
-                    return await self.post(content, "txt", True)
+                    return await self.post(content, gist=True)
         if embed:
             if not embed.footer:
-                embed.set_footer(
-                    text=f"Requested by {self.author}",
-                    icon_url=self.author.display_avatar.url
-                )
+                embed.set_footer(text=f"Requested by: {self.author}", icon_url=self.author.display_avatar.url)
                 embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
             if not embed.color:
                 embed.color = await self.determine_color()
-        if self.message.id in self.bot.command_cache and self.message.edited_at:
-            edited_message = self.bot.command_cache[self.message.id]
-            try:
-                if embeds:
-                    message = await edited_message.edit(
-                        content=content, embeds=embeds, allowed_mentions=allowed_mentions, view=view)
-                else:
-                    message = await edited_message.edit(
-                        content=content, embed=embed, allowed_mentions=allowed_mentions, view=view)
-            except Exception:
-                self.message._edited_timestamp = None
-                message = await self.send(
-                    content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
-                    delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference,
-                    mention_author=mention_author, view=view, paginate=paginate, post=post)
-        elif no_reply:
-            message = await super().send(
-                content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
-                delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference,
-                mention_author=mention_author, view=view)
-        else:
-            try:
-                message = await self.reply(
-                    content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
-                    delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions,
-                    mention_author=mention_author, view=view)
-            except Exception:
+        if self._typing_task is not None:
+            self._typing_task.cancel()
+            self._typing_task = None
+
+        if self.interaction is None or (
+            self.interaction.response.responded_at is not None
+            and discord.utils.utcnow() - self.interaction.response.responded_at >= timedelta(minutes=15)
+        ):
+            if self.message.id in self.bot.command_cache and self.message.edited_at and not no_edit:
+                if embed and not embeds:
+                    embeds = [embed] or None
+                message = await self.bot.command_cache[self.message.id].edit(
+                    content, embeds=embeds, delete_after=delete_after,
+                    allowed_mentions=allowed_mentions, view=view
+                )
+            else:
+                reference = None if no_reply else reference or self.message
                 message = await super().send(
                     content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
-                    delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference,
-                    mention_author=mention_author, view=view)
+                    delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions,
+                    reference=reference, mention_author=mention_author, view=view)
+            self.bot.command_cache[self.message.id] = message
+            return message
 
-        self.bot.command_cache[self.message.id] = message
-        return message
+        if not (
+            return_message
+            or self.interaction.response.is_done()
+            # or any(arg in kwargs for arg in ("file", "files", "allowed_mentions"))
+        ):
+            send = self.interaction.response.send_message
+        else:
+            # We have to defer in order to use the followup webhook
+            if not self.interaction.response.is_done():
+                await self.interaction.response.defer(ephemeral=ephemeral)
+
+            send = self.interaction.followup.send
+
+        return await send(
+            content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, delete_after=delete_after,
+            allowed_mentions=allowed_mentions, view=view)  # type: ignore
 
     def codeblock(self, content: str, language: str = 'py'):
         return f"```{language}\n{content}\n```"

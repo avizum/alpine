@@ -144,7 +144,8 @@ class ServerManagement(commands.Cog, name="Server Management"):
         Create a role with the name, color.
         """
         reason = reason or f"{ctx.author}: No reason provided"
-        await ctx.guild.create_role(name=name, color=color, reason=reason)
+        r = await ctx.guild.create_role(name=name, color=color, reason=reason)
+        await ctx.send(f"Created {r}")
 
 
 def setup(bot: AvimetryBot):

@@ -22,6 +22,8 @@ import typing
 import asyncio
 import random
 import core
+import roblox
+import contextlib
 
 from discord.ext import commands
 from akinator.async_aki import Akinator
@@ -227,8 +229,9 @@ class Games(core.Cog):
         self.bot = bot
         self.emoji = "\U0001f3ae"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
+        self.rclient = roblox.Client(self.bot.settings["Roblox"])
 
-    @core.command(aliases=["\U0001F36A", "vookir", "kookie"])
+    @core.group(aliases=["\U0001F36A", "vookir", "kookie"])
     @commands.cooldown(5, 10, commands.BucketType.member)
     @commands.max_concurrency(2, commands.BucketType.channel)
     async def cookie(self, ctx: AvimetryContext, member: typing.Optional[discord.Member] = None):
@@ -286,6 +289,29 @@ class Games(core.Cog):
                 cookie_embed.description = f"{user.mention} got the cookie in **{total_second}**"
                 await cd_cookie.remove_reaction("\U0001F36A", ctx.me)
                 return await cd_cookie.edit(embed=cookie_embed)
+
+    @cookie.command()
+    @commands.cooldown(5, 10, commands.BucketType.member)
+    @commands.max_concurrency(2, commands.BucketType.channel)
+    async def button(self, ctx):
+        """
+        Grab the cookie! (Button Edition)
+
+        Just like the cookie command but it uses buttons instead of reactions.
+        """
+        view = CookieView(10, ctx)
+        m = await ctx.send('Ready!?!?')
+        view.message = m
+        await asyncio.sleep(random.randint(1, 12))
+        await m.edit(content='GO?!!!!!', view=view)
+        with Timer() as timer:
+            await view.wait()
+        thing = timer.total_time * 1000
+        total_second = f"**{thing:.2f}ms**"
+        if thing > 1000:
+            gettime = thing / 1000
+            total_second = f"**{gettime:.2f}s**"
+        await m.edit(f"Winner: {view.winner} in {total_second}", view=None)
 
     async def remove(self, message: discord.Message, emoji, user, perm: bool):
         if not perm:
@@ -462,6 +488,74 @@ class Games(core.Cog):
                     total_second = f"**{gettime:.2f}s**"
                 embed.description = f"{user.mention} got the {random_emoji} in {total_second}"
                 return await first.edit(embed=embed)
+
+    @core.group()
+    async def roblox(self, ctx: AvimetryContext):
+        """
+        Base command for all the ROBLOX commands.
+
+        All functionality is found in the subcommands.
+        """
+        await ctx.send_help(ctx.command)
+
+    @roblox.group()
+    async def user(self, ctx: AvimetryContext, name_or_id: str | int):
+        """
+        Gets ROBLOX User Information.
+        """
+        async with ctx.channel.typing():
+            user = None
+            with contextlib.suppress(roblox.UserNotFound):
+                user = await self.rclient.get_user_by_username(name_or_id)
+            with contextlib.suppress(roblox.UserNotFound):
+                user = await self.rclient.get_user(name_or_id)
+
+            if user:
+                embed = discord.Embed(title=f"Roblox User: {user.name}")
+                embed.add_field(name="Display Name", value=user.display_name, inline=True)
+                embed.add_field(name="User ID", value=user.id, inline=True)
+                embed.add_field(name="Description", value=user.description or "No Description", inline=False)
+                embed.add_field(name="Status", value=await user.get_status() or "No Status", inline=True)
+                pres = await user.get_presence()
+                presence = pres.last_location or "Not Found"
+                embed.add_field(name="Last Location", value=presence, inline=True)
+                embed.add_field(name="Friends", value=await user.get_friend_count(), inline=True)
+                embed.add_field(name="Followers", value=await user.get_follower_count(), inline=True)
+                embed.add_field(name="Following", value=await user.get_following_count(), inline=True)
+                past = await user.username_history(max_items=10).flatten()
+                if past:
+                    embed.add_field(name="Past Usernames", value=", ".join(past), inline=True)
+                else:
+                    embed.add_field(name="\u200b", value="\u200b", inline=True)
+                embed.add_field(name="Join Date", value=discord.utils.format_dt(user.created), inline=True)
+                embed.add_field(name="Last Online", value=discord.utils.format_dt(pres.last_online), inline=True)
+                user_thumbnails = await self.rclient.thumbnails.get_user_avatar_thumbnails(
+                    users=[user],
+                    type=roblox.AvatarThumbnailType.headshot,
+                    size=(100, 100)
+                )
+                if len(user_thumbnails) > 0:
+                    user_thumbnail = user_thumbnails[0]
+                    embed.set_thumbnail(url=user_thumbnail.image_url)
+                user_thumbnails = await self.rclient.thumbnails.get_user_avatar_thumbnails(
+                    users=[user],
+                    type=roblox.AvatarThumbnailType.full_body,
+                    size=(250, 250)
+                )
+                if len(user_thumbnails) > 0:
+                    user_thumbnail = user_thumbnails[0]
+                    embed.set_image(url=user_thumbnail.image_url)
+                return await ctx.send(embed=embed)
+            return await ctx.send("Could not find any users.")
+
+    @user.command()
+    async def search(self, ctx: AvimetryContext, *query: int | str):
+        try:
+            a = await self.rclient.get_users(query) or await self.rclient.get_users_by_usernames(query)
+            
+            await ctx.send(a)
+        except Exception as e:
+            await ctx.send(e)
 
 
 def setup(bot: AvimetryBot):

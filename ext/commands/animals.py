@@ -44,7 +44,7 @@ class Animals(core.Cog):
             description=f"Powered by Some Random API\nProcessed in `{timer.total_time:,.2f}ms`"
         )
         embed.set_image(url=f"attachment://{animal}.png")
-        await ctx.send(file=file, embed=embed)
+        await ctx.send(file=file, embed=embed, no_edit=True)
 
     @core.command()
     async def dog(self, ctx: AvimetryContext):

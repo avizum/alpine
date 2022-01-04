@@ -190,6 +190,8 @@ class Moderation(core.Cog):
         The minumum mute time is 1 second and the maximum is 28 days. (Discord Limitation.)
         You can not mute people that are higher than you in the role hierarchy.
         """
+        if duration > 2419200 or duration < 60:
+            return await ctx.send("Mute time must be over 1 minute and under 28 days.")
         if member.timed_out:
             conf = await ctx.confirm(
                 f"{member.mention} is already muted. Do you want to overwrite their mute?", delete_after=True)
