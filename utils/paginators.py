@@ -66,7 +66,7 @@ class ButtonPages(AvimetryView):
             await interaction.response.edit_message(view=None)
         elif self.delete_message_after:
             await interaction.message.delete()
-        await self.ctx.message.add_reaction(self.ctx.bot.emoji_dictionary["green_tick"])
+        await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")
         self.stop()
 
     async def get_page_kwargs(self, page: int):
@@ -203,7 +203,7 @@ class AvimetryPages(AvimetryView):
                 await self.message.delete()
             except discord.NotFound:
                 pass
-        await self.ctx.message.add_reaction(self.ctx.bot.emoji_dictionary["green_tick"])
+        await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")
 
     async def start(self):
         await self.source._prepare_once()
@@ -281,7 +281,7 @@ class AvimetryPages(AvimetryView):
             await interaction.response.edit_message(view=None)
         elif self.delete_message_after:
             await interaction.message.delete()
-        await self.ctx.message.add_reaction(self.ctx.bot.emoji_dictionary["green_tick"])
+        await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")
         self.stop()
 
 

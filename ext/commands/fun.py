@@ -52,21 +52,21 @@ class Fun(core.Cog):
         """
         responses = [
             "It is certain.", "It is decidedly so.",
-            "Without a doubt.", "Yes, definitely",
-            "You may rely on it", "As I see it, yes.",
-            "Most Likely.", "Outlook good."
+            "Without a doubt.", "Yes, definitely.",
+            "You may rely on it.", "As I see it, yes.",
+            "Most Likely.", "Outlook good.",
             "Yes.", "Signs point to yes.",
             "Certainly.", "Very certain.",
             "Absolutely.", "Definitely",
-            "Yeah."
+            "Yeah.",
 
             "Reply hazy, try again.", "Ask again later.",
-            "Better tell you later", "Better not tell you now.",
+            "Better tell you later.", "Better not tell you now.",
             "Can not predict now.", "Concentrate and ask again.",
-            "Go away." f"Try again {ctx.author.display_name}.",
-            "THINK HARDER AND TRY AGAIN", "You again?"
+            "Go away.", f"Try again {ctx.author.display_name}.",
+            "THINK HARDER AND TRY AGAIN.", "You again?",
 
-            "No", "As I see it, no."
+            "No.", "As I see it, no.",
             "Don't count on it.", "My reply is no.",
             "No, definately not.", "My sources say no.",
             "Outlook not so good.", "Very doubtful.",

@@ -229,7 +229,7 @@ class Games(core.Cog):
         self.bot = bot
         self.emoji = "\U0001f3ae"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
-        self.rclient = roblox.Client(self.bot.settings["Roblox"])
+        self.rclient = roblox.Client(self.bot.settings["api_tokens"]["Roblox"])
 
     @core.group(aliases=["\U0001F36A", "vookir", "kookie"])
     @commands.cooldown(5, 10, commands.BucketType.member)
@@ -300,10 +300,15 @@ class Games(core.Cog):
         Just like the cookie command but it uses buttons instead of reactions.
         """
         view = CookieView(10, ctx)
-        m = await ctx.send('Ready!?!?')
-        view.message = m
+        cookie_embed = discord.Embed(
+            title="Get the cookie!",
+            description="Get ready to grab the cookie!")
+        cookie_message = await ctx.send(embed=cookie_embed)
+        view.message = cookie_message
         await asyncio.sleep(random.randint(1, 12))
-        await m.edit(content='GO?!!!!!', view=view)
+        cookie_embed.title = "GO!"
+        cookie_embed.description = "GET THE COOKIE NOW!"
+        await cookie_message.edit(embed=cookie_embed, view=view)
         with Timer() as timer:
             await view.wait()
         thing = timer.total_time * 1000
@@ -311,7 +316,9 @@ class Games(core.Cog):
         if thing > 1000:
             gettime = thing / 1000
             total_second = f"**{gettime:.2f}s**"
-        await m.edit(f"Winner: {view.winner} in {total_second}", view=None)
+        cookie_embed.title = "Nice!"
+        cookie_embed.description = f"{view.winner.mention} got the cookie in **{total_second}**"
+        return await cookie_message.edit(embed=cookie_embed, view=None)
 
     async def remove(self, message: discord.Message, emoji, user, perm: bool):
         if not perm:
