@@ -117,7 +117,7 @@ class Track(wavelink.Track):
     def __init__(self, *args, **kwargs):
         super().__init__(*args)
 
-        self.thumb = kwargs.get('thumb', None)
+        self.thumb = kwargs.get('thumb')
         self.requester = kwargs.get('requester')
 
 

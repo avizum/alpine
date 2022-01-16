@@ -29,7 +29,7 @@ def to_list(thing):
 class AvimetryCommand(commands.Command):
     def __init__(self, func, **kwargs):
         self.user_permissions = to_list(
-            kwargs.get('user_permissions', None) or
+            kwargs.get('user_permissions') or
             getattr(func, 'user_permissions', ["send_messages"]) or
             kwargs.get('extras', {}).get('user_permissions')
         )
