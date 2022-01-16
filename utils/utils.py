@@ -105,17 +105,15 @@ def format_seconds(seconds: float, *, friendly: bool = False) -> str:
         hour = f'{hours}h ' if hours != 0 or not days == 0 else ''
         minsec = f'{minutes}m {seconds}s'
         return f"{day}{hour}{minsec}"
-    else:
-        day = f'{days:02d}:' if days != 0 else ''
-        hour = f'{hours:02d}:' if hours != 0 or days != 0 else ''
-        minsec = f"{minutes:02d}:{seconds:02d}"
+    day = f'{days:02d}:' if days != 0 else ''
+    hour = f'{hours:02d}:' if hours != 0 or days != 0 else ''
+    minsec = f"{minutes:02d}:{seconds:02d}"
     return f"{day}{hour}{minsec}"
 
 
 def format_times(number: int) -> str:
     if number == 1:
         return "once"
-    elif number == 2:
+    if number == 2:
         return "twice"
-    else:
-        return f"{number} times"
+    return f"{number} times"

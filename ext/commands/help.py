@@ -182,7 +182,7 @@ class HelpSelect(discord.ui.Select):
         cog = self.ctx.bot.get_cog(self.values[0])
         if self.current_module == cog:
             return
-        elif self.values[0] == "Home":
+        if self.values[0] == "Home":
             await self.view.edit_source(MainHelp(self.ctx, self.hc), interaction)
         else:
             thing = CogHelp(self.ctx, await self.hc.filter_commands(cog.get_commands()), cog, self.hc)
@@ -338,8 +338,7 @@ class AvimetryHelp(commands.HelpCommand):
             if conf.result:
                 self.context.message._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
                 return await self.send_command_help(self.context.bot.get_command(match[0]))
-            else:
-                return await conf.message.delete()
+            return await conf.message.delete()
         return await self.context.send("Command not found.")
 
     async def subcommand_not_found(self, command, string):

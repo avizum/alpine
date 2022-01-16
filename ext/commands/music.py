@@ -146,8 +146,7 @@ class Player(wavelink.Player):
             if tracks:
                 if bulk:
                     return tracks
-                else:
-                    return tracks[0]
+                return tracks[0]
             return tracks
         except Exception:
             return await self.node.get_playlist(wavelink.YouTubePlaylist, f"{search_type}{query}")
@@ -332,8 +331,7 @@ class Music(core.Cog):
     async def cog_command_error(self, ctx, error):
         if isinstance(error, NotInVoice):
             return await ctx.send("You must be in a voice channel to use this command.")
-        else:
-            ctx.eh = True
+        ctx.eh = True
 
     async def cog_check(self, ctx: AvimetryContext):
         """Cog wide check, which disallows commands in DMs."""
@@ -384,8 +382,7 @@ class Music(core.Cog):
         if player:
             if player.channel == channel:
                 return await ctx.send("Already in channel.")
-            else:
-                return await player.move_to(channel)
+            return await player.move_to(channel)
 
         player = Player(context=ctx)
         voice_client = await channel.connect(cls=player)

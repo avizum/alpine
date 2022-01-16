@@ -210,7 +210,7 @@ class AvimetryContext(commands.Context):
             if len(content) >= 2000:
                 if paginate:
                     return await self.paginate(content, remove_view_after=True)
-                elif post:
+                if post:
                     return await self.post(content, gist=True)
         if embed:
             if not embed.footer:

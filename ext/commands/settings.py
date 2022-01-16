@@ -643,7 +643,7 @@ class Settings(core.Cog):
         if str(command) in ["help", "ping", "disable", "disable channel", "enable",
                             "enable_channel", "source", "credits", "about"]:
             return await ctx.send("This command can not be disabled.")
-        elif str(command) in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]:
+        if str(command) in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]:
             return await ctx.send("This command is already disabled.")
         query = "UPDATE guild_settings SET disabled_commands = ARRAY_APPEND(disabled_commands, $2) WHERE guild_id = $1"
         ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"].append(str(command))

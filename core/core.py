@@ -23,8 +23,7 @@ from discord.ext import commands
 def to_list(thing):
     if isinstance(thing, str):
         return [thing]
-    else:
-        return list(thing)
+    return list(thing)
 
 
 class AvimetryCommand(commands.Command):

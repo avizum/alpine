@@ -513,10 +513,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         if not errors:
             embed = discord.Embed(title="Errors", description="No active errors have been found.")
             return await ctx.send(embed=embed)
-        else:
-            menu = AvimetryPages(
-                ErrorSource(ctx, errors, title="Unfixed errors", per_page=4), ctx=ctx, delete_message_after=True)
-            return await menu.start()
+        menu = AvimetryPages(
+            ErrorSource(ctx, errors, title="Unfixed errors", per_page=4), ctx=ctx, delete_message_after=True)
+        return await menu.start()
 
     @Feature.Command(parent="errors")
     async def fixed(self, ctx: AvimetryContext):
@@ -527,10 +526,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         if not errors:
             embed = discord.Embed(title="Errors", description="No fixed errors have been found.")
             return await ctx.send(embed=embed)
-        else:
-            menu = AvimetryPages(
-                ErrorSource(ctx, errors, title="Fixed errors", per_page=4), ctx=ctx, delete_message_after=True)
-            return await menu.start()
+        menu = AvimetryPages(
+            ErrorSource(ctx, errors, title="Fixed errors", per_page=4), ctx=ctx, delete_message_after=True)
+        return await menu.start()
 
     @Feature.Command(parent="errors")
     async def fix(self, ctx: AvimetryContext, *error_id: int):
