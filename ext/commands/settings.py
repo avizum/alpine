@@ -22,7 +22,7 @@ import datetime
 import core
 
 from discord.ext import commands
-from utils import AvimetryBot, AvimetryContext, Prefix, preview_message
+from utils import AvimetryBot, AvimetryContext, Prefix, preview_message, GetCommand
 
 
 class Settings(core.Cog):
@@ -631,6 +631,64 @@ class Settings(core.Cog):
         await self.bot.pool.execute(query, ctx.guild.id, channel.id)
         ctx.cache.verification[ctx.guild.id]["channel_id"] = channel.id
         return await ctx.send(f"Set verification channel to {channel.mention}")
+
+    @core.group()
+    @core.has_permissions(manage_guild=True)
+    async def disable(self, ctx: AvimetryContext, command: GetCommand):
+        """
+        Disable a command in the current server.
+
+        Disabling core commands is not allowed.
+        """
+        if str(command) in ["help", "ping", "disable", "disable channel", "enable",
+                            "enable_channel", "source", "credits", "about"]:
+            return await ctx.send("This command can not be disabled.")
+        elif str(command) in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]:
+            return await ctx.send("This command is already disabled.")
+        query = "UPDATE guild_settings SET disabled_commands = ARRAY_APPEND(disabled_commands, $2) WHERE guild_id = $1"
+        ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"].append(str(command))
+        await self.bot.pool.execute(query, ctx.guild.id, str(command))
+        await ctx.send(f"{command} is now disabled in this server.")
+
+    @disable.command(name="channel")
+    @core.has_permissions(manage_guild=True)
+    async def disable_channel(self, ctx, channel: discord.abc.GuildChannel):
+        """
+        Disable the bot in a channel.
+
+        Adding a channel to the list will completely disable commands.
+        """
+        if channel.id in ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"]:
+            return await ctx.send("Commands in this channel are already disabled.")
+        query = "UPDATE guild_settings SET disabled_channels = ARRAY_APPEND(disabled_channels, $2) WHERE guild_id = $1"
+        ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"].append(channel.id)
+        await self.bot.pool.execute(query, ctx.guild.id, channel.id)
+        await ctx.send(f"Commands run in {channel.mention} will no longer work.")
+
+    @core.group()
+    @core.has_permissions(manage_guild=True)
+    async def enable(self, ctx: AvimetryContext, command: GetCommand):
+        """
+        Enable a disabled command in this server.
+        """
+        if str(command) not in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]:
+            return await ctx.send("This command is not disabled.")
+        query = "UPDATE guild_settings SET disabled_commands = ARRAY_REMOVE(disabled_commands, $2) WHERE guild_id = $1"
+        ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"].remove(str(command))
+        await self.bot.pool.execute(query, ctx.guild.id, str(command))
+        await ctx.send(f"{command} is no longer disabled in this server.")
+
+    @enable.command(name="channel")
+    async def enable_channel(self, ctx, channel: discord.abc.GuildChannel):
+        """
+        Allow the bot to work again in a channel.
+        """
+        if channel.id not in ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"]:
+            return await ctx.send("Commands in this channel are not disabled.")
+        query = "UPDATE guild_settings SET disabled_channels = ARRAY_REMOVE(disabled_channels, $2) WHERE guild_id = $1"
+        ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"].remove(channel.id)
+        await self.bot.pool.execute(query, ctx.guild.id, channel.id)
+        await ctx.send(f"Commands run in {channel.mention} are now enabled.")
 
     @core.group(invoke_without_command=True, case_insensitive=True)
     @commands.cooldown(1, 60, commands.BucketType.user)

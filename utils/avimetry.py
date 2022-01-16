@@ -33,7 +33,7 @@ import core
 
 from discord.ext import commands
 from core import AvimetryCommand, AvimetryGroup
-from .exceptions import Blacklisted, Maintenance
+from .exceptions import Blacklisted, Maintenance, CommandDisabledGuild, CommandDisabledChannel
 from .cache import AvimetryCache
 
 
@@ -166,7 +166,7 @@ class AvimetryBot(commands.Bot):
         self.dagpi = asyncdagpi.Client(api["DagpiAPI"], session=self.session)
         self.myst = mystbin.Client(session=self.session)
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
-        self.loop.create_task(self.cache.cache_all())
+        self.loop.create_task(self.cache.populate_cache())
         self.loop.create_task(self.load_extensions())
         self.loop.create_task(self.start_nodes())
         self.loop.create_task(self.find_restart_message())
@@ -177,6 +177,10 @@ class AvimetryBot(commands.Bot):
                 raise commands.NoPrivateMessage()
             if ctx.author.id in self.cache.blacklist:
                 raise Blacklisted(reason=self.cache.blacklist[ctx.author.id])
+            if str(ctx.command) in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]:
+                raise CommandDisabledGuild()
+            if ctx.channel.id in ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"]:
+                raise CommandDisabledChannel()
             if ctx.bot.maintenance is True:
                 raise Maintenance()
             return True

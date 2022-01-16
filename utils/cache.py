@@ -29,6 +29,7 @@ class AvimetryCache:
         self.logging = {}
         self.join_leave = {}
         self.blacklist = {}
+        self.disabled_commmand = {}
         self.users = {}
         self.highlights = {}
 
@@ -91,7 +92,7 @@ class AvimetryCache:
         new = self.guild_settings[guild_id] = deepcopy({"prefixes": []})
         return new
 
-    async def cache_all(self):
+    async def populate_cache(self):
         guild_settings = await self.bot.pool.fetch("SELECT * FROM guild_settings")
         verification = await self.bot.pool.fetch("SELECT * FROM verification")
         logging = await self.bot.pool.fetch("SELECT * FROM logging")
@@ -99,7 +100,7 @@ class AvimetryCache:
         users = await self.bot.pool.fetch("SELECT * FROM user_settings")
         blacklist = await self.bot.pool.fetch("SELECT * FROM blacklist")
 
-        print("(Re)Caching...")
+        print("Populating Cache...")
         for entry in guild_settings:
             settings = dict(entry)
             settings.pop("guild_id")
@@ -127,4 +128,4 @@ class AvimetryCache:
             item = dict(entry)
             item.pop("guild_id")
             self.join_leave[entry["guild_id"]] = item
-        print("(Re)Cached.")
+        print("Cache Populated.")

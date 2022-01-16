@@ -214,3 +214,11 @@ class GetAvatar(commands.Converter):
             except Exception:
                 return None
         raise commands.MemberNotFound(argument)
+
+
+class GetCommand(commands.Converter):
+    async def convert(self, ctx: AvimetryContext, argument: str):
+        command = ctx.bot.get_command(argument)
+        if not command:
+            raise commands.BadArgument(f"{argument} is not a command.")
+        return command

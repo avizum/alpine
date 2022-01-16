@@ -25,7 +25,9 @@ import core
 import copy
 
 from prettify_exceptions import DefaultFormatter
-from utils import AvimetryBot, AvimetryContext, Blacklisted, Maintenance, NotGuildOwner
+from utils import (
+    AvimetryBot, AvimetryContext, Blacklisted, Maintenance,
+    NotGuildOwner, CommandDisabledGuild, CommandDisabledChannel)
 from discord.ext import commands
 from difflib import get_close_matches
 
@@ -76,6 +78,7 @@ class ErrorHandler(core.Cog):
             commands.MissingAnyRole,
             commands.MissingPermissions,
             commands.MissingRole,
+            commands.DisabledCommand,
             Maintenance,
             Blacklisted
         )
@@ -105,7 +108,7 @@ class ErrorHandler(core.Cog):
         if isinstance(error, Maintenance):
             bucket = self.maintenance_cooldown.get_bucket(ctx.message).update_rate_limit()
             if not bucket:
-                return await ctx.send(f'{self.bot.user.name} has maintenance mode enabled. Try again later.')
+                return await ctx.send('Maintenance mode is enabled. Try again later.')
 
         if isinstance(error, commands.NoPrivateMessage):
             embed = discord.Embed(
@@ -248,9 +251,14 @@ class ErrorHandler(core.Cog):
                 return await ctx.send_help(ctx.command)
             return
 
+        elif isinstance(error, CommandDisabledGuild):
+            return await ctx.send("You can not use this command, It is disabled in this server.")
+
+        elif isinstance(error, CommandDisabledChannel):
+            return await ctx.send("Commands have been disabled in this channel.")
+
         elif isinstance(error, commands.DisabledCommand):
-            return await ctx.send(
-                "This command is not enabled at the moment.")
+            return await ctx.send("This command is not enabled at the moment.")
 
         elif isinstance(error, commands.BadArgument):
             self.reset(ctx)

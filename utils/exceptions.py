@@ -51,3 +51,13 @@ class PrivateServer(commands.CheckFailure):
 
 class Maintenance(commands.CheckFailure):
     pass
+
+
+class CommandDisabledGuild(commands.DisabledCommand):
+    """Used when command is disabled in guild"""
+    pass
+
+
+class CommandDisabledChannel(commands.DisabledCommand):
+    """Used when command is disabled in channel"""
+    pass
