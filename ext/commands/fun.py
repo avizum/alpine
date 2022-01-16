@@ -252,8 +252,7 @@ class Fun(core.Cog):
         if data["over_18"]:
             if ctx.channel.is_nsfw():
                 return await ctx.send(embed=embed)
-            else:
-                return await ctx.send("NSFW posts can't be sent in non-nsfw channels.")
+            return await ctx.send("NSFW posts can't be sent in non-nsfw channels.")
         return await ctx.send(embed=embed)
 
     @core.command()
