@@ -84,7 +84,7 @@ class AutoPageSource(menus.ListPageSource):
             if lang:
                 entries = [f"```{lang}\n{entry[i:i+limit]}```" for i in range(0, len(entry), limit)]
             else:
-                entries = [entry[i:i+limit] for i in range(0, len(entry), limit)]
+                entries = [entry[i:i + limit] for i in range(0, len(entry), limit)]
         elif isinstance(entry, commands.Paginator):
             entries = entry.pages
         super().__init__(entries, per_page=1)
@@ -227,18 +227,23 @@ class AvimetryContext(commands.Context):
             and discord.utils.utcnow() - self.interaction.response.responded_at >= timedelta(minutes=15)
         ):
             if self.message.id in self.bot.command_cache and self.message.edited_at and not no_edit:
-                if embed and not embeds:
-                    embeds = [embed] or None
                 message = await self.bot.command_cache[self.message.id].edit(
-                    content, embeds=embeds, delete_after=delete_after,
+                    content, embed=embed, delete_after=delete_after,
                     allowed_mentions=allowed_mentions, view=view
                 )
             else:
-                reference = None if no_reply else reference or self.message
-                message = await super().send(
-                    content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
-                    delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions,
-                    reference=reference, mention_author=mention_author, view=view)
+                try:
+                    reference = None if no_reply else reference
+                    message = await super().send(
+                        content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
+                        delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions,
+                        reference=reference, mention_author=mention_author, view=view)
+                except Exception as e:
+                    print(e)
+                    message = await super().send(
+                        content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
+                        delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions,
+                        reference=reference, mention_author=mention_author, view=view)
             self.bot.command_cache[self.message.id] = message
             return message
 

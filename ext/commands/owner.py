@@ -406,7 +406,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             return await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
         await conf.message.edit(content="Okay, Aborted.")
 
-    @Feature.Command(parent="jsk", aliases=["bl"])
+    @Feature.Command(parent="jsk", aliases=["bl"], invoke_without_command=True)
     async def blacklist(self, ctx: AvimetryContext):
         """
         Show the User IDs for the currently blacklisted people.

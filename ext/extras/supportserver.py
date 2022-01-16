@@ -29,18 +29,44 @@ URL_REGEX = re.compile(
     r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.\
         [^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})")
 
-REACTION_ROLE_ID = 828830074080985138
-REACTION_ROLES_EMOJIS = {
-    828446615135191100: 828437716429570128,
-    828445765772509234: 828437885820076053
-}
 
-ROLE_MAP = {
-    828830074080985138: {
-        828446615135191100: 828437716429570128,
-        828445765772509234: 828437885820076053
-    }
-}
+class ButtonRole(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(style=discord.ButtonStyle.blurple, label="General Channels", custom_id="828437885820076053")
+    async def general_channels(self, button: discord.Button, interaction: discord.Interaction):
+        if interaction.guild_id != 751490725555994716:
+            return
+        guild = interaction.guild
+        role = guild.get_role(int(button.custom_id))
+        member = interaction.user
+        if isinstance(member, discord.User):
+            return
+        if role in member.roles:
+            await member.remove_roles(role)
+            return await interaction.response.send_message(
+                "You have been removed access from the General Channels.", ephemeral=True
+            )
+        await member.add_roles(role)
+        return await interaction.response.send_message("You now have access to the General Channels.", ephemeral=True)
+
+    @discord.ui.button(style=discord.ButtonStyle.blurple, label="Avimetry Support", custom_id="927077897318047854")
+    async def avimetry_channels(self, button: discord.Button, interaction: discord.Interaction):
+        if interaction.guild_id != 751490725555994716:
+            return
+        guild = interaction.guild
+        role = guild.get_role(int(button.custom_id))
+        member = interaction.user
+        if isinstance(member, discord.User):
+            return
+        if role in member.roles:
+            await member.remove_roles(role)
+            return await interaction.response.send_message(
+                "You have been removed access from the Avimetry Support Channels.", ephemeral=True
+            )
+        await member.add_roles(role)
+        return await interaction.response.send_message("You now have access to the Avimetry Channels.", ephemeral=True)
 
 
 class Servers(commands.Cog, name="Servers"):
@@ -56,6 +82,8 @@ class Servers(commands.Cog, name="Servers"):
         self.member_channel = 783960970472456232
         self.bot_channel = 783961050814611476
         self.total_channel = 783961111060938782
+        if ButtonRole() not in self.bot.persistent_views:
+            bot.add_view(ButtonRole())
 
     def cog_check(self, ctx: AvimetryContext):
         if ctx.guild.id not in self.guild_id:
@@ -64,54 +92,6 @@ class Servers(commands.Cog, name="Servers"):
 
     def get(self, channel_id: int):
         return self.bot.get_channel(channel_id)
-
-    @core.Cog.listener()
-    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-        if payload.user_id in self.bot.cache.blacklist:
-            return
-        try:
-            emojis = ROLE_MAP[payload.message_id]
-        except KeyError:
-            return
-        guild = self.bot.get_guild(payload.guild_id)
-        if guild is None:
-            return
-        try:
-            role_id = emojis[payload.emoji.id]
-        except KeyError:
-            return
-
-        role = guild.get_role(role_id)
-        if role is None:
-            return
-        try:
-            await payload.member.add_roles(role)
-        except Exception:
-            return
-
-    @core.Cog.listener()
-    async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
-        try:
-            emojis = ROLE_MAP[payload.message_id]
-        except KeyError:
-            return
-        guild = self.bot.get_guild(payload.guild_id)
-        if guild is None:
-            return
-        try:
-            role_id = emojis[payload.emoji.id]
-        except KeyError:
-            return
-        role = guild.get_role(role_id)
-        if role is None:
-            return
-        member = guild.get_member(payload.user_id)
-        if member is None:
-            return
-        try:
-            await member.remove_roles(role)
-        except Exception:
-            return
 
     @tasks.loop(minutes=5)
     async def update_count(self):

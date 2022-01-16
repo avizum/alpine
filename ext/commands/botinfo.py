@@ -101,9 +101,9 @@ class BotInfo(commands.Cog, name="Bot Info"):
         credit_list = [
             (self.bot.get_user(750135653638865017), 'Developer', 'https://github.com/avizum'),
             (self.bot.get_user(80088516616269824), 'Developer of discord.py', 'https://github.com/Rapptz'),
+            (self.bot.get_user(171539705043615744), 'Error Tracking', 'https://github.com/iDutchy'),
             (self.bot.get_user(547280209284562944), 'Testing', 'https://github.com/LereUwU'),
             (self.bot.get_user(672122220566413312), 'Avatar', 'https://discord.com/users/672122220566413312'),
-            (self.bot.get_user(171539705043615744), 'Help Command, Error Tracking', 'https://github.com/iDutchy'),
             (self.bot.get_user(733370212199694467), 'Contributor', 'https://github.com/MrArkon/'),
             (self.bot.get_user(797044260196319282), 'Noob', 'https://github.com/jottew')
         ]

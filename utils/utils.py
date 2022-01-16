@@ -25,9 +25,7 @@ def format_string(number, value):
     """
     "Humanizes" a name, Ex: 1 time, 2 times
     """
-    if number == 1:
-        return f"{number} {value}"
-    return f"{number} {value}s"
+    return f"{number} {value}" if number == 1 else f"{number} {value}s"
 
 
 def format_list(list):
@@ -112,3 +110,12 @@ def format_seconds(seconds: float, *, friendly: bool = False) -> str:
         hour = f'{hours:02d}:' if hours != 0 or days != 0 else ''
         minsec = f"{minutes:02d}:{seconds:02d}"
     return f"{day}{hour}{minsec}"
+
+
+def format_times(number: int) -> str:
+    if number == 1:
+        return "once"
+    elif number == 2:
+        return "twice"
+    else:
+        return f"{number} times"

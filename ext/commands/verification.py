@@ -110,7 +110,7 @@ class MemberJoin(core.Cog):
         randomkey = "".join(random.choice(letters) for i in range(10))
 
         try:
-            await member.send("**Here is your key. Your key will expire after 1 minute of inactivity.**")
+            await member.send(f"**Here is your key. Send it in {ctx.channel.mention}. This key will expire in one minute.**")
             await member.send(f"{randomkey}")
         except discord.Forbidden:
             keyforbidden = discord.Embed()
@@ -143,13 +143,14 @@ class MemberJoin(core.Cog):
                 await ctx.author.send(embed=timeup)
                 break
             else:
-                await send_message.delete()
-                message = self.messages.get(member.id)
-                if message:
-                    await message.delete()
                 if msg.content != randomkey:
-                    await msg.add_reaction(self.bot.emoji_dictionary["red_tick"])
+                    await msg.delete(delay=5)
+                    pass
                 else:
+                    await send_message.delete()
+                    message = self.messages.get(member.id)
+                    if message:
+                        await message.delete()
                     await msg.delete(delay=5)
                     await member.add_roles(role)
                     break
