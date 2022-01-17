@@ -24,6 +24,6 @@ from .converters import TimeConverter, ModReason, TargetMember, FindBan, Prefix,
 from .exceptions import TimeZoneError, BlacklistWarn, Blacklisted, PrivateServer, Maintenance, NotGuildOwner, CommandDisabledGuild, CommandDisabledChannel
 from .utils import Timer, format_string, format_list, timestamp, format_seconds
 from .parser import preview_message
-from .gist import Gist
+from .gist import GistClient, GistFile, GistResponse
 from .paginators import AvimetryPages
 from .view import AvimetryView

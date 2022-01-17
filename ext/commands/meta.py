@@ -29,7 +29,7 @@ from doc_search import AsyncScraper
 from pytz import UnknownTimeZoneError
 from discord.ext import commands, menus
 from jishaku.codeblocks import codeblock_converter
-from utils import AvimetryBot, AvimetryContext, TimeZoneError, GetAvatar, Gist, timestamp, AvimetryPages
+from utils import AvimetryBot, AvimetryContext, TimeZoneError, GetAvatar, timestamp, AvimetryPages, GistClient, GistFile
 
 
 class RTFMPageSource(menus.ListPageSource):
@@ -478,12 +478,11 @@ class Meta(core.Cog):
 
         These gists are public and if you want to get one removed, DM Avimetry or join the support server.
         """
-        gist = Gist(self.bot, self.bot.session)
-        lang = code.language or 'txt'
+        gist = GistClient(self.bot.settings["api_tokens"]["GitHub"], self.bot.session)
+        file_post = GistFile(filename=f"output{code.language or 'txt'}", content=code.content)
         out = await gist.post(
-            filename=f"output.{lang}",
             description=f"{ctx.author} at {datetime.datetime.now(datetime.timezone.utc).strftime('%x %X')}",
-            content=code.content
+            files=[file_post], public=True, raw=False
         )
         await ctx.send(f"These gists are posted publicly. DM me to get it removed.\n{out}")
 

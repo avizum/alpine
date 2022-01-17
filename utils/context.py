@@ -23,7 +23,7 @@ import re
 import typing
 
 from .avimetry import AvimetryBot
-from .gist import Gist
+from .gist import GistClient, GistFile
 from .view import AvimetryView
 from discord.ext import commands, menus
 from datetime import timedelta
@@ -144,8 +144,9 @@ class AvimetryContext(commands.Context):
 
     async def post(self, content, syntax: str = 'py', gist: bool = False):
         if gist:
-            gist = Gist(self.bot, self.bot.session)
-            link = await gist.post(filename=f"output.{syntax}", description=str(self.author), content=content)
+            gist_client = GistClient(self.bot.settings["api_tokens"]["GitHub"], self.bot.session)
+            gist_file = [GistFile(filename=f"output.{syntax}", content=content)]
+            link = await gist_client.post(description=str(self.author), files=gist_file, public=True, raw=False)
         else:
             link = await self.bot.myst.post(content, syntax=syntax)
         embed = discord.Embed(
@@ -233,7 +234,7 @@ class AvimetryContext(commands.Context):
                 )
             else:
                 try:
-                    reference = None if no_reply else reference
+                    reference = None if no_reply else self.message
                     message = await super().send(
                         content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
                         delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions,
