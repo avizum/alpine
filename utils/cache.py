@@ -89,7 +89,9 @@ class AvimetryCache:
             await self.bot.pool.execute("INSERT INTO guild_settings VALUES ($1)", guild_id)
         except Exception:
             pass
-        new = self.guild_settings[guild_id] = deepcopy({"prefixes": []})
+        new = self.guild_settings[guild_id] = deepcopy(
+            {"prefixes": [], "disabled_commands": [], "disabled_channels": [], "auto_unarchive": []}
+        )
         return new
 
     async def populate_cache(self):

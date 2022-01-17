@@ -33,6 +33,14 @@ class ServerManagement(commands.Cog, name="Server Management"):
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.emoji = "<:server:913309745073504307>"
 
+    @core.Cog.listener()
+    async def on_thread_update(self, before: discord.Thread, after: discord.Thread):
+        if before.id not in self.bot.cache.guild_settings[before.guild.id]["auto_unarchive"]:
+            return
+
+        if before.archived is False and after.archived is True:
+            await after.edit(archived=False)
+
     @core.group(invoke_without_command=True)
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)

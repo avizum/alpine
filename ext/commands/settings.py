@@ -679,6 +679,7 @@ class Settings(core.Cog):
         await ctx.send(f"{command} is no longer disabled in this server.")
 
     @enable.command(name="channel")
+    @core.has_permissions(manage_guild=True)
     async def enable_channel(self, ctx, channel: discord.abc.GuildChannel):
         """
         Allow the bot to work again in a channel.
@@ -689,6 +690,43 @@ class Settings(core.Cog):
         ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"].remove(channel.id)
         await self.bot.pool.execute(query, ctx.guild.id, channel.id)
         await ctx.send(f"Commands run in {channel.mention} are now enabled.")
+
+    @core.group(alias="au")
+    @core.has_permissions(manage_guild=True)
+    async def autounarchive(self, ctx):
+        """
+        Auto Unarchive threads.
+
+        This command on its own will not do anything.
+        All the functionality is in its subcommands.
+        """
+        await ctx.send_help(ctx.command)
+
+    @autounarchive.command(name="add")
+    async def au_add(self, ctx, thread: discord.Thread):
+        """
+        Add a thread to the list to be automatically unarchived.
+        """
+        auto_unarchive = self.bot.cache.guild_settings[ctx.guild.id]["auto_unarchive"]
+        if thread.id in auto_unarchive:
+            return await ctx.send("This channel is already being automatically unarchived.")
+        auto_unarchive.append(thread.id)
+        query = "UPDATE guild_settings SET auto_unarchive = ARRAY_APPEND(auto_unarchive, $2) WHERE guild_id = $1"
+        await self.bot.pool.execute(query, ctx.guild.id, thread.id)
+        await ctx.send(f"{thread} will be unarchived automatically.")
+
+    @autounarchive.command(name="remove")
+    async def au_remove(self, ctx, thread: discord.Thread):
+        """
+        Remove a thread from the list to be automatically unarchived.
+        """
+        auto_unarchive = self.bot.cache.guild_settings[ctx.guild.id]["auto_unarchive"]
+        if thread.id not in auto_unarchive:
+            return await ctx.send("This channel is not being automatically unarchived.")
+        auto_unarchive.remove(thread.id)
+        query = "UPDATE guild_settings SET auto_unarchive = ARRAY_REMOVE(auto_unarchive, $2) WHERE guild_id = $1"
+        await self.bot.pool.execute(query, ctx.guild.id, thread.id)
+        await ctx.send(f"{thread} will no longer be unarchived automatically.")
 
     @core.group(invoke_without_command=True, case_insensitive=True)
     @commands.cooldown(1, 60, commands.BucketType.user)
