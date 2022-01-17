@@ -33,11 +33,14 @@ class Fun(core.Cog):
     """
     Fun commands for you and friends.
     """
+
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.emoji = "\U0001f3b1"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
-        self._cd = commands.CooldownMapping.from_cooldown(1.0, 60.0, commands.BucketType.user)
+        self._cd = commands.CooldownMapping.from_cooldown(
+            1.0, 60.0, commands.BucketType.user
+        )
 
     async def do_mock(self, string: str):
         return "".join(random.choice([mock.upper, mock.lower])() for mock in string)
@@ -51,26 +54,41 @@ class Fun(core.Cog):
         This command is not meant for actual advice.
         """
         responses = [
-            "It is certain.", "It is decidedly so.",
-            "Without a doubt.", "Yes, definitely.",
-            "You may rely on it.", "As I see it, yes.",
-            "Most Likely.", "Outlook good.",
-            "Yes.", "Signs point to yes.",
-            "Certainly.", "Very certain.",
-            "Absolutely.", "Definitely",
+            "It is certain.",
+            "It is decidedly so.",
+            "Without a doubt.",
+            "Yes, definitely.",
+            "You may rely on it.",
+            "As I see it, yes.",
+            "Most Likely.",
+            "Outlook good.",
+            "Yes.",
+            "Signs point to yes.",
+            "Certainly.",
+            "Very certain.",
+            "Absolutely.",
+            "Definitely",
             "Yeah.",
-
-            "Reply hazy, try again.", "Ask again later.",
-            "Better tell you later.", "Better not tell you now.",
-            "Can not predict now.", "Concentrate and ask again.",
-            "Go away.", f"Try again {ctx.author.display_name}.",
-            "THINK HARDER AND TRY AGAIN.", "You again?",
-
-            "No.", "As I see it, no.",
-            "Don't count on it.", "My reply is no.",
-            "No, definately not.", "My sources say no.",
-            "Outlook not so good.", "Very doubtful.",
-            "You have got to be kidding me.", "Oh God, NO."
+            "Reply hazy, try again.",
+            "Ask again later.",
+            "Better tell you later.",
+            "Better not tell you now.",
+            "Can not predict now.",
+            "Concentrate and ask again.",
+            "Go away.",
+            f"Try again {ctx.author.display_name}.",
+            "THINK HARDER AND TRY AGAIN.",
+            "You again?",
+            "No.",
+            "As I see it, no.",
+            "Don't count on it.",
+            "My reply is no.",
+            "No, definately not.",
+            "My sources say no.",
+            "Outlook not so good.",
+            "Very doubtful.",
+            "You have got to be kidding me.",
+            "Oh God, NO.",
         ]
         ballembed = discord.Embed(title=":8ball: Magic 8 Ball")
         ballembed.add_field(name="Question:", value=f"{question}", inline=False)
@@ -90,7 +108,9 @@ class Fun(core.Cog):
         if member == self.bot.user or member.bot:
             await ctx.send("Nope.")
         elif member == ctx.author:
-            await ctx.send("You tried to shoot yourself in the head, but you couldn't because I won't let you :)")
+            await ctx.send(
+                "You tried to shoot yourself in the head, but you couldn't because I won't let you :)"
+            )
         else:
             author = ctx.author.mention
             member = member.mention
@@ -125,7 +145,13 @@ class Fun(core.Cog):
     @core.command()
     @core.bot_has_permissions(manage_webhooks=True)
     @commands.cooldown(1, 120, commands.BucketType.user)
-    async def copy(self, ctx: AvimetryContext, member: typing.Union[discord.User, discord.Member], *, text):
+    async def copy(
+        self,
+        ctx: AvimetryContext,
+        member: typing.Union[discord.User, discord.Member],
+        *,
+        text,
+    ):
         """
         Makes it look like a person said something.
 
@@ -139,23 +165,27 @@ class Fun(core.Cog):
         avimetry_webhook = discord.utils.get(webhooks, name="Avimetry")
         if not avimetry_webhook:
             avimetry_webhook = await ctx.channel.create_webhook(
-                name="Avimetry", reason="For Avimetry copy command.",
-                avatar=await self.bot.user.display_avatar.read())
+                name="Avimetry",
+                reason="For Avimetry copy command.",
+                avatar=await self.bot.user.display_avatar.read(),
+            )
         await avimetry_webhook.send(
-            text, username=member.display_name,
+            text,
+            username=member.display_name,
             avatar_url=member.avatar.replace(format="png"),
-            allowed_mentions=discord.AllowedMentions.none())
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
 
-    @core.command(
-        aliases=["fp", "facep", "fpalm"]
-    )
+    @core.command(aliases=["fp", "facep", "fpalm"])
     async def facepalm(self, ctx: AvimetryContext, member: discord.Member = None):
         """
         Sends a message saying you hit your head.
         """
         if member is None:
             return await ctx.send(f"{ctx.author.mention} facepalmed.")
-        return await ctx.send(f"{ctx.author.mention} facepalmed because {member.mention} was being stupid.")
+        return await ctx.send(
+            f"{ctx.author.mention} facepalmed because {member.mention} was being stupid."
+        )
 
     @core.command(aliases=["sd"])
     async def selfdestruct(self, ctx: AvimetryContext):
@@ -163,10 +193,11 @@ class Fun(core.Cog):
         Self desctruct?!?!! Who put that there?!!?
         """
         if await self.bot.is_owner(ctx.author):
-            command = self.bot.get_command('dev reboot')
+            command = self.bot.get_command("dev reboot")
             return await command(ctx)
         a = discord.Embed(
-            description=f"{ctx.author.mention} self destructed due to overloaded fuel canisters")
+            description=f"{ctx.author.mention} self destructed due to overloaded fuel canisters"
+        )
         await ctx.send(embed=a)
 
     @core.command()
@@ -177,23 +208,32 @@ class Fun(core.Cog):
         Funny am I right?
         """
         if mention == ctx.author:
-            embed = discord.Embed(description=f"{ctx.author.mention} drop kicked themselves. Amazing.")
+            embed = discord.Embed(
+                description=f"{ctx.author.mention} drop kicked themselves. Amazing."
+            )
         else:
             embed = discord.Embed(
-                description=f"{ctx.author.mention} dropkicked {mention.mention}, killing them.")
+                description=f"{ctx.author.mention} dropkicked {mention.mention}, killing them."
+            )
         await ctx.send(embed=embed)
 
     @core.command()
-    async def ship(self, ctx: AvimetryContext, person1: discord.Member, person2: discord.Member):
+    async def ship(
+        self, ctx: AvimetryContext, person1: discord.Member, person2: discord.Member
+    ):
         """
         Check if someone is compatible with someone.
         """
         if 750135653638865017 in (person1.id, person2.id):
-            return await ctx.send(f"{person1.mention} and {person2.mention} are 0% compatible with each other")
+            return await ctx.send(
+                f"{person1.mention} and {person2.mention} are 0% compatible with each other"
+            )
         if person1 == person2:
             return await ctx.send("That's not how that works")
         percent = random.randint(0, 100)
-        await ctx.send(f"{person1.mention} and {person2.mention} are {percent}% compatible with each other")
+        await ctx.send(
+            f"{person1.mention} and {person2.mention} are {percent}% compatible with each other"
+        )
 
     @core.command(aliases=["pp", "penis", "penissize"])
     async def ppsize(self, ctx: AvimetryContext, member: discord.Member = None):
@@ -203,7 +243,7 @@ class Fun(core.Cog):
         member = member or ctx.author
         pp_embed = discord.Embed(
             title=f"{member.name}'s pp size",
-            description=f"8{'=' * random.randint(1, 12)}D"
+            description=f"8{'=' * random.randint(1, 12)}D",
         )
         await ctx.send(embed=pp_embed)
 
@@ -218,11 +258,17 @@ class Fun(core.Cog):
         """
         if subreddit.startswith("r/"):
             subreddit = subreddit.replace("r/", "")
-        async with self.bot.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
+        async with self.bot.session.get(
+            f"https://www.reddit.com/r/{subreddit}.json"
+        ) as content:
             if content.status == 404:
-                return await ctx.send("This subreddit does not exist. Please check your spelling and try again.")
+                return await ctx.send(
+                    "This subreddit does not exist. Please check your spelling and try again."
+                )
             if content.status != 200:
-                return await ctx.send("There has been a problem at Reddit. Please try again later.")
+                return await ctx.send(
+                    "There has been a problem at Reddit. Please try again later."
+                )
             stuff = await content.json()
         get_data = stuff["data"]["children"]
         if not get_data:
@@ -237,7 +283,7 @@ class Fun(core.Cog):
         embed = discord.Embed(
             title=data["title"],
             url=f"https://reddit.com{data['permalink']}",
-            description=desc
+            description=desc,
         )
         url = data["url"]
         embed.set_image(url=url)
@@ -247,7 +293,7 @@ class Fun(core.Cog):
                 f"<:upvote:818730949662867456> {data['ups']} "
                 f"<:downvote:818730935829659665> {data['downs']}\n"
                 f"Upvote ratio: {data['upvote_ratio']}\n"
-            )
+            ),
         )
         if data["over_18"]:
             if ctx.channel.is_nsfw():
@@ -308,8 +354,12 @@ class Fun(core.Cog):
         if member is None:
             member = ctx.author
         if await self.bot.is_owner(member):
-            return await ctx.send(f"{member.mention} is **{random.randint(0, 10)}%** gay :rainbow:")
-        return await ctx.send(f"{member.mention} is **{random.randint(10, 100)}%** gay :rainbow:")
+            return await ctx.send(
+                f"{member.mention} is **{random.randint(0, 10)}%** gay :rainbow:"
+            )
+        return await ctx.send(
+            f"{member.mention} is **{random.randint(10, 100)}%** gay :rainbow:"
+        )
 
     @core.command()
     async def height(self, ctx: AvimetryContext):
@@ -322,14 +372,14 @@ class Fun(core.Cog):
 
         def check(message: discord.Message):
             return message.author == ctx.author and message.channel == ctx.channel
+
         try:
             height = await self.bot.wait_for("message", check=check, timeout=60)
         except asyncio.TimeoutError:
             await ctx.send("You didn't respond in time!")
         else:
             embed = discord.Embed(
-                title="Height",
-                description=f"You are {height.content}!"
+                title="Height", description=f"You are {height.content}!"
             )
             embed.set_footer(text="No need to thank me.")
             await ctx.send(embed=embed)
@@ -350,7 +400,9 @@ class Fun(core.Cog):
         """
         LET ME GOOOOOOOOOOOOOOOOOOOO
         """
-        await ctx.send("LET ME GOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+        await ctx.send(
+            "LET ME GOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
+        )
 
     @core.command()
     @core.cooldown(1, 60, commands.BucketType.user)
@@ -364,7 +416,7 @@ class Fun(core.Cog):
         async with ctx.channel.typing():
             aiogtts = aiogTTS()
             buffer = BytesIO()
-            await aiogtts.write_to_fp(text, buffer, lang='en')
+            await aiogtts.write_to_fp(text, buffer, lang="en")
             buffer.seek(0)
             file = discord.File(buffer, f"{ctx.author.name}-tts.mp3")
         await ctx.send(file=file)

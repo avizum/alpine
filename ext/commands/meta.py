@@ -29,7 +29,16 @@ from doc_search import AsyncScraper
 from pytz import UnknownTimeZoneError
 from discord.ext import commands, menus
 from jishaku.codeblocks import codeblock_converter
-from utils import AvimetryBot, AvimetryContext, TimeZoneError, GetAvatar, timestamp, AvimetryPages, GistClient, GistFile
+from utils import (
+    AvimetryBot,
+    AvimetryContext,
+    TimeZoneError,
+    GetAvatar,
+    timestamp,
+    AvimetryPages,
+    GistClient,
+    GistFile,
+)
 
 
 class RTFMPageSource(menus.ListPageSource):
@@ -42,9 +51,12 @@ class RTFMPageSource(menus.ListPageSource):
     async def format_page(self, menu, page):
         embed = discord.Embed(
             description=(
-                "\n".join(f"[`{k.replace('discord.', '').replace('discord.ext.commands.', '')}`]({v})" for k, v in page)
+                "\n".join(
+                    f"[`{k.replace('discord.', '').replace('discord.ext.commands.', '')}`]({v})"
+                    for k, v in page
+                )
             ),
-            color=await self.ctx.determine_color()
+            color=await self.ctx.determine_color(),
         )
         embed.set_footer(text=f"{len(self.items)} results found")
         return embed
@@ -54,6 +66,7 @@ class Meta(core.Cog):
     """
     Extra commands that do not lie in any category.
     """
+
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
@@ -74,31 +87,48 @@ class Meta(core.Cog):
             )
         if len(options) > 10:
             raise commands.BadArgument("You can only have ten options in a poll")
-        if len(options) == 3 and options[0] == "yes" and options[1] == "maybe" and options[2] == "no":
+        if (
+            len(options) == 3
+            and options[0] == "yes"
+            and options[1] == "maybe"
+            and options[2] == "no"
+        ):
             reactions = [
                 self.bot.emoji_dictionary["green_tick"],
                 self.bot.emoji_dictionary["gray_tick"],
-                self.bot.emoji_dictionary["red_tick"]
+                self.bot.emoji_dictionary["red_tick"],
             ]
-        elif len(options) == 2 and options[0].lower() == "yes" and options[1].lower() == "no":
+        elif (
+            len(options) == 2
+            and options[0].lower() == "yes"
+            and options[1].lower() == "no"
+        ):
             reactions = [
                 self.bot.emoji_dictionary["green_tick"],
-                self.bot.emoji_dictionary["red_tick"]
+                self.bot.emoji_dictionary["red_tick"],
             ]
         else:
             reactions = [
-                "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣",
-                "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟",
+                "1️⃣",
+                "2️⃣",
+                "3️⃣",
+                "4️⃣",
+                "5️⃣",
+                "6️⃣",
+                "7️⃣",
+                "8️⃣",
+                "9️⃣",
+                "🔟",
             ]
         description = []
         for x, option in enumerate(options):
             description += "\n\n{} {}".format(reactions[x], option)
         embed = discord.Embed(title=question, description="".join(description))
         react_message = await ctx.no_reply(embed=embed)
-        for reaction in reactions[:len(options)]:
+        for reaction in reactions[: len(options)]:
             await react_message.add_reaction(reaction)
         embed.set_footer(
-            text=f'Poll from: {ctx.author}\nMessage ID: {react_message.id}'
+            text=f"Poll from: {ctx.author}\nMessage ID: {react_message.id}"
         )
 
         await react_message.edit(embed=embed)
@@ -119,7 +149,12 @@ class Meta(core.Cog):
 
     @core.command(aliases=["ui", "uinfo", "whois"])
     @commands.cooldown(1, 15, commands.BucketType.user)
-    async def userinfo(self, ctx: AvimetryContext, *, member: typing.Union[discord.Member, discord.User] = None):
+    async def userinfo(
+        self,
+        ctx: AvimetryContext,
+        *,
+        member: typing.Union[discord.Member, discord.User] = None,
+    ):
         """
         Get info about a user.
 
@@ -176,7 +211,7 @@ class Meta(core.Cog):
                 top_role = "@everyone"
             userroles = ", ".join(userroles)
             if len(userroles) > 1024:
-                userroles = f'{member.display_name} has too many roles to show here.'
+                userroles = f"{member.display_name} has too many roles to show here."
             ie.add_field(name="Top Role", value=top_role, inline=False)
             ie.add_field(
                 name=f"Roles [{len(member.roles)}]",
@@ -197,7 +232,9 @@ class Meta(core.Cog):
     @core.is_owner()
     async def roleinfo(self, ctx: AvimetryContext, role: discord.Role):
         embed = discord.Embed(title="Role Info")
-        embed.add_field(name="Created At", value=discord.utils.format_dt(role.created_at))
+        embed.add_field(
+            name="Created At", value=discord.utils.format_dt(role.created_at)
+        )
         embed.add_field(name="Role ID", value=role.id)
 
     @core.group(aliases=["members", "mc"])
@@ -224,7 +261,9 @@ class Meta(core.Cog):
         mce = discord.Embed(title=f"Members in role: {role}")
         mce.add_field(name="Members:", value=f"{tmc} members", inline=False)
         mce.add_field(name="Bots:", value=f"{tbc} bots", inline=False)
-        mce.add_field(name="Members", value=", ".join(i.mention for i in role.members[:42]))
+        mce.add_field(
+            name="Members", value=", ".join(i.mention for i in role.members[:42])
+        )
         await ctx.send(embed=mce)
 
     @core.command()
@@ -239,7 +278,7 @@ class Meta(core.Cog):
                 f"[`png`]({member.display_avatar.with_static_format('png')}) | "
                 f"[`jpg`]({member.display_avatar.with_static_format('jpg')}) | "
                 f"[`webp`]({member.display_avatar.url})"
-            )
+            ),
         )
         avatar = member.avatar.url or member.default_avatar.url
         embed.set_image(url=avatar)
@@ -249,7 +288,11 @@ class Meta(core.Cog):
 
     @core.command()
     @core.cooldown(2, 10, commands.BucketType.guild)
-    async def banner(self, ctx: AvimetryContext, member: typing.Union[discord.Member, discord.User] = None):
+    async def banner(
+        self,
+        ctx: AvimetryContext,
+        member: typing.Union[discord.Member, discord.User] = None,
+    ):
         """
         Send the banner of a member.
 
@@ -260,11 +303,13 @@ class Meta(core.Cog):
         banner = fetched.banner
         if banner:
             embed = discord.Embed(title=f"{member}'s banner")
-            embed.set_image(url=banner.url.replace("cdn", "media").replace(".com", ".net"))
+            embed.set_image(
+                url=banner.url.replace("cdn", "media").replace(".com", ".net")
+            )
         elif fetched.accent_color:
             embed = discord.Embed(
                 description=f"This person does not have a banner. Their accent color is {fetched.accent_color}.",
-                color=fetched.accent_color
+                color=fetched.accent_color,
             )
         else:
             return await ctx.send("This person does not have a banner.")
@@ -287,7 +332,9 @@ class Meta(core.Cog):
         """
         Read a QR code.
         """
-        async with self.bot.session.get(f"https://api.qrserver.com/v1/read-qr-code/?fileurl={image}") as resp:
+        async with self.bot.session.get(
+            f"https://api.qrserver.com/v1/read-qr-code/?fileurl={image}"
+        ) as resp:
             thing = await resp.json()
             await ctx.send((str(thing[0]["symbol"][0]["data"])))
 
@@ -306,8 +353,12 @@ class Meta(core.Cog):
         except (KeyError, UnknownTimeZoneError):
             prefix = ctx.clean_prefix
             if member == ctx.author:
-                return await ctx.send(f"You don't have a timezone setup yet. Use {prefix}time set <timezone>.")
-            return await ctx.send(f"This user does not have a timezone setup. Use {prefix}time set <timezone>.")
+                return await ctx.send(
+                    f"You don't have a timezone setup yet. Use {prefix}time set <timezone>."
+                )
+            return await ctx.send(
+                f"This user does not have a timezone setup. Use {prefix}time set <timezone>."
+            )
         timezone = pytz.timezone(timezone)
         time = datetime.datetime.now(timezone)
         format_time = time.strftime("%A, %B %d at %I:%M %p")
@@ -326,12 +377,12 @@ class Meta(core.Cog):
         The timezone must be one of [these timezones.](https://gist.github.com/Soheab/3bec6dd6c1e90962ef46b8545823820d)
         """
         query = (
-                "INSERT INTO user_settings (user_id, timezone) "
-                "VALUES ($1, $2) "
-                "ON CONFLICT (user_id) DO "
-                "UPDATE SET timezone = $2"
+            "INSERT INTO user_settings (user_id, timezone) "
+            "VALUES ($1, $2) "
+            "ON CONFLICT (user_id) DO "
+            "UPDATE SET timezone = $2"
         )
-        if timezone.lower() in ['remove', 'none']:
+        if timezone.lower() in ["remove", "none"]:
             await self.bot.pool.execute(query, ctx.author.id, None)
             try:
                 ctx.cache.users[ctx.author.id]["timezone"] = timezone
@@ -353,7 +404,9 @@ class Meta(core.Cog):
 
     @core.command()
     @commands.cooldown(1, 15, commands.BucketType.guild)
-    async def firstmessage(self, ctx: AvimetryContext, *, channel: discord.TextChannel = None):
+    async def firstmessage(
+        self, ctx: AvimetryContext, *, channel: discord.TextChannel = None
+    ):
         """
         Get the first message of the channel.
 
@@ -379,8 +432,12 @@ class Meta(core.Cog):
         """
         Get the docs for the discord.py library.
         """
-        q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/stable/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Discord.py"), ctx=ctx, remove_view_after=True)
+        q = await self.scraper.search(
+            query, page="https://discordpy.readthedocs.io/en/stable/"
+        )
+        menu = AvimetryPages(
+            RTFMPageSource(ctx, q[:79], "Discord.py"), ctx=ctx, remove_view_after=True
+        )
         await menu.start()
 
     @rtfm.command()
@@ -388,38 +445,54 @@ class Meta(core.Cog):
         """
         Get the docs for the discord.py master branch library.
         """
-        q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/master/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Discord.py 2.0"), ctx=ctx, remove_view_after=True)
+        q = await self.scraper.search(
+            query, page="https://discordpy.readthedocs.io/en/master/"
+        )
+        menu = AvimetryPages(
+            RTFMPageSource(ctx, q[:79], "Discord.py 2.0"),
+            ctx=ctx,
+            remove_view_after=True,
+        )
         await menu.start()
 
-    @rtfm.command(aliases=['py'])
+    @rtfm.command(aliases=["py"])
     async def python(self, ctx: AvimetryContext, query):
         """
         Get the docs for the latest Python version
         """
         q = await self.scraper.search(query, page="https://docs.python.org/3/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Python"), ctx=ctx, remove_view_after=True)
+        menu = AvimetryPages(
+            RTFMPageSource(ctx, q[:79], "Python"), ctx=ctx, remove_view_after=True
+        )
         await menu.start()
 
-    @rtfm.command(aliases=['ob'])
+    @rtfm.command(aliases=["ob"])
     async def obsidian(self, ctx: AvimetryContext, query):
         """
         Get the docs for the Obsidian.py library
         """
-        q = await self.scraper.search(query, page="https://obsidianpy.readthedocs.io/en/latest/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Obsidian"), ctx=ctx, remove_view_after=True)
+        q = await self.scraper.search(
+            query, page="https://obsidianpy.readthedocs.io/en/latest/"
+        )
+        menu = AvimetryPages(
+            RTFMPageSource(ctx, q[:79], "Obsidian"), ctx=ctx, remove_view_after=True
+        )
         await menu.start()
 
-    @rtfm.command(aliases=['wl'])
+    @rtfm.command(aliases=["wl"])
     async def wavelink(self, ctx: AvimetryContext, query):
         """
         Get the docs for the Wavelink library
         """
-        q = await self.scraper.search(query, page="https://wavelink.readthedocs.io/en/latest/")
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Wavelink"), ctx=ctx, remove_view_after=True)
+        q = await self.scraper.search(
+            query, page="https://wavelink.readthedocs.io/en/latest/"
+        )
+        menu = AvimetryPages(
+            RTFMPageSource(ctx, q[:79], "Wavelink"), ctx=ctx, remove_view_after=True
+        )
         await menu.start()
 
-    @rtfm.command(aliases=['c'])
+    @rtfm.command(aliases=["c"])
     async def custom(self, ctx: AvimetryContext, doc_url, query):
         """
         Search any Sphinx docs.
@@ -428,7 +501,9 @@ class Meta(core.Cog):
             q = await self.scraper.search(query, page=doc_url)
         except Exception as e:
             return await ctx.send(e)
-        menu = AvimetryPages(RTFMPageSource(ctx, q[:79], "Custom Docs"), ctx=ctx, remove_view_after=True)
+        menu = AvimetryPages(
+            RTFMPageSource(ctx, q[:79], "Custom Docs"), ctx=ctx, remove_view_after=True
+        )
         await menu.start()
 
     @core.command()
@@ -440,14 +515,17 @@ class Meta(core.Cog):
         This command has a high cooldown to prevent abuse.
         """
         if '"content":' in thing:
-            return await ctx.send('Remove the "content" part from your message and try again.')
+            return await ctx.send(
+                'Remove the "content" part from your message and try again.'
+            )
         try:
             thing = json.loads(thing)
             return await ctx.no_reply(embed=discord.Embed.from_dict(thing))
         except Exception as e:
             embed = discord.Embed(
                 title="Input Error",
-                description=f"The JSON input raised an error:\n```bash\n{e}```")
+                description=f"The JSON input raised an error:\n```bash\n{e}```",
+            )
             return await ctx.no_reply(embed=embed)
 
     @core.command(enabled=False)
@@ -464,10 +542,14 @@ class Meta(core.Cog):
     @redirectcheck.error
     async def redirectcheck_error(self, ctx: AvimetryContext, error):
         if isinstance(error, aiohttp.InvalidURL):
-            return await ctx.send("This is not a valid url. Make sure you start links with `http://` or `https://`.")
+            return await ctx.send(
+                "This is not a valid url. Make sure you start links with `http://` or `https://`."
+            )
         if isinstance(error, aiohttp.ClientConnectorError):
             return await ctx.send("I wasn't able to connect to this website.")
-        await ctx.send("An error occured while checking the link, Please try another link or try again later.")
+        await ctx.send(
+            "An error occured while checking the link, Please try another link or try again later."
+        )
         raise error
 
     @core.command()
@@ -479,12 +561,18 @@ class Meta(core.Cog):
         These gists are public and if you want to get one removed, DM Avimetry or join the support server.
         """
         gist = GistClient(self.bot.settings["api_tokens"]["GitHub"], self.bot.session)
-        file_post = GistFile(filename=f"output{code.language or 'txt'}", content=code.content)
+        file_post = GistFile(
+            filename=f"output{code.language or 'txt'}", content=code.content
+        )
         out = await gist.post(
             description=f"{ctx.author} at {datetime.datetime.now(datetime.timezone.utc).strftime('%x %X')}",
-            files=[file_post], public=True, raw=False
+            files=[file_post],
+            public=True,
+            raw=False,
         )
-        await ctx.send(f"These gists are posted publicly. DM me to get it removed.\n{out}")
+        await ctx.send(
+            f"These gists are posted publicly. DM me to get it removed.\n{out}"
+        )
 
     @core.command(aliases=["rawmessage", "rmessage", "rmsg"])
     @core.cooldown(1, 15, commands.BucketType.user)
@@ -503,7 +591,9 @@ class Meta(core.Cog):
         mess = await self.bot.http.get_message(ctx.channel.id, message_id)
         info = ctx.codeblock(json.dumps(mess, indent=4), language="json")
         if len(info) > 2000:
-            return await ctx.post(info.removeprefix("```json\n").removesuffix("```"), "json", gist=True)
+            return await ctx.post(
+                info.removeprefix("```json\n").removesuffix("```"), "json", gist=True
+            )
         return await ctx.send(info)
 
     @core.command(hidden=True)

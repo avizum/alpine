@@ -46,7 +46,7 @@ class AvimetryCache:
             self.guild_settings,
             self.verification,
             self.logging,
-            self.join_leave
+            self.join_leave,
         ]
         for guild in self.bot.guilds:
             for cache in cache_list:
@@ -57,7 +57,9 @@ class AvimetryCache:
         return "<AvimetryCache size=1000000000000000000000000000000000000000000000000000000000000000000000000000000000>"
 
     async def delete_all(self, gid):
-        await self.bot.pool.execute("DELETE FROM guild_settings WHERE guild_id = $1", gid)
+        await self.bot.pool.execute(
+            "DELETE FROM guild_settings WHERE guild_id = $1", gid
+        )
         try:
             self.guild_settings.pop(gid)
         except KeyError:
@@ -68,7 +70,7 @@ class AvimetryCache:
 
     async def get_prefix(self, guild_id: int):
         guild = self.guild_settings.get(guild_id)
-        return guild.get('prefixes') if guild else None
+        return guild.get("prefixes") if guild else None
 
     async def new_user(self, user_id: int):
         try:
@@ -86,11 +88,18 @@ class AvimetryCache:
 
     async def cache_new_guild(self, guild_id: int):
         try:
-            await self.bot.pool.execute("INSERT INTO guild_settings VALUES ($1)", guild_id)
+            await self.bot.pool.execute(
+                "INSERT INTO guild_settings VALUES ($1)", guild_id
+            )
         except Exception:
             pass
         new = self.guild_settings[guild_id] = deepcopy(
-            {"prefixes": [], "disabled_commands": [], "disabled_channels": [], "auto_unarchive": []}
+            {
+                "prefixes": [],
+                "disabled_commands": [],
+                "disabled_channels": [],
+                "auto_unarchive": [],
+            }
         )
         return new
 

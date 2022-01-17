@@ -71,10 +71,7 @@ def guild_icon(env):
 
 
 async def preview_message(message, ctx: AvimetryContext):
-    env = {
-        "member": ctx.author,
-        "guild": ctx.guild
-    }
+    env = {"member": ctx.author, "guild": ctx.guild}
     message = parser.parse(message, env=env)
     try:
         message = json.loads(message)

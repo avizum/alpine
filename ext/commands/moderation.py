@@ -24,7 +24,13 @@ import utils
 
 from discord.ext import commands
 from utils import (
-    AvimetryBot, AvimetryContext, TimeConverter, TargetMember, FindBan, ModReason)
+    AvimetryBot,
+    AvimetryContext,
+    TimeConverter,
+    TargetMember,
+    FindBan,
+    ModReason,
+)
 
 
 class PurgeAmount(commands.Converter):
@@ -32,9 +38,13 @@ class PurgeAmount(commands.Converter):
         try:
             number = int(argument)
         except Exception:
-            raise commands.BadArgument(f"{argument} is not a number. Please give a number.")
+            raise commands.BadArgument(
+                f"{argument} is not a number. Please give a number."
+            )
         if number < 1 or number > 1000:
-            raise commands.BadArgument("Number must be greater than 0 and less than 1000")
+            raise commands.BadArgument(
+                "Number must be greater than 0 and less than 1000"
+            )
         return number
 
 
@@ -42,6 +52,7 @@ class Moderation(core.Cog):
     """
     Moderation commands.
     """
+
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.emoji = "\U0001f6e1"
@@ -50,17 +61,16 @@ class Moderation(core.Cog):
     @core.command(usage="<member> [reason]")
     @core.has_permissions(kick_members=True)
     @core.bot_has_permissions(kick_members=True)
-    async def kick(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
+    async def kick(
+        self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None
+    ):
         """
         Kicks someone from the server.
 
         You can not kick people with higher permissions than you.
         """
         reason = reason or f"{ctx.author}: No reason provided"
-        kick_embed = discord.Embed(
-            title="Kicked Member",
-            color=discord.Color.green()
-        )
+        kick_embed = discord.Embed(title="Kicked Member", color=discord.Color.green())
         await member.kick(reason=reason)
         kick_embed.description = f"**{member}** has been kicked from the server."
         await ctx.send(embed=kick_embed)
@@ -68,7 +78,13 @@ class Moderation(core.Cog):
     @core.command()
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def masskick(self, ctx: AvimetryContext, targets: commands.Greedy[TargetMember], *, reason: ModReason = None):
+    async def masskick(
+        self,
+        ctx: AvimetryContext,
+        targets: commands.Greedy[TargetMember],
+        *,
+        reason: ModReason = None,
+    ):
         """
         Mass kick people from the server.
 
@@ -76,9 +92,13 @@ class Moderation(core.Cog):
         """
         reason = reason or f"{ctx.author}: No reason provided"
         if not targets:
-            return await ctx.send("One or more members can not be kick by you. Try again.")
-        new_targets = ', '.join(str(i) for i in targets)
-        conf = await ctx.confirm(f"Do you want to kick {new_targets} ({len(targets)} members) with reason {reason}?")
+            return await ctx.send(
+                "One or more members can not be kick by you. Try again."
+            )
+        new_targets = ", ".join(str(i) for i in targets)
+        conf = await ctx.confirm(
+            f"Do you want to kick {new_targets} ({len(targets)} members) with reason {reason}?"
+        )
         if conf.result:
             fail = 0
             m = await ctx.send("Kicking...")
@@ -87,12 +107,16 @@ class Moderation(core.Cog):
                     await member.kick(reason=reason)
                 except Exception:
                     fail += 1
-            await m.edit(content=f"Sucessfully kicked {len(targets)-fail}/{len(targets)} members.")
+            await m.edit(
+                content=f"Sucessfully kicked {len(targets)-fail}/{len(targets)} members."
+            )
 
     @core.command()
     @core.has_permissions(kick_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def softban(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
+    async def softban(
+        self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None
+    ):
         """
         Softban someone from the server.
 
@@ -104,7 +128,7 @@ class Moderation(core.Cog):
         soft_ban_embed = discord.Embed(
             title="Soft-Banned Member",
             description=f"**{member}** has been soft banned from the server.",
-            color=discord.Color.green()
+            color=discord.Color.green(),
         )
         await member.ban(reason=reason)
         await ctx.send(embed=soft_ban_embed)
@@ -112,7 +136,9 @@ class Moderation(core.Cog):
     @core.command(usage="<member> [reason]")
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def ban(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
+    async def ban(
+        self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None
+    ):
         """
         Ban someone from the server.
 
@@ -121,23 +147,28 @@ class Moderation(core.Cog):
         You can not ban people with higher permissions than you.
         """
         reason = reason or f"{ctx.author}: No reason provided"
-        ban_embed = discord.Embed(
-            title="Banned Member",
-            color=discord.Color.green()
-        )
+        ban_embed = discord.Embed(title="Banned Member", color=discord.Color.green())
         if isinstance(member, discord.User):
             await ctx.guild.ban(member, reason=reason)
-            ban_embed.description = f"**{str(member)}** has been banned from the server."
+            ban_embed.description = (
+                f"**{str(member)}** has been banned from the server."
+            )
             return await ctx.send(embed=ban_embed)
 
         await member.ban(reason=reason)
-        ban_embed.description = f'**{member}** has been banned from the server.'
+        ban_embed.description = f"**{member}** has been banned from the server."
         await ctx.send(embed=ban_embed)
 
     @core.command()
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def massban(self, ctx: AvimetryContext, targets: commands.Greedy[TargetMember], *, reason: ModReason = None):
+    async def massban(
+        self,
+        ctx: AvimetryContext,
+        targets: commands.Greedy[TargetMember],
+        *,
+        reason: ModReason = None,
+    ):
         """
         Mass ban people from the server.
 
@@ -145,9 +176,13 @@ class Moderation(core.Cog):
         """
         reason = reason or f"{ctx.author}: No reason provided"
         if not targets:
-            return await ctx.send("One or more members can not be banned by you. Try again.")
-        new_targets = ', '.join(str(i) for i in targets)
-        conf = await ctx.confirm(f"Do you want to ban {new_targets} ({len(targets)} members) with reason {reason}?")
+            return await ctx.send(
+                "One or more members can not be banned by you. Try again."
+            )
+        new_targets = ", ".join(str(i) for i in targets)
+        conf = await ctx.confirm(
+            f"Do you want to ban {new_targets} ({len(targets)} members) with reason {reason}?"
+        )
         if conf.result:
             fail = 0
             m = await ctx.send("Banning...")
@@ -156,12 +191,18 @@ class Moderation(core.Cog):
                     await member.ban(reason=reason)
                 except Exception:
                     fail += 1
-            await m.edit(content=f"Sucessfully banned {len(targets)-fail}/{len(targets)} members.")
+            await m.edit(
+                content=f"Sucessfully banned {len(targets)-fail}/{len(targets)} members."
+            )
 
-    @core.command(brief="Unbans a member from the server.", usage="<member_id> [reason]")
+    @core.command(
+        brief="Unbans a member from the server.", usage="<member_id> [reason]"
+    )
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def unban(self, ctx: AvimetryContext, member: FindBan, *, reason: ModReason = None):
+    async def unban(
+        self, ctx: AvimetryContext, member: FindBan, *, reason: ModReason = None
+    ):
         """
         Unbans/Removes a ban from someone from the server.
 
@@ -171,7 +212,7 @@ class Moderation(core.Cog):
         await ctx.guild.unban(member, reason=reason)
         unban_embed = discord.Embed(
             title="Unbanned Member",
-            description=f'**{member}** has been unbanned from the server.',
+            description=f"**{member}** has been unbanned from the server.",
             color=discord.Color.green(),
         )
 
@@ -181,7 +222,12 @@ class Moderation(core.Cog):
     @core.has_permissions(moderate_members=True)
     @core.bot_has_permissions(moderate_members=True)
     async def mute(
-        self, ctx: AvimetryContext, member: TargetMember, duration: TimeConverter, *, reason: ModReason = None
+        self,
+        ctx: AvimetryContext,
+        member: TargetMember,
+        duration: TimeConverter,
+        *,
+        reason: ModReason = None,
     ):
         """
         Temporarily mutes a member in the server.
@@ -194,22 +240,30 @@ class Moderation(core.Cog):
             return await ctx.send("Mute time must be over 1 minute and under 28 days.")
         if member.timed_out:
             conf = await ctx.confirm(
-                f"{member.mention} is already muted. Do you want to overwrite their mute?", delete_after=True)
+                f"{member.mention} is already muted. Do you want to overwrite their mute?",
+                delete_after=True,
+            )
             if not conf.result:
-                return await ctx.send("Okay, I won't replace their mute.", delete_after=10)
+                return await ctx.send(
+                    "Okay, I won't replace their mute.", delete_after=10
+                )
         reason = reason or f"{ctx.author}: No reason provided."
-        dur = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=duration)
+        dur = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(
+            seconds=duration
+        )
         await member.edit(timeout_until=dur, reason=reason)
         embed = discord.Embed(
             title="Muted Member",
-            description=f"{member.mention} will be muted until {discord.utils.format_dt(dur)}.\nReason: {reason}"
+            description=f"{member.mention} will be muted until {discord.utils.format_dt(dur)}.\nReason: {reason}",
         )
         await ctx.send(embed=embed)
 
     @core.command(aliases=["untimeout", "untempmute"])
     @core.has_permissions(moderate_members=True)
     @core.bot_has_permissions(moderate_members=True)
-    async def unmute(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
+    async def unmute(
+        self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None
+    ):
         """
         Unmutes a member in the server.
 
@@ -224,19 +278,25 @@ class Moderation(core.Cog):
     @core.bot_has_permissions(moderate_members=True)
     async def selfmute(self, ctx: AvimetryContext, duration: TimeConverter):
         if ctx.author.top_role > ctx.me.top_role:
-            return await ctx.send("I can not mute you because your role is higher than mine.")
+            return await ctx.send(
+                "I can not mute you because your role is higher than mine."
+            )
         if duration > 86400 or duration < 300:
-            return await ctx.send("Self mute time must be over 5 minutes and under 1 day.")
-        dur = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=duration)
+            return await ctx.send(
+                "Self mute time must be over 5 minutes and under 1 day."
+            )
+        dur = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(
+            seconds=duration
+        )
         conf = await ctx.confirm(
             f"Are you sure you want to mute yourself for {utils.format_seconds(duration, friendly=True)}?",
-            delete_after=True
+            delete_after=True,
         )
         if conf.result:
             await ctx.author.edit(timeout_until=dur, reason=f"Self mute. Expires {dur}")
             embed = discord.Embed(
                 title="Self muted",
-                description="You have been muted. Do not complain to the moderators about your decision."
+                description="You have been muted. Do not complain to the moderators about your decision.",
             )
             await ctx.send(embed=embed)
         else:
@@ -249,7 +309,9 @@ class Moderation(core.Cog):
                 authors[message.author] = 1
             else:
                 authors[message.author] += 1
-        message = "\n".join(f"{author.mention}: {amount} messages" for author, amount in authors.items())
+        message = "\n".join(
+            f"{author.mention}: {amount} messages" for author, amount in authors.items()
+        )
         return discord.Embed(title="Affected Messages", description=message)
 
     @core.group(invoke_without_command=True)
@@ -263,19 +325,25 @@ class Moderation(core.Cog):
         This always avoids pinned messages.
         You can only purge up to 1000 messages at a time.
         """
-        purged = await ctx.channel.purge(limit=amount, check=lambda m: not m.pinned, before=ctx.message)
+        purged = await ctx.channel.purge(
+            limit=amount, check=lambda m: not m.pinned, before=ctx.message
+        )
         await ctx.can_delete(embed=await self.do_affected(purged))
 
-    @purge.command(aliases=['user', 'person'])
+    @purge.command(aliases=["user", "person"])
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
-    async def member(self, ctx: AvimetryContext, member: discord.Member, amount: PurgeAmount):
+    async def member(
+        self, ctx: AvimetryContext, member: discord.Member, amount: PurgeAmount
+    ):
         """
         Purge messages from a member.
 
         You can purge up to 1000 messages from a member.
         """
-        purged = await ctx.channel.purge(limit=amount, check=lambda m: m.author == member, before=ctx.message)
+        purged = await ctx.channel.purge(
+            limit=amount, check=lambda m: m.author == member, before=ctx.message
+        )
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command()
@@ -287,7 +355,9 @@ class Moderation(core.Cog):
 
         This removes up to 100 messages.
         """
-        purged = await ctx.channel.purge(limit=100, check=lambda m: text in m.content, before=ctx.message)
+        purged = await ctx.channel.purge(
+            limit=100, check=lambda m: text in m.content, before=ctx.message
+        )
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command(aliases=["sw", "starts"])
@@ -299,7 +369,9 @@ class Moderation(core.Cog):
 
         This removes up to 100 messages.
         """
-        purged = await ctx.channel.purge(limit=100, check=lambda m: m.content.startswith(text))
+        purged = await ctx.channel.purge(
+            limit=100, check=lambda m: m.content.startswith(text)
+        )
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command(aliases=["ew", "ends"])
@@ -311,7 +383,9 @@ class Moderation(core.Cog):
 
         This removes up to 100 messages.
         """
-        purged = await ctx.channel.purge(limit=100, check=lambda m: m.content.endswith(text))
+        purged = await ctx.channel.purge(
+            limit=100, check=lambda m: m.content.endswith(text)
+        )
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @core.command(usage="[amount]")
@@ -326,7 +400,9 @@ class Moderation(core.Cog):
         prefixes = tuple(await self.bot.get_prefix(ctx.message))
 
         def check(message: discord.Message):
-            return message.content.startswith(prefixes) or message.author == self.bot.user
+            return (
+                message.content.startswith(prefixes) or message.author == self.bot.user
+            )
 
         purged = await ctx.channel.purge(limit=amount, check=check, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged))
@@ -334,7 +410,13 @@ class Moderation(core.Cog):
     @core.command(usage="<channel> [reason]")
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def lock(self, ctx: AvimetryContext, channel: discord.TextChannel, *, reason="No Reason Provided"):
+    async def lock(
+        self,
+        ctx: AvimetryContext,
+        channel: discord.TextChannel,
+        *,
+        reason="No Reason Provided",
+    ):
         """
         Locks a channel.
 
@@ -344,7 +426,8 @@ class Moderation(core.Cog):
         If you have any problems, DM Avimetry or ask in the support server.
         """
         await channel.set_permissions(
-            ctx.guild.default_role, send_messages=False,
+            ctx.guild.default_role,
+            send_messages=False,
         )
         lc = discord.Embed()
         lc.add_field(
@@ -357,14 +440,19 @@ class Moderation(core.Cog):
     @core.command(usage="<channel> [reason]")
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def unlock(self, ctx: AvimetryContext, channel: discord.TextChannel, *, reason="No Reason Provided"):
+    async def unlock(
+        self,
+        ctx: AvimetryContext,
+        channel: discord.TextChannel,
+        *,
+        reason="No Reason Provided",
+    ):
         """
         Unlocks a channel.
 
         This sets the channel overwrite for send messages to none (/).
         """
-        await channel.set_permissions(
-            ctx.guild.default_role, send_messages=None)
+        await channel.set_permissions(ctx.guild.default_role, send_messages=None)
         uc = discord.Embed()
         uc.add_field(
             name=":unlock: Channel has been unlocked.",
@@ -404,7 +492,9 @@ class Moderation(core.Cog):
 
     @role.command(aliases=["append"])
     @core.has_permissions(manage_roles=True)
-    async def add(self, ctx: AvimetryContext, member: discord.Member, role: discord.Role):
+    async def add(
+        self, ctx: AvimetryContext, member: discord.Member, role: discord.Role
+    ):
         """
         Add a role to a member.
 
@@ -420,7 +510,9 @@ class Moderation(core.Cog):
 
     @role.command()
     @core.has_permissions(manage_roles=True)
-    async def remove(self, ctx: AvimetryContext, member: discord.Member, role: discord.Role):
+    async def remove(
+        self, ctx: AvimetryContext, member: discord.Member, role: discord.Role
+    ):
         """
         Remove a role from a member.
 

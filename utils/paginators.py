@@ -29,16 +29,24 @@ from discord.ext.menus import button, Position, PageSource
 # This paginator is essentially discord.ext.menus but changed a bit so that it uses buttons instead of reactions.
 # https://github.com/Rapptz/discord-ext-menus
 class ButtonPages(AvimetryView):
-    def __init__(self, source: PageSource, *, ctx: AvimetryContext, timeout: int = 180,
-                 delete_message_after: bool = False, remove_view_after: bool = False,
-                 disable_view_after: bool = False, message: discord.Message = None):
+    def __init__(
+        self,
+        source: PageSource,
+        *,
+        ctx: AvimetryContext,
+        timeout: int = 180,
+        delete_message_after: bool = False,
+        remove_view_after: bool = False,
+        disable_view_after: bool = False,
+        message: discord.Message = None,
+    ):
 
         self.source = source
         self.ctx = ctx
         self.timeout = timeout
         self.delete_message_after = delete_message_after
         self.remove_view_after = remove_view_after
-        self.disable_view_after = disable_view_after,
+        self.disable_view_after = (disable_view_after,)
         self.message = message
         self.current_page = 0
         self.message = message
@@ -52,8 +60,12 @@ class ButtonPages(AvimetryView):
         self.remove_item(self.stop_view)
         self.add_item(self.stop_view)
 
-    @discord.ui.button(emoji="\U000023f9\U0000fe0f", label="Stop", style=discord.ButtonStyle.red, row=2)
-    async def stop_view(self, button: discord.ui.Button, interaction: discord.Interaction):
+    @discord.ui.button(
+        emoji="\U000023f9\U0000fe0f", label="Stop", style=discord.ButtonStyle.red, row=2
+    )
+    async def stop_view(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
         """
         Stops the paginator and view.
         """
@@ -74,18 +86,26 @@ class ButtonPages(AvimetryView):
         if isinstance(value, dict):
             return value
         elif isinstance(value, str):
-            return {'content': value, 'embed': None}
+            return {"content": value, "embed": None}
         elif isinstance(value, discord.Embed):
-            return {'embed': value, 'content': None}
+            return {"embed": value, "content": None}
         else:
             return {}
 
 
 class AvimetryPages(AvimetryView):
-    def __init__(self, source: PageSource, *, ctx: AvimetryContext, timeout: int = 180,
-                 current_page=0, delete_message_after: bool = False,
-                 remove_view_after: bool = False, disable_view_after: bool = False,
-                 message: discord.Message = None):
+    def __init__(
+        self,
+        source: PageSource,
+        *,
+        ctx: AvimetryContext,
+        timeout: int = 180,
+        current_page=0,
+        delete_message_after: bool = False,
+        remove_view_after: bool = False,
+        disable_view_after: bool = False,
+        message: discord.Message = None,
+    ):
         self.lock = asyncio.Lock()
         self.source = source
         self.ctx = ctx
@@ -116,12 +136,17 @@ class AvimetryPages(AvimetryView):
         self.add_item(self.stop_view)
 
     async def interaction_check(self, interaction: discord.Interaction):
-        if interaction.user and interaction.user.id in (*self.ctx.bot.owner_ids, self.ctx.author.id):
+        if interaction.user and interaction.user.id in (
+            *self.ctx.bot.owner_ids,
+            self.ctx.author.id,
+        ):
             return True
         embed = discord.Embed(
             title="Error",
             description=f"This may only be used by {self.ctx.author}, not you. Sorry!",
-            color=discord.Color.red(), timestamp=datetime.datetime.now(datetime.timezone.utc))
+            color=discord.Color.red(),
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
+        )
         await interaction.response.send_message(embed=embed, ephemeral=True)
         return False
 
@@ -182,9 +207,9 @@ class AvimetryPages(AvimetryView):
         if isinstance(value, dict):
             return value
         elif isinstance(value, str):
-            return {'content': value, 'embed': None}
+            return {"content": value, "embed": None}
         elif isinstance(value, discord.Embed):
-            return {'embed': value, 'content': None}
+            return {"embed": value, "content": None}
         else:
             return {}
 
@@ -213,62 +238,92 @@ class AvimetryPages(AvimetryView):
         self.message = await self.ctx.send(**kwargs, view=self)
 
     @discord.ui.button(emoji="\U000023ee\U0000fe0f")
-    async def skip_to_first(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def skip_to_first(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
         """
         Skips to the first page.
         """
         await self.show_page(interaction, 0)
 
     @discord.ui.button(emoji="\U000025c0\U0000fe0f")
-    async def go_back_one(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def go_back_one(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
         """
         Goes back one page.
         """
         await self.show_checked_page(interaction, self.current_page - 1)
 
-    @discord.ui.button(emoji="<:avimetry:877445146709463081>", disabled=False, style=discord.ButtonStyle.blurple)
-    async def show_page_number(self, button: discord.ui.Button, interaction: discord.Interaction):
+    @discord.ui.button(
+        emoji="<:avimetry:877445146709463081>",
+        disabled=False,
+        style=discord.ButtonStyle.blurple,
+    )
+    async def show_page_number(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
         """
         Shows the current page number.
         This button also is used for skipping to pages.
         """
         if self.lock.locked():
-            return await interaction.response.send_message("You already clicked it, now send a number.", ephemeral=True)
+            return await interaction.response.send_message(
+                "You already clicked it, now send a number.", ephemeral=True
+            )
         async with self.lock:
             await interaction.response.send_message(
-                f"Which page would you like to go to? (1-{self.source.get_max_pages()})", ephemeral=True)
+                f"Which page would you like to go to? (1-{self.source.get_max_pages()})",
+                ephemeral=True,
+            )
 
             def check(m: discord.Message):
-                return m.author == self.ctx.author and m.channel == self.ctx.channel and m.content.isdigit()
+                return (
+                    m.author == self.ctx.author
+                    and m.channel == self.ctx.channel
+                    and m.content.isdigit()
+                )
 
             try:
-                message = await self.ctx.bot.wait_for("message", check=check, timeout=10)
+                message = await self.ctx.bot.wait_for(
+                    "message", check=check, timeout=10
+                )
             except asyncio.TimeoutError:
-                await interaction.followup.send('You took too long to respond.', ephemeral=True)
+                await interaction.followup.send(
+                    "You took too long to respond.", ephemeral=True
+                )
             else:
                 page = int(message.content)
-                await self.show_checked_page(interaction, page_num=page-1)
+                await self.show_checked_page(interaction, page_num=page - 1)
                 try:
                     await message.delete()
                 except (discord.Forbidden, discord.NotFound):
                     pass
 
     @discord.ui.button(emoji="\U000025b6\U0000fe0f")
-    async def go_forward_one(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def go_forward_one(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
         """
         Goes to the next page.
         """
         await self.show_checked_page(interaction, self.current_page + 1)
 
     @discord.ui.button(emoji="\U000023ed\U0000fe0f")
-    async def skip_to_last(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def skip_to_last(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
         """
         Skips to the last page.
         """
         await self.show_page(interaction, self.source.get_max_pages() - 1)
 
-    @discord.ui.button(emoji="\U000023f9\U0000fe0f", label="Stop", style=discord.ButtonStyle.red, row=2)
-    async def stop_view(self, button: discord.ui.Button, interaction: discord.Interaction):
+    @discord.ui.button(
+        emoji="\U000023f9\U0000fe0f", label="Stop", style=discord.ButtonStyle.red, row=2
+    )
+    async def stop_view(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
         """
         Stops the paginator and view.
         """
@@ -293,7 +348,9 @@ class OldAvimetryPages(ViewMenuPages):
         page = await self._source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
         if interaction:
-            return await interaction.response.edit_message(**kwargs, view=self.build_view())
+            return await interaction.response.edit_message(
+                **kwargs, view=self.build_view()
+            )
         return await self.send_with_view(ctx, **kwargs)
 
     def _skip_double_triangle_buttons(self):
@@ -302,29 +359,35 @@ class OldAvimetryPages(ViewMenuPages):
             return True
         return max_pages <= 2
 
-    @button('\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f', position=Position(0),
-            skip_if=_skip_double_triangle_buttons)
+    @button(
+        "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f",
+        position=Position(0),
+        skip_if=_skip_double_triangle_buttons,
+    )
     async def go_to_first_page(self, payload):
         """go to the first page"""
         await self.show_page(0)
 
-    @button('\N{BLACK LEFT-POINTING TRIANGLE}\ufe0f', position=Position(1))
+    @button("\N{BLACK LEFT-POINTING TRIANGLE}\ufe0f", position=Position(1))
     async def go_to_previous_page(self, payload):
         """go to the previous page"""
         await self.show_checked_page(self.current_page - 1)
 
-    @button('\N{BLACK SQUARE FOR STOP}\ufe0f', position=Position(2))
+    @button("\N{BLACK SQUARE FOR STOP}\ufe0f", position=Position(2))
     async def stop_pages(self, payload):
         """stops the pagination session."""
         self.stop()
 
-    @button('\N{BLACK RIGHT-POINTING TRIANGLE}\ufe0f', position=Position(3))
+    @button("\N{BLACK RIGHT-POINTING TRIANGLE}\ufe0f", position=Position(3))
     async def go_to_next_page(self, payload):
         """go to the next page"""
         await self.show_checked_page(self.current_page + 1)
 
-    @button('\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f', position=Position(4),
-            skip_if=_skip_double_triangle_buttons)
+    @button(
+        "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f",
+        position=Position(4),
+        skip_if=_skip_double_triangle_buttons,
+    )
     async def go_to_last_page(self, payload):
         """go to the last page"""
         # The call here is safe because it's guarded by skip_if

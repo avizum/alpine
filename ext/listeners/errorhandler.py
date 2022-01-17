@@ -25,8 +25,14 @@ import copy
 
 from prettify_exceptions import DefaultFormatter
 from utils import (
-    AvimetryBot, AvimetryContext, Blacklisted, Maintenance,
-    NotGuildOwner, CommandDisabledGuild, CommandDisabledChannel)
+    AvimetryBot,
+    AvimetryContext,
+    Blacklisted,
+    Maintenance,
+    NotGuildOwner,
+    CommandDisabledGuild,
+    CommandDisabledChannel,
+)
 from discord.ext import commands
 from difflib import get_close_matches
 
@@ -40,13 +46,27 @@ class ErrorHandler(core.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
-        self.blacklist_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
-        self.maintenance_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.channel)
-        self.no_dm_command_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
-        self.not_found_cooldown_content = CooldownByContent.from_cooldown(1, 15, commands.BucketType.user)
-        self.not_found_cooldown = commands.CooldownMapping.from_cooldown(2, 30, commands.BucketType.user)
-        self.disabled_channel = commands.CooldownMapping.from_cooldown(1, 60, commands.BucketType.channel)
-        self.disabled_command = commands.CooldownMapping.from_cooldown(1, 60, commands.BucketType.channel)
+        self.blacklist_cooldown = commands.CooldownMapping.from_cooldown(
+            1, 300, commands.BucketType.user
+        )
+        self.maintenance_cooldown = commands.CooldownMapping.from_cooldown(
+            1, 300, commands.BucketType.channel
+        )
+        self.no_dm_command_cooldown = commands.CooldownMapping.from_cooldown(
+            1, 300, commands.BucketType.user
+        )
+        self.not_found_cooldown_content = CooldownByContent.from_cooldown(
+            1, 15, commands.BucketType.user
+        )
+        self.not_found_cooldown = commands.CooldownMapping.from_cooldown(
+            2, 30, commands.BucketType.user
+        )
+        self.disabled_channel = commands.CooldownMapping.from_cooldown(
+            1, 60, commands.BucketType.channel
+        )
+        self.disabled_command = commands.CooldownMapping.from_cooldown(
+            1, 60, commands.BucketType.channel
+        )
         self.error_webhook = discord.Webhook.from_url(
             self.bot.settings["webhooks"]["error_log"],
             session=self.bot.session,
@@ -65,11 +85,14 @@ class ErrorHandler(core.Cog):
     @core.Cog.listener()
     async def on_command_error(self, ctx: AvimetryContext, error):
         error = getattr(error, "original", error)
-        if hasattr(ctx.command, 'on_error'):
-            if not hasattr(ctx, 'eh'):
+        if hasattr(ctx.command, "on_error"):
+            if not hasattr(ctx, "eh"):
                 return
-        elif ctx.cog and ctx.cog._get_overridden_method(ctx.cog.cog_command_error) is not None:
-            if not hasattr(ctx, 'eh'):
+        elif (
+            ctx.cog
+            and ctx.cog._get_overridden_method(ctx.cog.cog_command_error) is not None
+        ):
+            if not hasattr(ctx, "eh"):
                 return
 
         reinvoke = (
@@ -81,14 +104,18 @@ class ErrorHandler(core.Cog):
             commands.MissingRole,
             commands.DisabledCommand,
             Maintenance,
-            Blacklisted
+            Blacklisted,
         )
         if await self.bot.is_owner(ctx.author) and isinstance(error, reinvoke):
             try:
                 return await ctx.reinvoke()
             except Exception:
                 pass
-        elif await self.bot.is_owner(ctx.author) and ctx.prefix == '' and isinstance(error, commands.CommandNotFound):
+        elif (
+            await self.bot.is_owner(ctx.author)
+            and ctx.prefix == ""
+            and isinstance(error, commands.CommandNotFound)
+        ):
             return
 
         elif isinstance(error, Blacklisted):
@@ -107,14 +134,16 @@ class ErrorHandler(core.Cog):
             return
 
         if isinstance(error, Maintenance):
-            bucket = self.maintenance_cooldown.get_bucket(ctx.message).update_rate_limit()
+            bucket = self.maintenance_cooldown.get_bucket(
+                ctx.message
+            ).update_rate_limit()
             if not bucket:
-                return await ctx.send('Maintenance mode is enabled. Try again later.')
+                return await ctx.send("Maintenance mode is enabled. Try again later.")
 
         if isinstance(error, commands.NoPrivateMessage):
             embed = discord.Embed(
                 title="No DM commands",
-                description="Commands do not work in DMs because I work best in servers."
+                description="Commands do not work in DMs because I work best in servers.",
             )
             bucket = self.no_dm_command_cooldown(ctx.message)
             retry_after = bucket.update_rate_limit()
@@ -142,33 +171,43 @@ class ErrorHandler(core.Cog):
             if match:
                 embed = discord.Embed(title="Invalid Command")
                 embed.description = f'I couldn\'t find a command "{not_found}". Did you mean {match[0]}?'
-                bucket1 = self.not_found_cooldown_content.get_bucket(ctx.message).update_rate_limit()
-                bucket2 = self.not_found_cooldown.get_bucket(ctx.message).update_rate_limit()
+                bucket1 = self.not_found_cooldown_content.get_bucket(
+                    ctx.message
+                ).update_rate_limit()
+                bucket2 = self.not_found_cooldown.get_bucket(
+                    ctx.message
+                ).update_rate_limit()
                 if not bucket1 or not bucket2:
                     conf = await ctx.confirm(embed=embed)
                     if conf.result:
                         new = copy.copy(ctx.message)
-                        new._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
+                        new._edited_timestamp = datetime.datetime.now(
+                            datetime.timezone.utc
+                        )
                         new.content = new.content.replace(ctx.invoked_with, match[0])
                         ctx = await self.bot.get_context(new)
                         try:
                             await self.bot.invoke(ctx)
                         except commands.CommandInvokeError:
-                            await ctx.send("Something failed while trying to invoke. Try again?")
+                            await ctx.send(
+                                "Something failed while trying to invoke. Try again?"
+                            )
                     if conf.result is False:
                         return await conf.message.delete()
 
         elif isinstance(error, commands.CommandOnCooldown):
             rate = error.cooldown.rate
             per = error.cooldown.per
-            cd_type = 'globally' if error.type.name == 'default' else f'per {error.type.name}'
+            cd_type = (
+                "globally" if error.type.name == "default" else f"per {error.type.name}"
+            )
             cd = discord.Embed(
                 title="Slow down",
                 description=(
                     f"This command can be used {rate} {'time' if rate == 1 else 'times'} "
                     f"every {per} seconds {cd_type}.\n"
                     f"Please try again in {error.retry_after:,.2f} seconds."
-                )
+                ),
             )
             return await ctx.send(embed=cd)
 
@@ -177,21 +216,25 @@ class ErrorHandler(core.Cog):
                 title="Slow Down",
                 description=(
                     f"This command has reached its max concurrency.\nIt can only be used {error.number} "
-                    f"{'time' if error.number == 1 else 'times'} {error.per.name}."),
+                    f"{'time' if error.number == 1 else 'times'} {error.per.name}."
+                ),
             )
             return await ctx.send(embed=max_uses)
 
         elif isinstance(error, commands.BotMissingPermissions):
-            missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_permissions]
+            missing = [
+                perm.replace("_", " ").replace("guild", "server").title()
+                for perm in error.missing_permissions
+            ]
 
             if len(missing) > 2:
-                fmt = '{}, and {}'.format(", ".join(missing[:-1]), missing[-1])
+                fmt = "{}, and {}".format(", ".join(missing[:-1]), missing[-1])
             else:
-                fmt = ' and '.join(missing)
+                fmt = " and ".join(missing)
 
             bnp = discord.Embed(
                 title="Missing Permissions",
-                description=f"I need the following permissions to run this command:\n{fmt}"
+                description=f"I need the following permissions to run this command:\n{fmt}",
             )
             try:
                 await ctx.send(embed=bnp)
@@ -199,30 +242,31 @@ class ErrorHandler(core.Cog):
                 return
 
         elif isinstance(error, commands.MissingPermissions):
-            missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_permissions]
+            missing = [
+                perm.replace("_", " ").replace("guild", "server").title()
+                for perm in error.missing_permissions
+            ]
 
             if len(missing) > 2:
-                fmt = '{}, and `{}`'.format(", ".join(missing[:-1]), missing[-1])
+                fmt = "{}, and `{}`".format(", ".join(missing[:-1]), missing[-1])
             else:
-                fmt = ' and '.join(missing)
+                fmt = " and ".join(missing)
 
             np = discord.Embed(
                 title="Missing Permissions",
-                description=f"You need the following permissions to run this command:\n{fmt}"
+                description=f"You need the following permissions to run this command:\n{fmt}",
             )
             return await ctx.send(embed=np)
 
         elif isinstance(error, commands.NotOwner):
             no = discord.Embed(
-                title="Missing Permissions",
-                description="You do not own this bot."
+                title="Missing Permissions", description="You do not own this bot."
             )
             return await ctx.send(embed=no)
 
         elif isinstance(error, NotGuildOwner):
             no = discord.Embed(
-                title="Missing Permissions",
-                description="You do not own this server."
+                title="Missing Permissions", description="You do not own this server."
             )
             return await ctx.send(embed=no)
 
@@ -233,7 +277,7 @@ class ErrorHandler(core.Cog):
                 description=(
                     f"`{error.param.name}` is a required parameter to run this command.\n"
                     f"Do you need help for `{ctx.command.qualified_name}`?"
-                )
+                ),
             )
             ctx.message._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
             conf = await ctx.confirm(embed=a, delete_after=False)
@@ -245,7 +289,9 @@ class ErrorHandler(core.Cog):
             bucket = self.disabled_command.get_bucket(ctx.message)
             retry_after = bucket.update_rate_limit()
             if not retry_after:
-                return await ctx.send("You can not use this command, It is disabled in this server.")
+                return await ctx.send(
+                    "You can not use this command, It is disabled in this server."
+                )
 
         elif isinstance(error, CommandDisabledChannel):
             bucket = self.disabled_channel.get_bucket(ctx.message)
@@ -266,10 +312,7 @@ class ErrorHandler(core.Cog):
 
         elif isinstance(error, commands.BadUnionArgument):
             self.reset(ctx)
-            bad_union_arg = discord.Embed(
-                title="Bad Argument",
-                description=error
-            )
+            bad_union_arg = discord.Embed(title="Bad Argument", description=error)
             return await ctx.send(embed=bad_union_arg)
 
         elif isinstance(error, commands.TooManyArguments):
@@ -281,10 +324,7 @@ class ErrorHandler(core.Cog):
             return await ctx.send(embed=many_arguments)
 
         elif isinstance(error, commands.ArgumentParsingError):
-            embed = discord.Embed(
-                title="Quote Error",
-                description=error
-            )
+            embed = discord.Embed(title="Quote Error", description=error)
             return await ctx.send(embed=embed)
 
         else:
@@ -292,7 +332,9 @@ class ErrorHandler(core.Cog):
             DefaultFormatter().theme["_ansi_enabled"] = False
             traceback = f"```{''.join(DefaultFormatter().format_exception(type(error), error, error.__traceback__))}```"
             if len(traceback) > 4096:
-                traceback = f"Error was too long: {await self.bot.myst.post(traceback, 'bash')}"
+                traceback = (
+                    f"Error was too long: {await self.bot.myst.post(traceback, 'bash')}"
+                )
 
             webhook_error_embed = discord.Embed(
                 title="An error has occured",
@@ -301,14 +343,18 @@ class ErrorHandler(core.Cog):
             error_embed = discord.Embed(title="An error has occured")
 
             query = "SELECT * FROM command_errors WHERE command=$1 and error=$2"
-            check = await self.bot.pool.fetchrow(query, ctx.command.qualified_name, str(error))
+            check = await self.bot.pool.fetchrow(
+                query, ctx.command.qualified_name, str(error)
+            )
             if not check:
                 insert_query = (
                     "INSERT INTO command_errors (command, error) "
                     "VALUES ($1, $2) "
                     "RETURNING *"
                 )
-                insert = await self.bot.pool.fetchrow(insert_query, ctx.command.qualified_name, str(error))
+                insert = await self.bot.pool.fetchrow(
+                    insert_query, ctx.command.qualified_name, str(error)
+                )
                 error_embed.description = (
                     "An unknown error was raised while running this command. The error has been logged and "
                     f"you can track this error using `{ctx.prefix}error {insert['id']}`\n\n"
@@ -323,7 +369,7 @@ class ErrorHandler(core.Cog):
                         f"Message: {ctx.message.content}\n"
                         f"Invoker: {ctx.author}\n"
                         f"Error ID: {insert['id']}"
-                    )
+                    ),
                 )
             elif check["error"] == str(error):
                 error_embed.description = (
@@ -333,10 +379,18 @@ class ErrorHandler(core.Cog):
                 )
             view = discord.ui.View(timeout=None)
             view.add_item(
-                discord.ui.Button(style=discord.ButtonStyle.link, label="Support Server", url=self.bot.support)
+                discord.ui.Button(
+                    style=discord.ButtonStyle.link,
+                    label="Support Server",
+                    url=self.bot.support,
+                )
             )
-            await self.error_webhook.send(embed=webhook_error_embed, username="Command Error")
-            print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+            await self.error_webhook.send(
+                embed=webhook_error_embed, username="Command Error"
+            )
+            print(
+                "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
+            )
             tb.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
             await ctx.send(embed=error_embed, view=view)
 

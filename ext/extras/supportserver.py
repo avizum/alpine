@@ -27,15 +27,22 @@ from utils import AvimetryBot, AvimetryContext, PrivateServer
 
 URL_REGEX = re.compile(
     r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.\
-        [^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})")
+        [^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
+)
 
 
 class ButtonRole(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(style=discord.ButtonStyle.blurple, label="General Channels", custom_id="828437885820076053")
-    async def general_channels(self, button: discord.Button, interaction: discord.Interaction):
+    @discord.ui.button(
+        style=discord.ButtonStyle.blurple,
+        label="General Channels",
+        custom_id="828437885820076053",
+    )
+    async def general_channels(
+        self, button: discord.Button, interaction: discord.Interaction
+    ):
         if interaction.guild_id != 751490725555994716:
             return
         guild = interaction.guild
@@ -46,13 +53,22 @@ class ButtonRole(discord.ui.View):
         if role in member.roles:
             await member.remove_roles(role)
             return await interaction.response.send_message(
-                "You have been removed access from the General Channels.", ephemeral=True
+                "You have been removed access from the General Channels.",
+                ephemeral=True,
             )
         await member.add_roles(role)
-        return await interaction.response.send_message("You now have access to the General Channels.", ephemeral=True)
+        return await interaction.response.send_message(
+            "You now have access to the General Channels.", ephemeral=True
+        )
 
-    @discord.ui.button(style=discord.ButtonStyle.blurple, label="Avimetry Support", custom_id="927077897318047854")
-    async def avimetry_channels(self, button: discord.Button, interaction: discord.Interaction):
+    @discord.ui.button(
+        style=discord.ButtonStyle.blurple,
+        label="Avimetry Support",
+        custom_id="927077897318047854",
+    )
+    async def avimetry_channels(
+        self, button: discord.Button, interaction: discord.Interaction
+    ):
         if interaction.guild_id != 751490725555994716:
             return
         guild = interaction.guild
@@ -63,16 +79,20 @@ class ButtonRole(discord.ui.View):
         if role in member.roles:
             await member.remove_roles(role)
             return await interaction.response.send_message(
-                "You have been removed access from the Avimetry Support Channels.", ephemeral=True
+                "You have been removed access from the Avimetry Support Channels.",
+                ephemeral=True,
             )
         await member.add_roles(role)
-        return await interaction.response.send_message("You now have access to the Avimetry Channels.", ephemeral=True)
+        return await interaction.response.send_message(
+            "You now have access to the Avimetry Channels.", ephemeral=True
+        )
 
 
 class Servers(commands.Cog, name="Servers"):
     """
     Commands for bot's servers only.
     """
+
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)

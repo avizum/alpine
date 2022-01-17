@@ -34,8 +34,8 @@ class MemberJoin(core.Cog):
 
     async def do_verify(self, member):
         prefix = await self.bot.cache.get_guild_settings(member.guild.id)
-        prefixes = prefix.get('prefixes')
-        pre = prefixes[0] if prefixes else 'a.'
+        prefixes = prefix.get("prefixes")
+        pre = prefixes[0] if prefixes else "a."
 
         config = self.bot.cache.verification.get(member.guild.id)
         role = config.get("role_id")
@@ -56,11 +56,12 @@ class MemberJoin(core.Cog):
                     f"Please use `{pre}verify` to verify. Enter the key you recieve in your DMs here."
                 ),
                 timestamp=datetime.datetime.now(datetime.timezone.utc),
-                color=discord.Color.green()
+                color=discord.Color.green(),
             )
             message = await channel.send(
-                f"{member.mention}", embed=x,
-                allowed_mentions=discord.AllowedMentions(users=True)
+                f"{member.mention}",
+                embed=x,
+                allowed_mentions=discord.AllowedMentions(users=True),
             )
             try:
                 self.messages[member.id] = message
@@ -110,7 +111,9 @@ class MemberJoin(core.Cog):
         randomkey = "".join(random.choice(letters) for i in range(10))
 
         try:
-            await member.send(f"**Here is your key. Send it in {ctx.channel.mention}. This key will expire in one minute.**")
+            await member.send(
+                f"**Here is your key. Send it in {ctx.channel.mention}. This key will expire in one minute.**"
+            )
             await member.send(f"{randomkey}")
         except discord.Forbidden:
             keyforbidden = discord.Embed()
@@ -122,7 +125,7 @@ class MemberJoin(core.Cog):
 
         sent_dms = discord.Embed(
             title="I sent a key to your DMs",
-            description="Please enter your key here to complete the verification process."
+            description="Please enter your key here to complete the verification process.",
         )
         send_message = await ctx.send(embed=sent_dms)
 
@@ -138,7 +141,7 @@ class MemberJoin(core.Cog):
                     description=(
                         "Sorry, your key has expired. If you want to generate a new key, "
                         f"use the command `{ctx.clean_prefix}.verify` to generate a new key."
-                    )
+                    ),
                 )
                 await ctx.author.send(embed=timeup)
                 break

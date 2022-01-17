@@ -33,7 +33,12 @@ import core
 
 from discord.ext import commands
 from core import AvimetryCommand, AvimetryGroup
-from .exceptions import Blacklisted, Maintenance, CommandDisabledGuild, CommandDisabledChannel
+from .exceptions import (
+    Blacklisted,
+    Maintenance,
+    CommandDisabledGuild,
+    CommandDisabledChannel,
+)
 from .cache import AvimetryCache
 
 
@@ -44,7 +49,12 @@ os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
 DEFAULT_PREFIXES = ["a."]
 BETA_PREFIXES = ["ab.", "ba."]
-OWNER_IDS = {750135653638865017, 547280209284562944, 765098549099626507, 756757268736901120}
+OWNER_IDS = {
+    750135653638865017,
+    547280209284562944,
+    765098549099626507,
+    756757268736901120,
+}
 PUBLIC_BOT_ID = 756257170521063444
 BETA_BOT_ID = 787046145884291072
 
@@ -58,8 +68,12 @@ logger.addHandler(handler)
 
 async def get_prefix(bot: "AvimetryBot", message: discord.Message):
     prefixes = [f"<@{bot.user.id}>", f"<@!{bot.user.id}>"]
-    commands = ('dev', 'developer', 'jsk', 'jishaku')
-    if await bot.is_owner(message.author) and message.content.lower().startswith(commands) and message.guild:
+    commands = ("dev", "developer", "jsk", "jishaku")
+    if (
+        await bot.is_owner(message.author)
+        and message.content.lower().startswith(commands)
+        and message.guild
+    ):
         prefixes.append("")
     elif not message.guild:
         prefixes.extend(DEFAULT_PREFIXES)
@@ -73,7 +87,9 @@ async def get_prefix(bot: "AvimetryBot", message: discord.Message):
     else:
         prefixes.extend(get_prefix)
     command_prefix = "|".join(map(re.escape, prefixes))
-    prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
+    prefix = re.match(
+        rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE
+    )
     if prefix:
         prefixes.append(prefix.group(1))
     return prefixes
@@ -89,7 +105,8 @@ intents = discord.Intents(
     members=True,
     reactions=True,
     webhooks=True,
-    voice_states=True)
+    voice_states=True,
+)
 
 activity = discord.Game("Loading...")
 
@@ -106,7 +123,7 @@ class AvimetryBot(commands.Bot):
             status=discord.Status.idle,
             chunk_guilds_at_startup=True,
             max_messages=5000,
-            slash_commands=False
+            slash_commands=False,
         )
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
         self.owner_ids = OWNER_IDS
@@ -118,24 +135,26 @@ class AvimetryBot(commands.Bot):
         self.command_usage = {}
         self.command_cache = {}
         self.cache = AvimetryCache(self)
-        self.invite = str(discord.utils.oauth_url(PUBLIC_BOT_ID, permissions=discord.Permissions(8)))
+        self.invite = str(
+            discord.utils.oauth_url(PUBLIC_BOT_ID, permissions=discord.Permissions(8))
+        )
         self.support = "https://discord.gg/muTVFgDvKf"
         self.source = "https://github.com/avimetry/avimetry"
         self.emoji_dictionary = {
-            "red_tick": '<:redtick:777096756865269760>',
-            "green_tick": '<:greentick:777096731438874634>',
-            "gray_tick": '<:graytick:791040199798030336>',
-            "status_online": '<:status_online:810683593193029642>',
-            "status_idle": '<:status_idle:810683571269664798>',
-            "status_dnd": '<:status_dnd:810683560863989805>',
-            "status_offline": '<:status_offline:810683581541515335',
-            "status_streaming": '<:status_streaming:810683604812169276>'
+            "red_tick": "<:redtick:777096756865269760>",
+            "green_tick": "<:greentick:777096731438874634>",
+            "gray_tick": "<:graytick:791040199798030336>",
+            "status_online": "<:status_online:810683593193029642>",
+            "status_idle": "<:status_idle:810683571269664798>",
+            "status_dnd": "<:status_dnd:810683560863989805>",
+            "status_offline": "<:status_offline:810683581541515335",
+            "status_streaming": "<:status_streaming:810683604812169276>",
         }
         self.primary_extensions = [
             "ext.listeners.events",
             "ext.commands.owner",
             "ext.extras.setup",
-            "utils.context"
+            "utils.context",
         ]
         self.secondary_extensions = [
             "ext.commands.animals",
@@ -161,11 +180,15 @@ class AvimetryBot(commands.Bot):
         api = self.settings["api_tokens"]
         self.news = self.settings["news"]["news"]
         self.session = aiohttp.ClientSession()
-        self.topgg = topgg.DBLClient(self, api["TopGG"], autopost_interval=None, session=self.session)
+        self.topgg = topgg.DBLClient(
+            self, api["TopGG"], autopost_interval=None, session=self.session
+        )
         self.sr = sr_api.Client()
         self.dagpi = asyncdagpi.Client(api["DagpiAPI"], session=self.session)
         self.myst = mystbin.Client(session=self.session)
-        self.pool = self.loop.run_until_complete(asyncpg.create_pool(**self.settings["postgresql"]))
+        self.pool = self.loop.run_until_complete(
+            asyncpg.create_pool(**self.settings["postgresql"])
+        )
         self.loop.create_task(self.cache.populate_cache())
         self.loop.create_task(self.load_extensions())
         self.loop.create_task(self.start_nodes())
@@ -177,9 +200,15 @@ class AvimetryBot(commands.Bot):
                 raise commands.NoPrivateMessage()
             if ctx.author.id in self.cache.blacklist:
                 raise Blacklisted(reason=self.cache.blacklist[ctx.author.id])
-            if str(ctx.command) in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]:
+            if (
+                str(ctx.command)
+                in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]
+            ):
                 raise CommandDisabledGuild()
-            if ctx.channel.id in ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"]:
+            if (
+                ctx.channel.id
+                in ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"]
+            ):
                 raise CommandDisabledChannel()
             if ctx.bot.maintenance is True:
                 raise Maintenance()
@@ -211,7 +240,8 @@ class AvimetryBot(commands.Bot):
                 if message:
                     now = datetime.datetime.now(tz=datetime.timezone.utc)
                     await message.edit(
-                        content=f"Took {(now - info['restart_time']).seconds} seconds to restart.")
+                        content=f"Took {(now - info['restart_time']).seconds} seconds to restart."
+                    )
                 f.truncate(0)
             f.close()
 
@@ -223,7 +253,7 @@ class AvimetryBot(commands.Bot):
             host="127.0.0.1",
             port=2333,
             password="youshallnotpass",
-            identifier="MAIN"
+            identifier="MAIN",
         )
 
     async def on_ready(self):
@@ -237,21 +267,25 @@ class AvimetryBot(commands.Bot):
 
     async def wait_for(self, event, *, check=None, timeout=None):
         if event == "message":
+
             def bl_check(*args):
                 if not check:
                     return args[0].author.id not in self.cache.blacklist
                 return args[0].author.id not in self.cache.blacklist and check(*args)
+
         elif event in ("reaction_add", "reaction_remove"):
+
             def bl_check(*args):
                 if not check:
                     return args[1].id not in self.cache.blacklist
                 return args[1].id not in self.cache.blacklist and check(*args)
+
         else:
             bl_check = check
         return await super().wait_for(event, check=bl_check, timeout=timeout)
 
     async def wait_for_message(self, *, check=None, timeout=None):
-        return await self.wait_for('message', check=check, timeout=timeout)
+        return await self.wait_for("message", check=check, timeout=timeout)
 
     async def get_context(self, message, *, cls=None):
         return await super().get_context(message, cls=cls or self.context)
@@ -275,10 +309,11 @@ class AvimetryBot(commands.Bot):
 
         def decorator(func):
             if isinstance(func, AvimetryCommand):
-                raise TypeError('Callback is already a command')
+                raise TypeError("Callback is already a command")
             res = cls(func, name=name, **kwargs)
             self.add_command(res)
             return res
+
         return decorator
 
     def group(self, name=None, **kwargs):
@@ -297,4 +332,5 @@ class AvimetryBot(commands.Bot):
         print(
             f"\n{self.user.name} logged out:\n"
             f"Logged out time: {datetime.date.today()} at {timenow}",
-            end="\n\n")
+            end="\n\n",
+        )

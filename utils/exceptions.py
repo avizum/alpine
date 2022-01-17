@@ -24,8 +24,8 @@ class TimeZoneError(commands.BadArgument):
         self.argument = argument
         super().__init__(
             f'Timezone "{argument}" was not found. [Here]'
-            '(https://gist.github.com/Soheab/3bec6dd6c1e90962ef46b8545823820d) '
-            'are all the valid timezones you can use.'
+            "(https://gist.github.com/Soheab/3bec6dd6c1e90962ef46b8545823820d) "
+            "are all the valid timezones you can use."
         )
 
 
@@ -55,9 +55,11 @@ class Maintenance(commands.CheckFailure):
 
 class CommandDisabledGuild(commands.DisabledCommand):
     """Used when command is disabled in guild"""
+
     pass
 
 
 class CommandDisabledChannel(commands.DisabledCommand):
     """Used when command is disabled in channel"""
+
     pass

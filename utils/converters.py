@@ -46,7 +46,7 @@ time_dict = {
     "weeks": 604800,
     "y": 31557600,
     "year": 31557600,
-    "years": 31557600
+    "years": 31557600,
 }
 
 
@@ -57,10 +57,9 @@ class TimeConverter(commands.Converter):
         time = 0
         for key, value in matches:
             try:
-                time += time_dict[value]*float(key)
+                time += time_dict[value] * float(key)
             except KeyError:
-                raise commands.BadArgument(
-                    f"{value} is an invalid time-key!")
+                raise commands.BadArgument(f"{value} is an invalid time-key!")
             except ValueError:
                 raise commands.BadArgument(f"{key} is not a number!")
         if time < 0:
@@ -80,7 +79,9 @@ class ModReason(commands.Converter):
 
 
 class TargetMember(commands.Converter):
-    async def convert(self, ctx: AvimetryContext, argument: discord.Member) -> discord.Member:
+    async def convert(
+        self, ctx: AvimetryContext, argument: discord.Member
+    ) -> discord.Member:
         try:
             member = await commands.MemberConverter().convert(ctx, argument)
         except Exception:
@@ -89,12 +90,12 @@ class TargetMember(commands.Converter):
         action = ctx.invoked_with
 
         if member == ctx.guild.owner:
-            raise commands.BadArgument(
-                f"I can not {action} the server owner."
-            )
+            raise commands.BadArgument(f"I can not {action} the server owner.")
 
         if member == ctx.message.author:
-            raise commands.BadArgument(f"You can not {action} yourself, That would be stupid.")
+            raise commands.BadArgument(
+                f"You can not {action} yourself, That would be stupid."
+            )
 
         if ctx.me.top_role < member.top_role:
             raise commands.BadArgument(
@@ -123,7 +124,9 @@ class TargetMember(commands.Converter):
 
 
 class FindBan(commands.Converter):
-    async def convert(self, ctx: AvimetryContext, argument: str) -> discord.Member | discord.User:
+    async def convert(
+        self, ctx: AvimetryContext, argument: str
+    ) -> discord.Member | discord.User:
         try:
             user = await commands.UserConverter().convert(ctx, argument)
             try:
@@ -152,7 +155,7 @@ class Prefix(commands.Converter):
         guild_cache = await ctx.cache.get_guild_settings(ctx.guild.id)
         if not guild_cache:
             guild_cache = await ctx.cache.cache_new_guild(ctx.guild.id)
-        guild_prefix = guild_cache['prefixes']
+        guild_prefix = guild_cache["prefixes"]
         if user_mention:
             raise commands.BadArgument("You can not add a mention as a prefix.")
         elif role_mention:
@@ -160,9 +163,13 @@ class Prefix(commands.Converter):
         elif channel_mention:
             raise commands.BadArgument("You can not add a channel mention as a prefix.")
         elif len(argument) > PREFIX_CHAR_LIMIT:
-            raise commands.BadArgument(f"That prefix is too long ({len(argument)}/{PREFIX_CHAR_LIMIT})")
+            raise commands.BadArgument(
+                f"That prefix is too long ({len(argument)}/{PREFIX_CHAR_LIMIT})"
+            )
         elif len(guild_prefix) > MAX_PREFIX_AMOUNT:
-            raise commands.BadArgument(f"You already the max amount of prefixes {MAX_PREFIX_AMOUNT} prefixes")
+            raise commands.BadArgument(
+                f"You already the max amount of prefixes {MAX_PREFIX_AMOUNT} prefixes"
+            )
         elif argument in guild_prefix:
             raise commands.BadArgument("That is already a prefix for this server.")
 

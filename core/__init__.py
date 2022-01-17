@@ -18,4 +18,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # flake8: noqa
 from .core import AvimetryCommand, AvimetryGroup, Cog, command, group
-from .checks import check, has_permissions, bot_has_permissions, is_owner, cooldown, is_guild_owner
+from .checks import (
+    check,
+    has_permissions,
+    bot_has_permissions,
+    is_owner,
+    cooldown,
+    is_guild_owner,
+)

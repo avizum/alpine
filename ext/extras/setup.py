@@ -34,24 +34,24 @@ class Setup(core.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
-        self.content_cd = CooldownByContent.from_cooldown(5.0, 20.0, commands.BucketType.user)
-        self.user_cd = commands.CooldownMapping.from_cooldown(10.0, 40, commands.BucketType.user)
+        self.content_cd = CooldownByContent.from_cooldown(
+            5.0, 20.0, commands.BucketType.user
+        )
+        self.user_cd = commands.CooldownMapping.from_cooldown(
+            10.0, 40, commands.BucketType.user
+        )
         self.webhooks = self.bot.settings["webhooks"]
         self.guild_webhook = discord.Webhook.from_url(
-            self.webhooks["join_log"],
-            session=self.bot.session
+            self.webhooks["join_log"], session=self.bot.session
         )
         self.command_webhook = discord.Webhook.from_url(
-            self.webhooks["command_log"],
-            session=self.bot.session
+            self.webhooks["command_log"], session=self.bot.session
         )
         self.command_webhook2 = discord.Webhook.from_url(
-            self.webhooks["command_log2"],
-            session=self.bot.session
+            self.webhooks["command_log2"], session=self.bot.session
         )
         self.request_wh = discord.Webhook.from_url(
-            self.webhooks["request_log"],
-            session=self.bot.session
+            self.webhooks["request_log"], session=self.bot.session
         )
 
     @core.Cog.listener()
@@ -64,10 +64,12 @@ class Setup(core.Cog):
         if isinstance(message.channel, discord.DMChannel):
             cache = self.bot.cache.users.get(message.author.id)
             if cache:
-                dmed = cache.get('dmed')
+                dmed = cache.get("dmed")
                 if not dmed:
-                    await message.channel.send('Hey, these DMs are logged and sent to the support server.')
-                    cache['dmed'] = True
+                    await message.channel.send(
+                        "Hey, these DMs are logged and sent to the support server."
+                    )
+                    cache["dmed"] = True
                     query = (
                         "INSERT INTO user_settings (user_id, dmed) "
                         "VALUES ($1, $2) "
@@ -75,12 +77,16 @@ class Setup(core.Cog):
                         "UPDATE SET dmed = $2"
                     )
                     await self.bot.pool.execute(query, ctx.author.id, True)
-            embed = discord.Embed(title=f"DM from {message.author}", description=message.content)
+            embed = discord.Embed(
+                title=f"DM from {message.author}", description=message.content
+            )
             embed.set_footer(text=message.author.id)
             ts = message.created_at.timestamp()
             content_bucket = self.content_cd.get_bucket(message)
             user_bucket = self.user_cd.get_bucket(message)
-            if content_bucket.update_rate_limit(ts) or user_bucket.update_rate_limit(ts):
+            if content_bucket.update_rate_limit(ts) or user_bucket.update_rate_limit(
+                ts
+            ):
                 return
             await self.request_wh.send(embed=embed)
         try:
@@ -91,7 +97,7 @@ class Setup(core.Cog):
                     if user:
                         send_embed = discord.Embed(
                             title=f"Message from {message.author}",
-                            description=f"> {resolved.description}\n{message.content}"
+                            description=f"> {resolved.description}\n{message.content}",
                         )
                         await user.send(embed=send_embed)
         except AttributeError:
@@ -108,33 +114,45 @@ class Setup(core.Cog):
         summary = [
             f"I was just added to a guild named {guild.name} ({guild.id}).",
             f"Guild owner is {guild.owner} ({guild.owner_id}).",
-            f"There are {bots} bots and {members} members in this guild. "
+            f"There are {bots} bots and {members} members in this guild. ",
         ]
         if bots > members:
             summary.append("This guild may be a bot farm.")
         summary.append(f"I am now in a total of {len(self.bot.guilds)} guilds.")
-        embed = discord.Embed(title="New guild", description='\n'.join(summary), color=guild.owner.color)
+        embed = discord.Embed(
+            title="New guild", description="\n".join(summary), color=guild.owner.color
+        )
         embed.set_thumbnail(url=guild.icon.url)
         await self.guild_webhook.send(embed=embed, username="Joined Guild")
         if not guild.chunked:
             await guild.chunk()
         embed = discord.Embed(
-            title='\U0001f44b Hey, I am Avimetry!',
-            description='Hello, thank you for adding me to your server. Here are some commands to get you started.',
-            color=guild.owner.color
+            title="\U0001f44b Hey, I am Avimetry!",
+            description="Hello, thank you for adding me to your server. Here are some commands to get you started.",
+            color=guild.owner.color,
         )
-        embed.add_field(name='a.help', value='Sends the help page.', inline=False)
+        embed.add_field(name="a.help", value="Sends the help page.", inline=False)
         embed.add_field(
-            name='a.prefix add',
-            value='Adds a prefix to this server. (You can have up to 15 prefixes)',
-            inline=False
+            name="a.prefix add",
+            value="Adds a prefix to this server. (You can have up to 15 prefixes)",
+            inline=False,
         )
-        embed.add_field(name='a.about', value='Show some info about the bot.', inline=False)
-        embed.add_field(name='a.vote', value='You can support Avimetry by voting! Thank you!', inline=False)
-        embed.set_footer(text='Made by avizum :)')
-        channel = discord.utils.get(guild.text_channels, name='general')
+        embed.add_field(
+            name="a.about", value="Show some info about the bot.", inline=False
+        )
+        embed.add_field(
+            name="a.vote",
+            value="You can support Avimetry by voting! Thank you!",
+            inline=False,
+        )
+        embed.set_footer(text="Made by avizum :)")
+        channel = discord.utils.get(guild.text_channels, name="general")
         if not channel:
-            channels = [channel for channel in guild.text_channels if channel.permissions_for(guild.me).send_messages]
+            channels = [
+                channel
+                for channel in guild.text_channels
+                if channel.permissions_for(guild.me).send_messages
+            ]
             channel = channels[0]
         await channel.send(embed=embed)
 
@@ -147,7 +165,7 @@ class Setup(core.Cog):
         message = [
             f"I got removed from a server named {guild.name} ({guild.id}).",
             f"Guild owner is {guild.owner}",
-            f"I am now in a total of {len(self.bot.guilds)} guilds."
+            f"I am now in a total of {len(self.bot.guilds)} guilds.",
         ]
         embed = discord.Embed(title="Left Guild", description="\n".join(message))
         await self.guild_webhook.send(embed=embed, username="Left Guild")
@@ -160,7 +178,10 @@ class Setup(core.Cog):
             self.bot.command_usage[str(ctx.command)] += 1
         except KeyError:
             self.bot.command_usage[str(ctx.command)] = 1
-        if ctx.author.id in ctx.cache.blacklist or self.bot.user.id != 756257170521063444:
+        if (
+            ctx.author.id in ctx.cache.blacklist
+            or self.bot.user.id != 756257170521063444
+        ):
             return
         embed = discord.Embed(color=await ctx.determine_color())
         embed.description = (
@@ -169,7 +190,10 @@ class Setup(core.Cog):
             f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
             f"Channel: {ctx.channel} ({ctx.channel.id})\n"
         )
-        embed.set_author(name=ctx.author, icon_url=str(ctx.author.avatar.replace(format="png", size=512)))
+        embed.set_author(
+            name=ctx.author,
+            icon_url=str(ctx.author.avatar.replace(format="png", size=512)),
+        )
         embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
         try:
             if await self.bot.is_owner(ctx.author):

@@ -28,16 +28,23 @@ import collections
 import datetime
 import core
 
-from utils import AvimetryBot, AvimetryContext, AvimetryPages, format_seconds, AvimetryView
+from utils import (
+    AvimetryBot,
+    AvimetryContext,
+    AvimetryPages,
+    format_seconds,
+    AvimetryView,
+)
 from discord.ext import commands, menus
 
-URL_REG = re.compile(r'https?://(?:www\.)?.+')
+URL_REG = re.compile(r"https?://(?:www\.)?.+")
 
 
 class Queue(asyncio.Queue):
     """
     Queue for music.
     """
+
     def __init__(self, max_size=0):
         super().__init__(maxsize=max_size)
         self._queue = collections.deque()
@@ -94,11 +101,13 @@ class Queue(asyncio.Queue):
 
 class NoChannelProvided(commands.CommandError):
     """Error raised when no suitable voice channel was supplied."""
+
     pass
 
 
 class IncorrectChannelError(commands.CommandError):
     """Error raised when commands are issued outside of the players session channel."""
+
     pass
 
 
@@ -106,19 +115,20 @@ class NotInVoice(commands.CheckFailure):
     """
     Error raised when someone tries do to something when they are not DJ.
     """
+
     pass
 
 
 class Track(wavelink.Track):
     """Wavelink Track object with a requester attribute."""
 
-    __slots__ = ('requester', )
+    __slots__ = ("requester",)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args)
 
-        self.thumb = kwargs.get('thumb')
-        self.requester = kwargs.get('requester')
+        self.thumb = kwargs.get("thumb")
+        self.requester = kwargs.get("requester")
 
 
 class Player(wavelink.Player):
@@ -126,7 +136,7 @@ class Player(wavelink.Player):
 
     def __init__(self, *args, context=None, **kwargs):
         self.context: AvimetryContext = context
-        self.reg = re.compile(r'https?://(?:www\.)?.+')
+        self.reg = re.compile(r"https?://(?:www\.)?.+")
         super().__init__(*args, **kwargs)
         if self.context:
             self.dj: discord.Member = self.context.author
@@ -142,14 +152,18 @@ class Player(wavelink.Player):
     async def get_tracks(self, query: str, bulk: bool = False):
         search_type = "" if self.reg.match(query) else "ytsearch:"
         try:
-            tracks = await self.node.get_tracks(wavelink.YouTubeTrack, f"{search_type}{query}")
+            tracks = await self.node.get_tracks(
+                wavelink.YouTubeTrack, f"{search_type}{query}"
+            )
             if tracks:
                 if bulk:
                     return tracks
                 return tracks[0]
             return tracks
         except Exception:
-            return await self.node.get_playlist(wavelink.YouTubePlaylist, f"{search_type}{query}")
+            return await self.node.get_playlist(
+                wavelink.YouTubePlaylist, f"{search_type}{query}"
+            )
 
     async def do_next(self) -> None:
         if self.waiting:
@@ -181,15 +195,15 @@ class Player(wavelink.Player):
         if not track:
             return
 
-        embed = discord.Embed(title='Now Playing')
+        embed = discord.Embed(title="Now Playing")
         if self.context:
             embed.color = await self.context.determine_color()
-        time = f'Length: {format_seconds(track.length)}\n\n'
+        time = f"Length: {format_seconds(track.length)}\n\n"
         if position:
-            time = f'Position {format_seconds(position)}/{format_seconds(track.length)}\n\n'
+            time = f"Position {format_seconds(position)}/{format_seconds(track.length)}\n\n"
         embed.description = (
-            f'Song: [{track.title}]({track.uri})\n\n'
-            f'{time}'
+            f"Song: [{track.title}]({track.uri})\n\n"
+            f"{time}"
             f"Requested by: {track.requester.mention} (`{track.requester}`)\n\n"
             f"Up next: {self.queue.up_next or 'Add more songs!'}"
         )
@@ -202,9 +216,7 @@ class Player(wavelink.Player):
         Builds the "added song to queue" embed.
         """
         embed = discord.Embed(title="Added to queue")
-        embed.description = (
-            f"Song: [{track.title}]({track.uri})"
-        )
+        embed.description = f"Song: [{track.title}]({track.uri})"
         if track.thumb:
             embed.set_thumbnail(url=track.thumb)
         return embed
@@ -221,8 +233,10 @@ class PaginatorSource(menus.ListPageSource):
         self.ctx = ctx
 
     async def format_page(self, menu: menus.Menu, page):
-        embed = discord.Embed(title=f'Queue for {self.ctx.guild}', color=await self.ctx.determine_color())
-        embed.description = '\n'.join(page)
+        embed = discord.Embed(
+            title=f"Queue for {self.ctx.guild}", color=await self.ctx.determine_color()
+        )
+        embed.description = "\n".join(page)
         if self.ctx.guild.icon.url:
             embed.set_thumbnail(url=self.ctx.guild.icon.url)
         return embed
@@ -242,12 +256,16 @@ class SearchView(AvimetryView):
 
 class SearchSelect(discord.ui.Select):
     def __init__(self, *, options: list[Track]):
-        options = [discord.SelectOption(label=f"{number+1}) {track.title}") for number, track in enumerate(options)]
+        options = [
+            discord.SelectOption(label=f"{number+1}) {track.title}")
+            for number, track in enumerate(options)
+        ]
         super().__init__(
             placeholder="Select the songs you want to play",
             options=options,
-            min_values=1, max_values=1,
-            disabled=False
+            min_values=1,
+            max_values=1,
+            disabled=False,
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -261,6 +279,7 @@ def in_voice():
         if ctx.author.voice:
             return True
         raise NotInVoice
+
     return commands.check(predicate)
 
 
@@ -268,27 +287,33 @@ class Music(core.Cog):
     """
     Music commands for music.
     """
+
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.emoji = "\U0001f3b5"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
-    @core.Cog.listener('on_wavelink_track_exception')
+    @core.Cog.listener("on_wavelink_track_exception")
     async def on_player_stop(self, player, track, error):
         player: Player = player
         await player.context.send(f"Error:{error.identifier}: {error.error}")
 
-    @core.Cog.listener('on_wavelink_track_end')
+    @core.Cog.listener("on_wavelink_track_end")
     async def track_end(self, player: Player, track: Track, reason):
         await player.do_next()
 
-    @core.Cog.listener('on_wavelink_track_stuck')
+    @core.Cog.listener("on_wavelink_track_stuck")
     async def track_stuck(self, player: Player, track: Track, threshold):
         await player.context.send("Track got stuck xd")
         await player.do_next()
 
     @core.Cog.listener("on_voice_state_update")
-    async def vs_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+    async def vs_update(
+        self,
+        member: discord.Member,
+        before: discord.VoiceState,
+        after: discord.VoiceState,
+    ):
         if member.bot:
             return
 
@@ -302,9 +327,13 @@ class Music(core.Cog):
         def check(mem, bef, aft):
             return mem == member and bef.channel is None and aft.channel == channel
 
-        if after.channel is None and len(channel.members) == 1 and member.guild.me in channel.members:
+        if (
+            after.channel is None
+            and len(channel.members) == 1
+            and member.guild.me in channel.members
+        ):
             try:
-                await self.bot.wait_for('voice_state_update', timeout=10, check=check)
+                await self.bot.wait_for("voice_state_update", timeout=10, check=check)
             except asyncio.TimeoutError:
                 return await player.teardown()
 
@@ -336,7 +365,7 @@ class Music(core.Cog):
     async def cog_check(self, ctx: AvimetryContext):
         """Cog wide check, which disallows commands in DMs."""
         if not ctx.guild:
-            await ctx.send('Music commands are not available in Private Messages.')
+            await ctx.send("Music commands are not available in Private Messages.")
             return False
 
         return True
@@ -345,12 +374,16 @@ class Music(core.Cog):
         """
         Check whether the author is inside the player's bound channel.
         """
-        player: Player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player, context=ctx)
+        player: Player = self.bot.wavelink.get_player(
+            ctx.guild.id, cls=Player, context=ctx
+        )
 
         if player.context and player.context.channel != ctx.channel:
-            await ctx.send(f'{ctx.author.display_name}, you need to use this in {player.context.channel.mention}.')
+            await ctx.send(
+                f"{ctx.author.display_name}, you need to use this in {player.context.channel.mention}."
+            )
 
-        if ctx.command.name == 'connect' and not player.context:
+        if ctx.command.name == "connect" and not player.context:
             return
         if not player.channel_id:
             return
@@ -360,7 +393,9 @@ class Music(core.Cog):
             return
 
         if player.is_connected and ctx.author not in channel.members:
-            await ctx.send(f'{ctx.author.display_name}, you need to be in {channel.mention} to use this.')
+            await ctx.send(
+                f"{ctx.author.display_name}, you need to be in {channel.mention} to use this."
+            )
 
     def required(self, ctx: AvimetryContext):
         """Method which returns required votes based on amount of members in a channel."""
@@ -368,7 +403,7 @@ class Music(core.Cog):
         channel = player.channel
         required = math.ceil((len(channel.members) - 1) / 2.5)
 
-        if ctx.command.name == 'stop' and len(channel.members) == 3:
+        if ctx.command.name == "stop" and len(channel.members) == 3:
             required = 2
 
         return required
@@ -389,7 +424,7 @@ class Music(core.Cog):
         await ctx.send(f"Joined {voice_client.channel.mention}.")
         return voice_client
 
-    @core.command(aliases=['stop', 'leave', 'fuckoff'])
+    @core.command(aliases=["stop", "leave", "fuckoff"])
     async def disconnect(self, ctx: AvimetryContext):
         """
         Stop the player and leave the channel.
@@ -403,17 +438,17 @@ class Music(core.Cog):
             return
 
         if self.is_privileged(ctx):
-            await ctx.send('Goodbye! :wave:')
+            await ctx.send("Goodbye! :wave:")
             return await player.teardown()
 
         required = self.required(ctx)
         player.stop_votes.add(ctx.author)
 
         if len(player.stop_votes) >= required:
-            await ctx.send('Vote to stop passed. Goodbye! :wave:')
+            await ctx.send("Vote to stop passed. Goodbye! :wave:")
             await player.teardown()
         else:
-            await ctx.send(f'{ctx.author.display_name} has voted to stop the player.')
+            await ctx.send(f"{ctx.author.display_name} has voted to stop the player.")
 
     @core.command(aliases=["enqueue", "p"])
     @in_voice()
@@ -434,20 +469,24 @@ class Music(core.Cog):
 
         if isinstance(tracks, wavelink.YouTubePlaylist):
             for track in tracks.tracks:
-                track = Track(track.id, track.info, requester=ctx.author, thumb=track.thumb)
+                track = Track(
+                    track.id, track.info, requester=ctx.author, thumb=track.thumb
+                )
                 await player.queue.put(track)
 
             embed = discord.Embed(
                 title="Enqueued playlist",
                 description=(
                     f"Playlist {tracks.name} with {len(tracks.tracks)} tracks added to the queue."
-                )
+                ),
             )
             if tracks.tracks[0].thumb:
                 embed.set_thumbnail(url=tracks.tracks[0].thumb)
             await ctx.send(embed=embed)
         else:
-            track = Track(tracks.id, tracks.info, requester=ctx.author, thumb=tracks.thumb)
+            track = Track(
+                tracks.id, tracks.info, requester=ctx.author, thumb=tracks.thumb
+            )
             await ctx.send(embed=await player.build_added(track))
             await player.queue.put(track)
 
@@ -491,20 +530,24 @@ class Music(core.Cog):
 
             if isinstance(tracks, wavelink.YouTubePlaylist):
                 for track in tracks.tracks:
-                    track = Track(track.id, track.info, requester=ctx.author, thumb=track.thumb)
+                    track = Track(
+                        track.id, track.info, requester=ctx.author, thumb=track.thumb
+                    )
                     await player.queue.put(track)
 
                 embed = discord.Embed(
                     title="Enqueued playlist",
                     description=(
                         f"Playlist {tracks.name} with {len(tracks.tracks)} tracks added to the queue."
-                    )
+                    ),
                 )
                 if track.thumb:
                     embed.set_thumbnail(url=tracks[0].thumb)
                 await ctx.send(embed=embed)
             else:
-                track = Track(tracks.id, tracks.info, requester=ctx.author, thumb=tracks.thumb)
+                track = Track(
+                    tracks.id, tracks.info, requester=ctx.author, thumb=tracks.thumb
+                )
                 await ctx.send(embed=await player.build_added(track))
                 await player.queue.put(track)
 
@@ -529,7 +572,9 @@ class Music(core.Cog):
             return
 
         if self.is_privileged(ctx):
-            await ctx.send(f':pause_button: {ctx.author.display_name} has paused the player.')
+            await ctx.send(
+                f":pause_button: {ctx.author.display_name} has paused the player."
+            )
             player.pause_votes.clear()
             return await player.pause()
 
@@ -537,11 +582,11 @@ class Music(core.Cog):
         player.pause_votes.add(ctx.author)
 
         if len(player.pause_votes) >= required:
-            await ctx.send(':pause_button: Pausing because vote to pause passed.')
+            await ctx.send(":pause_button: Pausing because vote to pause passed.")
             player.pause_votes.clear()
             await player.pause()
         else:
-            await ctx.send(f'{ctx.author.display_name} has voted to pause the player.')
+            await ctx.send(f"{ctx.author.display_name} has voted to pause the player.")
 
     @core.command(aliases=["unpause"])
     async def resume(self, ctx: AvimetryContext):
@@ -559,7 +604,9 @@ class Music(core.Cog):
             return
 
         if self.is_privileged(ctx):
-            await ctx.send(f':arrow_forward: {ctx.author.display_name} has resumed the player.')
+            await ctx.send(
+                f":arrow_forward: {ctx.author.display_name} has resumed the player."
+            )
             player.resume_votes.clear()
 
             return await player.resume()
@@ -568,11 +615,11 @@ class Music(core.Cog):
         player.resume_votes.add(ctx.author)
 
         if len(player.resume_votes) >= required:
-            await ctx.send(':arrow_forward: Resuming because vote to resume passed.')
+            await ctx.send(":arrow_forward: Resuming because vote to resume passed.")
             player.resume_votes.clear()
             await player.resume()
         else:
-            await ctx.send(f'{ctx.author.display_name} has voted to resume the player.')
+            await ctx.send(f"{ctx.author.display_name} has voted to resume the player.")
 
     @core.command()
     async def skip(self, ctx: AvimetryContext):
@@ -588,13 +635,15 @@ class Music(core.Cog):
             return
 
         if self.is_privileged(ctx):
-            await ctx.send(f':track_next: {ctx.author.display_name} has skipped the song.')
+            await ctx.send(
+                f":track_next: {ctx.author.display_name} has skipped the song."
+            )
             player.skip_votes.clear()
 
             return await player.stop()
 
         if ctx.author == player.current.requester:
-            await ctx.send(':track_next: The song requester has skipped the song.')
+            await ctx.send(":track_next: The song requester has skipped the song.")
             player.skip_votes.clear()
 
             return await player.stop()
@@ -603,11 +652,13 @@ class Music(core.Cog):
         player.skip_votes.add(ctx.author)
 
         if len(player.skip_votes) >= required:
-            await ctx.send(':track_next: Skipping because vote to skip passed')
+            await ctx.send(":track_next: Skipping because vote to skip passed")
             player.skip_votes.clear()
             await player.stop()
         else:
-            await ctx.send(f'{ctx.author.display_name} voted to skip. {len(player.skip_votes)}/{required}')
+            await ctx.send(
+                f"{ctx.author.display_name} voted to skip. {len(player.skip_votes)}/{required}"
+            )
 
     @core.command(aliases=["ff", "fastf", "fforward"])
     async def fastforward(self, ctx: AvimetryContext, seconds: int):
@@ -620,7 +671,7 @@ class Music(core.Cog):
         if not player:
             return
         if self.is_privileged(ctx):
-            await player.seek(player.position+seconds*1000)
+            await player.seek(player.position + seconds * 1000)
             return await ctx.send(f":fast_forward: Fast forwarded {seconds} seconds")
         await ctx.send("Only the DJ can fast forward.")
 
@@ -635,7 +686,7 @@ class Music(core.Cog):
         if not player:
             return
         if self.is_privileged(ctx):
-            await player.seek(player.position-seconds*1000)
+            await player.seek(player.position - seconds * 1000)
             return await ctx.send(f":rewind: Rewinded {seconds} seconds")
         await ctx.send("Only the DJ can rewind.")
 
@@ -651,11 +702,11 @@ class Music(core.Cog):
         if not player:
             return
         if self.is_privileged(ctx):
-            await player.seek(seconds*1000)
+            await player.seek(seconds * 1000)
             return await ctx.send(f"Set track position to {seconds} seconds")
         await ctx.send("Only the DJ can seek.")
 
-    @core.command(aliases=['v', 'vol'])
+    @core.command(aliases=["v", "vol"])
     async def volume(self, ctx: AvimetryContext, *, vol: int):
         """
         Change the player's volume.
@@ -668,15 +719,15 @@ class Music(core.Cog):
             return
 
         if not self.is_privileged(ctx):
-            return await ctx.send('Only the DJ or admins may change the volume.')
+            return await ctx.send("Only the DJ or admins may change the volume.")
 
         if not 0 < vol < 101:
-            return await ctx.send('Please enter a value between 1 and 100.')
+            return await ctx.send("Please enter a value between 1 and 100.")
 
         await player.set_volume(vol)
-        await ctx.send(f':sound: Set the volume to {vol}%')
+        await ctx.send(f":sound: Set the volume to {vol}%")
 
-    @core.command(aliases=['mix'])
+    @core.command(aliases=["mix"])
     async def shuffle(self, ctx: AvimetryContext):
         """
         Shuffles the queue.
@@ -690,24 +741,33 @@ class Music(core.Cog):
             return
 
         if self.is_privileged(ctx):
-            await ctx.send(f':twisted_rightwards_arrows: {ctx.author.display_name} shuffled the queue.')
+            await ctx.send(
+                f":twisted_rightwards_arrows: {ctx.author.display_name} shuffled the queue."
+            )
             player.shuffle_votes.clear()
             return random.shuffle(player.queue._queue)
 
         if player.queue.size < 3:
-            return await ctx.send('Add more songs to the queue before shuffling.', delete_after=15)
+            return await ctx.send(
+                "Add more songs to the queue before shuffling.", delete_after=15
+            )
 
         required = self.required(ctx)
         player.shuffle_votes.add(ctx.author)
 
         if len(player.shuffle_votes) >= required:
-            await ctx.send(':twisted_rightwards_arrows: Shuffling queue because vote to shuffle passed.')
+            await ctx.send(
+                ":twisted_rightwards_arrows: Shuffling queue because vote to shuffle passed."
+            )
             player.shuffle_votes.clear()
             random.shuffle(player.queue._queue)
         else:
-            await ctx.send(f'{ctx.author.display_name} has voted to shuffle the playlist.', delete_after=15)
+            await ctx.send(
+                f"{ctx.author.display_name} has voted to shuffle the playlist.",
+                delete_after=15,
+            )
 
-    @core.command(aliases=['eq'], enabled=False)
+    @core.command(aliases=["eq"], enabled=False)
     async def equalizer(self, ctx: AvimetryContext, *, equalizer: str):
         """Change the players equalizer."""
         player: Player = ctx.voice_client
@@ -716,23 +776,25 @@ class Music(core.Cog):
             return
 
         if not self.is_privileged(ctx):
-            return await ctx.send('Only the DJ or admins may change the equalizer.')
+            return await ctx.send("Only the DJ or admins may change the equalizer.")
 
-        eqs = {'flat': wavelink.Equalizer.flat(),
-               'boost': wavelink.Equalizer.boost(),
-               'metal': wavelink.Equalizer.metal(),
-               'piano': wavelink.Equalizer.piano()}
+        eqs = {
+            "flat": wavelink.Equalizer.flat(),
+            "boost": wavelink.Equalizer.boost(),
+            "metal": wavelink.Equalizer.metal(),
+            "piano": wavelink.Equalizer.piano(),
+        }
 
         eq = eqs.get(equalizer.lower())
 
         if not eq:
             joined = "\n".join(eqs.keys())
-            return await ctx.send(f'Invalid EQ provided. Valid EQs:\n{joined}')
+            return await ctx.send(f"Invalid EQ provided. Valid EQs:\n{joined}")
 
-        await ctx.send(f'Successfully changed equalizer to {equalizer}')
+        await ctx.send(f"Successfully changed equalizer to {equalizer}")
         await player.set_eq(eq)
 
-    @core.command(aliases=['q', 'upnext', 'next'])
+    @core.command(aliases=["q", "upnext", "next"])
     async def queue(self, ctx: AvimetryContext):
         """Display the players queued songs."""
         player: Player = ctx.voice_client
@@ -741,11 +803,18 @@ class Music(core.Cog):
             return
 
         if player.queue.size == 0:
-            return await ctx.send(f'The queue is empty. Use {ctx.prefix}play to add some songs!')
+            return await ctx.send(
+                f"The queue is empty. Use {ctx.prefix}play to add some songs!"
+            )
 
-        entries = [f"`{index+1})` [{track.title}]({track.uri})" for index, track in enumerate(player.queue._queue)]
+        entries = [
+            f"`{index+1})` [{track.title}]({track.uri})"
+            for index, track in enumerate(player.queue._queue)
+        ]
         pages = PaginatorSource(entries=entries, ctx=ctx)
-        paginator = AvimetryPages(source=pages, timeout=120, ctx=ctx, disable_view_after=True)
+        paginator = AvimetryPages(
+            source=pages, timeout=120, ctx=ctx, disable_view_after=True
+        )
         await paginator.start()
 
     @core.command(aliases=["clq", "clqueue", "cqueue"])
@@ -766,7 +835,7 @@ class Music(core.Cog):
 
         await ctx.send("Only the DJ can clear the queue.")
 
-    @core.command(aliases=['np', 'now_playing', 'current'])
+    @core.command(aliases=["np", "now_playing", "current"])
     async def nowplaying(self, ctx: AvimetryContext):
         """
         Show the currenly playing song.
@@ -778,7 +847,7 @@ class Music(core.Cog):
         pos = player.position
         await ctx.send(embed=await player.build_now_playing(position=pos))
 
-    @core.command(aliases=['swap', 'new_dj'])
+    @core.command(aliases=["swap", "new_dj"])
     async def swap_dj(self, ctx: AvimetryContext, *, member: discord.Member = None):
         """Swap the current DJ to another member in the voice channel."""
         player: Player = ctx.voice_client
@@ -787,29 +856,31 @@ class Music(core.Cog):
             return
 
         if not self.is_privileged(ctx):
-            return await ctx.send('Only admins and the DJ may use this command.')
+            return await ctx.send("Only admins and the DJ may use this command.")
 
         members = player.channel.members
 
         if member and member not in members:
-            return await ctx.send(f'{member} is not currently in voice, so can not be a DJ.')
+            return await ctx.send(
+                f"{member} is not currently in voice, so can not be a DJ."
+            )
 
         if member and member == player.dj:
-            return await ctx.send('Cannot swap DJ to the current DJ... :)')
+            return await ctx.send("Cannot swap DJ to the current DJ... :)")
 
         if len(members) <= 2:
-            return await ctx.send('No more members to swap to.')
+            return await ctx.send("No more members to swap to.")
 
         if member:
             player.dj = member
-            return await ctx.send(f'{member.mention} is now the DJ.')
+            return await ctx.send(f"{member.mention} is now the DJ.")
 
         for m in members:
             if m == player.dj or m.bot:
                 continue
             else:
                 player.dj = m
-                return await ctx.send(f'{member.mention} is now the DJ.')
+                return await ctx.send(f"{member.mention} is now the DJ.")
 
 
 def setup(bot: AvimetryBot):

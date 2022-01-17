@@ -29,6 +29,7 @@ class Animals(core.Cog):
     """
     Get images of animals.
     """
+
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
@@ -41,7 +42,7 @@ class Animals(core.Cog):
                 file = discord.File(BytesIO(await e.read()), filename=f"{animal}.png")
         embed = discord.Embed(
             title=f"Here is {animal}",
-            description=f"Powered by Some Random API\nProcessed in `{timer.total_time:,.2f}ms`"
+            description=f"Powered by Some Random API\nProcessed in `{timer.total_time:,.2f}ms`",
         )
         embed.set_image(url=f"attachment://{animal}.png")
         await ctx.send(file=file, embed=embed, no_edit=True)
@@ -81,7 +82,7 @@ class Animals(core.Cog):
         """
         await self.do_animal(ctx, "koala")
 
-    @core.command(aliases=['birb'])
+    @core.command(aliases=["birb"])
     async def bird(self, ctx: AvimetryContext):
         """
         Gets a random image of a bird online.
@@ -110,7 +111,7 @@ class Animals(core.Cog):
         async with self.bot.session.get("https://random-d.uk/api/v2/random") as resp:
             image = await resp.json()
         embed = discord.Embed(title="Here is a duck")
-        embed.set_image(url=image['url'])
+        embed.set_image(url=image["url"])
         await ctx.send(embed=embed)
 
 

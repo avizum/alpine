@@ -32,18 +32,20 @@ def to_list(thing):
 class AvimetryCommand(commands.Command):
     def __init__(self, func, **kwargs):
         self.user_permissions = to_list(
-            kwargs.get('user_permissions') or
-            getattr(func, 'user_permissions', ["send_messages"]) or
-            kwargs.get('extras', {}).get('user_permissions')
+            kwargs.get("user_permissions")
+            or getattr(func, "user_permissions", ["send_messages"])
+            or kwargs.get("extras", {}).get("user_permissions")
         )
         self.bot_permissions = to_list(
-            kwargs.get('bot_permissions') or
-            getattr(func, 'bot_permissions', ["send_messages"]) or
-            kwargs.get('extras', {}).get('bot_permissions')
+            kwargs.get("bot_permissions")
+            or getattr(func, "bot_permissions", ["send_messages"])
+            or kwargs.get("extras", {}).get("bot_permissions")
         )
         super().__init__(func, **kwargs)
         if not self._buckets._cooldown:
-            self._buckets = commands.CooldownMapping(commands.Cooldown(1, 3), commands.BucketType.user)
+            self._buckets = commands.CooldownMapping(
+                commands.Cooldown(1, 3), commands.BucketType.user
+            )
             self._buckets._cooldown = commands.Cooldown(1, 3)
 
     async def can_run(self, ctx: commands.Context) -> bool:
@@ -52,14 +54,16 @@ class AvimetryCommand(commands.Command):
             return True
 
         if not self.enabled:
-            raise DisabledCommand(f'{self.name} command is disabled')
+            raise DisabledCommand(f"{self.name} command is disabled")
 
         original = ctx.command
         ctx.command = self
 
         try:
             if not await ctx.bot.can_run(ctx):
-                raise CheckFailure(f'The global check functions for command {self.qualified_name} failed.')
+                raise CheckFailure(
+                    f"The global check functions for command {self.qualified_name} failed."
+                )
 
             cog = self.cog
             if cog is not None:
@@ -82,11 +86,11 @@ class AvimetryCommand(commands.Command):
 class AvimetryGroup(AvimetryCommand, commands.Group):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.invoke_without_command = kwargs.get('invoke_without_command', True)
+        self.invoke_without_command = kwargs.get("invoke_without_command", True)
 
     def command(self, *args, **kwargs):
         def decorator(func):
-            kwargs.setdefault('parent', self)
+            kwargs.setdefault("parent", self)
             result = command(*args, **kwargs)(func)
             self.add_command(result)
             return result
@@ -95,7 +99,7 @@ class AvimetryGroup(AvimetryCommand, commands.Group):
 
     def group(self, *args, **kwargs):
         def decorator(func):
-            kwargs.setdefault('parent', self)
+            kwargs.setdefault("parent", self)
             result = group(*args, **kwargs)(func)
             self.add_command(result)
             return result
@@ -115,8 +119,9 @@ def command(name=None, cls=None, **kwargs):
 
     def decorator(func):
         if isinstance(func, AvimetryCommand):
-            raise TypeError('Callback is already a command')
+            raise TypeError("Callback is already a command")
         return cls(func, name=name, **kwargs)
+
     return decorator
 
 

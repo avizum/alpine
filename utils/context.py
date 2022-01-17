@@ -28,7 +28,7 @@ from .view import AvimetryView
 from discord.ext import commands, menus
 from datetime import timedelta
 
-emoji_regex = '<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>'
+emoji_regex = "<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>"
 
 
 class TrashView(AvimetryView):
@@ -45,7 +45,7 @@ class TrashView(AvimetryView):
     async def on_timeout(self):
         await self.stop()
 
-    @discord.ui.button(emoji='\U0001f5d1', style=discord.ButtonStyle.danger)
+    @discord.ui.button(emoji="\U0001f5d1", style=discord.ButtonStyle.danger)
     async def trash(self, button, interaction):
         await self.message.delete()
         await self.ctx.message.add_reaction(self.ctx.bot.emoji_dictionary["green_tick"])
@@ -56,12 +56,12 @@ class ConfirmView(AvimetryView):
         super().__init__(member=member, timeout=timeout)
         self.value = None
 
-    @discord.ui.button(label='Yes', style=discord.ButtonStyle.green)
+    @discord.ui.button(label="Yes", style=discord.ButtonStyle.green)
     async def yes(self, button, interaction):
         self.value = True
         self.stop()
 
-    @discord.ui.button(label='No', style=discord.ButtonStyle.red)
+    @discord.ui.button(label="No", style=discord.ButtonStyle.red)
     async def no(self, button, interaction):
         self.value = False
         self.stop()
@@ -82,9 +82,12 @@ class AutoPageSource(menus.ListPageSource):
             entries = entry
         elif isinstance(entry, str):
             if lang:
-                entries = [f"```{lang}\n{entry[i:i+limit]}```" for i in range(0, len(entry), limit)]
+                entries = [
+                    f"```{lang}\n{entry[i:i+limit]}```"
+                    for i in range(0, len(entry), limit)
+                ]
             else:
-                entries = [entry[i:i + limit] for i in range(0, len(entry), limit)]
+                entries = [entry[i : i + limit] for i in range(0, len(entry), limit)]
         elif isinstance(entry, commands.Paginator):
             entries = entry.pages
         super().__init__(entries, per_page=1)
@@ -97,9 +100,9 @@ class AvimetryContext(commands.Context):
     def __init__(self, *, bot: AvimetryBot, **kwargs):
         super().__init__(bot=bot, **kwargs)
         self.tokens = []
-        self.tokens.extend(self.bot.settings['bot_tokens'].values())
-        self.tokens.extend(self.bot.settings['api_tokens'].values())
-        self.tokens.extend(self.bot.settings['webhooks'].values())
+        self.tokens.extend(self.bot.settings["bot_tokens"].values())
+        self.tokens.extend(self.bot.settings["api_tokens"].values())
+        self.tokens.extend(self.bot.settings["webhooks"].values())
 
     @property
     def cache(self):
@@ -142,11 +145,15 @@ class AvimetryContext(commands.Context):
     async def no_reply(self, *args, **kwargs):
         return await super().send(*args, **kwargs)
 
-    async def post(self, content, syntax: str = 'py', gist: bool = False):
+    async def post(self, content, syntax: str = "py", gist: bool = False):
         if gist:
-            gist_client = GistClient(self.bot.settings["api_tokens"]["GitHub"], self.bot.session)
+            gist_client = GistClient(
+                self.bot.settings["api_tokens"]["GitHub"], self.bot.session
+            )
             gist_file = [GistFile(filename=f"output.{syntax}", content=content)]
-            link = await gist_client.post(description=str(self.author), files=gist_file, public=True, raw=False)
+            link = await gist_client.post(
+                description=str(self.author), files=gist_file, public=True, raw=False
+            )
         else:
             link = await self.bot.myst.post(content, syntax=syntax)
         embed = discord.Embed(
@@ -159,26 +166,37 @@ class AvimetryContext(commands.Context):
         base = member.color
         data = self.cache.users.get(member.id)
         try:
-            color = data.get('color')
+            color = data.get("color")
             if not color:
                 color = base
         except AttributeError:
             color = base
         if color == discord.Color(0):
             if await self.bot.is_owner(member):
-                color = discord.Color(0x01b9c0)
+                color = discord.Color(0x01B9C0)
             else:
                 color = discord.Color(0x2F3136)
         return color
 
-    async def paginate(self, entry: typing.Union[str, list[discord.Embed]], lang: str = None, *, limit: int = 1000,
-                       delete_message_after: bool = True, remove_view_after: bool = False,
-                       disable_view_after: bool = False):
+    async def paginate(
+        self,
+        entry: typing.Union[str, list[discord.Embed]],
+        lang: str = None,
+        *,
+        limit: int = 1000,
+        delete_message_after: bool = True,
+        remove_view_after: bool = False,
+        disable_view_after: bool = False,
+    ):
         from .paginators import AvimetryPages
-        menu = AvimetryPages(AutoPageSource(entry, lang, limit=limit), ctx=self,
-                             remove_view_after=remove_view_after,
-                             delete_message_after=delete_message_after,
-                             disable_view_after=disable_view_after)
+
+        menu = AvimetryPages(
+            AutoPageSource(entry, lang, limit=limit),
+            ctx=self,
+            remove_view_after=remove_view_after,
+            delete_message_after=delete_message_after,
+            disable_view_after=disable_view_after,
+        )
         await menu.start()
 
     async def send(
@@ -202,7 +220,7 @@ class AvimetryContext(commands.Context):
         no_reply: bool = None,
         no_edit: bool = None,
         return_message: bool = None,
-        ephemeral: bool = None
+        ephemeral: bool = None,
     ) -> discord.Message:
         if content:
             con = str(content)
@@ -215,7 +233,10 @@ class AvimetryContext(commands.Context):
                     return await self.post(content, gist=True)
         if embed:
             if not embed.footer:
-                embed.set_footer(text=f"Requested by: {self.author}", icon_url=self.author.display_avatar.url)
+                embed.set_footer(
+                    text=f"Requested by: {self.author}",
+                    icon_url=self.author.display_avatar.url,
+                )
                 embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
             if not embed.color:
                 embed.color = await self.determine_color()
@@ -225,26 +246,56 @@ class AvimetryContext(commands.Context):
 
         if self.interaction is None or (
             self.interaction.response.responded_at is not None
-            and discord.utils.utcnow() - self.interaction.response.responded_at >= timedelta(minutes=15)
+            and discord.utils.utcnow() - self.interaction.response.responded_at
+            >= timedelta(minutes=15)
         ):
-            if self.message.id in self.bot.command_cache and self.message.edited_at and not no_edit:
+            if (
+                self.message.id in self.bot.command_cache
+                and self.message.edited_at
+                and not no_edit
+            ):
                 message = await self.bot.command_cache[self.message.id].edit(
-                    content, embed=embed, delete_after=delete_after,
-                    allowed_mentions=allowed_mentions, view=view
+                    content,
+                    embed=embed,
+                    delete_after=delete_after,
+                    allowed_mentions=allowed_mentions,
+                    view=view,
                 )
             else:
                 try:
                     reference = None if no_reply else self.message
                     message = await super().send(
-                        content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
-                        delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions,
-                        reference=reference, mention_author=mention_author, view=view)
+                        content,
+                        tts=tts,
+                        embed=embed,
+                        embeds=embeds,
+                        file=file,
+                        files=files,
+                        stickers=stickers,
+                        delete_after=delete_after,
+                        nonce=nonce,
+                        allowed_mentions=allowed_mentions,
+                        reference=reference,
+                        mention_author=mention_author,
+                        view=view,
+                    )
                 except Exception as e:
                     print(e)
                     message = await super().send(
-                        content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, stickers=stickers,
-                        delete_after=delete_after, nonce=nonce, allowed_mentions=allowed_mentions,
-                        reference=reference, mention_author=mention_author, view=view)
+                        content,
+                        tts=tts,
+                        embed=embed,
+                        embeds=embeds,
+                        file=file,
+                        files=files,
+                        stickers=stickers,
+                        delete_after=delete_after,
+                        nonce=nonce,
+                        allowed_mentions=allowed_mentions,
+                        reference=reference,
+                        mention_author=mention_author,
+                        view=view,
+                    )
             self.bot.command_cache[self.message.id] = message
             return message
 
@@ -262,20 +313,37 @@ class AvimetryContext(commands.Context):
             send = self.interaction.followup.send
 
         return await send(
-            content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, delete_after=delete_after,
-            allowed_mentions=allowed_mentions, view=view)  # type: ignore
+            content,
+            tts=tts,
+            embed=embed,
+            embeds=embeds,
+            file=file,
+            files=files,
+            delete_after=delete_after,
+            allowed_mentions=allowed_mentions,
+            view=view,
+        )  # type: ignore
 
-    def codeblock(self, content: str, language: str = 'py'):
+    def codeblock(self, content: str, language: str = "py"):
         return f"```{language}\n{content}\n```"
 
     async def confirm(
-        self, message=None, embed: discord.Embed = None, confirm_message=None, *,
-        timeout=60, delete_after=False, no_reply=False, remove_view_after=True
+        self,
+        message=None,
+        embed: discord.Embed = None,
+        confirm_message=None,
+        *,
+        timeout=60,
+        delete_after=False,
+        no_reply=False,
+        remove_view_after=True,
     ):
         if delete_after:
             remove_view_after = False
         view = ConfirmView(member=self.author, timeout=timeout)
-        check_message = confirm_message or 'Press "yes" to accept, or press "no" to deny.'
+        check_message = (
+            confirm_message or 'Press "yes" to accept, or press "no" to deny.'
+        )
         if no_reply is True:
             send = await self.no_reply(content=message, embed=embed, view=view)
         elif message:
@@ -293,8 +361,13 @@ class AvimetryContext(commands.Context):
         return ConfirmResult(send, view.value)
 
     async def prompt(
-        self, message=None, embed: discord.Embed = None, *,
-        timeout=60, delete_after=True, raw=False
+        self,
+        message=None,
+        embed: discord.Embed = None,
+        *,
+        timeout=60,
+        delete_after=True,
+        raw=False,
     ):
         if raw is True:
             send = await self.no_reply(content=message, embed=embed)
@@ -309,7 +382,7 @@ class AvimetryContext(commands.Context):
             return self.author == message.author and self.channel == message.channel
 
         try:
-            msg = await self.bot.wait_for('message', check=check, timeout=timeout)
+            msg = await self.bot.wait_for("message", check=check, timeout=timeout)
         except asyncio.TimeoutError:
             confirm = False
             pass

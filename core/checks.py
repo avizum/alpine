@@ -16,7 +16,7 @@ def check(predicate, user_permissions=None, bot_permissions=None):
         if isinstance(func, AvimetryCommand):
             func.checks.append(predicate)
         else:
-            if not hasattr(func, '__commands_checks__'):
+            if not hasattr(func, "__commands_checks__"):
                 func.__commands_checks__ = []
 
             func.__commands_checks__.append(predicate)
@@ -26,9 +26,11 @@ def check(predicate, user_permissions=None, bot_permissions=None):
     if inspect.iscoroutinefunction(predicate):
         decorator.predicate = predicate
     else:
+
         @functools.wraps(predicate)
         async def wrapper(ctx):
             return predicate(ctx)
+
         decorator.predicate = wrapper
     return decorator
 
@@ -42,7 +44,9 @@ def has_permissions(**perms):
         ch = ctx.channel
         permissions = ch.permissions_for(ctx.author)
 
-        missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
+        missing = [
+            perm for perm, value in perms.items() if getattr(permissions, perm) != value
+        ]
 
         if await ctx.bot.is_owner(ctx.author):
             return True
@@ -50,6 +54,7 @@ def has_permissions(**perms):
             return True
 
         raise commands.MissingPermissions(missing)
+
     return check(predicate, user_permissions=perms)
 
 
@@ -63,7 +68,9 @@ def bot_has_permissions(**perms):
         me = guild.me if guild is not None else ctx.bot.user
         permissions = ctx.channel.permissions_for(me)
 
-        missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
+        missing = [
+            perm for perm, value in perms.items() if getattr(permissions, perm) != value
+        ]
 
         if not missing:
             return True
@@ -78,18 +85,21 @@ def cooldown(rate, per, type=commands.BucketType.default):
         if isinstance(func, AvimetryCommand):
             func._buckets = commands.CooldownMapping(commands.Cooldown(rate, per), type)
         else:
-            func.__commands_cooldown__ = commands.CooldownMapping(commands.Cooldown(rate, per), type)
+            func.__commands_cooldown__ = commands.CooldownMapping(
+                commands.Cooldown(rate, per), type
+            )
         return func
+
     return decorator
 
 
 def is_owner():
     async def predicate(ctx):
         if not await ctx.bot.is_owner(ctx.author):
-            raise commands.NotOwner('You do not own this bot.')
+            raise commands.NotOwner("You do not own this bot.")
         return True
 
-    return check(predicate, user_permissions=['bot_owner'])
+    return check(predicate, user_permissions=["bot_owner"])
 
 
 def is_guild_owner():
@@ -98,4 +108,4 @@ def is_guild_owner():
             raise NotGuildOwner
         return True
 
-    return check(predicate, user_permissions=['guild_owner'])
+    return check(predicate, user_permissions=["guild_owner"])

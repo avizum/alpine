@@ -45,7 +45,7 @@ class MainHelp(menus.ListPageSource):
             f"[Support Server]({self.ctx.bot.support})",
             f"[Invite]({self.ctx.bot.invite})",
             "[Vote](https://top.gg/bot/756257170521063444/vote)",
-            f"[Source]({self.ctx.bot.support})"
+            f"[Source]({self.ctx.bot.support})",
         ]
         embed = discord.Embed(
             title=f"Avimetry {self.help_command.invoked_with.title()} Menu",
@@ -53,7 +53,7 @@ class MainHelp(menus.ListPageSource):
                 f"{self.help_command.command_signature()}\n"
                 f"{usable}\n{' | '.join(info)}"
             ),
-            color=await self.ctx.determine_color()
+            color=await self.ctx.determine_color(),
         )
         embed.add_field(name="Modules", value="\n".join(modules))
         embed.set_thumbnail(url=bot.user.display_avatar.url)
@@ -61,12 +61,20 @@ class MainHelp(menus.ListPageSource):
             icon_url=self.ctx.author.display_avatar.url,
             text=(
                 f"{self.help_command.ending_note()} | "
-                f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.mapping)} Modules)"))
+                f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.mapping)} Modules)"
+            ),
+        )
         return embed
 
 
 class CogHelp(menus.ListPageSource):
-    def __init__(self, ctx: AvimetryContext, commands, cog: commands.Cog, help_command: "AvimetryHelp"):
+    def __init__(
+        self,
+        ctx: AvimetryContext,
+        commands,
+        cog: commands.Cog,
+        help_command: "AvimetryHelp",
+    ):
         super().__init__(entries=commands, per_page=4)
         self.ctx = ctx
         self.cog = cog
@@ -75,8 +83,8 @@ class CogHelp(menus.ListPageSource):
     async def format_page(self, menu, commands):
         embed = discord.Embed(
             title=f"{self.cog.qualified_name.title()} Module",
-            description=self.cog.description or 'No description provided',
-            color=await self.ctx.determine_color()
+            description=self.cog.description or "No description provided",
+            color=await self.ctx.determine_color(),
         )
         embed.set_thumbnail(url=self.ctx.bot.user.display_avatar.url)
         thing = [
@@ -86,21 +94,25 @@ class CogHelp(menus.ListPageSource):
 
         embed.add_field(
             name=f"Commands in {self.cog.qualified_name.title()}",
-            value="\n".join(thing) or 'error'
+            value="\n".join(thing) or "error",
         )
         if self.get_max_pages() != 1:
             embed.set_footer(
                 text=f"Page {menu.current_page+1}/{self.get_max_pages()} ({len(self.cog.get_commands())} Commands)"
             )
         else:
-            embed.set_footer(
-                text=self.help_command.ending_note()
-            )
+            embed.set_footer(text=self.help_command.ending_note())
         return embed
 
 
 class GroupHelp(menus.ListPageSource):
-    def __init__(self, ctx: AvimetryContext, commands, group: commands.Group, help_command: "AvimetryHelp"):
+    def __init__(
+        self,
+        ctx: AvimetryContext,
+        commands,
+        group: commands.Group,
+        help_command: "AvimetryHelp",
+    ):
         super().__init__(entries=commands, per_page=4)
         self.ctx = ctx
         self.group = group
@@ -109,17 +121,19 @@ class GroupHelp(menus.ListPageSource):
     async def format_page(self, menu, commands):
         embed = discord.Embed(
             title=f"Command Group: {self.group.qualified_name.title()}",
-            description=self.group.help or 'No description provided',
+            description=self.group.help or "No description provided",
             color=await self.ctx.determine_color(),
         )
         embed.add_field(
             name="Base command usage",
-            value=f"`{self.ctx.clean_prefix}{self.group.qualified_name} {self.group.signature}`")
+            value=f"`{self.ctx.clean_prefix}{self.group.qualified_name} {self.group.signature}`",
+        )
         if self.group.aliases:
             embed.add_field(
                 name="Command Aliases",
                 value=", ".join(self.group.aliases),
-                inline=False)
+                inline=False,
+            )
         embed.add_field(
             name="Required Permissions",
             value=(
@@ -127,14 +141,12 @@ class GroupHelp(menus.ListPageSource):
                 f"Bot Permissions: `{self.hc.get_perms('bot_permissions', self.group)}`\n"
                 f"User Permissions: `{self.hc.get_perms('user_permissions', self.group)}`"
             ),
-            inline=False)
+            inline=False,
+        )
 
         cooldown = self.hc.get_cooldown(self.group)
         if cooldown:
-            embed.add_field(
-                name="Cooldown",
-                value=cooldown,
-                inline=False)
+            embed.add_field(name="Cooldown", value=cooldown, inline=False)
 
         embed.set_thumbnail(url=self.ctx.bot.user.display_avatar.url)
         thing = [
@@ -145,7 +157,7 @@ class GroupHelp(menus.ListPageSource):
         embed.add_field(
             name=f"Commands in {self.group.qualified_name.title()}",
             value="\n".join(thing),
-            inline=False
+            inline=False,
         )
         if self.get_max_pages() != 1:
             embed.set_footer(
@@ -158,8 +170,12 @@ class GroupHelp(menus.ListPageSource):
 
 class AvimetryHelp(commands.HelpCommand):
     def get_perms(self, perm_type: str, command: commands.Command):
-        permissions = getattr(command, perm_type, None) or command.extras.get(perm_type, ['send_messages'])
-        return ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
+        permissions = getattr(command, perm_type, None) or command.extras.get(
+            perm_type, ["send_messages"]
+        )
+        return (
+            ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
+        )
 
     async def can_run(self, command, ctx):
         try:
@@ -210,7 +226,7 @@ class AvimetryHelp(commands.HelpCommand):
             "moderation": "\U0001f52b Moderation",
             "settings": "\U00002699 Settings",
             "music": "\U0001f3b5 Music",
-            "bot info": "\U00002139 Bot Info"
+            "bot info": "\U00002139 Bot Info",
         }
         items = []
         for cog in mapping:
@@ -245,33 +261,33 @@ class AvimetryHelp(commands.HelpCommand):
         await menu.start(self.context)
 
     async def send_command_help(self, command: commands.Command):
-        embed = discord.Embed(
-            title=f"Command: {command.qualified_name}")
+        embed = discord.Embed(title=f"Command: {command.qualified_name}")
 
         embed.add_field(
             name="Command Usage",
-            value=f"`{self.context.clean_prefix}{command.qualified_name} {command.signature}`")
+            value=f"`{self.context.clean_prefix}{command.qualified_name} {command.signature}`",
+        )
         if command.aliases:
             embed.add_field(
-                name="Command Aliases",
-                value=", ".join(command.aliases),
-                inline=False)
+                name="Command Aliases", value=", ".join(command.aliases), inline=False
+            )
         embed.add_field(
             name="Description",
             value=command.help or "No help was provided.",
-            inline=False)
+            inline=False,
+        )
         embed.add_field(
             name="Required Permissions",
             value=(
                 f"Can Use: {await self.can_run(command, self.context)}\n"
                 f"Bot Permissions: `{self.get_perms('bot_perms', command)}`\n"
-                f"User Permissions: `{self.get_perms('user_permissions', command)}`"),
-            inline=False)
+                f"User Permissions: `{self.get_perms('user_permissions', command)}`"
+            ),
+            inline=False,
+        )
         cooldown = self.get_cooldown(command)
         if cooldown:
-            embed.add_field(
-                name="Cooldown",
-                value=cooldown)
+            embed.add_field(name="Cooldown", value=cooldown)
         embed.set_thumbnail(url=str(self.context.bot.user.display_avatar.url))
         embed.set_footer(text=self.ending_note())
         await self.get_destination().send(embed=embed)
@@ -308,8 +324,10 @@ class HelpCommand(core.Cog):
                 aliases=["halp", "helps", "hlp", "hlep", "hep"],
                 usage="[command|module]",
                 checks=[core.bot_has_permissions(add_reactions=True).predicate],
-                cooldown=commands.CooldownMapping(commands.Cooldown(10, 30), commands.BucketType.user)
-            )
+                cooldown=commands.CooldownMapping(
+                    commands.Cooldown(10, 30), commands.BucketType.user
+                ),
+            ),
         )
         help_command.cog = self
         self.bot.help_command = help_command

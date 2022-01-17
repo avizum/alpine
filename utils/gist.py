@@ -71,16 +71,19 @@ class GistClient:
     session: :class:`aiohttp.ClientSession`
         The session used to connect to the API.
     """
+
     def __init__(self, token: str, session: aiohttp.ClientSession):
         self.token = token
         self.session = session
         self.url = "https://api.github.com/gists"
 
-        self.session.headers['Accept'] = 'application/vnd.github.v3+json'
-        self.session.headers['User-Agent'] = 'Avimetry-Gist-Cog'
-        self.session.headers['Authorization'] = f"token {self.token}"
+        self.session.headers["Accept"] = "application/vnd.github.v3+json"
+        self.session.headers["User-Agent"] = "Avimetry-Gist-Cog"
+        self.session.headers["Authorization"] = f"token {self.token}"
 
-    async def post(self, *, description: str, files: List[GistFile], public: bool, raw: bool):
+    async def post(
+        self, *, description: str, files: List[GistFile], public: bool, raw: bool
+    ):
         """
         Posts a gist.
 
@@ -101,13 +104,9 @@ class GistClient:
             The URL or the raw json of the newly created gist.
         """
 
-        files = {f.filename: {'content': f.content} for f in files}
+        files = {f.filename: {"content": f.content} for f in files}
 
-        data = {
-            'public': public,
-            'files': files,
-            'description': description
-        }
+        data = {"public": public, "files": files, "description": description}
         output = await self.session.request("POST", self.url, json=data)
         json = await output.json()
         if raw:

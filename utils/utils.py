@@ -43,8 +43,8 @@ def format_list(list):
 
 def timestamp(times: datetime.datetime, format: typing.Optional[str] = None):
     if format:
-        return f'<t:{int(times.replace(tzinfo=datetime.timezone.utc).timestamp())}:{format}>'
-    return f'<t:{int(times.replace(tzinfo=datetime.timezone.utc).timestamp())}>'
+        return f"<t:{int(times.replace(tzinfo=datetime.timezone.utc).timestamp())}:{format}>"
+    return f"<t:{int(times.replace(tzinfo=datetime.timezone.utc).timestamp())}>"
 
 
 class Timer:
@@ -98,15 +98,20 @@ def format_seconds(seconds: float, *, friendly: bool = False) -> str:
     hour, minute = divmod(minute, 60)
     day, hour = divmod(hour, 24)
 
-    days, hours, minutes, seconds = round(day), round(hour), round(minute), round(second)
+    days, hours, minutes, seconds = (
+        round(day),
+        round(hour),
+        round(minute),
+        round(second),
+    )
 
     if friendly:
-        day = f'{days}d ' if days != 0 else ''
-        hour = f'{hours}h ' if hours != 0 or not days == 0 else ''
-        minsec = f'{minutes}m {seconds}s'
+        day = f"{days}d " if days != 0 else ""
+        hour = f"{hours}h " if hours != 0 or not days == 0 else ""
+        minsec = f"{minutes}m {seconds}s"
         return f"{day}{hour}{minsec}"
-    day = f'{days:02d}:' if days != 0 else ''
-    hour = f'{hours:02d}:' if hours != 0 or days != 0 else ''
+    day = f"{days:02d}:" if days != 0 else ""
+    hour = f"{hours:02d}:" if hours != 0 or days != 0 else ""
     minsec = f"{minutes:02d}:{seconds:02d}"
     return f"{day}{hour}{minsec}"
 

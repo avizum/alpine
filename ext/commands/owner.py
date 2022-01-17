@@ -21,6 +21,7 @@ import datetime
 import jishaku
 import discord
 import sys
+
 try:
     import psutil
 except ImportError:
@@ -50,7 +51,7 @@ def naturalsize(size_in_bytes: int):
         1024 -> 1.00 KiB
         12345678 -> 11.77 MiB
     """
-    units = ('B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB')
+    units = ("B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB")
 
     power = int(math.log(size_in_bytes, 1024))
 
@@ -69,7 +70,7 @@ class ErrorSource(menus.ListPageSource):
             embed.add_field(
                 name=f"{error['command']} | `{error['id']}`",
                 value=f"```\n{error['error']}```",
-                inline=False
+                inline=False,
             )
         return embed
 
@@ -90,7 +91,7 @@ class GuildPageSource(menus.ListPageSource):
                     f"Created at: {discord.utils.format_dt(guild.created_at)}\n"
                     f"Joined at: {discord.utils.format_dt(guild.me.joined_at)}"
                 ),
-                inline=False
+                inline=False,
             )
         return embed
 
@@ -99,6 +100,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     """
     Advanced debug cog for bot Developers.
     """
+
     def __init__(self, *args, **kwargs):
         self.emoji = "<:jishaku:913256121542791178>"
         super().__init__(*args, **kwargs)
@@ -108,11 +110,21 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member):
         waste = "\U0001f5d1\U0000fe0f"
-        if reaction.emoji == waste and await self.bot.is_owner(user) and reaction.message.author == self.bot.user:
+        if (
+            reaction.emoji == waste
+            and await self.bot.is_owner(user)
+            and reaction.message.author == self.bot.user
+        ):
             await reaction.message.delete()
 
-    @Feature.Command(name="jishaku", aliases=["jsk", "dev", "developer"], hidden=Flags.HIDE,
-                     invoke_without_command=True, ignore_extra=False, extras={'user_permissions': ['bot_owner']})
+    @Feature.Command(
+        name="jishaku",
+        aliases=["jsk", "dev", "developer"],
+        hidden=Flags.HIDE,
+        invoke_without_command=True,
+        ignore_extra=False,
+        extras={"user_permissions": ["bot_owner"]},
+    )
     async def jsk(self, ctx: AvimetryContext):
         """
         The Jishaku debug and diagnostic commands.
@@ -125,7 +137,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             f"Python `{sys.version}` on `{sys.platform}`, ".replace("\n", ""),
             f"Jishaku was loaded {timestamp(self.load_time, 'R')} "
             f"and module was loaded {timestamp(self.start_time, 'R')}.",
-            ""
+            "",
         ]
         if psutil:
             try:
@@ -146,13 +158,16 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                         pid = proc.pid
                         tc = proc.num_threads()
                         summary.append(
-                            f"This process is running on Process ID `{pid}` (`{name}`) with {tc} threads.")
+                            f"This process is running on Process ID `{pid}` (`{name}`) with {tc} threads."
+                        )
                     except psutil.AccessDenied:
                         pass
                     summary.append("")
 
             except psutil.AccessDenied:
-                summary.append("psutil is installed but this process does not have access to display this information")
+                summary.append(
+                    "psutil is installed but this process does not have access to display this information"
+                )
                 summary.append("")
 
         guilds = f"{len(self.bot.guilds)} guilds"
@@ -169,7 +184,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                     f" and can see {cache_summary}"
                 )
             else:
-                shard_ids = ', '.join(str(i) for i in self.bot.shards.keys())
+                shard_ids = ", ".join(str(i) for i in self.bot.shards.keys())
                 summary.append(
                     f"This bot is automatically sharded (Shards {shard_ids} of {self.bot.shard_count})"
                     f" and can see {cache_summary}"
@@ -183,7 +198,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             summary.append(f"This bot is not sharded and {cache_summary}")
 
         if self.bot._connection.max_messages:
-            message_cache = f"Message cache is capped at {self.bot._connection.max_messages}."
+            message_cache = (
+                f"Message cache is capped at {self.bot._connection.max_messages}."
+            )
         else:
             message_cache = "Message cache is not enabled."
         summary.append(message_cache)
@@ -195,11 +212,15 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             summary.append(f"{presence_intent}, {members_intent} and {message_intent}.")
         else:
             guild_subs = self.bot._connection.guild_subscriptions
-            guild_subscriptions = f"`guild subscriptions` are `{'enabled' if guild_subs else 'disabled'}`"
+            guild_subscriptions = (
+                f"`guild subscriptions` are `{'enabled' if guild_subs else 'disabled'}`"
+            )
             summary.append(f"{message_cache} and {guild_subscriptions}.")
         summary.append("")
 
-        summary.append(f"Average websocket latency: `{round(self.bot.latency * 1000)}ms`")
+        summary.append(
+            f"Average websocket latency: `{round(self.bot.latency * 1000)}ms`"
+        )
 
         jishaku_embed = discord.Embed(description="\n".join(summary))
         await ctx.send(embed=jishaku_embed)
@@ -217,13 +238,16 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                     {
                         "message_id": conf.message.id,
                         "channel_id": ctx.channel.id,
-                        "restart_time": datetime.datetime.now(tz=datetime.timezone.utc)
-                    }, f
+                        "restart_time": datetime.datetime.now(tz=datetime.timezone.utc),
+                    },
+                    f,
                 )
             await conf.message.edit(content="Rebooting...", embed=None)
             await self.bot.close()
         if not conf:
-            await conf.message.edit(content="Reboot aborted", embed=None, delete_after=5)
+            await conf.message.edit(
+                content="Reboot aborted", embed=None, delete_after=5
+            )
 
     @Feature.Command(parent="jsk", name="battery")
     async def jsk_battery(self, ctx: AvimetryContext):
@@ -233,14 +257,20 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         battery = psutil.sensors_battery()
         plugged = battery.power_plugged
         percent = str(battery.percent)
-        await ctx.send(f"System battery is at {percent}% and {'Plugged in' if plugged else 'Unplugged'}")
+        await ctx.send(
+            f"System battery is at {percent}% and {'Plugged in' if plugged else 'Unplugged'}"
+        )
 
     @Feature.Command(parent="jsk", name="su")
-    async def jsk_su(self, ctx: AvimetryContext, member: discord.Member, *, command_string):
+    async def jsk_su(
+        self, ctx: AvimetryContext, member: discord.Member, *, command_string
+    ):
         """
         Run a command as someone else.
         """
-        alt_ctx = await copy_context_with(ctx, author=member, content=f"{ctx.prefix}{command_string}")
+        alt_ctx = await copy_context_with(
+            ctx, author=member, content=f"{ctx.prefix}{command_string}"
+        )
         if alt_ctx.command is None:
             return await ctx.send(f'Command "{alt_ctx.invoked_with}" does not exist.')
         return await alt_ctx.command.invoke(alt_ctx)
@@ -256,11 +286,15 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         return await alt_ctx.command.reinvoke(alt_ctx)
 
     @Feature.Command(parent="jsk", name="in", aliases=["channel", "inside"])
-    async def jsk_in(self, ctx: AvimetryContext, channel: discord.TextChannel, *, command_string):
+    async def jsk_in(
+        self, ctx: AvimetryContext, channel: discord.TextChannel, *, command_string
+    ):
         """
         Run a command in another channel.
         """
-        alt_ctx = await copy_context_with(ctx, channel=channel, content=f"{ctx.prefix}{command_string}")
+        alt_ctx = await copy_context_with(
+            ctx, channel=channel, content=f"{ctx.prefix}{command_string}"
+        )
         if alt_ctx.command is None:
             return await ctx.send(f'Command "{alt_ctx.invoked_with}" does not exist.')
         return await alt_ctx.command.invoke(alt_ctx)
@@ -277,9 +311,11 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         paginator = commands.Paginator(max_size=1985, prefix="", suffix="")
 
         for task in self.tasks:
-            paginator.add_line(f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "
-                               f"{discord.utils.format_dt(task.ctx.message.created_at)} "
-                               f"({discord.utils.format_dt(task.ctx.message.created_at, 'R')})")
+            paginator.add_line(
+                f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "
+                f"{discord.utils.format_dt(task.ctx.message.created_at)} "
+                f"({discord.utils.format_dt(task.ctx.message.created_at, 'R')})"
+            )
 
         interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
         return await interface.send_to(ctx)
@@ -295,7 +331,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         with open("config.toml", "w") as bfile:
             toml.dump(load, bfile)
             self.bot.news = news
-        embed = discord.Embed(title="Successfully Set News.", description=f"Here is the preview.\n{news}")
+        embed = discord.Embed(
+            title="Successfully Set News.", description=f"Here is the preview.\n{news}"
+        )
         await ctx.send(embed=embed)
 
     @Feature.Command(parent="jsk")
@@ -320,7 +358,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 self.bot.load_extension(cog)
                 load_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
             except (commands.ExtensionError, ModuleNotFoundError) as e:
-                load_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
+                load_list.append(
+                    f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```'
+                )
         embed = discord.Embed(title="Loaded cogs", description="\n".join(load_list))
         await ctx.send(embed=embed)
 
@@ -335,7 +375,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 self.bot.unload_extension(cog)
                 unload_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
             except (commands.ExtensionError, ModuleNotFoundError) as e:
-                unload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
+                unload_list.append(
+                    f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```'
+                )
         embed = discord.Embed(title="Unloaded cogs", description="\n".join(unload_list))
         await ctx.send(embed=embed)
 
@@ -350,7 +392,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 self.bot.reload_extension(cog)
                 reload_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
             except (commands.ExtensionError, ModuleNotFoundError) as e:
-                reload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
+                reload_list.append(
+                    f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```'
+                )
         description = "\n".join(reload_list)
         embed = discord.Embed(title="Reloaded cogs", description=description)
         await ctx.send(embed=embed)
@@ -367,16 +411,15 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         )
         edit_sync = await ctx.send(embed=sync_embed)
         proc = await asyncio.create_subprocess_shell(
-            'git pull',
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE)
+            "git pull", stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+        )
 
         stdout, stderr = await proc.communicate()
 
         if stdout:
-            output = f'[stdout]\n{stdout.decode()}'
+            output = f"[stdout]\n{stdout.decode()}"
         elif stderr:
-            output = f'[stderr]\n{stderr.decode()}'
+            output = f"[stderr]\n{stderr.decode()}"
 
         sync_embed.description = f"```bash\n{output}\n```"
         sync_embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
@@ -387,7 +430,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             try:
                 self.bot.reload_extension(cog)
             except commands.ExtensionError as e:
-                reload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
+                reload_list.append(
+                    f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```'
+                )
         if not reload_list:
             value = "All modules were reloaded successfully"
         else:
@@ -400,10 +445,14 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         Command to leave a guild that may be abusing the bot.
         """
-        conf = await ctx.confirm(f"Are you sure you want me to leave {guild.name} ({guild.id})?")
+        conf = await ctx.confirm(
+            f"Are you sure you want me to leave {guild.name} ({guild.id})?"
+        )
         if conf.result:
             await ctx.guild.leave()
-            return await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
+            return await ctx.message.add_reaction(
+                self.bot.emoji_dictionary["green_tick"]
+            )
         await conf.message.edit(content="Okay, Aborted.")
 
     @Feature.Command(parent="jsk", aliases=["bl"], invoke_without_command=True)
@@ -415,12 +464,14 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         joiner = "\n"
         embed = discord.Embed(
             title=f"List of blacklisted users ({len(bl_users)})",
-            description=f"```\n{joiner.join([str(bl) for bl in bl_users])}```"
+            description=f"```\n{joiner.join([str(bl) for bl in bl_users])}```",
         )
         await ctx.send(embed=embed)
 
     @Feature.Command(parent="blacklist", name="add", aliases=["a"])
-    async def blacklist_add(self, ctx: AvimetryContext, user: discord.User, *, reason: ModReason = None):
+    async def blacklist_add(
+        self, ctx: AvimetryContext, user: discord.User, *, reason: ModReason = None
+    ):
         """
         Adds a user to the global blacklist.
         """
@@ -437,15 +488,14 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
         embed = discord.Embed(
             title="Blacklisted User",
-            description=(
-                f"Added {user} to the blacklist.\n"
-                f"Reason: `{reason}`"
-            )
+            description=(f"Added {user} to the blacklist.\n" f"Reason: `{reason}`"),
         )
         await ctx.send(embed=embed)
 
     @Feature.Command(parent="blacklist", name="remove", aliases=["r"])
-    async def blacklist_remove(self, ctx: AvimetryContext, user: discord.User, *, reason=None):
+    async def blacklist_remove(
+        self, ctx: AvimetryContext, user: discord.User, *, reason=None
+    ):
         """
         Removes a user from the global blacklist.
         """
@@ -465,8 +515,10 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
         Goes through channel history and then deletes them one by one.
         """
+
         def check(m: discord.Message):
             return m.author == self.bot.user
+
         perms = ctx.channel.permissions_for(ctx.me).manage_messages
         purged = await ctx.channel.purge(limit=amount, check=check, bulk=perms)
         cog = self.bot.get_cog("moderation")
@@ -479,10 +531,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
         When maintenance mode is enabled, The bot will only locked to devlopers.
         """
-        match = {
-            True: "enabled",
-            False: "disabled"
-        }
+        match = {True: "enabled", False: "disabled"}
         self.bot.maintenance = toggle
         await ctx.send(f"Maintenance mode has been {match[toggle]}")
 
@@ -495,7 +544,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             f"{key.title()} | Loaded {utils.timestamp(val.load_time, 'R')}"
             for key, val in self.bot.cogs.items()
         ]
-        embed = discord.Embed(title="Loaded Cogs", description='\n'.join(thing_list))
+        embed = discord.Embed(title="Loaded Cogs", description="\n".join(thing_list))
         await ctx.send(embed=embed)
 
     @Feature.Command(parent="jsk")
@@ -509,12 +558,19 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         Show all the errors in the bot.
         """
-        errors = await self.bot.pool.fetch('SELECT * FROM command_errors WHERE fixed = False')
+        errors = await self.bot.pool.fetch(
+            "SELECT * FROM command_errors WHERE fixed = False"
+        )
         if not errors:
-            embed = discord.Embed(title="Errors", description="No active errors have been found.")
+            embed = discord.Embed(
+                title="Errors", description="No active errors have been found."
+            )
             return await ctx.send(embed=embed)
         menu = AvimetryPages(
-            ErrorSource(ctx, errors, title="Unfixed errors", per_page=4), ctx=ctx, delete_message_after=True)
+            ErrorSource(ctx, errors, title="Unfixed errors", per_page=4),
+            ctx=ctx,
+            delete_message_after=True,
+        )
         return await menu.start()
 
     @Feature.Command(parent="errors")
@@ -522,12 +578,19 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         Shows all fixed errors.
         """
-        errors = await self.bot.pool.fetch('SELECT * FROM command_errors WHERE fixed = True')
+        errors = await self.bot.pool.fetch(
+            "SELECT * FROM command_errors WHERE fixed = True"
+        )
         if not errors:
-            embed = discord.Embed(title="Errors", description="No fixed errors have been found.")
+            embed = discord.Embed(
+                title="Errors", description="No fixed errors have been found."
+            )
             return await ctx.send(embed=embed)
         menu = AvimetryPages(
-            ErrorSource(ctx, errors, title="Fixed errors", per_page=4), ctx=ctx, delete_message_after=True)
+            ErrorSource(ctx, errors, title="Fixed errors", per_page=4),
+            ctx=ctx,
+            delete_message_after=True,
+        )
         return await menu.start()
 
     @Feature.Command(parent="errors")
@@ -543,21 +606,28 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             error_info = await self.bot.pool.fetchrow(query, i)
             if not error_info:
                 fix_list.append(f"Error ID {i} does not exist.")
-            elif error_info['fixed'] is True:
+            elif error_info["fixed"] is True:
                 fix_list.append(f"Error ID {i} is already marked as fixed.")
             else:
                 query = "UPDATE command_errors SET fixed=$1 WHERE id=$2"
                 await self.bot.pool.execute(query, True, i)
                 fix_list.append(f"Error ID {i} has been marked as fixed.")
-        await ctx.send('\n'.join(fix_list))
+        await ctx.send("\n".join(fix_list))
 
-    @Feature.Command(parent="jsk", aliases=["dmsg", "dmessage", "delmsg", "deletem", "deletemsg", "delmessage"])
-    async def deletemessage(self, ctx: AvimetryContext, message: discord.Message = None):
+    @Feature.Command(
+        parent="jsk",
+        aliases=["dmsg", "dmessage", "delmsg", "deletem", "deletemsg", "delmessage"],
+    )
+    async def deletemessage(
+        self, ctx: AvimetryContext, message: discord.Message = None
+    ):
         if message is None and ctx.reference is not None:
             if ctx.reference.author == ctx.me:
                 await ctx.reference.delete()
             else:
-                return await ctx.message.add_reaction(self.bot.emoji_dictionary["red_tick"])
+                return await ctx.message.add_reaction(
+                    self.bot.emoji_dictionary["red_tick"]
+                )
         if message and message.author == ctx.me:
             await message.delete()
         return await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
