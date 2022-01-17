@@ -319,7 +319,7 @@ class Moderation(core.Cog):
     @core.bot_has_permissions(manage_messages=True)
     async def cleanup(self, ctx: AvimetryContext, amount=15):
         """
-        Delete the last 15 messages starting with my command prefix or me messages.
+        Delete the last 15 commands.
 
         If you have an empty prefix, this will also delete other messages.
         """

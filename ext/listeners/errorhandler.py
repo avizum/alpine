@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import asyncio
 import datetime
 import discord
 import sys
@@ -46,6 +45,8 @@ class ErrorHandler(core.Cog):
         self.no_dm_command_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
         self.not_found_cooldown_content = CooldownByContent.from_cooldown(1, 15, commands.BucketType.user)
         self.not_found_cooldown = commands.CooldownMapping.from_cooldown(2, 30, commands.BucketType.user)
+        self.disabled_channel = commands.CooldownMapping.from_cooldown(1, 60, commands.BucketType.channel)
+        self.disabled_command = commands.CooldownMapping.from_cooldown(1, 60, commands.BucketType.channel)
         self.error_webhook = discord.Webhook.from_url(
             self.bot.settings["webhooks"]["error_log"],
             session=self.bot.session,
@@ -139,34 +140,23 @@ class ErrorHandler(core.Cog):
                     continue
             match = get_close_matches(not_found, all_commands)
             if match:
-                await ctx.send(
-                    embed=discord.Embed(description=f"Running `{match[0]}` because it is similar to `{not_found}`..."))
-                await asyncio.sleep(1)
-                new = copy.copy(ctx.message)
-                new._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
-                new.content = new.content.replace(ctx.invoked_with, match[0])
-                new_ctx = await self.bot.get_context(new)
-                try:
-                    await self.bot.invoke(new_ctx)
-                except commands.CommandInvokeError:
-                    await ctx.send("Error occured while running close matched command.")
-                # embed = discord.Embed(title="Invalid Command")
-                # embed.description = f'I couldn\'t find a command "{not_found}". Did you mean {match[0]}?'
-                # bucket1 = self.not_found_cooldown_content.get_bucket(ctx.message).update_rate_limit()
-                # bucket2 = self.not_found_cooldown.get_bucket(ctx.message).update_rate_limit()
-                # if not bucket1 or not bucket2:
-                #     conf = await ctx.confirm(embed=embed)
-                #     if conf.result:
-                #         if conf.result is False:
-                #             await ctx.message.delete()
-                #         new = copy.copy(ctx.message)
-                #         new._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
-                #         new.content = new.content.replace(ctx.invoked_with, match[0])
-                #         ctx = await self.bot.get_context(new)
-                #         try:
-                #             await self.bot.invoke(ctx)
-                #         except commands.CommandInvokeError:
-                #             await ctx.send("Something failed while trying to invoke. Try again?")
+                embed = discord.Embed(title="Invalid Command")
+                embed.description = f'I couldn\'t find a command "{not_found}". Did you mean {match[0]}?'
+                bucket1 = self.not_found_cooldown_content.get_bucket(ctx.message).update_rate_limit()
+                bucket2 = self.not_found_cooldown.get_bucket(ctx.message).update_rate_limit()
+                if not bucket1 or not bucket2:
+                    conf = await ctx.confirm(embed=embed)
+                    if conf.result:
+                        new = copy.copy(ctx.message)
+                        new._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
+                        new.content = new.content.replace(ctx.invoked_with, match[0])
+                        ctx = await self.bot.get_context(new)
+                        try:
+                            await self.bot.invoke(ctx)
+                        except commands.CommandInvokeError:
+                            await ctx.send("Something failed while trying to invoke. Try again?")
+                    if conf.result is False:
+                        return await conf.message.delete()
 
         elif isinstance(error, commands.CommandOnCooldown):
             rate = error.cooldown.rate
@@ -246,16 +236,22 @@ class ErrorHandler(core.Cog):
                 )
             )
             ctx.message._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
-            conf = await ctx.confirm(embed=a, delete_after=True)
+            conf = await ctx.confirm(embed=a, delete_after=False)
             if conf.result:
                 return await ctx.send_help(ctx.command)
             return
 
         elif isinstance(error, CommandDisabledGuild):
-            return await ctx.send("You can not use this command, It is disabled in this server.")
+            bucket = self.disabled_command.get_bucket(ctx.message)
+            retry_after = bucket.update_rate_limit()
+            if not retry_after:
+                return await ctx.send("You can not use this command, It is disabled in this server.")
 
         elif isinstance(error, CommandDisabledChannel):
-            return await ctx.send("Commands have been disabled in this channel.")
+            bucket = self.disabled_channel.get_bucket(ctx.message)
+            retry_after = bucket.update_rate_limit()
+            if not retry_after:
+                return await ctx.send("Commands have been disabled in this channel.")
 
         elif isinstance(error, commands.DisabledCommand):
             return await ctx.send("This command is not enabled at the moment.")

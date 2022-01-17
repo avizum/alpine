@@ -348,7 +348,8 @@ class Games(core.Cog):
                 return await ctx.send("Child mode can only be disabled in NSFW channels.")
             embed = discord.Embed(title="Akinator", description=f"{akiclient.step+1}. {game}")
         view = AkinatorGameView(member=ctx.author, ctx=ctx, client=akiclient, embed=embed)
-        await fm.delete()
+        if not fm.edited_at:
+            await fm.delete()
         view.message = await ctx.send(embed=embed, view=view)
 
     @core.command(aliases=["rps"])
@@ -559,7 +560,6 @@ class Games(core.Cog):
     async def search(self, ctx: AvimetryContext, *query: int | str):
         try:
             a = await self.rclient.get_users(query) or await self.rclient.get_users_by_usernames(query)
-            
             await ctx.send(a)
         except Exception as e:
             await ctx.send(e)

@@ -17,7 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import datetime
+import discord
+
 from discord.ext import commands
+from discord.ext.commands import DisabledCommand, CheckFailure
 
 
 def to_list(thing):
@@ -42,6 +45,38 @@ class AvimetryCommand(commands.Command):
         if not self._buckets._cooldown:
             self._buckets = commands.CooldownMapping(commands.Cooldown(1, 3), commands.BucketType.user)
             self._buckets._cooldown = commands.Cooldown(1, 3)
+
+    async def can_run(self, ctx: commands.Context) -> bool:
+        # always allow owner to run any command
+        if await ctx.bot.is_owner(ctx.author):
+            return True
+
+        if not self.enabled:
+            raise DisabledCommand(f'{self.name} command is disabled')
+
+        original = ctx.command
+        ctx.command = self
+
+        try:
+            if not await ctx.bot.can_run(ctx):
+                raise CheckFailure(f'The global check functions for command {self.qualified_name} failed.')
+
+            cog = self.cog
+            if cog is not None:
+                local_check = Cog._get_overridden_method(cog.cog_check)
+                if local_check is not None:
+                    ret = await discord.utils.maybe_coroutine(local_check, ctx)
+                    if not ret:
+                        return False
+
+            predicates = self.checks
+            if not predicates:
+                # since we have no checks, then we just return True.
+                return True
+
+            return await discord.utils.async_all(predicate(ctx) for predicate in predicates)  # type: ignore
+        finally:
+            ctx.command = original
 
 
 class AvimetryGroup(AvimetryCommand, commands.Group):

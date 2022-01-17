@@ -185,7 +185,7 @@ class HelpSelect(discord.ui.Select):
         if self.values[0] == "Home":
             await self.view.edit_source(MainHelp(self.ctx, self.hc), interaction)
         else:
-            thing = CogHelp(self.ctx, await self.hc.filter_commands(cog.get_commands()), cog, self.hc)
+            thing = CogHelp(self.ctx, await self.hc.filter_commands(cog.get_commands(), sort=True), cog, self.hc)
             await self.view.edit_source(thing, interaction)
             self.current_module = cog
 
@@ -245,7 +245,7 @@ class AvimetryHelp(commands.HelpCommand):
         pass
 
     async def on_help_command_error(self, ctx, error):
-        await ctx.can_delete(error)
+        ctx.bot.dispatch("command_error", ctx, error)
 
     async def filter_cogs(self, mapping=None):
         mapping = mapping or self.get_bot_mapping()
@@ -363,7 +363,7 @@ class HelpCommand(core.Cog):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         help_command = AvimetryHelp(
-            verify_checks=True,
+            verify_checks=False,
             show_hidden=False,
             command_attrs=dict(
                 hidden=True,
