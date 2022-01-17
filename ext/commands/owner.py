@@ -342,7 +342,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             m = importlib.reload(__import__(module))
             await ctx.send(f"Reloaded Sucessfully: `{m}`")
         except Exception as exc:
-            await ctx.send(exc)
+            await ctx.send(str(exc))
 
     @Feature.Command(parent="jsk", name="load", aliases=["l"])
     async def jsk_load(self, ctx: AvimetryContext, *module: str):

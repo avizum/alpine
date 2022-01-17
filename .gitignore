@@ -2,5 +2,6 @@
 *.log
 *__pycache__
 .vscode
+.mypy_cache
 config.toml
 reboot.toml
