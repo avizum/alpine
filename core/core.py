@@ -24,12 +24,10 @@ from discord.ext.commands import DisabledCommand, CheckFailure
 
 
 def to_list(thing):
-    if isinstance(thing, str):
-        return [thing]
-    return list(thing)
+    return [thing] if isinstance(thing, str) else list(thing)
 
 
-class AvimetryCommand(commands.Command):
+class Command(commands.Command):
     def __init__(self, func, **kwargs):
         self.user_permissions = to_list(
             kwargs.get("user_permissions")
@@ -83,7 +81,7 @@ class AvimetryCommand(commands.Command):
             ctx.command = original
 
 
-class AvimetryGroup(AvimetryCommand, commands.Group):
+class Group(Command, commands.Group):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.invoke_without_command = kwargs.get("invoke_without_command", True)
@@ -115,10 +113,10 @@ class Cog(commands.Cog):
 
 def command(name=None, cls=None, **kwargs):
     if cls is None:
-        cls = AvimetryCommand
+        cls = Command
 
     def decorator(func):
-        if isinstance(func, AvimetryCommand):
+        if isinstance(func, Command):
             raise TypeError("Callback is already a command")
         return cls(func, name=name, **kwargs)
 
@@ -126,4 +124,4 @@ def command(name=None, cls=None, **kwargs):
 
 
 def group(name=None, **kwargs):
-    return command(name=name, cls=AvimetryGroup, **kwargs)
+    return command(name=name, cls=Group, **kwargs)
