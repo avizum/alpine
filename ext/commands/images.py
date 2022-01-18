@@ -30,7 +30,7 @@ embed = discord.Embed()
 args = typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]
 
 
-class Image(commands.Cog, name="Images"):
+class Images(core.Cog):
     """
     Commands for image manipuation and more.
     """

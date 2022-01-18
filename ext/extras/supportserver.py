@@ -21,7 +21,7 @@ import re
 import datetime
 import core
 
-from discord.ext import commands, tasks
+from discord.ext import tasks
 from utils import AvimetryBot, AvimetryContext, PrivateServer
 
 
@@ -88,7 +88,7 @@ class ButtonRole(discord.ui.View):
         )
 
 
-class Servers(commands.Cog, name="Servers"):
+class Servers(core.Cog):
     """
     Commands for bot's servers only.
     """
