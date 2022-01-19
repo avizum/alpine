@@ -42,6 +42,5 @@ from .exceptions import (
 )
 from .utils import Timer, format_string, format_list, timestamp, format_seconds
 from .parser import preview_message
-from .gist import GistClient, GistFile, GistResponse
 from .paginators import AvimetryPages
 from .view import AvimetryView
