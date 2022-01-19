@@ -608,6 +608,18 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         )
         return await menu.start()
 
+    async def dm_error_trackers(self, data: dict):
+        user_ids = data["trackers"]
+        embed = discord.Embed(
+            title=f"Error #{data['id']} fixed.",
+            description=f"The error in command `{data['command']}` was marked as fixed."
+        )
+        for uid in user_ids:
+            user = self.bot.get_user(uid)
+            if user is not None:
+                await user.send(embed=embed)
+                await asyncio.sleep(1)
+
     @Feature.Command(parent="errors")
     async def fix(self, ctx: AvimetryContext, *error_id: int):
         """
@@ -616,6 +628,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         Giving multiple IDs will mark all of them as fixed.
         """
         fix_list = []
+        trackers = None
         for i in error_id:
             query = "SELECT * FROM command_errors WHERE id=$1"
             error_info = await self.bot.pool.fetchrow(query, i)
@@ -624,10 +637,12 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             elif error_info["fixed"] is True:
                 fix_list.append(f"Error ID {i} is already marked as fixed.")
             else:
-                query = "UPDATE command_errors SET fixed=$1 WHERE id=$2"
-                await self.bot.pool.execute(query, True, i)
+                query = "UPDATE command_errors SET fixed=$1 WHERE id=$2 RETURNING *"
+                trackers = await self.bot.pool.fetchrow(query, True, i)
                 fix_list.append(f"Error ID {i} has been marked as fixed.")
         await ctx.send("\n".join(fix_list))
+        if trackers:
+            await self.dm_error_trackers()
 
     @Feature.Command(
         parent="jsk",
