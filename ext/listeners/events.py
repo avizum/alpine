@@ -24,7 +24,8 @@ import re
 import core
 
 from discord.ext import tasks
-from utils import AvimetryBot, GistClient, GistFile
+from utils import AvimetryBot
+from asyncgist import File
 
 TOKEN_REGEX = (
     r"([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}|mfa\.[a-zA-Z0-9_\-]{84})"
@@ -36,9 +37,6 @@ class BotLogs(core.Cog):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.clear_cache.start()
-        self.gist = GistClient(
-            self.bot.settings["api_tokens"]["GitHub"], self.bot.session
-        )
 
     @core.Cog.listener("on_message")
     async def on_message(self, message: discord.Message):
@@ -51,11 +49,10 @@ class BotLogs(core.Cog):
             return
         tokens = re.findall(TOKEN_REGEX, message.content)
         if tokens:
-            gist = await self.gist.post(
+            gist = await self.bot.gist.post(
                 description="Tokens found.",
-                files=[GistFile(filename="tokens.txt", content="\n".join(tokens))],
+                files=[File(filename="tokens.txt", content="\n".join(tokens))],
                 public=True,
-                raw=False,
             )
 
             split_token = tokens[0].split(".")

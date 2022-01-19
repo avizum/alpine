@@ -24,6 +24,7 @@ import random
 import pytz
 import typing
 import core
+import asyncgist
 
 from doc_search import AsyncScraper
 from pytz import UnknownTimeZoneError
@@ -35,9 +36,7 @@ from utils import (
     TimeZoneError,
     GetAvatar,
     timestamp,
-    AvimetryPages,
-    GistClient,
-    GistFile,
+    AvimetryPages
 )
 
 
@@ -552,27 +551,45 @@ class Meta(core.Cog):
         )
         raise error
 
-    @core.command()
+    @core.group(name="gist")
     @commands.cooldown(1, 60, commands.BucketType.user)
-    async def gist(self, ctx: AvimetryContext, *, code: codeblock_converter):
+    async def post_gist(self, ctx: AvimetryContext, *, code: codeblock_converter):
         """
         Posts a gist.
 
         These gists are public and if you want to get one removed, DM Avimetry or join the support server.
         """
-        gist = GistClient(self.bot.settings["api_tokens"]["GitHub"], self.bot.session)
-        file_post = GistFile(
-            filename=f"output{code.language or 'txt'}", content=code.content
+        file_post = asyncgist.File(
+            filename=f"output.{code.language or 'txt'}", content=code.content
         )
-        out = await gist.post(
+        out = await self.bot.gist.post(
             description=f"{ctx.author} at {datetime.datetime.now(datetime.timezone.utc).strftime('%x %X')}",
             files=[file_post],
             public=True,
-            raw=False,
         )
-        await ctx.send(
-            f"These gists are posted publicly. DM me to get it removed.\n{out}"
-        )
+        await ctx.send(f"These gists are posted publicly. DM me to get it removed.\n{out.html_url}")
+
+    @post_gist.command(name="delete")
+    @core.is_owner()
+    async def delete_gist(self, ctx, *, gist_id: str):
+        """
+        Deletes a gist
+
+        This deletes gists posted from the avimetry-bot GitHub account.
+        """
+        await self.bot.gist.delete(gist_id)
+        await ctx.send("Deleted post.")
+
+    @post_gist.command(name="read")
+    async def gist_read(self, ctx, *, gist_id: str):
+        gist = await self.bot.gist.get(gist_id)
+        from utils.context import AutoPageSource
+        pag = commands.Paginator()
+        for i in gist.files[0].content.split("\n"):
+            pag.add_line(i)
+        source = AutoPageSource(pag)
+        pages = AvimetryPages(source, ctx=ctx, delete_message_after=True)
+        await pages.start()
 
     @core.command(aliases=["rawmessage", "rmessage", "rmsg"])
     @core.cooldown(1, 15, commands.BucketType.user)
