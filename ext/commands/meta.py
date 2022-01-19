@@ -553,7 +553,7 @@ class Meta(core.Cog):
 
     @core.group(name="gist")
     @commands.cooldown(1, 60, commands.BucketType.user)
-    async def post_gist(self, ctx: AvimetryContext, *, code: codeblock_converter):
+    async def gist(self, ctx: AvimetryContext, *, code: codeblock_converter):
         """
         Posts a gist.
 
@@ -569,24 +569,30 @@ class Meta(core.Cog):
         )
         await ctx.send(f"These gists are posted publicly. DM me to get it removed.\n{out.html_url}")
 
-    @post_gist.command(name="delete")
+    @gist.command(name="delete")
     @core.is_owner()
-    async def delete_gist(self, ctx, *, gist_id: str):
+    async def gist_delete(self, ctx, *, gist_id: str):
         """
         Deletes a gist
 
         This deletes gists posted from the avimetry-bot GitHub account.
         """
-        await self.bot.gist.delete(gist_id)
+        try:
+            await self.bot.gist.delete(gist_id)
+        except asyncgist.NotFound:
+            return await ctx.send("Gist was not found.")
         await ctx.send("Deleted post.")
 
-    @post_gist.command(name="read")
+    @gist.command(name="read")
     async def gist_read(self, ctx, *, gist_id: str):
-        gist = await self.bot.gist.get(gist_id)
+        try:
+            gist = await self.bot.gist.get(gist_id)
+        except asyncgist.NotFound:
+            return await ctx.send("Gist was not found.")
         from utils.context import AutoPageSource
         pag = commands.Paginator()
         for i in gist.files[0].content.split("\n"):
-            pag.add_line(i)
+            pag.add_line(i.replace("`", "\u200b`"))
         source = AutoPageSource(pag)
         pages = AvimetryPages(source, ctx=ctx, delete_message_after=True)
         await pages.start()
