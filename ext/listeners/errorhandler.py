@@ -32,6 +32,7 @@ from utils import (
     NotGuildOwner,
     CommandDisabledGuild,
     CommandDisabledChannel,
+    AvimetryView
 )
 from discord.ext import commands
 from difflib import get_close_matches
@@ -40,6 +41,38 @@ from difflib import get_close_matches
 class CooldownByContent(commands.CooldownMapping):
     def _bucket_key(self, message):
         return (message.channel.id, message.content)
+
+
+class UnknownError(AvimetryView):
+    def __init__(self, *, member: discord.Member, bot: AvimetryBot, error_id: int):
+        self.error_id = error_id
+        self.bot = bot
+        super().__init__(member=member, timeout=3600)
+        support = discord.ui.Button(style=discord.ButtonStyle.link, label="Support Server", url=self.bot.support)
+        self.add_item(support)
+        self.cooldown = commands.CooldownMapping.from_cooldown(2, 60, commands.BucketType.user)
+
+    async def interaction_check(self, interaction: discord.Interaction):
+        return True
+
+    async def on_timeout(self) -> None:
+        await self.message.edit(view=None)
+
+    @discord.ui.button(label="Track Error", style=discord.ButtonStyle.blurple)
+    async def track_error(self, button: discord.Button, interaction: discord.Interaction):
+        retry = self.cooldown.update_rate_limit(self.message)
+        if retry:
+            return await interaction.response.send_message(
+                f"You are doing that too fast. Please try again in {retry:,.2f} seconds.", ephemeral=True
+            )
+        check = await self.bot.pool.fetchrow("SELECT trackers FROM command_errors WHERE id = $1", self.error_id)
+        if self.member.id in check['trackers']:
+            remove_tracker = "UPDATE command_errors SET trackers = ARRAY_REMOVE(trackers, $2) WHERE id = $1"
+            await self.bot.pool.execute(remove_tracker, self.error_id, self.member)
+            return await interaction.response.send_message(f"No longer tracking Error #{self.error_id}", ephemeral=True)
+        add_tracker = "UPDATE command_errors SET trackers = ARRAY_APPEND(trackers, $2) WHERE id = $1"
+        await self.bot.pool.execute(add_tracker, self.error_id, self.member)
+        return await interaction.response.send_message(f"Now tracking Error #{self.error_id}.", ephemeral=True)
 
 
 class ErrorHandler(core.Cog):
@@ -127,17 +160,14 @@ class ErrorHandler(core.Cog):
                     "Please join the [support](https://discord.gg/muTVFgDvKf) server to appeal."
                 ),
             )
-            bucket = self.blacklist_cooldown.get_bucket(ctx.message)
-            retry_after = bucket.update_rate_limit()
+            retry_after = self.blacklist_cooldown.update_rate_limit(ctx.message)
             if not retry_after:
                 return await ctx.send(embed=blacklisted, delete_after=30)
             return
 
         if isinstance(error, Maintenance):
-            bucket = self.maintenance_cooldown.get_bucket(
-                ctx.message
-            ).update_rate_limit()
-            if not bucket:
+            retry_after = self.maintenance_cooldown.update_rate_limit(ctx.message)
+            if not retry_after:
                 return await ctx.send("Maintenance mode is enabled. Try again later.")
 
         if isinstance(error, commands.NoPrivateMessage):
@@ -145,8 +175,7 @@ class ErrorHandler(core.Cog):
                 title="No DM commands",
                 description="Commands do not work in DMs because I work best in servers.",
             )
-            bucket = self.no_dm_command_cooldown(ctx.message)
-            retry_after = bucket.update_rate_limit()
+            retry_after = self.no_dm_command_cooldown.update_rate_limit()
             if not retry_after:
                 return await ctx.semd(embed=embed)
             return
@@ -171,12 +200,8 @@ class ErrorHandler(core.Cog):
             if match:
                 embed = discord.Embed(title="Invalid Command")
                 embed.description = f'I couldn\'t find a command "{not_found}". Did you mean {match[0]}?'
-                bucket1 = self.not_found_cooldown_content.get_bucket(
-                    ctx.message
-                ).update_rate_limit()
-                bucket2 = self.not_found_cooldown.get_bucket(
-                    ctx.message
-                ).update_rate_limit()
+                bucket1 = self.not_found_cooldown_content.update_rate_limit(ctx.message)
+                bucket2 = self.not_found_cooldown.update_rate_limit(ctx.message)
                 if not bucket1 or not bucket2:
                     conf = await ctx.confirm(embed=embed)
                     if conf.result:
@@ -286,16 +311,14 @@ class ErrorHandler(core.Cog):
             return
 
         elif isinstance(error, CommandDisabledGuild):
-            bucket = self.disabled_command.get_bucket(ctx.message)
-            retry_after = bucket.update_rate_limit()
+            retry_after = self.disabled_command.update_rate_limit(ctx.message)
             if not retry_after:
                 return await ctx.send(
                     "You can not use this command, It is disabled in this server."
                 )
 
         elif isinstance(error, CommandDisabledChannel):
-            bucket = self.disabled_channel.get_bucket(ctx.message)
-            retry_after = bucket.update_rate_limit()
+            retry_after = self.disabled_channel.update_rate_limit(ctx.message)
             if not retry_after:
                 return await ctx.send("Commands have been disabled in this channel.")
 
@@ -343,21 +366,21 @@ class ErrorHandler(core.Cog):
             error_embed = discord.Embed(title="An error has occured")
 
             query = "SELECT * FROM command_errors WHERE command=$1 and error=$2"
-            check = await self.bot.pool.fetchrow(
+            error_info = await self.bot.pool.fetchrow(
                 query, ctx.command.qualified_name, str(error)
             )
-            if not check:
+            if not error_info:
                 insert_query = (
                     "INSERT INTO command_errors (command, error) "
                     "VALUES ($1, $2) "
                     "RETURNING *"
                 )
-                insert = await self.bot.pool.fetchrow(
+                error_info = await self.bot.pool.fetchrow(
                     insert_query, ctx.command.qualified_name, str(error)
                 )
                 error_embed.description = (
                     "An unknown error was raised while running this command. The error has been logged and "
-                    f"you can track this error using `{ctx.prefix}error {insert['id']}`\n\n"
+                    f"you can track this error using `{ctx.prefix}error {error_info['id']}`\n\n"
                     f"Error:```py\n{error}```"
                 )
                 webhook_error_embed.add_field(
@@ -368,23 +391,15 @@ class ErrorHandler(core.Cog):
                         f"Command: {ctx.command.qualified_name}\n"
                         f"Message: {ctx.message.content}\n"
                         f"Invoker: {ctx.author}\n"
-                        f"Error ID: {insert['id']}"
+                        f"Error ID: {error_info['id']}"
                     ),
                 )
-            elif check["error"] == str(error):
+            elif error_info["error"] == str(error):
                 error_embed.description = (
                     "A known error was raised while running this command and hasn't been fixed.\n"
-                    f"You can check the error status using `{ctx.prefix}error {check['id']}`\n\n"
+                    f"You can check the error status using `{ctx.prefix}error {error_info['id']}`\n\n"
                     f"Error:```py\n{error}```"
                 )
-            view = discord.ui.View(timeout=None)
-            view.add_item(
-                discord.ui.Button(
-                    style=discord.ButtonStyle.link,
-                    label="Support Server",
-                    url=self.bot.support,
-                )
-            )
             await self.error_webhook.send(
                 embed=webhook_error_embed, username="Command Error"
             )
@@ -392,7 +407,8 @@ class ErrorHandler(core.Cog):
                 "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
             )
             tb.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
-            await ctx.send(embed=error_embed, view=view)
+            view = UnknownError(member=ctx.author, bot=self.bot, error_id=error_info['id'])
+            view.message = await ctx.send(embed=error_embed, view=view)
 
 
 def setup(bot):

@@ -31,8 +31,9 @@ import logging
 import wavelink
 import core
 
+from asyncgist import Client
 from discord.ext import commands
-from core import AvimetryCommand, AvimetryGroup
+from core import Command, Group
 from .exceptions import (
     Blacklisted,
     Maintenance,
@@ -183,6 +184,7 @@ class AvimetryBot(commands.Bot):
         self.topgg = topgg.DBLClient(
             self, api["TopGG"], autopost_interval=None, session=self.session
         )
+        self.gist = Client(api["GitHub"], self.session)
         self.sr = sr_api.Client()
         self.dagpi = asyncdagpi.Client(api["DagpiAPI"], session=self.session)
         self.myst = mystbin.Client(session=self.session)
@@ -305,10 +307,10 @@ class AvimetryBot(commands.Bot):
 
     def command(self, name=None, cls=None, **kwargs):
         if cls is None:
-            cls = AvimetryCommand
+            cls = Command
 
         def decorator(func):
-            if isinstance(func, AvimetryCommand):
+            if isinstance(func, Command):
                 raise TypeError("Callback is already a command")
             res = cls(func, name=name, **kwargs)
             self.add_command(res)
@@ -317,7 +319,7 @@ class AvimetryBot(commands.Bot):
         return decorator
 
     def group(self, name=None, **kwargs):
-        return self.command(name=name, cls=AvimetryGroup, **kwargs)
+        return self.command(name=name, cls=Group, **kwargs)
 
     def run(self):
         tokens = self.settings["bot_tokens"]

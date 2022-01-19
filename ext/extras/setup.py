@@ -82,11 +82,9 @@ class Setup(core.Cog):
             )
             embed.set_footer(text=message.author.id)
             ts = message.created_at.timestamp()
-            content_bucket = self.content_cd.get_bucket(message)
-            user_bucket = self.user_cd.get_bucket(message)
-            if content_bucket.update_rate_limit(ts) or user_bucket.update_rate_limit(
-                ts
-            ):
+            content_bucket = self.content_cd.update_rate_limit(message, ts)
+            user_bucket = self.user_cd.update_rate_limit(message, ts)
+            if content_bucket or user_bucket:
                 return
             await self.request_wh.send(embed=embed)
         try:
