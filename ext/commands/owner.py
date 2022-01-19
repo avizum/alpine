@@ -28,7 +28,7 @@ except ImportError:
     psutil = None
 
 import math
-
+import core
 import toml
 import utils
 import importlib
@@ -82,6 +82,8 @@ class GuildPageSource(menus.ListPageSource):
 
     async def format_page(self, menu, page):
         embed = discord.Embed(color=await self.ctx.determine_color())
+        embed.set_footer(text=f"Requested by: {self.ctx.author}", icon_url=self.ctx.author.display_avatar.url)
+        embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
         for guild in page:
             embed.add_field(
                 name=guild.name,
@@ -96,6 +98,22 @@ class GuildPageSource(menus.ListPageSource):
         return embed
 
 
+class BlacklistedPageSource(menus.ListPageSource):
+    def __init__(self, ctx: AvimetryContext, blacklisted):
+        self.ctx = ctx
+        super().__init__(blacklisted, per_page=2)
+
+    async def format_page(self, menu, page):
+        embed = discord.Embed(title="Blacklisted Users", color=await self.ctx.determine_color())
+        embed.set_footer(text=f"Requested by: {self.ctx.author}", icon_url=self.ctx.author.display_avatar.url)
+        embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
+        for entry in page:
+            user = self.ctx.bot.get_user(entry)
+            bl_entry = self.ctx.cache.blacklist[entry]
+            embed.add_field(name=f"{user}({user.id})" if user else entry, value=f"[Reason]\n{bl_entry}", inline=False)
+        return embed
+
+
 class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     """
     Advanced debug cog for bot Developers.
@@ -107,7 +125,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         for i in self.walk_commands():
             i.user_permissions = ["Bot Owner"]
 
-    @commands.Cog.listener()
+    @core.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member):
         waste = "\U0001f5d1\U0000fe0f"
         if (
@@ -458,15 +476,12 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     @Feature.Command(parent="jsk", aliases=["bl"], invoke_without_command=True)
     async def blacklist(self, ctx: AvimetryContext):
         """
-        Show the User IDs for the currently blacklisted people.
+        Show blacklisted users on the bot.
         """
-        bl_users = ctx.cache.blacklist.keys()
-        joiner = "\n"
-        embed = discord.Embed(
-            title=f"List of blacklisted users ({len(bl_users)})",
-            description=f"```\n{joiner.join([str(bl) for bl in bl_users])}```",
-        )
-        await ctx.send(embed=embed)
+        blacklist_ids = list(ctx.cache.blacklist.keys())
+        source = BlacklistedPageSource(ctx, blacklist_ids)
+        pages = AvimetryPages(source, ctx=ctx, delete_message_after=True)
+        await pages.start()
 
     @Feature.Command(parent="blacklist", name="add", aliases=["a"])
     async def blacklist_add(
