@@ -662,4 +662,4 @@ class Images(core.Cog):
 
 
 def setup(bot: AvimetryBot):
-    bot.add_cog(Image(bot))
+    bot.add_cog(Images(bot))

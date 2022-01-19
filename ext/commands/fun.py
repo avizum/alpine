@@ -108,9 +108,7 @@ class Fun(core.Cog):
         if member == self.bot.user or member.bot:
             await ctx.send("Nope.")
         elif member == ctx.author:
-            await ctx.send(
-                "You tried to shoot yourself in the head, but you couldn't because I won't let you :)"
-            )
+            await ctx.send("You're funny.")
         else:
             author = ctx.author.mention
             member = member.mention
@@ -150,7 +148,7 @@ class Fun(core.Cog):
         ctx: AvimetryContext,
         member: typing.Union[discord.User, discord.Member],
         *,
-        text,
+        text: str,
     ):
         """
         Makes it look like a person said something.
@@ -159,8 +157,7 @@ class Fun(core.Cog):
         This is a Discord limitation.
         """
         if member == self.bot.user:
-            say = self.bot.get_command("say")
-            return await say(ctx, message=text)
+            return await self.say(ctx, message=text)
         webhooks = await ctx.channel.webhooks()
         avimetry_webhook = discord.utils.get(webhooks, name="Avimetry")
         if not avimetry_webhook:
