@@ -116,7 +116,7 @@ class ErrorHandler(core.Cog):
             pass
 
     @core.Cog.listener()
-    async def on_command_error(self, ctx: AvimetryContext, error):
+    async def on_command_error(self, ctx: AvimetryContext, error: commands.CommandError):
         error = getattr(error, "original", error)
         if hasattr(ctx.command, "on_error"):
             if not hasattr(ctx, "eh"):
@@ -153,22 +153,24 @@ class ErrorHandler(core.Cog):
 
         elif isinstance(error, Blacklisted):
             blacklisted = discord.Embed(
-                title=f"You are globally blacklisted from {self.bot.user.name}",
+                title=f"You are blacklisted from {self.bot.user.name}",
                 description=(
-                    f"Blacklist reason: `{error.reason}`\n"
-                    "If you think this message is an error, "
-                    "Please join the [support](https://discord.gg/muTVFgDvKf) server to appeal."
+                    f"Reason: `{error.reason}`\n"
+                    f"If you want to appeal, please join the support server."
                 ),
             )
             retry_after = self.blacklist_cooldown.update_rate_limit(ctx.message)
             if not retry_after:
-                return await ctx.send(embed=blacklisted, delete_after=30)
+                view = discord.ui.View()
+                view.add_item(discord.ui.Button(label="Support Server", url=self.bot.support))
+                return await ctx.send(embed=blacklisted, delete_after=30, view=view)
             return
 
         if isinstance(error, Maintenance):
             retry_after = self.maintenance_cooldown.update_rate_limit(ctx.message)
             if not retry_after:
                 return await ctx.send("Maintenance mode is enabled. Try again later.")
+            return
 
         if isinstance(error, commands.NoPrivateMessage):
             embed = discord.Embed(
@@ -221,16 +223,10 @@ class ErrorHandler(core.Cog):
                         return await conf.message.delete()
 
         elif isinstance(error, commands.CommandOnCooldown):
-            rate = error.cooldown.rate
-            per = error.cooldown.per
-            cd_type = (
-                "globally" if error.type.name == "default" else f"per {error.type.name}"
-            )
             cd = discord.Embed(
                 title="Slow down",
                 description=(
-                    f"This command can be used {rate} {'time' if rate == 1 else 'times'} "
-                    f"every {per} seconds {cd_type}.\n"
+                    "This command is on cooldown."
                     f"Please try again in {error.retry_after:,.2f} seconds."
                 ),
             )
@@ -240,7 +236,7 @@ class ErrorHandler(core.Cog):
             max_uses = discord.Embed(
                 title="Slow Down",
                 description=(
-                    f"This command has reached its max concurrency.\nIt can only be used {error.number} "
+                    f"This can only be used {error.number} "
                     f"{'time' if error.number == 1 else 'times'} {error.per.name}."
                 ),
             )
@@ -359,31 +355,44 @@ class ErrorHandler(core.Cog):
                     f"Error was too long: {await self.bot.myst.post(traceback, 'bash')}"
                 )
 
-            webhook_error_embed = discord.Embed(
-                title="An error has occured",
-                description=traceback,
-            )
-            error_embed = discord.Embed(title="An error has occured")
-
             query = "SELECT * FROM command_errors WHERE command=$1 and error=$2"
-            error_info = await self.bot.pool.fetchrow(
+            in_db = await self.bot.pool.fetchrow(
                 query, ctx.command.qualified_name, str(error)
             )
-            if not error_info:
+            if not in_db:
                 insert_query = (
                     "INSERT INTO command_errors (command, error) "
                     "VALUES ($1, $2) "
                     "RETURNING *"
                 )
-                error_info = await self.bot.pool.fetchrow(
+                inserted_error = await self.bot.pool.fetchrow(
                     insert_query, ctx.command.qualified_name, str(error)
                 )
-                error_embed.description = (
-                    "An unknown error was raised while running this command. The error has been logged and "
-                    f"you can track this error using `{ctx.prefix}error {error_info['id']}`\n\n"
-                    f"Error:```py\n{error}```"
+                embed = discord.Embed(
+                    title="An unknown error occured",
+                    description=(
+                        "This error has been logged and will be fixed soon.\n"
+                        "You can track this error with the button below, or use "
+                        f"`{ctx.prefix}error {inserted_error['id']}`.\n\n"
+                        f"Error Information:```py\n{error}```"
+                    )
                 )
-                webhook_error_embed.add_field(
+            elif in_db["error"] == str(error):
+                embed = discord.Embed(
+                    title="A known error occured",
+                    description=(
+                        "This error was already logged, but has not been fixed.\n"
+                        "You can track this error with the button below, or use "
+                        f"`{ctx.prefix}error {in_db['id']}`.\n\n"
+                        f"Error Information:```py\n{error}```"
+                    )
+                )
+            webhook_error_embed = discord.Embed(
+                title="A new error" if not in_db else "Old error, Fix soon",
+                description=traceback,
+            )
+            error_info = in_db or inserted_error
+            webhook_error_embed.add_field(
                     name="Error Info",
                     value=(
                         f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
@@ -394,12 +403,6 @@ class ErrorHandler(core.Cog):
                         f"Error ID: {error_info['id']}"
                     ),
                 )
-            elif error_info["error"] == str(error):
-                error_embed.description = (
-                    "A known error was raised while running this command and hasn't been fixed.\n"
-                    f"You can check the error status using `{ctx.prefix}error {error_info['id']}`\n\n"
-                    f"Error:```py\n{error}```"
-                )
             await self.error_webhook.send(
                 embed=webhook_error_embed, username="Command Error"
             )
@@ -408,7 +411,7 @@ class ErrorHandler(core.Cog):
             )
             tb.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
             view = UnknownError(member=ctx.author, bot=self.bot, error_id=error_info['id'])
-            view.message = await ctx.send(embed=error_embed, view=view)
+            view.message = await ctx.send(embed=embed, view=view)
 
 
 def setup(bot):
