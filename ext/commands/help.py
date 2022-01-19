@@ -21,6 +21,7 @@ import humanize
 import datetime
 import core
 
+from typing import Optional, Mapping, List
 from discord.ext import commands, menus
 from difflib import get_close_matches
 from utils import AvimetryBot, AvimetryContext, AvimetryPages
@@ -180,7 +181,7 @@ class GroupHelp(menus.ListPageSource):
 
 
 class HelpSelect(discord.ui.Select):
-    def __init__(self, ctx: AvimetryContext, hc: "AvimetryHelp", cogs: list[core.Cog]):
+    def __init__(self, ctx: AvimetryContext, hc: "AvimetryHelp", cogs: List[core.Cog]):
         self.ctx = ctx
         self.hc = hc
         self.current_module = None
@@ -232,7 +233,7 @@ class HelpPages(AvimetryPages):
             current_page=current_page,
         )
 
-    async def edit_source(self, source, interaction):
+    async def edit_source(self, source: menus.PageSource, interaction: discord.Interaction):
         self.source = source
         self.current_page = 0
         select = [i for i in self.children if isinstance(i, discord.ui.Select)][0]
@@ -255,7 +256,7 @@ class AvimetryHelp(commands.HelpCommand):
             ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
         )
 
-    async def can_run(self, command, ctx):
+    async def can_run(self, command: core.Command, ctx: AvimetryContext):
         try:
             await command.can_run(ctx)
             emoji = ctx.bot.emoji_dictionary["green_tick"]
@@ -289,7 +290,7 @@ class AvimetryHelp(commands.HelpCommand):
     async def on_help_command_error(self, ctx, error):
         ctx.bot.dispatch("command_error", ctx, error)
 
-    async def filter_cogs(self, mapping=None):
+    async def filter_cogs(self, mapping: Mapping[Optional[core.Cog], List[core.Command]] = None):
         mapping = mapping or self.get_bot_mapping()
         items = []
         for cog in mapping:
@@ -301,7 +302,7 @@ class AvimetryHelp(commands.HelpCommand):
         items.sort(key=lambda c: c.qualified_name)
         return items
 
-    async def send_bot_help(self, mapping):
+    async def send_bot_help(self, mapping: Mapping[Optional[core.Cog], List[core.Command]]):
         items = await self.filter_cogs(mapping)
         source = MainHelp(self.context, self)
         menu = HelpPages(source, ctx=self.context)
@@ -310,7 +311,7 @@ class AvimetryHelp(commands.HelpCommand):
         menu.add_items()
         await menu.start()
 
-    async def send_cog_help(self, cog: commands.Cog):
+    async def send_cog_help(self, cog: core.Cog):
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
         if not filtered:
             return
@@ -321,7 +322,7 @@ class AvimetryHelp(commands.HelpCommand):
         menu.add_items()
         await menu.start()
 
-    async def send_group_help(self, group: commands.Group):
+    async def send_group_help(self, group: core.Group):
         filtered = await self.filter_commands(group.commands, sort=True)
         if not filtered:
             return
@@ -330,7 +331,7 @@ class AvimetryHelp(commands.HelpCommand):
         )
         await menu.start()
 
-    async def send_command_help(self, command: commands.Command):
+    async def send_command_help(self, command: core.Command):
         embed = discord.Embed(title=f"Command: {command.qualified_name}")
 
         embed.add_field(
@@ -396,11 +397,11 @@ class AvimetryHelp(commands.HelpCommand):
 
 
 class AllCommandsPageSource(menus.ListPageSource):
-    def __init__(self, commands: list[commands.Command], ctx: AvimetryContext):
+    def __init__(self, commands: List[commands.Command], ctx: AvimetryContext):
         self.ctx = ctx
         super().__init__(commands, per_page=4)
 
-    async def format_page(self, menu: menus.Menu, page: str):
+    async def format_page(self, menu: menus.Menu, page: core.Command):
         embed = discord.Embed(title="Commands", color=await self.ctx.determine_color())
         for i in page:
             embed.add_field(name=i.qualified_name, value=i.help, inline=False)
