@@ -20,10 +20,10 @@ import asyncio
 import discord
 import datetime
 import re
-import typing
 
+from asyncgist import File
+from typing import Union, List, Sequence
 from .avimetry import AvimetryBot
-from .gist import GistClient, GistFile
 from .view import AvimetryView
 from discord.ext import commands, menus
 from datetime import timedelta
@@ -77,7 +77,7 @@ class ConfirmResult:
 
 
 class AutoPageSource(menus.ListPageSource):
-    def __init__(self, entry: typing.Union[str, list], lang=None, *, limit: int = 1000):
+    def __init__(self, entry: Union[str, list], lang=None, *, limit: int = 1000):
         if isinstance(entry, list):
             entries = entry
         elif isinstance(entry, str):
@@ -87,7 +87,7 @@ class AutoPageSource(menus.ListPageSource):
                     for i in range(0, len(entry), limit)
                 ]
             else:
-                entries = [entry[i : i + limit] for i in range(0, len(entry), limit)]
+                entries = [entry[i: i + limit] for i in range(0, len(entry), limit)]
         elif isinstance(entry, commands.Paginator):
             entries = entry.pages
         super().__init__(entries, per_page=1)
@@ -147,13 +147,10 @@ class AvimetryContext(commands.Context):
 
     async def post(self, content, syntax: str = "py", gist: bool = False):
         if gist:
-            gist_client = GistClient(
-                self.bot.settings["api_tokens"]["GitHub"], self.bot.session
-            )
-            gist_file = [GistFile(filename=f"output.{syntax}", content=content)]
-            link = await gist_client.post(
-                description=str(self.author), files=gist_file, public=True, raw=False
-            )
+            gist_file = [File(filename=f"output.{syntax}", content=content)]
+            link = (await self.bot.gist.post(
+                description=str(self.author), files=gist_file, public=True
+            )).html_url
         else:
             link = await self.bot.myst.post(content, syntax=syntax)
         embed = discord.Embed(
@@ -180,7 +177,7 @@ class AvimetryContext(commands.Context):
 
     async def paginate(
         self,
-        entry: typing.Union[str, list[discord.Embed]],
+        entry: Union[str, List[discord.Embed]],
         lang: str = None,
         *,
         limit: int = 1000,
@@ -208,9 +205,9 @@ class AvimetryContext(commands.Context):
         embeds: list[discord.Embed] = None,
         file: discord.File = None,
         files: list[discord.File] = None,
-        stickers: typing.Sequence[discord.GuildSticker | discord.StickerItem] = None,
+        stickers: Sequence[Union[discord.GuildSticker, discord.StickerItem]] = None,
         delete_after: float = None,
-        nonce: str | int = None,
+        nonce: Union[str, int] = None,
         allowed_mentions: discord.AllowedMentions = None,
         reference: discord.MessageReference = None,
         mention_author: bool = None,

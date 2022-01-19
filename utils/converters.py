@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import re
 import discord
 
+from typing import Union
 from discord.ext import commands
 from utils import AvimetryContext
 from twemoji_parser import emoji_to_url as urlify_emoji
@@ -126,7 +127,7 @@ class TargetMember(commands.Converter):
 class FindBan(commands.Converter):
     async def convert(
         self, ctx: AvimetryContext, argument: str
-    ) -> discord.Member | discord.User:
+    ) -> Union[discord.Member, discord.User]:
         try:
             user = await commands.UserConverter().convert(ctx, argument)
             try:

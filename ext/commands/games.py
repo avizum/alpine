@@ -25,6 +25,7 @@ import core
 import roblox
 import contextlib
 
+from typing import Union
 from discord.ext import commands
 from akinator.async_aki import Akinator
 from akinator import CantGoBackAnyFurther
@@ -101,7 +102,9 @@ class AkinatorGameView(AvimetryView):
         else:
             await self.client.win()
             client = self.client
-            self.embed.description = f"Are you thinking of {client.first_guess['name']} ({client.first_guess['description']})?\n"
+            self.embed.description = (
+                f"Are you thinking of {client.first_guess['name']} ({client.first_guess['description']})?\n"
+            )
             self.embed.set_image(url=client.first_guess["absolute_picture_path"])
             new_view = AkinatorConfirmView(
                 member=self.member, message=self.message, embed=self.embed
@@ -443,7 +446,8 @@ class Games(core.Cog):
                 if final < 5.0:
                     embed_10s.description = "Wait 10 seconds to get the cookie."
                     return await react_message.edit(embed=embed_10s)
-                embed_10s.description = f"You got the cookie in {final:.2f} seconds with {(final-10)*1000:.2f}ms reaction time\n"
+                embed_10s.description = (
+                    f"You got the cookie in {final:.2f} seconds with {(final-10)*1000:.2f}ms reaction time\n")
                 if final < 9.99:
                     embed_10s.description = f"You got the cookie in {final:.2f} seconds"
                 await react_message.edit(embed=embed_10s)
@@ -553,7 +557,7 @@ class Games(core.Cog):
         await ctx.send_help(ctx.command)
 
     @roblox.group()
-    async def user(self, ctx: AvimetryContext, name_or_id: str | int):
+    async def user(self, ctx: AvimetryContext, name_or_id: Union[str, int]):
         """
         Gets ROBLOX User Information.
         """

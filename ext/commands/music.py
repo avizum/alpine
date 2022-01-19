@@ -35,6 +35,7 @@ from utils import (
     format_seconds,
     AvimetryView,
 )
+from typing import List
 from discord.ext import commands, menus
 
 URL_REG = re.compile(r"https?://(?:www\.)?.+")
@@ -271,7 +272,7 @@ class SearchView(AvimetryView):
 
 
 class SearchSelect(discord.ui.Select):
-    def __init__(self, *, options: list[Track]):
+    def __init__(self, *, options: List[Track]):
         options = [
             discord.SelectOption(label=f"{number+1}) {track.title}")
             for number, track in enumerate(options)

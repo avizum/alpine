@@ -22,6 +22,7 @@ import humanize
 import core
 import utils
 
+from typing import List
 from discord.ext import commands
 from utils import (
     AvimetryBot,
@@ -302,7 +303,7 @@ class Moderation(core.Cog):
         else:
             await conf.message.edit("Aborted.")
 
-    async def do_affected(self, messages: list[discord.Message]):
+    async def do_affected(self, messages: List[discord.Message]):
         authors = {}
         for message in messages:
             if message.author not in authors:
