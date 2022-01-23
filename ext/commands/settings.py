@@ -68,8 +68,11 @@ class Settings(core.Cog):
         """
         query = "UPDATE guild_settings SET prefixes = ARRAY_APPEND(prefixes, $2) WHERE guild_id = $1"
         await self.bot.pool.execute(query, ctx.guild.id, prefix)
-        ctx.cache.guild_settings[ctx.guild.id]["prefixes"].append(prefix)
-        await ctx.send(f"Appended `{prefix}` to the list of prefixes.")
+        prefixes = ctx.cache.guild_settings[ctx.guild.id]["prefixes"]
+        prefixes.append(prefix)
+        embed = discord.Embed(title="Current Prefixes", description=f"Added `{prefix}` to the list of prefixes.")
+        embed.add_field(name="Updated List of Prefixes", value=f"`{'` | `'.join(prefixes)}`")
+        await ctx.send(embed=embed)
 
     @prefix.command(name="remove")
     @core.has_permissions(manage_guild=True)
@@ -94,8 +97,11 @@ class Settings(core.Cog):
         query = "UPDATE guild_settings SET prefixes = ARRAY_REMOVE(prefixes, $2) WHERE guild_id = $1"
         await self.bot.pool.execute(query, ctx.guild.id, prefix)
 
-        self.bot.cache.guild_settings[ctx.guild.id]["prefixes"].remove(prefix)
-        await ctx.send(f"Removed `{prefix}` from the list of prefixes")
+        prefixes = self.bot.cache.guild_settings[ctx.guild.id]["prefixes"]
+        prefixes.remove(prefix)
+        embed = discord.Embed(title="Removed Prefix", description=f"Removed `{prefix}` from the list of prefixes.")
+        embed.add_field(name="Updated List of Prefixes", value=f"`{'` | `'.join(prefixes)}`")
+        await ctx.send(embed=embed)
 
     @core.group(invoke_without_command=True)
     @core.has_permissions(manage_guild=True)

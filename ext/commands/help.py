@@ -48,7 +48,7 @@ class MainHelp(menus.PageSource):
         bot = self.ctx.bot
         commands = list(bot.commands)
         embed = discord.Embed(
-            title="Avimetry Help Menu", color=await self.ctx.determine_color()
+            title="Avimetry Help Menu", color=await self.ctx.fetch_color()
         )
         info = "\n".join(
             [
@@ -101,7 +101,7 @@ class CogHelp(menus.ListPageSource):
         embed = discord.Embed(
             title=f"{self.cog.qualified_name.title()} Module",
             description=self.cog.description or "No description provided",
-            color=await self.ctx.determine_color(),
+            color=await self.ctx.fetch_color(),
         )
         embed.set_thumbnail(url=self.ctx.bot.user.display_avatar.url)
         thing = [
@@ -134,7 +134,7 @@ class GroupHelp(menus.ListPageSource):
         embed = discord.Embed(
             title=f"Command Group: {self.group.qualified_name.title()}",
             description=self.group.help or "No description provided",
-            color=await self.ctx.determine_color(),
+            color=await self.ctx.fetch_color(),
         )
         embed.add_field(
             name="Base command usage",
@@ -402,7 +402,7 @@ class AllCommandsPageSource(menus.ListPageSource):
         super().__init__(commands, per_page=4)
 
     async def format_page(self, menu: menus.Menu, page: core.Command):
-        embed = discord.Embed(title="Commands", color=await self.ctx.determine_color())
+        embed = discord.Embed(title="Commands", color=await self.ctx.fetch_color())
         for i in page:
             embed.add_field(name=i.qualified_name, value=i.help, inline=False)
         return embed

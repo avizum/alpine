@@ -53,7 +53,7 @@ class MainHelp(menus.ListPageSource):
                 f"{self.help_command.command_signature()}\n"
                 f"{usable}\n{' | '.join(info)}"
             ),
-            color=await self.ctx.determine_color(),
+            color=await self.ctx.fetch_color(),
         )
         embed.add_field(name="Modules", value="\n".join(modules))
         embed.set_thumbnail(url=bot.user.display_avatar.url)
@@ -84,7 +84,7 @@ class CogHelp(menus.ListPageSource):
         embed = discord.Embed(
             title=f"{self.cog.qualified_name.title()} Module",
             description=self.cog.description or "No description provided",
-            color=await self.ctx.determine_color(),
+            color=await self.ctx.fetch_color(),
         )
         embed.set_thumbnail(url=self.ctx.bot.user.display_avatar.url)
         thing = [
@@ -122,7 +122,7 @@ class GroupHelp(menus.ListPageSource):
         embed = discord.Embed(
             title=f"Command Group: {self.group.qualified_name.title()}",
             description=self.group.help or "No description provided",
-            color=await self.ctx.determine_color(),
+            color=await self.ctx.fetch_color(),
         )
         embed.add_field(
             name="Base command usage",

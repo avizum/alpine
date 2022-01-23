@@ -49,10 +49,10 @@ class BotLogs(core.Cog):
             return
         tokens = re.findall(TOKEN_REGEX, message.content)
         if tokens:
-            gist = await self.bot.gist.post(
+            gist = await self.bot.gist.post_gist(
                 description="Tokens found.",
-                files=[File(filename="tokens.txt", content="\n".join(tokens))],
-                public=True,
+                files=File(filename="tokens.txt", content="\n".join(tokens)),
+                public=True
             )
 
             split_token = tokens[0].split(".")

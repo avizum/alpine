@@ -36,7 +36,8 @@ from utils import (
     TimeZoneError,
     GetAvatar,
     timestamp,
-    AvimetryPages
+    AvimetryPages,
+    PaginatorEmbed
 )
 
 
@@ -48,14 +49,14 @@ class RTFMPageSource(menus.ListPageSource):
         self.query = query
 
     async def format_page(self, menu, page):
-        embed = discord.Embed(
+        embed = PaginatorEmbed(
+            self.ctx,
             description=(
                 "\n".join(
                     f"[`{k.replace('discord.', '').replace('discord.ext.commands.', '')}`]({v})"
                     for k, v in page
                 )
             ),
-            color=await self.ctx.determine_color(),
         )
         embed.set_footer(text=f"{len(self.items)} results found")
         return embed
@@ -562,7 +563,7 @@ class Meta(core.Cog):
         file_post = asyncgist.File(
             filename=f"output.{code.language or 'txt'}", content=code.content
         )
-        out = await self.bot.gist.post(
+        out = await self.bot.gist.post_gist(
             description=f"{ctx.author} at {datetime.datetime.now(datetime.timezone.utc).strftime('%x %X')}",
             files=[file_post],
             public=True,
@@ -578,7 +579,7 @@ class Meta(core.Cog):
         This deletes gists posted from the avimetry-bot GitHub account.
         """
         try:
-            await self.bot.gist.delete(gist_id)
+            await self.bot.gist.delete_gist(gist_id)
         except asyncgist.NotFound:
             return await ctx.send("Gist was not found.")
         await ctx.send("Deleted post.")
@@ -586,7 +587,7 @@ class Meta(core.Cog):
     @gist.command(name="read")
     async def gist_read(self, ctx, *, gist_id: str):
         try:
-            gist = await self.bot.gist.get(gist_id)
+            gist = await self.bot.gist.fetch_gist(gist_id)
         except asyncgist.NotFound:
             return await ctx.send("Gist was not found.")
         from utils.context import AutoPageSource

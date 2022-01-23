@@ -213,7 +213,7 @@ class Player(wavelink.Player):
 
         embed = discord.Embed(title="Now Playing")
         if self.context:
-            embed.color = await self.context.determine_color()
+            embed.color = await self.context.fetch_color()
         time = f"Length: {format_seconds(track.length)}\n\n"
         if position:
             time = f"Position {format_seconds(position)}/{format_seconds(track.length)}\n\n"
@@ -251,7 +251,7 @@ class PaginatorSource(menus.ListPageSource):
 
     async def format_page(self, menu: menus.Menu, page):
         embed = discord.Embed(
-            title=f"Queue for {self.ctx.guild}", color=await self.ctx.determine_color()
+            title=f"Queue for {self.ctx.guild}", color=await self.ctx.fetch_color()
         )
         embed.description = "\n".join(page)
         if self.ctx.guild.icon.url:

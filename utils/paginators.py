@@ -26,6 +26,14 @@ from discord.ext.menus.views import ViewMenuPages
 from discord.ext.menus import button, Position, PageSource
 
 
+class PaginatorEmbed(discord.Embed):
+    def __init__(self, *, ctx: AvimetryContext, **kwargs):
+        super().__init__(**kwargs)
+        self.color = ctx.get_color()
+        self.timestamp = datetime.datetime.now(datetime.timezone.utc)
+        self.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.display_avatar.url)
+
+
 # This paginator is essentially discord.ext.menus but changed a bit so that it uses buttons instead of reactions.
 # https://github.com/Rapptz/discord-ext-menus
 class ButtonPages(AvimetryView):

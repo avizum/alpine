@@ -42,5 +42,5 @@ from .exceptions import (
 )
 from .utils import Timer, format_string, format_list, timestamp, format_seconds
 from .parser import preview_message
-from .paginators import AvimetryPages
+from .paginators import AvimetryPages, OldAvimetryPages, PaginatorEmbed
 from .view import AvimetryView

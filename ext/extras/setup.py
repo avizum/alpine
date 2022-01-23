@@ -181,7 +181,7 @@ class Setup(core.Cog):
             or self.bot.user.id != 756257170521063444
         ):
             return
-        embed = discord.Embed(color=await ctx.determine_color())
+        embed = discord.Embed(color=await ctx.fetch_color())
         embed.description = (
             f"Command: {ctx.command.qualified_name}\n"
             f"Message: {ctx.message.content}\n"

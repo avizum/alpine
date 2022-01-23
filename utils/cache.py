@@ -15,13 +15,17 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-
+from __future__ import annotations
 from copy import deepcopy
 from discord.ext import tasks
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .avimetry import AvimetryBot
 
 
 class AvimetryCache:
-    def __init__(self, bot):
+    def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.cache_loop.start()
         self.guild_settings = {}
@@ -54,7 +58,7 @@ class AvimetryCache:
                     cache[guild.id] = {}
 
     def __repr__(self):
-        return "<AvimetryCache size=1000000000000000000000000000000000000000000000000000000000000000000000000000000000>"
+        return "<AvimetryCache size=>"
 
     async def delete_all(self, gid):
         await self.bot.pool.execute(

@@ -398,7 +398,10 @@ class Moderation(core.Cog):
 
         If you have an empty prefix, this will also delete other messages.
         """
-        prefixes = tuple(await self.bot.get_prefix(ctx.message))
+        base = await self.bot.get_prefix(ctx.message)
+        if ctx.prefix == "":
+            base.remove("")
+        prefixes = tuple(base)
 
         def check(message: discord.Message):
             return (

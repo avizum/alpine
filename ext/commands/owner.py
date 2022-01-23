@@ -40,7 +40,7 @@ from jishaku.flags import Flags
 from jishaku.models import copy_context_with
 from jishaku.paginators import PaginatorInterface
 from utils import AvimetryBot, AvimetryContext, CogConverter, timestamp
-from utils.paginators import AvimetryPages
+from utils.paginators import AvimetryPages, PaginatorEmbed
 from utils.converters import ModReason
 
 
@@ -65,7 +65,7 @@ class ErrorSource(menus.ListPageSource):
         self.title = title
 
     async def format_page(self, menu, page):
-        embed = discord.Embed(title=self.title, color=await self.ctx.determine_color())
+        embed = discord.Embed(title=self.title, color=await self.ctx.fetch_color())
         for error in page:
             embed.add_field(
                 name=f"{error['command']} | `{error['id']}`",
@@ -81,9 +81,7 @@ class GuildPageSource(menus.ListPageSource):
         super().__init__(guilds, per_page=2)
 
     async def format_page(self, menu, page):
-        embed = discord.Embed(color=await self.ctx.determine_color())
-        embed.set_footer(text=f"Requested by: {self.ctx.author}", icon_url=self.ctx.author.display_avatar.url)
-        embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
+        embed = PaginatorEmbed(ctx=self.ctx)
         for guild in page:
             embed.add_field(
                 name=guild.name,
@@ -104,9 +102,7 @@ class BlacklistedPageSource(menus.ListPageSource):
         super().__init__(blacklisted, per_page=2)
 
     async def format_page(self, menu, page):
-        embed = discord.Embed(title="Blacklisted Users", color=await self.ctx.determine_color())
-        embed.set_footer(text=f"Requested by: {self.ctx.author}", icon_url=self.ctx.author.display_avatar.url)
-        embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
+        embed = PaginatorEmbed(ctx=self.ctx, title="Blacklisted Users")
         for entry in page:
             user = self.ctx.bot.get_user(entry)
             bl_entry = self.ctx.cache.blacklist[entry]
@@ -523,6 +519,17 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         self.bot.cache.blacklist.pop(user.id)
         await ctx.send(f"Unblacklisted {user}. Reason: {reason}")
 
+    @Feature.Command(parent="blacklist", name="update", aliases=["up"])
+    async def blacklist_update(
+        self, ctx: AvimetryContext, user: discord.User, *, new_reason: str
+    ):
+        try:
+            ctx.cache.blacklist[user.id]
+        except KeyError:
+            return await ctx.send(f"{user} is not blacklisted.")
+        query = "UPDATE blacklist SET reason = $2 WHERE user_id=$1"
+        await self.bot.pool.execute(query, user.id, new_reason)
+
     @Feature.Command(parent="jsk")
     async def cleanup(self, ctx: AvimetryContext, amount: int = 15):
         """
@@ -642,7 +649,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 fix_list.append(f"Error ID {i} has been marked as fixed.")
         await ctx.send("\n".join(fix_list))
         if trackers:
-            await self.dm_error_trackers()
+            await self.dm_error_trackers(trackers)
 
     @Feature.Command(
         parent="jsk",

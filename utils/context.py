@@ -23,10 +23,10 @@ import re
 
 from asyncgist import File
 from typing import Union, List, Sequence
-from .avimetry import AvimetryBot
 from .view import AvimetryView
 from discord.ext import commands, menus
 from datetime import timedelta
+from .avimetry import AvimetryBot
 
 emoji_regex = "<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>"
 
@@ -99,6 +99,7 @@ class AutoPageSource(menus.ListPageSource):
 class AvimetryContext(commands.Context):
     def __init__(self, *, bot: AvimetryBot, **kwargs):
         super().__init__(bot=bot, **kwargs)
+        self.bot = bot
         self.tokens = []
         self.tokens.extend(self.bot.settings["bot_tokens"].values())
         self.tokens.extend(self.bot.settings["api_tokens"].values())
@@ -148,7 +149,7 @@ class AvimetryContext(commands.Context):
     async def post(self, content, syntax: str = "py", gist: bool = False):
         if gist:
             gist_file = [File(filename=f"output.{syntax}", content=content)]
-            link = (await self.bot.gist.post(
+            link = (await self.bot.gist.post_gist(
                 description=str(self.author), files=gist_file, public=True
             )).html_url
         else:
@@ -158,21 +159,30 @@ class AvimetryContext(commands.Context):
         )
         await self.send(embed=embed)
 
-    async def determine_color(self, member: discord.Member = None):
+    async def fetch_color(self, member: discord.Member = None):
         member = member or self.author
-        base = member.color
         data = self.cache.users.get(member.id)
-        try:
-            color = data.get("color")
-            if not color:
-                color = base
-        except AttributeError:
-            color = base
+        if not data:
+            color = None
+        color = data.get("color")
+        if not color:
+            color = member.color
         if color == discord.Color(0):
+            color = discord.Color(0x2F3136)
             if await self.bot.is_owner(member):
                 color = discord.Color(0x01B9C0)
-            else:
-                color = discord.Color(0x2F3136)
+        return color
+
+    def get_color(self, member: discord.Member = None):
+        member = member or self.author
+        data = self.cache.users.get(member.id)
+        color = data.get("color")
+        if not data:
+            color = None
+        if not color:
+            color = member.color
+        elif color == discord.Color(0):
+            color = 0x2F3136
         return color
 
     async def paginate(
@@ -236,7 +246,7 @@ class AvimetryContext(commands.Context):
                 )
                 embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
             if not embed.color:
-                embed.color = await self.determine_color()
+                embed.color = await self.fetch_color()
         if self._typing_task is not None:
             self._typing_task.cancel()
             self._typing_task = None
