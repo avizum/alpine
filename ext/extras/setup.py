@@ -15,8 +15,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-
-import aiohttp
 import discord
 import datetime
 import core
@@ -43,12 +41,6 @@ class Setup(core.Cog):
         self.webhooks = self.bot.settings["webhooks"]
         self.guild_webhook = discord.Webhook.from_url(
             self.webhooks["join_log"], session=self.bot.session
-        )
-        self.command_webhook = discord.Webhook.from_url(
-            self.webhooks["command_log"], session=self.bot.session
-        )
-        self.command_webhook2 = discord.Webhook.from_url(
-            self.webhooks["command_log2"], session=self.bot.session
         )
         self.request_wh = discord.Webhook.from_url(
             self.webhooks["request_log"], session=self.bot.session
@@ -176,30 +168,6 @@ class Setup(core.Cog):
             self.bot.command_usage[str(ctx.command)] += 1
         except KeyError:
             self.bot.command_usage[str(ctx.command)] = 1
-        if (
-            ctx.author.id in ctx.cache.blacklist
-            or self.bot.user.id != 756257170521063444
-        ):
-            return
-        embed = discord.Embed(color=await ctx.fetch_color())
-        embed.description = (
-            f"Command: {ctx.command.qualified_name}\n"
-            f"Message: {ctx.message.content}\n"
-            f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
-            f"Channel: {ctx.channel} ({ctx.channel.id})\n"
-        )
-        embed.set_author(
-            name=ctx.author,
-            icon_url=str(ctx.author.avatar.replace(format="png", size=512)),
-        )
-        embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
-        try:
-            if await self.bot.is_owner(ctx.author):
-                await self.command_webhook.send(embed=embed)
-            else:
-                await self.command_webhook2.send(embed=embed)
-        except aiohttp.ClientOSError:
-            return
         if not ctx.guild.chunked:
             await ctx.guild.chunk()
         self.bot.commands_ran += 1

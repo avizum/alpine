@@ -16,9 +16,7 @@ database = "avimetry"
 [webhooks]
 join_log = "Token for bot join logs here"
 error_log = "Token for error logs here"
-error_log2 = "Token for beta bot error logs here"
-command_log = "Token for command logs here"
-command_log2 = "Token for beta bot command logs here"
+beta_error_log = "Token for beta bot error logs here"
 request_log = "Token for requests here"
 
 [news]

@@ -104,10 +104,6 @@ class ErrorHandler(core.Cog):
             self.bot.settings["webhooks"]["error_log"],
             session=self.bot.session,
         )
-        self.beta_webhook = discord.Webhook.from_url(
-            self.bot.settings["webhooks"]["error_log2"],
-            session=self.bot.session,
-        )
 
     def reset(self, ctx: AvimetryContext):
         try:
@@ -226,7 +222,7 @@ class ErrorHandler(core.Cog):
             cd = discord.Embed(
                 title="Slow down",
                 description=(
-                    "This command is on cooldown."
+                    "This command is on cooldown.\n"
                     f"Please try again in {error.retry_after:,.2f} seconds."
                 ),
             )
