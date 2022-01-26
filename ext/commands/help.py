@@ -92,7 +92,7 @@ class CogHelp(menus.ListPageSource):
         cog: commands.Cog,
         help_command: "AvimetryHelp",
     ):
-        super().__init__(entries=commands, per_page=4)
+        super().__init__(entries=commands, per_page=5)
         self.ctx = ctx
         self.cog = cog
         self.help_command = help_command
@@ -125,7 +125,7 @@ class GroupHelp(menus.ListPageSource):
         group: commands.Group,
         help_command: "AvimetryHelp",
     ):
-        super().__init__(entries=commands, per_page=4)
+        super().__init__(entries=commands, per_page=5)
         self.ctx = ctx
         self.group = group
         self.hc = help_command
@@ -180,7 +180,7 @@ class GroupHelp(menus.ListPageSource):
         return embed
 
 
-class HelpSelect(discord.ui.Select):
+class HelpSelect(discord.ui.Select["HelpPages"]):
     def __init__(self, ctx: AvimetryContext, hc: "AvimetryHelp", cogs: List[core.Cog]):
         self.ctx = ctx
         self.hc = hc
@@ -229,7 +229,7 @@ class HelpPages(AvimetryPages):
             source,
             ctx=ctx,
             delete_message_after=True,
-            timeout=45,
+            timeout=60,
             current_page=current_page,
         )
 
@@ -283,12 +283,6 @@ class AvimetryHelp(commands.HelpCommand):
             "[] is an optional argument\n"
             "[...] accepts multiple arguments```"
         )
-
-    async def send_error_message(self, _):
-        pass
-
-    async def on_help_command_error(self, ctx, error):
-        ctx.bot.dispatch("command_error", ctx, error)
 
     async def filter_cogs(self, mapping: Mapping[Optional[core.Cog], List[core.Command]] = None):
         mapping = mapping or self.get_bot_mapping()
@@ -421,7 +415,7 @@ class HelpCommand(core.Cog):
                 usage="[command|module]",
                 aliases=["h"],
                 cooldown=commands.CooldownMapping(
-                    commands.Cooldown(1, 3), commands.BucketType.user
+                    commands.Cooldown(1, 2), commands.BucketType.user
                 ),
             ),
         )
