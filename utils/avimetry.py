@@ -31,6 +31,7 @@ import logging
 import wavelink
 import core
 
+from wavelink.ext import spotify
 from asyncgist import Client
 from discord.ext import commands
 from core import Command, Group
@@ -250,12 +251,17 @@ class AvimetryBot(commands.Bot):
     async def start_nodes(self) -> None:
         await self.wait_until_ready()
 
+        api_tokens = self.settings["api_tokens"]
         await wavelink.NodePool.create_node(
             bot=self,
             host="127.0.0.1",
             port=2333,
             password="youshallnotpass",
             identifier="MAIN",
+            spotify_client=spotify.SpotifyClient(
+                client_id=api_tokens["SpotifyClientID"],
+                client_secret=api_tokens["SpotifySecret"]
+            )
         )
 
     async def on_ready(self):

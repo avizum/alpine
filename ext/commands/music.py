@@ -37,20 +37,42 @@ from utils import (
 )
 from typing import List
 from discord.ext import commands, menus
+from wavelink.ext import spotify
 
 URL_REG = re.compile(r"https?://(?:www\.)?.+")
+
+
+class IsResponding:
+    def __init__(self, emoji: str, message: discord.Message, bot: AvimetryBot) -> None:
+        self.task = None
+        self.message = message
+        self.bot = bot
+        self.emoji = emoji
+
+    async def __aenter__(self):
+        self.task = self.bot.loop.create_task(self.message.add_reaction(self.emoji))
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.task:
+            self.task.cancel()
 
 
 class Queue(asyncio.Queue):
     """
     Queue for music.
     """
-
-    def __init__(self, max_size=0):
+    def __init__(self, *, max_size: int = 0, allow_duplicates: bool = True):
         super().__init__(maxsize=max_size)
         self._queue = collections.deque()
+        self.allow_duplicates = allow_duplicates
+
+    def __contains__(self, item):
+        return item in self._queue
 
     def _put(self, item, left=False):
+        if not self.allow_duplicates and item in self._queue:
+            return
         meth = self._queue.appendleft if left is True else self._queue.append
         meth(item)
 
@@ -61,7 +83,8 @@ class Queue(asyncio.Queue):
         self._queue.clear()
 
     async def put(self, item, left=False):
-        """Put an item into the queue.
+        """
+        Put an item into the queue.
         Put an item into the queue. If the queue is full, wait until a free
         slot is available before adding item.
         """
@@ -134,12 +157,23 @@ class Player(wavelink.Player):
     """
     Custom wavelink Player class.
     """
-    def __init__(self, *args, context=None, **kwargs):
+    def __init__(
+        self,
+        *args,
+        context:
+        AvimetryContext = None,
+        announce: bool = True,
+        allow_duplicates: bool = True,
+        **kwargs
+    ):
         self.context: AvimetryContext = context
-        self.reg = re.compile(r"https?://(?:www\.)?.+")
+        self.youtube_reg = re.compile(r"^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$")
+        self.spotify_reg = re.compile(r"https?://open.spotify.com/(?:album|playlist|track)/[a-zA-Z0-9]+")
         super().__init__(*args, **kwargs)
         if self.context:
             self.dj: discord.Member = self.context.author
+        self.announce = announce
+        self.allow_duplicates = allow_duplicates
         self.queue = Queue()
         self.waiting = False
         self.updating = False
@@ -157,7 +191,7 @@ class Player(wavelink.Player):
         Arguments
         ---------
         query: :class:`str`
-            What to search for on youtube.
+            What to search for on youtube or spotify.
         bulk: :class:`bool`
             Whether to return a singular track or all tracks found.
 
@@ -166,17 +200,17 @@ class Player(wavelink.Player):
         Track: Union[:class:`Track`, List[:class:`Track`]]
             The track or tracks that were found.
         """
-        search_type = "" if self.reg.match(query) else "ytsearch:"
-        try:
-            tracks = await self.node.get_tracks(
-                wavelink.YouTubeTrack, f"{search_type}{query}"
-            )
-            if tracks:
-                return tracks if bulk else tracks[0]
-        except Exception:
-            return await self.node.get_playlist(
-                wavelink.YouTubePlaylist, f"{search_type}{query}"
-            )
+        if self.youtube_reg.match(query):
+            try:
+                tracks = await self.node.get_tracks(wavelink.YouTubeTrack, query)
+            except Exception:
+                return await self.node.get_playlist(wavelink.YouTubePlaylist, query)
+        elif self.spotify_reg.match(query):
+            return await spotify.SpotifyTrack.search(query)
+        else:
+            await self.node.get_tracks(wavelink.YouTubeTrack, f"ytsearch:{query}")
+        if tracks:
+            return tracks if bulk else tracks[0]
 
     async def do_next(self) -> None:
         if self.waiting:
@@ -200,8 +234,8 @@ class Player(wavelink.Player):
 
         await self.play(track)
         self.waiting = False
-
-        await self.context.channel.send(embed=await self.build_now_playing())
+        if self.announce:
+            await self.context.channel.send(embed=await self.build_now_playing())
 
     async def build_now_playing(self, position=None) -> typing.Optional[discord.Embed]:
         """
@@ -313,7 +347,7 @@ class Music(core.Cog):
     @core.Cog.listener("on_wavelink_track_exception")
     async def on_player_stop(self, player, track, error):
         player: Player = player
-        await player.context.send(f"Error:{error.identifier}: {error.error}")
+        await player.context.send(f"Error: {error}: {error.error}")
 
     @core.Cog.listener("on_wavelink_track_end")
     async def track_end(self, player: Player, track: Track, reason):
@@ -467,6 +501,12 @@ class Music(core.Cog):
         else:
             await ctx.send(f"{ctx.author.display_name} has voted to stop the player.")
 
+    @core.command()
+    @core.is_owner()
+    async def tplay(self, ctx, query: wavelink.YouTubeTrack):
+        player = ctx.voice_client
+        await player.play(query)
+
     @core.command(aliases=["enqueue", "p"])
     @in_voice()
     async def play(self, ctx: AvimetryContext, *, query: str):
@@ -480,10 +520,12 @@ class Music(core.Cog):
         if not player.channel:
             return
 
-        tracks = await player.get_tracks(query)
+        async with IsResponding("\U000025b6\U0000fe0f", ctx.message, self.bot):
+            tracks = await player.get_tracks(query)
+
         if not tracks:
             return await ctx.send("Could not find anything. Try again.")
-
+        print(type(tracks))
         if isinstance(tracks, wavelink.YouTubePlaylist):
             for track in tracks.tracks:
                 track = Track(
@@ -499,6 +541,21 @@ class Music(core.Cog):
             )
             if tracks.tracks[0].thumb:
                 embed.set_thumbnail(url=tracks.tracks[0].thumb)
+            await ctx.send(embed=embed)
+        elif isinstance(tracks, list):
+            for track in tracks:
+                track = Track(
+                    track.id, track.info, requester=ctx.author, thumb=track.thumb
+                )
+                await player.queue.put(track)
+            embed = discord.Embed(
+                title="Enqueued Spotify playlist",
+                description=(
+                    f"Spotify playlist with {len(tracks)} tracks added to the queue."
+                ),
+            )
+            if tracks[0].thumb:
+                embed.set_thumbnail(url=tracks[0].thumb)
             await ctx.send(embed=embed)
         else:
             track = Track(
@@ -571,7 +628,7 @@ class Music(core.Cog):
                     track = Track(
                         track.id, track.info, requester=ctx.author, thumb=track.thumb
                     )
-                    await player.queue.put(track)
+                    await player.queue.put(track, left=True)
 
                 embed = discord.Embed(
                     title="Enqueued playlist",
@@ -812,6 +869,34 @@ class Music(core.Cog):
                 f"{ctx.author.display_name} has voted to shuffle the playlist.",
                 delete_after=15,
             )
+
+    @core.command()
+    @in_voice()
+    async def announce(self, ctx: AvimetryContext, toggle: bool):
+        """
+        Whether to announce the song.
+
+        This will reset every time the bot joins a voice channel.
+        """
+        player: Player = ctx.voice_client
+        player.announce = toggle
+        if toggle:
+            return await ctx.send("Songs will be announced.")
+        return await ctx.send("Song will no longer be announced.")
+
+    @core.command()
+    @in_voice()
+    async def duplicated(self, ctx: AvimetryContext, toggle: bool):
+        """
+        Whether to allow duplicated in the queue.
+
+        This will reset every time the bot joins a voice channel.
+        """
+        player: Player = ctx.voice_client
+        player.announce = toggle
+        if toggle:
+            return await ctx.send("Songs will be announced.")
+        return await ctx.send("Song will no longer be announced.")
 
     @core.command(aliases=["eq"], enabled=False)
     @in_voice()
