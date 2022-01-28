@@ -130,47 +130,49 @@ class GroupHelp(menus.ListPageSource):
         self.group = group
         self.hc = help_command
 
-    async def format_page(self, menu, commands):
+    async def format_page(self, menu, commands: List[core.Command]):
         embed = discord.Embed(
             title=f"Command Group: {self.group.qualified_name.title()}",
             description=self.group.help or "No description provided",
             color=await self.ctx.fetch_color(),
         )
-        embed.add_field(
-            name="Base command usage",
-            value=f"`{self.ctx.clean_prefix}{self.group.qualified_name} {self.group.signature}`",
-        )
-        if self.group.aliases:
+        embed.set_thumbnail(url=self.ctx.bot.user.display_avatar.url)
+
+        if isinstance(commands[0], str) and isinstance(commands[-1], str):
             embed.add_field(
-                name="Command Aliases",
-                value=", ".join(self.group.aliases),
+                name="Base command usage",
+                value=f"`{self.ctx.clean_prefix}{self.group.qualified_name} {self.group.signature}`",
+            )
+            if self.group.aliases:
+                embed.add_field(
+                    name="Command Aliases",
+                    value=", ".join(self.group.aliases),
+                    inline=False,
+                )
+            embed.add_field(
+                name="Required Permissions",
+                value=(
+                    f"Can Run: {await self.hc.can_run(self.group, self.ctx)}\n"
+                    f"I Need: `{self.hc.get_perms('bot_permissions', self.group)}`\n"
+                    f"You Need: `{self.hc.get_perms('user_permissions', self.group)}`"
+                ),
                 inline=False,
             )
-        embed.add_field(
-            name="Required Permissions",
-            value=(
-                f"Can Use: {await self.hc.can_run(self.group, self.ctx)}\n"
-                f"Bot Permissions: `{self.hc.get_perms('bot_permissions', self.group)}`\n"
-                f"User Permissions: `{self.hc.get_perms('user_permissions', self.group)}`"
-            ),
-            inline=False,
-        )
 
-        cooldown = self.hc.get_cooldown(self.group)
-        if cooldown:
-            embed.add_field(name="Cooldown", value=cooldown, inline=False)
+            cooldown = self.hc.get_cooldown(self.group)
+            if cooldown:
+                embed.add_field(name="Cooldown", value=cooldown, inline=False)
 
-        embed.set_thumbnail(url=self.ctx.bot.user.display_avatar.url)
-        thing = [
-            f"{command.name} - {command.short_doc or 'No help provided'}"
-            for command in commands
-        ]
-
-        embed.add_field(
-            name=f"Commands in {self.group.qualified_name.title()}",
-            value="\n".join(thing),
-            inline=False,
-        )
+        else:
+            thing = [
+                f"{command.name} - {command.short_doc or 'No help provided'}"
+                for command in commands
+            ]
+            embed.add_field(
+                name=f"Commands in {self.group.qualified_name.title()}",
+                value="\n".join(thing),
+                inline=False,
+            )
         embed.set_footer(
             text=(
                 f"Use {self.ctx.clean_prefix}{self.ctx.invoked_with} "
@@ -317,9 +319,14 @@ class AvimetryHelp(commands.HelpCommand):
         await menu.start()
 
     async def send_group_help(self, group: core.Group):
-        filtered = await self.filter_commands(group.commands, sort=True)
-        if not filtered:
+        cmds = await self.filter_commands(group.commands, sort=True)
+        if not cmds:
             return
+        # Lazy way to not show commands on the first page.
+        filtered = [
+            '1', '2', '3', '4', '5'
+        ]
+        filtered.extend(cmds)
         menu = HelpPages(
             GroupHelp(self.context, filtered, group, self), ctx=self.context
         )
@@ -344,9 +351,9 @@ class AvimetryHelp(commands.HelpCommand):
         embed.add_field(
             name="Required Permissions",
             value=(
-                f"Can Use: {await self.can_run(command, self.context)}\n"
-                f"Bot Permissions: `{self.get_perms('bot_permissions', command)}`\n"
-                f"User Permissions: `{self.get_perms('user_permissions', command)}`"
+                f"Can Run: {await self.can_run(command, self.context)}\n"
+                f"I Need: `{self.get_perms('bot_permissions', command)}`\n"
+                f"You Need: `{self.get_perms('user_permissions', command)}`"
             ),
             inline=False,
         )
