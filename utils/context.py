@@ -39,7 +39,10 @@ class TrashView(AvimetryView):
     async def stop(self):
         for button in self.children:
             button.disabled = True
-        await self.message.edit(view=self)
+        try:
+            await self.message.edit(view=self)
+        except discord.NotFound:
+            pass
         super().stop()
 
     async def on_timeout(self):
@@ -99,7 +102,7 @@ class AutoPageSource(menus.ListPageSource):
 class AvimetryContext(commands.Context):
     def __init__(self, *, bot: AvimetryBot, **kwargs):
         super().__init__(bot=bot, **kwargs)
-        self.bot = bot
+        self.bot: AvimetryBot = bot
         self.tokens = []
         self.tokens.extend(self.bot.settings["bot_tokens"].values())
         self.tokens.extend(self.bot.settings["api_tokens"].values())
@@ -162,9 +165,7 @@ class AvimetryContext(commands.Context):
     async def fetch_color(self, member: discord.Member = None):
         member = member or self.author
         data = self.cache.users.get(member.id)
-        if not data:
-            color = None
-        color = data.get("color")
+        color = None if not data else data.get("color")
         if not color:
             color = member.color
         if color == discord.Color(0):
@@ -176,9 +177,7 @@ class AvimetryContext(commands.Context):
     def get_color(self, member: discord.Member = None):
         member = member or self.author
         data = self.cache.users.get(member.id)
-        color = data.get("color")
-        if not data:
-            color = None
+        color = None if not data else data.get("color")
         if not color:
             color = member.color
         elif color == discord.Color(0):
@@ -230,9 +229,9 @@ class AvimetryContext(commands.Context):
         ephemeral: bool = None,
     ) -> discord.Message:
         if content:
-            con = str(content)
+            content = str(content)
             for token in self.tokens:
-                content = con.replace(token, "[configuration token omitted]")
+                content = content.replace(token, "[configuration token omitted]")
             if len(content) >= 2000:
                 if paginate:
                     return await self.paginate(content, remove_view_after=True)
