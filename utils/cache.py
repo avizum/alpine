@@ -58,7 +58,17 @@ class AvimetryCache:
                     cache[guild.id] = {}
 
     def __repr__(self):
-        return "<AvimetryCache size=>"
+        caches = [
+            self.guild_settings,
+            self.verification,
+            self.logging,
+            self.join_leave,
+            self.blacklist,
+            self.disabled_commmand,
+            self.users,
+            self.highlights
+        ]
+        return f"<AvimetryCache size={sum(cache.__sizeof__() for cache in caches)}>"
 
     async def delete_all(self, gid):
         await self.bot.pool.execute(
@@ -74,7 +84,7 @@ class AvimetryCache:
 
     async def get_prefix(self, guild_id: int):
         guild = self.guild_settings.get(guild_id)
-        return guild.get("prefixes") if guild else None
+        return guild.get("prefixes")
 
     async def new_user(self, user_id: int):
         try:

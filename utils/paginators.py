@@ -246,31 +246,21 @@ class AvimetryPages(AvimetryView):
         self.message = await self.ctx.send(**kwargs, view=self)
 
     @discord.ui.button(emoji="\U000023ee\U0000fe0f")
-    async def skip_to_first(
-        self, button: discord.ui.Button, interaction: discord.Interaction
-    ):
+    async def skip_to_first(self, button: discord.ui.Button, interaction: discord.Interaction):
         """
         Skips to the first page.
         """
         await self.show_page(interaction, 0)
 
     @discord.ui.button(emoji="\U000025c0\U0000fe0f")
-    async def go_back_one(
-        self, button: discord.ui.Button, interaction: discord.Interaction
-    ):
+    async def go_back_one(self, button: discord.ui.Button, interaction: discord.Interaction):
         """
         Goes back one page.
         """
         await self.show_checked_page(interaction, self.current_page - 1)
 
-    @discord.ui.button(
-        emoji="<:avimetry:877445146709463081>",
-        disabled=False,
-        style=discord.ButtonStyle.blurple,
-    )
-    async def show_page_number(
-        self, button: discord.ui.Button, interaction: discord.Interaction
-    ):
+    @discord.ui.button(emoji="<:avimetry:877445146709463081>", disabled=False, style=discord.ButtonStyle.blurple,)
+    async def show_page_number(self, button: discord.ui.Button, interaction: discord.Interaction):
         """
         Shows the current page number.
         This button also is used for skipping to pages.
@@ -309,29 +299,21 @@ class AvimetryPages(AvimetryView):
                     pass
 
     @discord.ui.button(emoji="\U000025b6\U0000fe0f")
-    async def go_forward_one(
-        self, button: discord.ui.Button, interaction: discord.Interaction
-    ):
+    async def go_forward_one(self, button: discord.ui.Button, interaction: discord.Interaction):
         """
         Goes to the next page.
         """
         await self.show_checked_page(interaction, self.current_page + 1)
 
     @discord.ui.button(emoji="\U000023ed\U0000fe0f")
-    async def skip_to_last(
-        self, button: discord.ui.Button, interaction: discord.Interaction
-    ):
+    async def skip_to_last(self, button: discord.ui.Button, interaction: discord.Interaction):
         """
         Skips to the last page.
         """
         await self.show_page(interaction, self.source.get_max_pages() - 1)
 
-    @discord.ui.button(
-        emoji="\U000023f9\U0000fe0f", label="Stop", style=discord.ButtonStyle.red, row=2
-    )
-    async def stop_view(
-        self, button: discord.ui.Button, interaction: discord.Interaction
-    ):
+    @discord.ui.button(emoji="\U000023f9\U0000fe0f", label="Stop", style=discord.ButtonStyle.red, row=2)
+    async def stop_view(self, button: discord.ui.Button, interaction: discord.Interaction):
         """
         Stops the paginator and view.
         """
