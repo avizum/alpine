@@ -35,11 +35,16 @@ from utils import (
     format_seconds,
     AvimetryView,
 )
-from typing import List
+from typing import List, Union
 from discord.ext import commands, menus
 from wavelink.ext import spotify
 
 URL_REG = re.compile(r"https?://(?:www\.)?.+")
+
+
+async def do_after(time, coro, *args, **kwargs):
+    await asyncio.sleep(time)
+    await coro(*args, **kwargs)
 
 
 class IsResponding:
@@ -50,7 +55,7 @@ class IsResponding:
         self.emoji = emoji
 
     async def __aenter__(self):
-        self.task = self.bot.loop.create_task(self.message.add_reaction(self.emoji))
+        self.task = self.bot.loop.create_task(do_after(5, self.message.add_reaction, self.emoji))
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -64,7 +69,7 @@ class Queue(asyncio.Queue):
     """
     def __init__(self, *, max_size: int = 0, allow_duplicates: bool = True):
         super().__init__(maxsize=max_size)
-        self._queue = collections.deque()
+        self._queue: Union[collections.deque, List[Track]] = collections.deque()
         self.allow_duplicates = allow_duplicates
 
     def __contains__(self, item):
@@ -167,7 +172,7 @@ class Player(wavelink.Player):
         **kwargs
     ):
         self.context: AvimetryContext = context
-        self.youtube_reg = re.compile(r"^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$")
+        self.youtube_reg = re.compile(r"https?://(?:www\.youtube.com/watch\?v=).+")
         self.spotify_reg = re.compile(r"https?://open.spotify.com/(?:album|playlist|track)/[a-zA-Z0-9]+")
         super().__init__(*args, **kwargs)
         if self.context:
@@ -206,9 +211,11 @@ class Player(wavelink.Player):
             except Exception:
                 return await self.node.get_playlist(wavelink.YouTubePlaylist, query)
         elif self.spotify_reg.match(query):
-            return await spotify.SpotifyTrack.search(query)
+            search_type = spotify.decode_url(query)
+            if search_type:
+                return await spotify.SpotifyTrack.search(query, type=search_type['type'])
         else:
-            await self.node.get_tracks(wavelink.YouTubeTrack, f"ytsearch:{query}")
+            tracks = await self.node.get_tracks(wavelink.YouTubeTrack, f"ytsearch:{query}")
         if tracks:
             return tracks if bulk else tracks[0]
 
@@ -345,9 +352,9 @@ class Music(core.Cog):
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     @core.Cog.listener("on_wavelink_track_exception")
-    async def on_player_stop(self, player, track, error):
+    async def track_exception(self, player: Player, track: Track, error):
         player: Player = player
-        await player.context.send(f"Error: {error}: {error.error}")
+        await player.context.send(f"Error on {track.title}: {error}")
 
     @core.Cog.listener("on_wavelink_track_end")
     async def track_end(self, player: Player, track: Track, reason):
@@ -355,7 +362,7 @@ class Music(core.Cog):
 
     @core.Cog.listener("on_wavelink_track_stuck")
     async def track_stuck(self, player: Player, track: Track, threshold):
-        await player.context.send("Track got stuck xd")
+        await player.context.send(f"Track {track.name} got stuck. Skipping.")
         await player.do_next()
 
     @core.Cog.listener("on_voice_state_update")
@@ -365,12 +372,15 @@ class Music(core.Cog):
         before: discord.VoiceState,
         after: discord.VoiceState,
     ):
-        if member.bot:
+        player: Player = member.guild.voice_client
+        if not player:
             return
 
-        player: Player = member.guild.voice_client
+        if member == self.bot.user:
+            if after.channel is None:
+                await player.teardown()
 
-        if not player:
+        if member.bot:
             return
 
         channel = player.channel
@@ -525,7 +535,7 @@ class Music(core.Cog):
 
         if not tracks:
             return await ctx.send("Could not find anything. Try again.")
-        print(type(tracks))
+
         if isinstance(tracks, wavelink.YouTubePlaylist):
             for track in tracks.tracks:
                 track = Track(
@@ -725,7 +735,7 @@ class Music(core.Cog):
         Skip the current playing song.
 
         If you are the DJ or mod, It will always skip.
-        If you are not, your vote will be added.
+        If you are not, your vote to skip will be added.
         """
         player: Player = ctx.voice_client
 
@@ -893,10 +903,10 @@ class Music(core.Cog):
         This will reset every time the bot joins a voice channel.
         """
         player: Player = ctx.voice_client
-        player.announce = toggle
+        player.allow_duplicates = toggle
         if toggle:
-            return await ctx.send("Songs will be announced.")
-        return await ctx.send("Song will no longer be announced.")
+            return await ctx.send("Duplicate songs are now allowed.")
+        return await ctx.send("Duplicate songs are no longer allowed in the queue.")
 
     @core.command(aliases=["eq"], enabled=False)
     @in_voice()
