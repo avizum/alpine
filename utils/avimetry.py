@@ -1,6 +1,6 @@
 """
-The bot itself
-Copyright (C) 2021 - present avizum
+[Avimetry Bot]
+Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,33 +16,33 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import discord
-import os
 import datetime
-import sr_api
-import aiohttp
-import mystbin
-import topgg
-import toml
-import re
-import asyncpg
-import asyncdagpi
 import logging
-import wavelink
-import core
+import os
+import re
 
-from wavelink.ext import spotify
+import aiohttp
+import asyncdagpi
+import asyncpg
+import core
+import discord
+import mystbin
+import sr_api
+import toml
+import topgg
+import wavelink
 from asyncgist import Client
 from discord.ext import commands
+from wavelink.ext import spotify
+
 from core import Command, Group
+from .cache import AvimetryCache
 from .exceptions import (
     Blacklisted,
-    Maintenance,
-    CommandDisabledGuild,
     CommandDisabledChannel,
+    CommandDisabledGuild,
+    Maintenance
 )
-from .cache import AvimetryCache
-
 
 os.environ["JISHAKU_HIDE"] = "True"
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
@@ -165,7 +165,6 @@ class AvimetryBot(commands.Bot):
             "ext.commands.fun",
             "ext.commands.games",
             "ext.commands.help",
-            # "cogs.highlight",
             "ext.commands.images",
             "ext.listeners.joinsandleaves",
             "ext.commands.meta",

@@ -1,6 +1,6 @@
 """
-Extra commands for users.
-Copyright (C) 2021 - present avizum
+[Avimetry Bot]
+Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,20 +16,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import json
-import aiohttp
-import discord
 import datetime
+import json
 import random
-import pytz
 import typing
-import core
-import asyncgist
 
+import aiohttp
+import asyncgist
+import discord
+import pytz
 from doc_search import AsyncScraper
-from pytz import UnknownTimeZoneError
 from discord.ext import commands, menus
 from jishaku.codeblocks import codeblock_converter
+from pytz import UnknownTimeZoneError
+
+import core
 from utils import (
     AvimetryBot,
     AvimetryContext,

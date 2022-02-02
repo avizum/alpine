@@ -1,6 +1,6 @@
 """
-Settings for the bot itself.
-Copyright (C) 2021 - present avizum
+[Avimetry Bot]
+Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,12 +17,76 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import asyncio
-import discord
 import datetime
-import core
 
+import discord
 from discord.ext import commands
-from utils import AvimetryBot, AvimetryContext, Prefix, preview_message, GetCommand
+
+import core
+from utils import (
+    AvimetryBot,
+    AvimetryContext,
+    ExitableMenu,
+    GetCommand,
+    PaginatorEmbed,
+    Prefix,
+    disable_when_pressed,
+    preview_message
+)
+
+
+class InteractivePrefixConfig(ExitableMenu):
+    def __init__(self, ctx, timeout: int = 180):
+        self.suffix = "You can add up to 15 prefixes."
+        super().__init__(ctx, timeout)
+
+    async def create_message(self):
+        prefixes = await self.ctx.cache.get_prefix(self.ctx.guild.id)
+        embed = PaginatorEmbed(ctx=self.ctx)
+
+        if prefixes:
+            description = f"**Current Prefixes:** \n`{'` | `'.join(prefixes)}`\n"
+        else:
+            description = "**No custom prefixes are set. Add some!**"
+        embed.description = f"{description}\n{self.suffix}"
+        return embed
+
+    async def update_children(self):
+        prefixes = await self.ctx.cache.get_prefix(self.ctx.guild.id)
+        if not prefixes:
+            self.add_prefix.disabled = False
+            self.remove_prefix.disabled = True
+        elif len(prefixes) >= 15:
+            self.add_prefix.disabled = True
+            self.remove_prefix.disabled = False
+        else:
+            self.add_prefix.disabled = False
+            self.remove_prefix.disabled = False
+
+    @discord.ui.button(label="Add Prefix", style=discord.ButtonStyle.success)
+    @disable_when_pressed
+    async def add_prefix(self, button: discord.Button, interaction: discord.Interaction):
+        try:
+            prefix = await self.prompt("Send a prefix that you want to add.", interaction=interaction)
+        except asyncio.TimeoutError:
+            return
+        prefixes = await self.ctx.cache.get_prefix(self.ctx.guild.id)
+        try:
+            prefix = await Prefix().convert(self.ctx, prefix)
+            prefixes.append(prefix)
+            self.suffix = f"Added `{prefix}` to the list of prefixes. You can add {15 - len(prefixes)} more prefixes."
+        except commands.BadArgument as e:
+            self.suffix = e
+
+    @discord.ui.button(label="Remove Prefix", style=discord.ButtonStyle.red)
+    @disable_when_pressed
+    async def remove_prefix(self, button: discord.Button, interaction: discord.Interaction):
+        try:
+            prefix = await self.prompt("Which prefix do you want to remove?", interaction=interaction)
+        except asyncio.TimeoutError:
+            return
+        prefixes = await self.ctx.cache.get_prefix(self.ctx.guild.id)
+        prefixes.remove(prefix)
 
 
 class Settings(core.Cog):
@@ -35,6 +99,11 @@ class Settings(core.Cog):
         self.emoji = "\U00002699"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.map = {True: "Enabled", False: "Disabled", None: "Not Set"}
+
+    @core.command()
+    @core.is_owner()
+    async def pfx(self, ctx: AvimetryContext):
+        await InteractivePrefixConfig(ctx, 180).start()
 
     @core.group(case_insensitive=True, invoke_without_command=True)
     async def prefix(self, ctx: AvimetryContext):

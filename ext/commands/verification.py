@@ -1,6 +1,6 @@
 """
 Handle verification gating (if enabled)
-Copyright (C) 2021 - present avizum
+Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,13 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import discord
-import string
-import random
 import asyncio
 import datetime
-import core
+import random
+import string
 
+import discord
+
+import core
 from utils import AvimetryBot, AvimetryContext
 
 

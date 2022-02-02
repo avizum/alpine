@@ -1,6 +1,6 @@
 """
-Subclassed Command context
-Copyright (C) 2021 - present avizum
+[Avimetry Bot]
+Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,16 +17,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import asyncio
-import discord
 import datetime
 import re
-
-from asyncgist import File
-from typing import Union, List, Sequence
-from .view import AvimetryView
-from discord.ext import commands, menus
 from datetime import timedelta
+from typing import List, Sequence, Union
+
+import discord
+from asyncgist import File
+from discord.ext import commands, menus
+
 from .avimetry import AvimetryBot
+from .view import AvimetryView
 
 emoji_regex = "<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>"
 

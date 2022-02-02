@@ -1,6 +1,6 @@
 """
-Owner only advanced debug cog.
-Copyright (C) 2021 - present avizum
+[Avimetry Bot]
+Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,30 +18,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import asyncio
 import datetime
-import jishaku
-import discord
+import importlib
+import math
 import sys
 
-try:
-    import psutil
-except ImportError:
-    psutil = None
-
-import math
-import core
+import discord
+import jishaku
+import psutil
 import toml
 import utils
-import importlib
-
 from discord.ext import commands, menus
-from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 from jishaku import Feature
+from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.flags import Flags
 from jishaku.models import copy_context_with
 from jishaku.paginators import PaginatorInterface
+
+import core
 from utils import AvimetryBot, AvimetryContext, CogConverter, timestamp
-from utils.paginators import AvimetryPages, PaginatorEmbed
 from utils.converters import ModReason
+from utils.paginators import AvimetryPages, PaginatorEmbed
 
 
 def naturalsize(size_in_bytes: int):

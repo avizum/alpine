@@ -1,6 +1,6 @@
 """
-Game commands
-Copyright (C) 2021 - present avizum
+[Avimetry Bot]
+Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,20 +16,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import discord
-import datetime
-import typing
 import asyncio
-import random
-import core
-import roblox
 import contextlib
-
+import datetime
+import random
+import typing
 from typing import Union
+
+import discord
+import roblox
 from discord.ext import commands
-from akinator.async_aki import Akinator
 from akinator import CantGoBackAnyFurther
-from utils import AvimetryContext, AvimetryBot, Timer, AvimetryView
+from akinator.async_aki import Akinator
+
+import core
+from utils import AvimetryBot, AvimetryContext, AvimetryView, Timer
 
 
 class AkinatorConfirmView(AvimetryView):

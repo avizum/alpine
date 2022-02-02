@@ -1,6 +1,6 @@
 """
-Command to get help for the bot.
-Copyright (C) 2021 - present avizum
+[Avimetry Bot]
+Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,13 +17,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import discord
-import humanize
 import datetime
-import core
-
 from typing import Optional, Mapping, List
-from discord.ext import commands, menus
+
+import humanize
 from difflib import get_close_matches
+from discord.ext import commands, menus
+
+import core
 from utils import AvimetryBot, AvimetryContext, AvimetryPages
 
 

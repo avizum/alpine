@@ -1,6 +1,6 @@
 """
-Commands about the bot
-Copyright (C) 2021 - present avizum
+[Avimetry Bot]
+Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,18 +16,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import discord
 import datetime
-import psutil
 import humanize
+import inspect
 import pathlib
 import os
-import inspect
-import core
-
 from typing import Union
+
+import discord
+import psutil
 from discord.ext import commands
 from topgg import NotFound
+
+import core
 from utils import AvimetryContext, AvimetryBot, Timer
 
 

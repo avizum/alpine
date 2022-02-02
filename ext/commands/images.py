@@ -1,6 +1,6 @@
 """
-Cool things you can do with images.
-Copyright (C) 2021 - present avizum
+[Avimetry Bot]
+Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,14 +16,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import discord
 import typing
 import datetime
-import core
 
-from discord.ext import commands
+import discord
 from asyncdagpi import ImageFeatures, Image
+from discord.ext import commands
 from twemoji_parser import emoji_to_url
+
+import core
 from utils import AvimetryBot, AvimetryContext, GetAvatar
 
 embed = discord.Embed()

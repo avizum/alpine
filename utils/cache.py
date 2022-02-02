@@ -1,6 +1,6 @@
 """
-Handle bot cache for quick and easy access.
-Copyright (C) 2021 - present avizum
+[Avimetry Bot]
+Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,9 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 from __future__ import annotations
+
 from copy import deepcopy
-from discord.ext import tasks
 from typing import TYPE_CHECKING
+
+from discord.ext import tasks
 
 if TYPE_CHECKING:
     from .avimetry import AvimetryBot
@@ -35,7 +37,6 @@ class AvimetryCache:
         self.blacklist = {}
         self.disabled_commmand = {}
         self.users = {}
-        self.highlights = {}
 
     @tasks.loop(minutes=5)
     async def cache_loop(self):
@@ -66,7 +67,6 @@ class AvimetryCache:
             self.blacklist,
             self.disabled_commmand,
             self.users,
-            self.highlights
         ]
         return f"<AvimetryCache size={sum(cache.__sizeof__() for cache in caches)}>"
 
@@ -84,6 +84,8 @@ class AvimetryCache:
 
     async def get_prefix(self, guild_id: int):
         guild = self.guild_settings.get(guild_id)
+        if not guild:
+            return None
         return guild.get("prefixes")
 
     async def new_user(self, user_id: int):

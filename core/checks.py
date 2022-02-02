@@ -1,8 +1,9 @@
 import inspect
 import functools
-import discord
 
+import discord
 from discord.ext import commands
+
 from .core import Command
 from utils.exceptions import NotGuildOwner
 

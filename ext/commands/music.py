@@ -1,6 +1,6 @@
 """
-Cog for music powered by Lavalink with Wavelink.
-Copyright (C) 2021 - present avizum
+[Avimetry Bot]
+Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,27 +17,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import asyncio
-import async_timeout
-import discord
+import collections
+import datetime
 import math
 import random
 import re
 import typing
-import wavelink
-import collections
-import datetime
-import core
+from typing import List, Union
 
+import async_timeout
+import discord
+import wavelink
+from discord.ext import commands, menus
+from wavelink.ext import spotify
+
+import core
 from utils import (
     AvimetryBot,
     AvimetryContext,
     AvimetryPages,
-    format_seconds,
     AvimetryView,
+    format_seconds
 )
-from typing import List, Union
-from discord.ext import commands, menus
-from wavelink.ext import spotify
 
 URL_REG = re.compile(r"https?://(?:www\.)?.+")
 

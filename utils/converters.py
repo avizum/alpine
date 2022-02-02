@@ -1,6 +1,6 @@
 """
-Custom converters for the bot.
-Copyright (C) 2021 - present avizum
+[Avimetry Bot]
+Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,14 +17,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import re
-import discord
-
-from typing import Union
-from discord.ext import commands
-from utils import AvimetryContext
-from twemoji_parser import emoji_to_url as urlify_emoji
 from difflib import get_close_matches
+from typing import Union
 
+import discord
+from discord.ext import commands
+from twemoji_parser import emoji_to_url
+
+from utils import AvimetryContext
 
 time_regex = re.compile(r"(?:(\d{1,5})\s?(h|s|m|d|w|y))+?")
 time_dict = {
@@ -207,7 +207,7 @@ class GetAvatar(commands.Converter):
             return str(image)
         except Exception:
             try:
-                url = await urlify_emoji(argument)
+                url = await emoji_to_url(argument)
                 if re.match(regex_url, url):
                     image = str(url)
                     return image
