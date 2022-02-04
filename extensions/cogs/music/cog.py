@@ -342,6 +342,17 @@ def in_voice():
     return commands.check(predicate)
 
 
+def in_correct_channel():
+    def predicate(ctx: AvimetryContext):
+        vc: Player = ctx.voice_client
+        if not vc:
+            raise NotInVoice
+        if ctx.channel == vc.channel:
+            return True
+        raise NotInVoice
+    return commands.check(predicate)
+
+
 class Music(core.Cog):
     """
     Music commands for music.
@@ -424,40 +435,6 @@ class Music(core.Cog):
             ctx.eh = True
             return await ctx.send("You must be in a voice channel to use this command.")
 
-    async def cog_check(self, ctx: AvimetryContext):
-        """Cog wide check, which disallows commands in DMs."""
-        if not ctx.guild:
-            await ctx.send("Music commands are not available in Private Messages.")
-            return False
-        return True
-
-    async def cog_beforeasdjkl_invoke(self, ctx: AvimetryContext):
-        """
-        Check whether the author is inside the player's bound channel.
-        """
-        player: Player = self.bot.wavelink.get_player(
-            ctx.guild.id, cls=Player, context=ctx
-        )
-
-        if player.context and player.context.channel != ctx.channel:
-            await ctx.send(
-                f"{ctx.author.display_name}, you need to use this in {player.context.channel.mention}."
-            )
-
-        if ctx.command.name == "connect" and not player.context:
-            return
-        if not player.channel_id:
-            return
-
-        channel = self.bot.get_channel(int(player.channel_id))
-        if not channel:
-            return
-
-        if player.is_connected and ctx.author not in channel.members:
-            await ctx.send(
-                f"{ctx.author.display_name}, you need to be in {channel.mention} to use this."
-            )
-
     def required(self, ctx: AvimetryContext):
         """Method which returns required votes based on amount of members in a channel."""
         player: Player = ctx.voice_client
@@ -482,7 +459,7 @@ class Music(core.Cog):
 
         player = Player(context=ctx)
         voice_client = await channel.connect(cls=player)
-        await ctx.send(f"Joined {voice_client.channel.mention}.")
+        await ctx.send(f"Joined {voice_client.channel.mention}, anouncing songs in {ctx.channel.mention}.")
         return voice_client
 
     @core.command(aliases=["stop", "leave", "fuckoff"])
@@ -803,19 +780,27 @@ class Music(core.Cog):
 
     @core.command(aliases=["sk"])
     @in_voice()
-    async def seek(self, ctx: AvimetryContext, seconds: int):
+    async def seek(self, ctx: AvimetryContext, seconds: Union[int, str]):
         """
         Seek in the cuuent song.
 
-        Entering an amount longer than the song will skip the song.
         Entering an amount lower than 0 will restart the song.
         """
+        if isinstance(seconds, str):
+            try:
+                time = datetime.datetime.strptime(seconds, "%M:%S")
+                delta = time - datetime.datetime(1900, 1, 1)
+                seconds = delta.total_seconds()
+            except ValueError:
+                return await ctx.send("Seek time must be in MM:SS format or use seconds.")
         player: Player = ctx.voice_client
         if not player:
             return
         if self.is_privileged(ctx):
-            await player.seek(seconds * 1000)
-            return await ctx.send(f"Set track position to {seconds} seconds")
+            if seconds > player.source.length:
+                return await ctx.send("That is longer than the song!")
+            await ctx.send(f"Seeked to {format_seconds(seconds)}/{format_seconds(player.source.length)}")
+            return await player.seek(seconds * 1000)
         await ctx.send("Only the DJ can seek.")
 
     @core.command(aliases=["v", "vol"])

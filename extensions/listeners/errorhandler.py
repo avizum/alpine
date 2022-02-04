@@ -121,7 +121,7 @@ class ErrorHandler(core.Cog):
             ctx.cog
             and ctx.cog._get_overridden_method(ctx.cog.cog_command_error) is not None
         ):
-            if not hasattr(ctx, "eh"):
+            if hasattr(ctx, "eh"):
                 return
 
         reinvoke = (

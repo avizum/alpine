@@ -660,7 +660,3 @@ class Images(core.Cog):
         """
         result = await emoji_to_url(emoji)
         await ctx.send(result)
-
-
-def setup(bot: AvimetryBot):
-    bot.add_cog(Images(bot))
