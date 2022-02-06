@@ -22,6 +22,7 @@ import datetime
 import random
 import typing
 from typing import Union
+from io import BytesIO
 
 import discord
 import roblox
@@ -47,9 +48,7 @@ class Games(core.Cog):
     @core.group(aliases=["\U0001F36A", "vookir", "kookie"])
     @commands.cooldown(5, 10, commands.BucketType.member)
     @commands.max_concurrency(2, commands.BucketType.channel)
-    async def cookie(
-        self, ctx: AvimetryContext, member: typing.Optional[discord.Member] = None
-    ):
+    async def cookie(self, ctx: AvimetryContext, member: typing.Optional[discord.Member] = None):
         """
         Grab the cookie!
 
@@ -142,16 +141,6 @@ class Games(core.Cog):
         )
         return await cookie_message.edit(embed=cookie_embed, view=None)
 
-    async def remove(self, message: discord.Message, emoji, user, perm: bool):
-        if not perm:
-            return
-        await message.remove_reaction(emoji, user)
-
-    async def clear(self, message: discord.Message, perm: bool):
-        if not perm:
-            return
-        await message.clear_reactions()
-
     @core.command(name="akinator", aliases=["aki"])
     @commands.cooldown(1, 60, commands.BucketType.member)
     @commands.max_concurrency(1, commands.BucketType.channel)
@@ -236,13 +225,16 @@ class Games(core.Cog):
         """
         Try to guess the logo given to you.
 
-        This command is powered by the Dagpi api.
+        This command is powered by the Dagpi API.
         """
         async with ctx.channel.typing():
             logo = await self.bot.dagpi.logo()
+            im = await self.bot.session.get(logo.question)
+            read = await im.read()
+            image_file = discord.File(BytesIO(read), filename="question.png")
         embed = discord.Embed(title="Which logo is this?", description=f"{logo.clue}")
-        embed.set_image(url=logo.question)
-        message = await ctx.send(embed=embed)
+        embed.set_image(url="attachment://question.png")
+        message = await ctx.send(file=image_file, embed=embed)
 
         def check(m):
             return m.author == ctx.author

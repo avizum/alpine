@@ -211,14 +211,12 @@ class Fun(core.Cog):
             )
         else:
             embed = discord.Embed(
-                description=f"{ctx.author.mention} dropkicked {mention.mention}, killing them."
+                description=f"{ctx.author.mention} dropkicked {mention.mention}."
             )
         await ctx.send(embed=embed)
 
     @core.command()
-    async def ship(
-        self, ctx: AvimetryContext, person1: discord.Member, person2: discord.Member
-    ):
+    async def ship(self, ctx: AvimetryContext, person1: discord.Member, person2: discord.Member):
         """
         Check if someone is compatible with someone.
         """
@@ -261,7 +259,7 @@ class Fun(core.Cog):
         ) as content:
             if content.status == 404:
                 return await ctx.send(
-                    "This subreddit does not exist. Please check your spelling and try again."
+                    "Could not find that subreddit. Please check your spelling and try again."
                 )
             if content.status != 200:
                 return await ctx.send(
@@ -305,7 +303,7 @@ class Fun(core.Cog):
         """
         Get a meme from Reddit.
 
-        This will get a meme from either the r/memes or r/meme subreddits.
+        This fetches a meme from the r/memes and r/meme subreddits.
         """
         subreddits = ["memes", "meme"]
         await ctx.invoke(self.reddit, random.choice(subreddits))
@@ -315,7 +313,7 @@ class Fun(core.Cog):
         """
         Roasts a person. May be offensive/NSFW.
 
-        These roasts come from the Dagpi api.
+        These roasts come from the Dagpi API.
         """
         roast = await self.bot.dagpi.roast()
         await ctx.send(f"{member.mention}, {roast}")
@@ -325,24 +323,12 @@ class Fun(core.Cog):
         """
         Get a fun fact.
 
-        These facts are taken from the Dagpi api.
+        These facts are taken from the Dagpi API.
         """
         fact = await self.bot.dagpi.fact()
         await ctx.send(fact)
 
-    @core.command()
-    async def gay(self, ctx: AvimetryContext, member: discord.Member = None):
-        """
-        Is a person gay? This is up to you.
-        """
-        if member is None:
-            member = ctx.author
-        conf = await ctx.confirm(f"Is {member.mention} gay?")
-        if conf.result:
-            return await conf.message.edit(f"{member.mention} is gay.")
-        return await conf.message.edit(f"{member.mention} is not gay.")
-
-    @core.command()
+    @core.command(aliases=["gaymeter"])
     async def gayrate(self, ctx: AvimetryContext, member: discord.Member = None):
         """
         Check how gay a person is.
@@ -392,15 +378,6 @@ class Fun(core.Cog):
         input = words.split(" ")
         output = f"👏 {' 👏 '.join(input)} 👏"
         await ctx.send(output)
-
-    @core.command()
-    async def ifyouloveme(self, ctx: AvimetryContext):
-        """
-        LET ME GOOOOOOOOOOOOOOOOOOOO
-        """
-        await ctx.send(
-            "LET ME GOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
-        )
 
     @core.command()
     @core.cooldown(1, 60, commands.BucketType.user)

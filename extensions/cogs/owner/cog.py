@@ -190,19 +190,17 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         if isinstance(self.bot, discord.AutoShardedClient):
             if len(self.bot.shards) > 20:
                 summary.append(
-                    f"This bot is automatically sharded ({len(self.bot.shards)} shards of {self.bot.shard_count})"
-                    f" and can see {cache_summary}"
+                    f"This bot is automatically sharded ({len(self.bot.shards)} shards of {self.bot.shard_count}) "
+                    f"{cache_summary}"
                 )
             else:
                 shard_ids = ", ".join(str(i) for i in self.bot.shards.keys())
                 summary.append(
-                    f"This bot is automatically sharded (Shards {shard_ids} of {self.bot.shard_count})"
-                    f" and can see {cache_summary}"
+                    f"This bot is automatically sharded (Shards {shard_ids} of {self.bot.shard_count}) {cache_summary}"
                 )
         elif self.bot.shard_count:
             summary.append(
-                f"This bot is manually sharded (Shard {self.bot.shard_id} of {self.bot.shard_count})"
-                f" and can see {cache_summary}"
+                f"This bot is manually sharded (Shard {self.bot.shard_id} of {self.bot.shard_count}) {cache_summary}"
             )
         else:
             summary.append(f"This bot is not sharded and {cache_summary}")
@@ -314,7 +312,6 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         Shows the currently running jishaku tasks.
         """
-
         if not self.tasks:
             return await ctx.send("No currently running tasks.")
 
@@ -394,7 +391,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     @Feature.Command(parent="jsk", name="reload", aliases=["r"])
     async def jsk_reload(self, ctx: AvimetryContext, module: CogConverter):
         """
-        Reload cogs
+        Reload cogs.
         """
         reload_list = []
         for cog in module:

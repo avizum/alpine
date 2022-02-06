@@ -87,7 +87,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
                 for cm in items[:3]
             )
         except KeyError:
-            commits = "Error lol"
+            commits = "Could not get commits."
         embed.add_field(name="Latest Commits", value=commits, inline=False)
         delta_uptime = (
             datetime.datetime.now(datetime.timezone.utc) - self.bot.launch_time
@@ -113,41 +113,12 @@ class BotInfo(commands.Cog, name="Bot Info"):
         If you want to contribute, Check out the GitHub repo.
         """
         credit_list = [
-            (
-                self.bot.get_user(750135653638865017),
-                "Developer",
-                "https://github.com/avizum",
-            ),
-            (
-                self.bot.get_user(80088516616269824),
-                "Developer of discord.py",
-                "https://github.com/Rapptz",
-            ),
-            (
-                self.bot.get_user(171539705043615744),
-                "Error Tracking",
-                "https://github.com/iDutchy",
-            ),
-            (
-                self.bot.get_user(547280209284562944),
-                "Testing",
-                "https://github.com/LereUwU",
-            ),
-            (
-                self.bot.get_user(672122220566413312),
-                "Avatar",
-                "https://discord.com/users/672122220566413312",
-            ),
-            (
-                self.bot.get_user(733370212199694467),
-                "Contributor",
-                "https://github.com/MrArkon/",
-            ),
-            (
-                self.bot.get_user(797044260196319282),
-                "Noob",
-                "https://github.com/jottew",
-            ),
+            (self.bot.get_user(750135653638865017), "Developer", "https://github.com/avizum",),
+            (self.bot.get_user(80088516616269824), "Developer of discord.py", "https://github.com/Rapptz",),
+            (self.bot.get_user(171539705043615744), "Error Tracking", "https://github.com/iDutchy",),
+            (self.bot.get_user(547280209284562944), "Testing", "https://github.com/LereUwU",),
+            (self.bot.get_user(672122220566413312), "Avatar", "https://discord.com/users/672122220566413312",),
+            (self.bot.get_user(733370212199694467), "Contributor", "https://github.com/MrArkon/",),
         ]
 
         embed = discord.Embed(
@@ -235,7 +206,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
     @core.command()
     async def hello(self, ctx: AvimetryContext):
         """
-        Hello!
+        Shows the message that is sent when I join a server.
         """
         embed = discord.Embed(
             title="\U0001f44b Hey, I am Avimetry!",
@@ -263,10 +234,8 @@ class BotInfo(commands.Cog, name="Bot Info"):
         embed.set_footer(text="Made by avizum :)")
         await ctx.send(embed=embed)
 
-    @core.group(invoke_without_command=True)
-    async def invite(
-        self, ctx: AvimetryContext, bot: Union[discord.Member, discord.User] = None
-    ):
+    @core.command(invoke_without_command=True)
+    async def invite(self, ctx: AvimetryContext, bot: Union[discord.Member, discord.User] = None):
         """
         Invite me to your server.
 
@@ -442,7 +411,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         vote_embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         await ctx.send(embed=vote_embed, view=view)
 
-    # Please do not remove this command.
+    # If you run an instance of this bot, Please do not remove this command.
     # - avizum
     @core.command()
     async def source(self, ctx: AvimetryContext, *, command: str = None):

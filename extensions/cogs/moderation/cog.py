@@ -124,7 +124,7 @@ class Moderation(core.Cog):
 
         Softban bans then unbans a person.
         This is like kicking them and deleting their messages.
-        You can not kick people with higher permissions than you.
+        You can not softban people with higher permissions than you.
         """
         reason = reason or f"{ctx.author}: No reason provided"
         soft_ban_embed = discord.Embed(
@@ -197,14 +197,10 @@ class Moderation(core.Cog):
                 content=f"Sucessfully banned {len(targets)-fail}/{len(targets)} members."
             )
 
-    @core.command(
-        brief="Unbans a member from the server.", usage="<member_id> [reason]"
-    )
+    @core.command()
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def unban(
-        self, ctx: AvimetryContext, member: FindBan, *, reason: ModReason = None
-    ):
+    async def unban(self, ctx: AvimetryContext, member: FindBan, *, reason: ModReason = None):
         """
         Unbans/Removes a ban from someone from the server.
 
@@ -351,6 +347,18 @@ class Moderation(core.Cog):
     @purge.command()
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
+    async def bots(self, ctx: AvimetryContext, amount: PurgeAmount):
+        """
+        Purge any message sent from a bot, including me.
+        """
+        purged = await ctx.channel.purge(
+            limit=amount, check=lambda m: m.author.bot, before=ctx.message
+        )
+        await ctx.can_delete(embed=await self.do_affected(purged))
+
+    @purge.command()
+    @core.has_permissions(manage_messages=True)
+    @core.bot_has_permissions(manage_messages=True)
     async def contains(self, ctx: AvimetryContext, *, text):
         """
         Purge messages containing text.
@@ -397,10 +405,10 @@ class Moderation(core.Cog):
         """
         Delete the last 15 commands.
 
-        If you have an empty prefix, this will also delete other messages.
+        Delete messages sent by the bot and users if the message begins with a prefix.
         """
         base = await self.bot.get_prefix(ctx.message)
-        if ctx.prefix == "":
+        if "" in base:
             base.remove("")
         prefixes = tuple(base)
 
@@ -420,7 +428,7 @@ class Moderation(core.Cog):
         ctx: AvimetryContext,
         channel: discord.TextChannel,
         *,
-        reason="No Reason Provided",
+        reason: ModReason = None
     ):
         """
         Locks a channel.
@@ -430,15 +438,14 @@ class Moderation(core.Cog):
         Then set the server permissions for send messages to on.
         If you have any problems, DM Avimetry or ask in the support server.
         """
+        reason = reason or f"Action done by {ctx.author}"
         await channel.set_permissions(
             ctx.guild.default_role,
             send_messages=False,
         )
-        lc = discord.Embed()
-        lc.add_field(
-            name=":lock: Channel has been locked.",
-            value=f"{ctx.author.mention} has locked down <#{channel.id}> with the reason of {reason}. \
-            Only Staff members can speak now.",
+        lc = discord.Embed(
+            title=":lock: This channel has been locked.",
+            description=f"{ctx.author.mention} has locked down <#{channel.id}> with the reason of {reason}."
         )
         await channel.send(embed=lc)
 
@@ -458,11 +465,9 @@ class Moderation(core.Cog):
         This sets the channel overwrite for send messages to none (/).
         """
         await channel.set_permissions(ctx.guild.default_role, send_messages=None)
-        uc = discord.Embed()
-        uc.add_field(
-            name=":unlock: Channel has been unlocked.",
-            value=f"{ctx.author.mention} has unlocked <#{channel.id}> with the reason of {reason}. \
-            Everyone can speak now.",
+        uc = discord.Embed(
+            title=":unlock: This channel has been unlocked.",
+            description=f"{ctx.author.mention} has unlocked <#{channel.id}> with the reason of {reason}. "
         )
         await channel.send(embed=uc)
 
@@ -479,10 +484,9 @@ class Moderation(core.Cog):
         if seconds > 21600:
             raise commands.BadArgument("Amount should be less than or equal to 6 hours")
         await ctx.channel.edit(slowmode_delay=seconds)
-        smembed = discord.Embed()
-        smembed.add_field(
-            name="<:yesTick:777096731438874634> Set Slowmode",
-            value=f"Slowmode delay is now set to {humanize.precisedelta(seconds)}.",
+        smembed = discord.Embed(
+            title="Changed Slowmode",
+            description=f"Slowmode delay has been set to {humanize.precisedelta(seconds)}"
         )
         await ctx.send(embed=smembed)
 
@@ -506,10 +510,9 @@ class Moderation(core.Cog):
         If I can't add a role to them, I will give you a reason why.
         """
         await member.add_roles(role)
-        ra = discord.Embed()
-        ra.add_field(
-            name="<:yesTick:777096731438874634> Role Add",
-            value=f"Added {role.mention} to {member.mention}.",
+        ra = discord.Embed(
+            title="Added Role",
+            description=f"Added {role.mention} to {member.mention}.",
         )
         await ctx.send(embed=ra)
 
@@ -526,7 +529,7 @@ class Moderation(core.Cog):
         await member.remove_roles(role)
         rr = discord.Embed()
         rr.add_field(
-            name="<:yesTick:777096731438874634> Role Remove",
+            name="Removed Role",
             value=f"Removed {role.mention} from {member.mention}",
         )
         await ctx.send(embed=rr)
@@ -546,10 +549,10 @@ class Moderation(core.Cog):
         await member.edit(nick=nick)
         newnick = member.display_name
         nickembed = discord.Embed(
-            title="<:yesTick:777096731438874634> Nickname Changed"
+            title="Changed Nickname"
         )
-        nickembed.add_field(name="Old Nickname", value=f"{oldnick}", inline=True)
-        nickembed.add_field(name="New Nickname", value=f"{newnick}", inline=True)
+        nickembed.add_field(name="From", value=f"{oldnick}", inline=True)
+        nickembed.add_field(name="To", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
 
 
