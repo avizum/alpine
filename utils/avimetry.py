@@ -198,19 +198,11 @@ class AvimetryBot(commands.Bot):
 
         @self.check
         async def check(ctx):
-            if not ctx.guild and not await self.is_owner(ctx.author):
-                raise commands.NoPrivateMessage()
             if ctx.author.id in self.cache.blacklist:
                 raise Blacklisted(reason=self.cache.blacklist[ctx.author.id])
-            if (
-                str(ctx.command)
-                in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]
-            ):
+            if str(ctx.command) in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]:
                 raise CommandDisabledGuild()
-            if (
-                ctx.channel.id
-                in ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"]
-            ):
+            if ctx.channel.id in ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"]:
                 raise CommandDisabledChannel()
             if ctx.bot.maintenance is True:
                 raise Maintenance()

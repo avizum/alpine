@@ -104,6 +104,7 @@ class AvimetryContext(commands.Context):
     def __init__(self, *, bot: AvimetryBot, **kwargs):
         super().__init__(bot=bot, **kwargs)
         self.bot: AvimetryBot = bot
+        self.locally_handled = None
         self.tokens = []
         self.tokens.extend(self.bot.settings["bot_tokens"].values())
         self.tokens.extend(self.bot.settings["api_tokens"].values())

@@ -47,10 +47,6 @@ class Command(commands.Command):
             self._buckets._cooldown = commands.Cooldown(1, 3)
 
     async def can_run(self, ctx: commands.Context) -> bool:
-        # always allow owner to run any command
-        if await ctx.bot.is_owner(ctx.author):
-            return True
-
         if not self.enabled:
             raise DisabledCommand(f"{self.name} command is disabled")
 

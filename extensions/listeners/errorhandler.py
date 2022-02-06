@@ -114,15 +114,9 @@ class ErrorHandler(core.Cog):
     @core.Cog.listener()
     async def on_command_error(self, ctx: AvimetryContext, error: commands.CommandError):
         error = getattr(error, "original", error)
-        if hasattr(ctx.command, "on_error"):
-            if not hasattr(ctx, "eh"):
-                return
-        elif (
-            ctx.cog
-            and ctx.cog._get_overridden_method(ctx.cog.cog_command_error) is not None
-        ):
-            if hasattr(ctx, "eh"):
-                return
+
+        cog_has_handler = ctx.cog.has_error_handler() if ctx.cog else None
+        command_has_handler = ctx.command.has_error_handler() if ctx.command else None
 
         reinvoke = (
             commands.CommandOnCooldown,
@@ -135,17 +129,22 @@ class ErrorHandler(core.Cog):
             Maintenance,
             Blacklisted,
         )
+        if (command_has_handler or cog_has_handler) and ctx.locally_handled is True:
+            return
+
         if await self.bot.is_owner(ctx.author) and isinstance(error, reinvoke):
             try:
-                return await ctx.reinvoke()
+                print("whattanoob")
+                # return await ctx.reinvoke()
             except Exception:
-                pass
+                print("whatexc")
+                # pass
         elif (
             await self.bot.is_owner(ctx.author)
             and ctx.prefix == ""
             and isinstance(error, commands.CommandNotFound)
         ):
-            return
+            print("owner thing")
 
         elif isinstance(error, Blacklisted):
             blacklisted = discord.Embed(
@@ -162,13 +161,13 @@ class ErrorHandler(core.Cog):
                 return await ctx.send(embed=blacklisted, delete_after=30, view=view)
             return
 
-        if isinstance(error, Maintenance):
+        elif isinstance(error, Maintenance):
             retry_after = self.maintenance_cooldown.update_rate_limit(ctx.message)
             if not retry_after:
                 return await ctx.send("Maintenance mode is enabled. Try again later.")
             return
 
-        if isinstance(error, commands.NoPrivateMessage):
+        elif isinstance(error, commands.NoPrivateMessage):
             embed = discord.Embed(
                 title="No DM commands",
                 description="Commands do not work in DMs because I work best in servers.",
@@ -181,8 +180,7 @@ class ErrorHandler(core.Cog):
         elif isinstance(error, commands.CommandNotFound):
             if ctx.author.id in ctx.cache.blacklist:
                 return
-            cog = self.bot.get_cog(ctx.invoked_with)
-            if cog:
+            if cog := self.bot.get_cog(ctx.invoked_with):
                 return await ctx.send_help(cog)
             not_found = ctx.invoked_with
             all_commands = []
@@ -194,8 +192,7 @@ class ErrorHandler(core.Cog):
                         all_commands.extend(cmd.aliases)
                 except commands.CommandError:
                     continue
-            match = get_close_matches(not_found, all_commands)
-            if match:
+            if match := get_close_matches(not_found, all_commands):
                 embed = discord.Embed(title="Invalid Command")
                 embed.description = f'I couldn\'t find a command "{not_found}". Did you mean {match[0]}?'
                 bucket1 = self.not_found_cooldown_content.update_rate_limit(ctx.message)
@@ -209,12 +206,7 @@ class ErrorHandler(core.Cog):
                         )
                         new.content = new.content.replace(ctx.invoked_with, match[0])
                         ctx = await self.bot.get_context(new)
-                        try:
-                            await self.bot.invoke(ctx)
-                        except commands.CommandInvokeError:
-                            await ctx.send(
-                                "Something failed while trying to invoke. Try again?"
-                            )
+                        await self.bot.invoke(ctx)
                     if conf.result is False:
                         return await conf.message.delete()
 
