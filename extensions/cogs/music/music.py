@@ -20,7 +20,7 @@ import asyncio
 import collections
 import re
 import typing
-from typing import List, Union
+from typing import List, Optional, Union
 
 import async_timeout
 import discord
@@ -141,29 +141,29 @@ class Player(wavelink.Player):
     def __init__(
         self,
         *args,
-        context:
-        AvimetryContext = None,
+        context: AvimetryContext = None,
         announce: bool = True,
         allow_duplicates: bool = True,
         **kwargs
     ):
         self.context: AvimetryContext = context
-        self.youtube_reg = re.compile(r"https?://(?:www\.youtube.com/watch\?v=).+")
+        self.youtube_reg = re.compile(
+            r"https?://((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$"
+        )
         self.spotify_reg = re.compile(r"https?://open.spotify.com/(?:album|playlist|track)/[a-zA-Z0-9]+")
         super().__init__(*args, **kwargs)
         if self.context:
             self.dj: discord.Member = self.context.author
-        self.announce = announce
-        self.allow_duplicates = allow_duplicates
-        self.queue = Queue()
-        self.waiting = False
-        self.updating = False
-        self.loop_song = None
-        self.pause_votes = set()
-        self.resume_votes = set()
-        self.skip_votes = set()
-        self.shuffle_votes = set()
-        self.stop_votes = set()
+        self.announce: bool = announce
+        self.allow_duplicates: bool = allow_duplicates
+        self.queue: Queue = Queue()
+        self.waiting: bool = False
+        self.loop_song: Optional[Track] = None
+        self.pause_votes: set = set()
+        self.resume_votes: set = set()
+        self.skip_votes: set = set()
+        self.shuffle_votes: set = set()
+        self.stop_votes: set = set()
 
     async def get_tracks(self, query: str, *, bulk: bool = False) -> typing.Union[Track, typing.List[Track]]:
         """
@@ -231,14 +231,19 @@ class Player(wavelink.Player):
         embed = discord.Embed(title="Now Playing")
         if self.context:
             embed.color = await self.context.fetch_color()
-        time = f"Length: {format_seconds(track.length)}\n\n"
+        time = f"> Length: {format_seconds(track.length)}\n"
         if position:
             time = f"Position {format_seconds(position)}/{format_seconds(track.length)}\n\n"
-        next_song = self.loop_song or self.queue.up_next or "Add more songs to the queue!"
+        if self.loop_song:
+            next_song = f"[{self.loop_song.title}]({self.loop_song.uri})"
+        elif self.queue.up_next:
+            next_song = f"[{self.queue.up_next.title}]({self.queue.up_next.url})"
+        else:
+            next_song = "Add more songs to the queue!"
         embed.description = (
-            f"Song: [{track.title}]({track.uri})\n\n"
+            f"[{track.title}]({track.uri})\n"
             f"{time}"
-            f"Requested by: {track.requester.mention} (`{track.requester}`)\n\n"
+            f"> Requester: {track.requester.mention} (`{track.requester}`)\n\n"
             f"Up next: {next_song}"
         )
         if track.thumb:

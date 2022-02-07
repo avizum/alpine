@@ -60,6 +60,22 @@ def in_correct_channel():
     return commands.check(predicate)
 
 
+def convert_time(time: Union[int, str]):
+    try:
+        time = int(time)
+    except ValueError:
+        pass
+    if isinstance(time, int):
+        return time
+    if isinstance(time, str):
+        try:
+            time = datetime.datetime.strptime(time, "%M:%S")
+            delta = time - datetime.datetime(1900, 1, 1)
+            return delta.total_seconds()
+        except ValueError:
+            raise commands.BadArgument("Time must be in MM:SS format.")
+
+
 class Music(core.Cog):
     """
     Music commands for music.
@@ -193,10 +209,10 @@ class Music(core.Cog):
         player.stop_votes.add(ctx.author)
 
         if len(player.stop_votes) >= required:
-            await ctx.send("Vote to stop passed. Goodbye! :wave:")
+            await ctx.send("Goodbye! (Vote passed) :wave:")
             await player.teardown()
         else:
-            await ctx.send(f"{ctx.author.display_name} has voted to stop the player.")
+            await ctx.send(f"Voted to stop the player. ({len(player.stop_votes)}/{required}).")
 
     @core.command()
     @core.is_owner()
@@ -379,7 +395,7 @@ class Music(core.Cog):
             player.pause_votes.clear()
             await player.pause()
         else:
-            await ctx.send(f"{ctx.author.display_name} has voted to pause the player.")
+            await ctx.send(f"Voted to pause the player. ({len(player.skip_votes)}/{required})")
 
     @core.command(aliases=["unpause"])
     @in_voice()
@@ -413,7 +429,7 @@ class Music(core.Cog):
             player.resume_votes.clear()
             await player.resume()
         else:
-            await ctx.send(f"{ctx.author.display_name} has voted to resume the player.")
+            await ctx.send(f"Voted to resume the player. ({len(player.skip_votes)}/{required})")
 
     @core.command()
     @in_voice()
@@ -451,13 +467,11 @@ class Music(core.Cog):
             player.skip_votes.clear()
             await player.stop()
         else:
-            await ctx.send(
-                f"{ctx.author.display_name} voted to skip. {len(player.skip_votes)}/{required}"
-            )
+            await ctx.send(f"Voted to skip. ({len(player.skip_votes)}/{required})")
 
     @core.command(aliases=["ff", "fastf", "fforward"])
     @in_voice()
-    async def fastforward(self, ctx: AvimetryContext, seconds: int):
+    async def fastforward(self, ctx: AvimetryContext, seconds: convert_time):
         """
         Fast forward an amount of seconds in the current song.
 
@@ -467,13 +481,14 @@ class Music(core.Cog):
         if not player:
             return
         if self.is_privileged(ctx):
-            await player.seek(player.position + seconds * 1000)
-            return await ctx.send(f":fast_forward: Fast forwarded {seconds} seconds")
+            await player.seek((player.position + seconds) * 1000)
+            pos = f"{format_seconds(player.position)}/{format_seconds(player.source.length)}"
+            return await ctx.send(f":fast_forward: Fast forwarded {seconds} seconds. ({pos})")
         await ctx.send("Only the DJ can fast forward.")
 
     @core.command(aliases=["rw"])
     @in_voice()
-    async def rewind(self, ctx: AvimetryContext, seconds: int):
+    async def rewind(self, ctx: AvimetryContext, seconds: convert_time):
         """
         Rewind a certain amount of seconds in the current song.
 
@@ -483,25 +498,19 @@ class Music(core.Cog):
         if not player:
             return
         if self.is_privileged(ctx):
-            await player.seek(player.position - seconds * 1000)
-            return await ctx.send(f":rewind: Rewinded {seconds} seconds")
+            await player.seek((player.position - seconds) * 1000)
+            pos = f"{format_seconds(player.position)}/{format_seconds(player.source.length)}"
+            return await ctx.send(f":rewind: Rewinded {seconds} seconds. ({pos})")
         await ctx.send("Only the DJ can rewind.")
 
     @core.command(aliases=["sk"])
     @in_voice()
-    async def seek(self, ctx: AvimetryContext, seconds: Union[int, str]):
+    async def seek(self, ctx: AvimetryContext, seconds: convert_time):
         """
         Seek in the cuuent song.
 
         Entering an amount lower than 0 will restart the song.
         """
-        if isinstance(seconds, str):
-            try:
-                time = datetime.datetime.strptime(seconds, "%M:%S")
-                delta = time - datetime.datetime(1900, 1, 1)
-                seconds = delta.total_seconds()
-            except ValueError:
-                return await ctx.send("Seek time must be in MM:SS format or use seconds.")
         player: Player = ctx.voice_client
         if not player:
             return
@@ -571,8 +580,7 @@ class Music(core.Cog):
             random.shuffle(player.queue._queue)
         else:
             await ctx.send(
-                f"{ctx.author.display_name} has voted to shuffle the playlist.",
-                delete_after=15,
+                f"Voted to shuffle the playlist. ({len(player.shuffle_votes)}/{required})",
             )
 
     @core.command()
