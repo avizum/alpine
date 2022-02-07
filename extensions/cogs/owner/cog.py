@@ -550,14 +550,19 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         self.bot.maintenance = toggle
         await ctx.send(f"Maintenance mode has been {match[toggle]}")
 
-    @Feature.Command(parent="jsk")
+    @Feature.Command(parent="jsk", aliases=["cog", "extensions", "extension", "ext"])
     async def cogs(self, ctx: AvimetryContext, cog: str = None):
         """
         Shows all the loaded cogs and how long ago they were loaded.
         """
+        if cog:
+            ext = self.bot.get_cog(cog)
+            if not ext:
+                return await ctx.send(f"{cog} does not exist.")
+            return await ctx.send(f"{ext.qualified_name} | Loaded {discord.utils.format_dt(ext.load_time, 'R')}")
         thing_list = [
-            f"{key.title()} | Loaded {utils.timestamp(val.load_time, 'R')}"
-            for key, val in self.bot.cogs.items()
+            f"{val.qualified_name} | Loaded {utils.timestamp(val.load_time, 'R')}"
+            for _, val in self.bot.cogs.items()
         ]
         embed = discord.Embed(title="Loaded Cogs", description="\n".join(thing_list))
         await ctx.send(embed=embed)
