@@ -187,7 +187,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             await self.bot.pool.execute("SELECT 1")
         ping_embed = discord.Embed(title="Pong!")
         ping_embed.add_field(
-            name="<:avimetry:877445146709463081> Websocket Latency",
+            name="<:avimetry:940147134471213077> Websocket Latency",
             value=f"`{self.bot.latency * 1000:,.2f} ms`",
             inline=False,
         )

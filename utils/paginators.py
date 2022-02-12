@@ -143,7 +143,7 @@ class AvimetryPages(AvimetryView):
                 self.add_item(self.go_forward_one)
         self.add_item(self.stop_view)
 
-    async def interaction_check(self, interaction: discord.Interaction):
+    async def interaction_check(self, item: discord.ui.Item, interaction: discord.Interaction):
         if interaction.user and interaction.user.id in (
             *self.ctx.bot.owner_ids,
             self.ctx.author.id,
@@ -259,7 +259,7 @@ class AvimetryPages(AvimetryView):
         """
         await self.show_checked_page(interaction, self.current_page - 1)
 
-    @discord.ui.button(emoji="<:avimetry:877445146709463081>", disabled=False, style=discord.ButtonStyle.blurple,)
+    @discord.ui.button(emoji="<:avimetry:940147134471213077>", disabled=False, style=discord.ButtonStyle.blurple,)
     async def show_page_number(self, button: discord.ui.Button, interaction: discord.Interaction):
         """
         Shows the current page number.

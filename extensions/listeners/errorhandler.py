@@ -52,7 +52,7 @@ class UnknownError(AvimetryView):
         self.add_item(support)
         self.cooldown = commands.CooldownMapping.from_cooldown(2, 60, commands.BucketType.user)
 
-    async def interaction_check(self, interaction: discord.Interaction):
+    async def interaction_check(self, item: discord.ui.Item, interaction: discord.Interaction):
         return True
 
     async def on_timeout(self) -> None:
@@ -134,17 +134,15 @@ class ErrorHandler(core.Cog):
 
         if await self.bot.is_owner(ctx.author) and isinstance(error, reinvoke):
             try:
-                print("whattanoob")
-                # return await ctx.reinvoke()
+                return await ctx.reinvoke()
             except Exception:
-                print("whatexc")
-                # pass
+                pass
         elif (
             await self.bot.is_owner(ctx.author)
             and ctx.prefix == ""
             and isinstance(error, commands.CommandNotFound)
         ):
-            print("owner thing")
+            return
 
         elif isinstance(error, Blacklisted):
             blacklisted = discord.Embed(
