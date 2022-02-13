@@ -144,6 +144,11 @@ class AvimetryHelp(commands.HelpCommand):
         embed.set_footer(text=self.ending_note())
         await self.context.send(embed=embed)
 
+    async def send_error_message(self, error):
+        if not error:
+            return
+        return await super().send_error_message(error)
+
     async def command_not_found(self, string: str):
         all_commands = []
         for cmd in self.context.bot.commands:

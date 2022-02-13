@@ -172,7 +172,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         await ctx.send(embed=ue)
 
-    @core.command(brief="Get the bot's latencies")
+    @core.command()
     async def ping(self, ctx: AvimetryContext):
         """
         Check the bot's latencies.
@@ -353,7 +353,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         await ctx.send(embed=embed, view=view)
 
-    @core.command(brief="Request a feature to be added to the bot.")
+    @core.command()
     @commands.cooldown(1, 300, commands.BucketType.user)
     async def request(self, ctx: AvimetryContext, *, request):
         """

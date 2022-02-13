@@ -63,9 +63,7 @@ class Moderation(core.Cog):
     @core.command(usage="<member> [reason]")
     @core.has_permissions(kick_members=True)
     @core.bot_has_permissions(kick_members=True)
-    async def kick(
-        self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None
-    ):
+    async def kick(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
         """
         Kicks someone from the server.
 
@@ -80,13 +78,7 @@ class Moderation(core.Cog):
     @core.command()
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def masskick(
-        self,
-        ctx: AvimetryContext,
-        targets: commands.Greedy[TargetMember],
-        *,
-        reason: ModReason = None,
-    ):
+    async def masskick(self, ctx: AvimetryContext, targets: commands.Greedy[TargetMember], *, reason: ModReason = None):
         """
         Mass kick people from the server.
 
@@ -116,9 +108,7 @@ class Moderation(core.Cog):
     @core.command()
     @core.has_permissions(kick_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def softban(
-        self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None
-    ):
+    async def softban(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
         """
         Softban someone from the server.
 
@@ -138,9 +128,7 @@ class Moderation(core.Cog):
     @core.command(usage="<member> [reason]")
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def ban(
-        self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None
-    ):
+    async def ban(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
         """
         Ban someone from the server.
 
@@ -164,13 +152,7 @@ class Moderation(core.Cog):
     @core.command()
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def massban(
-        self,
-        ctx: AvimetryContext,
-        targets: commands.Greedy[TargetMember],
-        *,
-        reason: ModReason = None,
-    ):
+    async def massban(self, ctx: AvimetryContext, targets: commands.Greedy[TargetMember], *, reason: ModReason = None):
         """
         Mass ban people from the server.
 
@@ -220,12 +202,7 @@ class Moderation(core.Cog):
     @core.has_permissions(moderate_members=True)
     @core.bot_has_permissions(moderate_members=True)
     async def mute(
-        self,
-        ctx: AvimetryContext,
-        member: TargetMember,
-        duration: TimeConverter,
-        *,
-        reason: ModReason = None,
+        self, ctx: AvimetryContext, member: TargetMember, duration: TimeConverter, *, reason: ModReason = None
     ):
         """
         Temporarily mutes a member in the server.
@@ -259,9 +236,7 @@ class Moderation(core.Cog):
     @core.command(aliases=["untimeout", "untempmute"])
     @core.has_permissions(moderate_members=True)
     @core.bot_has_permissions(moderate_members=True)
-    async def unmute(
-        self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None
-    ):
+    async def unmute(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
         """
         Unmutes a member in the server.
 
@@ -331,9 +306,7 @@ class Moderation(core.Cog):
     @purge.command(aliases=["user", "person"])
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
-    async def member(
-        self, ctx: AvimetryContext, member: discord.Member, amount: PurgeAmount
-    ):
+    async def member(self, ctx: AvimetryContext, member: discord.Member, amount: PurgeAmount):
         """
         Purge messages from a member.
 
@@ -423,13 +396,7 @@ class Moderation(core.Cog):
     @core.command(usage="<channel> [reason]")
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def lock(
-        self,
-        ctx: AvimetryContext,
-        channel: discord.TextChannel,
-        *,
-        reason: ModReason = None
-    ):
+    async def lock(self, ctx: AvimetryContext, channel: discord.TextChannel, *, reason: ModReason = None):
         """
         Locks a channel.
 
@@ -452,13 +419,7 @@ class Moderation(core.Cog):
     @core.command(usage="<channel> [reason]")
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def unlock(
-        self,
-        ctx: AvimetryContext,
-        channel: discord.TextChannel,
-        *,
-        reason="No Reason Provided",
-    ):
+    async def unlock(self, ctx: AvimetryContext, channel: discord.TextChannel, *, reason="No Reason Provided"):
         """
         Unlocks a channel.
 
@@ -501,9 +462,7 @@ class Moderation(core.Cog):
 
     @role.command(aliases=["append"])
     @core.has_permissions(manage_roles=True)
-    async def add(
-        self, ctx: AvimetryContext, member: discord.Member, role: discord.Role
-    ):
+    async def add(self, ctx: AvimetryContext, member: discord.Member, role: discord.Role):
         """
         Add a role to a member.
 
@@ -518,9 +477,7 @@ class Moderation(core.Cog):
 
     @role.command()
     @core.has_permissions(manage_roles=True)
-    async def remove(
-        self, ctx: AvimetryContext, member: discord.Member, role: discord.Role
-    ):
+    async def remove(self, ctx: AvimetryContext, member: discord.Member, role: discord.Role):
         """
         Remove a role from a member.
 
