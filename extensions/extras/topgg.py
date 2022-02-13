@@ -22,12 +22,14 @@ import core
 
 from utils import AvimetryBot
 from discord.ext import tasks
+from topgg.types import BotVoteData
 
 
 class TopGG(core.Cog):
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
+        self.webhook = discord.Webhook.from_url(self.bot.settings["webhooks"]["vote_log"], session=self.bot.session)
         self.post.start()
         self.update.start()
 
@@ -54,6 +56,28 @@ class TopGG(core.Cog):
     @update.before_loop
     async def before_update(self):
         await self.bot.wait_until_ready()
+
+    @core.Cog.listener()
+    async def on_dbl_vote(self, data: BotVoteData):
+        if not isinstance(data, dict):
+            return
+        vote_type = "a bot list"
+        if isinstance(data.get("user"), dict):
+            vote_type = "[Discord Boats](https://discord.boats/bot/756257170521063444/vote)"
+            user_id = data.get("user").get("id")
+        elif isinstance(data.get("user"), str):
+            vote_type = "[Top.GG](https://top.gg/bot/756257170521063444/vote)"
+            user_id = data.get("user")
+        elif isinstance(data.get("id"), str):
+            vote_type = "[Discord Bot List](https://discordbotlist.com/bots/avimetry/upvote)"
+            user_id = data.get("id")
+        user = self.bot.get_user(int(user_id))
+        if not user:
+            await self.bot.fetch_user(int(user_id))
+        embed = discord.Embed(title="Vote recieved", description=f"{user} has just voted on {vote_type}!")
+        await self.webhook.send(embed=embed, username=user.name)
+        user_embed = discord.Embed(title="Vote Recieved", description=f"Thank you for voting on {vote_type}!")
+        await user.send(embed=user_embed)
 
 
 def setup(bot):

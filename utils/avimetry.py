@@ -31,6 +31,7 @@ import sr_api
 import toml
 import topgg
 import wavelink
+from aiohttp import web
 from asyncgist import Client
 from discord.ext import commands
 from wavelink.ext import spotify
@@ -184,6 +185,7 @@ class AvimetryBot(commands.Bot):
         self.topgg = topgg.DBLClient(
             self, api["TopGG"], autopost_interval=None, session=self.session
         )
+        self.topgg_webhook = topgg.webhook.WebhookManager(self).dbl_webhook("/dbl", api["TopGGWH"])
         self.gist = Client(api["GitHub"], self.session)
         self.sr = sr_api.Client()
         self.dagpi = asyncdagpi.Client(api["DagpiAPI"], session=self.session)
@@ -195,11 +197,14 @@ class AvimetryBot(commands.Bot):
         self.loop.create_task(self.load_extensions())
         self.loop.create_task(self.start_nodes())
         self.loop.create_task(self.find_restart_message())
+        self.topgg_webhook.run(8025)
 
         @self.check
         async def check(ctx):
             if ctx.author.id in self.cache.blacklist:
                 raise Blacklisted(reason=self.cache.blacklist[ctx.author.id])
+            if not ctx.guild:
+                return True
             if str(ctx.command) in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]:
                 raise CommandDisabledGuild()
             if ctx.channel.id in ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"]:
@@ -243,17 +248,23 @@ class AvimetryBot(commands.Bot):
         await self.wait_until_ready()
 
         api_tokens = self.settings["api_tokens"]
-        await wavelink.NodePool.create_node(
-            bot=self,
-            host="127.0.0.1",
-            port=2333,
-            password="youshallnotpass",
-            identifier="MAIN",
-            spotify_client=spotify.SpotifyClient(
-                client_id=api_tokens["SpotifyClientID"],
-                client_secret=api_tokens["SpotifySecret"]
+        try:
+            await wavelink.NodePool.create_node(
+                bot=self,
+                host="127.0.0.1",
+                port=2333,
+                password="youshallnotpass",
+                identifier="MAIN",
+                spotify_client=spotify.SpotifyClient(
+                    client_id=api_tokens["SpotifyClientID"],
+                    client_secret=api_tokens["SpotifySecret"]
+                )
             )
-        )
+        except Exception as e:
+            cog = self.get_cog("errorhandler")
+            if cog:
+                await cog.error_webhook.send(str(e))
+            self.unload_extension("extensions.cogs.music")
 
     async def on_ready(self):
         timenow = datetime.datetime.now().strftime("%I:%M %p")
