@@ -31,7 +31,6 @@ import sr_api
 import toml
 import topgg
 import wavelink
-from aiohttp import web
 from asyncgist import Client
 from discord.ext import commands
 from wavelink.ext import spotify
