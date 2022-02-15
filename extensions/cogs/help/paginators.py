@@ -46,6 +46,7 @@ class MainHelp(menus.PageSource):
         )
         if self.index == 0:
             embed.description = (
+                f"Made by {self.ctx.bot.get_user(750135653638865017)}\n"
                 f"Total amount of commands: {len(commands)}\n"
                 f"Amount of commands that you can use here: {len(await self.help.filter_commands(commands))}\n\n"
                 f"Current Bot news:\n{self.ctx.bot.news}\n\n"
@@ -54,10 +55,10 @@ class MainHelp(menus.PageSource):
         if self.index == 1:
             embed.description = (
                 "Reading command signatures:\n\n"
-                "**<>** means the argument is REQUIRED\n"
-                "**[]** means the argument is OPTIONAL\n"
-                "**[...]** means you can have MULTIPLE arguments\n"
-                "Do NOT type these when writing your command.\n"
+                "**<>** means the argument is **REQUIRED**\n"
+                "**[]** means the argument is **OPTIONAL**\n"
+                "**[...]** means you can have **MULTIPLE arguments**\n"
+                "**Do NOT** type these when using commands.\n"
                 "Have fun using Avimetry!"
             )
         if self.index == 2:

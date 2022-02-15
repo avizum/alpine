@@ -59,13 +59,6 @@ class AvimetryHelp(commands.HelpCommand):
     def ending_note(self):
         return f"Use {self.context.clean_prefix}{self.invoked_with} [command|module] for more help."
 
-    def command_signature(self):
-        return (
-            "```<> is a required argument\n"
-            "[] is an optional argument\n"
-            "[...] accepts multiple arguments```"
-        )
-
     async def filter_cogs(self, mapping: Mapping[Optional[core.Cog], List[core.Command]] = None):
         mapping = mapping or self.get_bot_mapping()
         items = []
