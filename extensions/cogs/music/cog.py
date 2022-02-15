@@ -72,8 +72,8 @@ def convert_time(time: Union[int, str]):
             time = datetime.datetime.strptime(time, "%M:%S")
             delta = time - datetime.datetime(1900, 1, 1)
             return delta.total_seconds()
-        except ValueError:
-            raise commands.BadArgument("Time must be in MM:SS format.")
+        except ValueError as e:
+            raise commands.BadArgument("Time must be in MM:SS format.") from e
 
 
 class Music(core.Cog):

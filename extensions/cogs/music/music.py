@@ -220,7 +220,7 @@ class Player(wavelink.Player):
         if self.announce:
             await self.context.channel.send(embed=await self.build_now_playing())
 
-    async def build_now_playing(self, position=None) -> typing.Optional[discord.Embed]:
+    async def build_now_playing(self, position: float = None) -> typing.Optional[discord.Embed]:
         """
         Builds the "now playing" embed
         """
@@ -233,11 +233,11 @@ class Player(wavelink.Player):
             embed.color = await self.context.fetch_color()
         time = f"> Length: {format_seconds(track.length)}\n"
         if position:
-            time = f"Position {format_seconds(position)}/{format_seconds(track.length)}\n\n"
+            time = f"> Position {format_seconds(position)}/{format_seconds(track.length)}\n"
         if self.loop_song:
             next_song = f"[{self.loop_song.title}]({self.loop_song.uri})"
         elif self.queue.up_next:
-            next_song = f"[{self.queue.up_next.title}]({self.queue.up_next.url})"
+            next_song = f"[{self.queue.up_next.title}]({self.queue.up_next.uri})"
         else:
             next_song = "Add more songs to the queue!"
         embed.description = (

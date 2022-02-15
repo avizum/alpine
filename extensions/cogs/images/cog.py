@@ -581,6 +581,79 @@ class Images(core.Cog):
         meth = await self.do_dagpi(ctx, ImageFeatures.obama(), item, True)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
+    @core.command(name="bad")
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_bad(self, ctx: AvimetryContext, *, item=None):
+        """
+        Bad image.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.bad(), item, True)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="glitch")
+    async def dag_glitch(self, ctx: AvimetryContext, *, item=None):
+        """
+        Add a glitch effect
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.glitch(), item, True)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="polaroid")
+    async def dag_polaroid(self, ctx: AvimetryContext, *, item=None):
+        """
+        Make your image look like a polaroid picture
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.polaroid(), item, False)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="neon")
+    async def dag_neon(self, ctx: AvimetryContext, *, item=None):
+        """
+        Neon effect
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.neon(), item, False)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="comic")
+    async def dag_comic(self, ctx: AvimetryContext, *, item=None):
+        """
+        Black and white comics
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.comic(), item, False)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="cube")
+    async def dag_cube(self, ctx: AvimetryContext, *, item=None):
+        """
+        Turns your image into a cube.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.cube(), item, False)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="elmo")
+    async def dag_elmo(self, ctx: AvimetryContext, *, item=None):
+        """
+        Burning elmo gif
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.elmo(), item, True)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="album")
+    async def dag_album(self, ctx: AvimetryContext, *, item=None):
+        """
+        Make your image look like an album cover.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.album(), item, False)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
+    @core.command(name="rain")
+    async def dag_rain(self, ctx: AvimetryContext, *, item=None):
+        """
+        For rainy days.
+        """
+        meth = await self.do_dagpi(ctx, ImageFeatures.rain(), item, False)
+        await self.dag_embed(ctx, meth, ctx.command.name)
+
     @core.command(name="tweet")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_tweet(self, ctx, user: GetAvatar, username: str, *, text: str):
@@ -652,6 +725,19 @@ class Images(core.Cog):
                 ImageFeatures.captcha(), item, text=text
             )
         await self.dag_embed(ctx, image, ctx.command.name)
+
+    @core.command(name="thoughtimage", aliases=["thinking"])
+    @commands.cooldown(2, 10, commands.BucketType.member)
+    async def dag_thought_image(self, ctx: AvimetryContext, text, *, item: GetAvatar):
+        """
+        Overlays your image on a captcha grid.
+        """
+        async with ctx.channel.typing():
+            image = await self.bot.dagpi.image_process(
+                ImageFeatures.thought_image(), item, text=text
+            )
+        await self.dag_embed(ctx, image, ctx.command.name)
+
 
     @core.command()
     async def emojiurl(self, ctx: AvimetryContext, emoji):

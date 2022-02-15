@@ -17,11 +17,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import datetime
-import discord
+import copy
 import sys
 import traceback as tb
+
+import discord
+import humanize
+
 import core
-import copy
+
 
 from prettify_exceptions import DefaultFormatter
 from utils import (
@@ -36,6 +40,13 @@ from utils import (
 )
 from discord.ext import commands
 from difflib import get_close_matches
+
+
+class Embed(discord.Embed):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop("color", None)
+        kwargs.pop("colour", None)
+        super().__init__(colour=0xf56058, *args, **kwargs)
 
 
 class CooldownByContent(commands.CooldownMapping):
@@ -110,6 +121,16 @@ class ErrorHandler(core.Cog):
             ctx.command.reset_cooldown(ctx)
         except Exception:
             pass
+    
+    def get_cooldown(self, command):
+        try:
+            rate = command._buckets._cooldown.rate
+            cd_type = command._buckets.type.name
+            per = humanize.precisedelta(command._buckets._cooldown.per)
+            time = "times" if rate > 1 else "time"
+            return f"{per} every {rate} {time} per {cd_type}"
+        except AttributeError:
+            return None
 
     @core.Cog.listener()
     async def on_command_error(self, ctx: AvimetryContext, error: commands.CommandError):
@@ -145,7 +166,7 @@ class ErrorHandler(core.Cog):
             return
 
         elif isinstance(error, Blacklisted):
-            blacklisted = discord.Embed(
+            blacklisted = Embed(
                 title=f"You are blacklisted from {self.bot.user.name}",
                 description=(
                     f"Reason: `{error.reason}`\n"
@@ -166,13 +187,13 @@ class ErrorHandler(core.Cog):
             return
 
         elif isinstance(error, commands.NoPrivateMessage):
-            embed = discord.Embed(
+            embed = Embed(
                 title="No DM commands",
                 description="Commands do not work in DMs because I work best in servers.",
             )
             retry_after = self.no_dm_command_cooldown.update_rate_limit()
             if not retry_after:
-                return await ctx.semd(embed=embed)
+                return await ctx.send(embed=embed)
             return
 
         elif isinstance(error, commands.CommandNotFound):
@@ -191,7 +212,7 @@ class ErrorHandler(core.Cog):
                 except commands.CommandError:
                     continue
             if match := get_close_matches(not_found, all_commands):
-                embed = discord.Embed(title="Invalid Command")
+                embed = Embed(title="Invalid Command")
                 embed.description = f'I couldn\'t find a command "{not_found}". Did you mean {match[0]}?'
                 bucket1 = self.not_found_cooldown_content.update_rate_limit(ctx.message)
                 bucket2 = self.not_found_cooldown.update_rate_limit(ctx.message)
@@ -209,17 +230,18 @@ class ErrorHandler(core.Cog):
                         return await conf.message.delete()
 
         elif isinstance(error, commands.CommandOnCooldown):
-            cd = discord.Embed(
+            cd = Embed(
                 title="Slow down",
                 description=(
                     "This command is on cooldown.\n"
-                    f"Please try again in {error.retry_after:,.2f} seconds."
+                    f"Please try again in {error.retry_after:,.2f} seconds.\n"
+                    f"Command cooldown: {self.get_cooldown(ctx.command)}"
                 ),
             )
             return await ctx.send(embed=cd)
 
         elif isinstance(error, commands.MaxConcurrencyReached):
-            max_uses = discord.Embed(
+            max_uses = Embed(
                 title="Slow Down",
                 description=(
                     f"This can only be used {error.number} "
@@ -239,7 +261,7 @@ class ErrorHandler(core.Cog):
             else:
                 fmt = " and ".join(missing)
 
-            bnp = discord.Embed(
+            bnp = Embed(
                 title="Missing Permissions",
                 description=f"I need the following permissions to run this command:\n{fmt}",
             )
@@ -259,27 +281,27 @@ class ErrorHandler(core.Cog):
             else:
                 fmt = " and ".join(missing)
 
-            np = discord.Embed(
+            np = Embed(
                 title="Missing Permissions",
                 description=f"You need the following permissions to run this command:\n{fmt}",
             )
             return await ctx.send(embed=np)
 
         elif isinstance(error, commands.NotOwner):
-            no = discord.Embed(
+            no = Embed(
                 title="Missing Permissions", description="You do not own this bot."
             )
             return await ctx.send(embed=no)
 
         elif isinstance(error, NotGuildOwner):
-            no = discord.Embed(
+            no = Embed(
                 title="Missing Permissions", description="You do not own this server."
             )
             return await ctx.send(embed=no)
 
         elif isinstance(error, commands.MissingRequiredArgument):
             self.reset(ctx)
-            a = discord.Embed(
+            a = Embed(
                 title="Missing Arguments",
                 description=(
                     f"`{error.param.name}` is a required parameter to run this command.\n"
@@ -290,7 +312,7 @@ class ErrorHandler(core.Cog):
             conf = await ctx.confirm(embed=a, delete_after=False)
             if conf.result:
                 return await ctx.send_help(ctx.command)
-            return
+            return await conf.message.delete()
 
         elif isinstance(error, CommandDisabledGuild):
             retry_after = self.disabled_command.update_rate_limit(ctx.message)
@@ -309,7 +331,7 @@ class ErrorHandler(core.Cog):
 
         elif isinstance(error, commands.BadArgument):
             self.reset(ctx)
-            ba = discord.Embed(
+            ba = Embed(
                 title="Bad Argument",
                 description=str(error),
             )
@@ -317,19 +339,19 @@ class ErrorHandler(core.Cog):
 
         elif isinstance(error, commands.BadUnionArgument):
             self.reset(ctx)
-            bad_union_arg = discord.Embed(title="Bad Argument", description=error)
+            bad_union_arg = Embed(title="Bad Argument", description=error)
             return await ctx.send(embed=bad_union_arg)
 
         elif isinstance(error, commands.TooManyArguments):
             self.reset(ctx)
-            many_arguments = discord.Embed(
+            many_arguments = Embed(
                 title="Too many arguments",
                 description=str(error),
             )
             return await ctx.send(embed=many_arguments)
 
         elif isinstance(error, commands.ArgumentParsingError):
-            embed = discord.Embed(title="Quote Error", description=error)
+            embed = Embed(title="Quote Error", description=error)
             return await ctx.send(embed=embed)
 
         else:
@@ -354,7 +376,7 @@ class ErrorHandler(core.Cog):
                 inserted_error = await self.bot.pool.fetchrow(
                     insert_query, ctx.command.qualified_name, str(error)
                 )
-                embed = discord.Embed(
+                embed = Embed(
                     title="An unknown error occured",
                     description=(
                         "This error has been logged and will be fixed soon.\n"
@@ -364,7 +386,7 @@ class ErrorHandler(core.Cog):
                     )
                 )
             elif in_db["error"] == str(error):
-                embed = discord.Embed(
+                embed = Embed(
                     title="A known error occured",
                     description=(
                         "This error was already logged, but has not been fixed.\n"
@@ -373,7 +395,7 @@ class ErrorHandler(core.Cog):
                         f"Error Information:```py\n{error}```"
                     )
                 )
-            webhook_error_embed = discord.Embed(
+            webhook_error_embed = Embed(
                 title="A new error" if not in_db else "Old error, Fix soon",
                 description=traceback,
             )

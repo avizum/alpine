@@ -345,6 +345,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
     @Feature.Command(parent="jsk")
     async def ilreload(self, ctx: AvimetryContext, module: str):
+        """
+        Reload a module using importlib.
+        """
         try:
             m = importlib.reload(__import__(module))
             await ctx.send(f"Reloaded Sucessfully: `{m}`")

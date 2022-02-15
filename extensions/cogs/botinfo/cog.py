@@ -113,18 +113,18 @@ class BotInfo(commands.Cog, name="Bot Info"):
         If you want to contribute, Check out the GitHub repo.
         """
         credit_list = [
-            (self.bot.get_user(750135653638865017), "Developer", "https://github.com/avizum",),
-            (self.bot.get_user(80088516616269824), "Developer of discord.py", "https://github.com/Rapptz",),
-            (self.bot.get_user(171539705043615744), "Error Tracking", "https://github.com/iDutchy",),
-            (self.bot.get_user(547280209284562944), "Testing", "https://github.com/LereUwU",),
-            (self.bot.get_user(672122220566413312), "Avatar", "https://discord.com/users/672122220566413312",),
-            (self.bot.get_user(733370212199694467), "Contributor", "https://github.com/MrArkon/",),
+            (750135653638865017, "Bot Developer", "https://github.com/avizum",),
+            (547280209284562944, "Bot Testing", "https://github.com/LereUwU",),
+            (672122220566413312, "Original Avatar Design", "https://discord.com/users/672122220566413312",),
+            (80088516616269824, "discord.py Developer", "https://github.com/Rapptz",),
+            (171539705043615744, "enhanced-discord.py Developer, Error Tracking ", "https://github.com/iDutchy",),
+            (733370212199694467, "Contributor", "https://github.com/MrArkon/",),
         ]
 
         embed = discord.Embed(
             title="Credits",
             description="\n".join(
-                f"[{user}]({credit}): {role}" for user, role, credit in credit_list
+                f"[{self.bot.get_user(user)}]({credit}): {role}" for user, role, credit in credit_list
             ),
         )
 
@@ -336,6 +336,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             description=(
                 "```py\n"
                 f"Files: {files:,}\n"
+                f"Imports: {imports:,}"
                 f"Characters: {char:,}\n"
                 f"Lines: {lines:,}\n"
                 f"Classes: {classes:,}\n"
