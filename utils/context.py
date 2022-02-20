@@ -28,6 +28,7 @@ from discord.ext import commands, menus
 
 from .avimetry import AvimetryBot
 from .view import AvimetryView
+from .paginators import AvimetryPages, WrappedPaginator
 
 emoji_regex = "<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>"
 
@@ -81,17 +82,13 @@ class ConfirmResult:
 
 
 class AutoPageSource(menus.ListPageSource):
-    def __init__(self, entry: Union[str, list], lang=None, *, limit: int = 1000):
+    def __init__(self, entry: Union[str, list], language: str = "", *, limit: int = 1000):
         if isinstance(entry, list):
             entries = entry
         elif isinstance(entry, str):
-            if lang:
-                entries = [
-                    f"```{lang}\n{entry[i:i+limit]}```"
-                    for i in range(0, len(entry), limit)
-                ]
-            else:
-                entries = [entry[i: i + limit] for i in range(0, len(entry), limit)]
+            pag = WrappedPaginator(prefix=f"```{language}", suffix="```", max_size=limit, force_wrap=True)
+            pag.add_line(entry)
+            entries = pag.pages
         elif isinstance(entry, commands.Paginator):
             entries = entry.pages
         super().__init__(entries, per_page=1)
@@ -189,14 +186,13 @@ class AvimetryContext(commands.Context):
     async def paginate(
         self,
         entry: Union[str, List[discord.Embed]],
-        lang: str = None,
+        lang: str = "",
         *,
         limit: int = 1000,
         delete_message_after: bool = True,
         remove_view_after: bool = False,
         disable_view_after: bool = False,
     ):
-        from .paginators import AvimetryPages
 
         menu = AvimetryPages(
             AutoPageSource(entry, lang, limit=limit),

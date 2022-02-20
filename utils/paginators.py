@@ -15,15 +15,21 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+from __future__ import annotations
 
-import asyncio
 import datetime
+import asyncio
+from typing import TYPE_CHECKING
+
 import discord
+from discord.ext.menus import button, Position, PageSource
+from discord.ext.menus.views import ViewMenuPages
+from jishaku.paginators import WrappedPaginator
 
 from utils.view import AvimetryView
-from utils.context import AvimetryContext
-from discord.ext.menus.views import ViewMenuPages
-from discord.ext.menus import button, Position, PageSource
+
+if TYPE_CHECKING:
+    from .context import AvimetryContext
 
 
 class PaginatorEmbed(discord.Embed):
@@ -36,85 +42,19 @@ class PaginatorEmbed(discord.Embed):
 
 # This paginator is essentially discord.ext.menus but changed a bit so that it uses buttons instead of reactions.
 # https://github.com/Rapptz/discord-ext-menus
-class ButtonPages(AvimetryView):
+class BasePaginator(AvimetryView):
     def __init__(
         self,
         source: PageSource,
         *,
         ctx: AvimetryContext,
         timeout: int = 180,
+        current_page: int = 0,
         delete_message_after: bool = False,
         remove_view_after: bool = False,
         disable_view_after: bool = False,
         message: discord.Message = None,
     ):
-
-        self.source = source
-        self.ctx = ctx
-        self.timeout = timeout
-        self.delete_message_after = delete_message_after
-        self.remove_view_after = remove_view_after
-        self.disable_view_after = (disable_view_after,)
-        self.message = message
-        self.current_page = 0
-        self.message = message
-        super().__init__(member=ctx.author, timeout=timeout)
-        self.put_stop()
-
-    def put_stop(self):
-        """
-        Lazy way to make stop button last
-        """
-        self.remove_item(self.stop_view)
-        self.add_item(self.stop_view)
-
-    @discord.ui.button(
-        emoji="\U000023f9\U0000fe0f", label="Stop", style=discord.ButtonStyle.red, row=2
-    )
-    async def stop_view(
-        self, button: discord.ui.Button, interaction: discord.Interaction
-    ):
-        """
-        Stops the paginator and view.
-        """
-        if self.disable_view_after:
-            for item in self.children:
-                item.disabled = True
-            button.label = "Stopped"
-            await interaction.response.edit_message(view=self)
-        elif self.remove_view_after:
-            await interaction.response.edit_message(view=None)
-        elif self.delete_message_after:
-            await interaction.message.delete()
-        await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")
-        self.stop()
-
-    async def get_page_kwargs(self, page: int):
-        value = await discord.utils.maybe_coroutine(self.source.format_page, self, page)
-        if isinstance(value, dict):
-            return value
-        elif isinstance(value, str):
-            return {"content": value, "embed": None}
-        elif isinstance(value, discord.Embed):
-            return {"embed": value, "content": None}
-        else:
-            return {}
-
-
-class AvimetryPages(AvimetryView):
-    def __init__(
-        self,
-        source: PageSource,
-        *,
-        ctx: AvimetryContext,
-        timeout: int = 180,
-        current_page=0,
-        delete_message_after: bool = False,
-        remove_view_after: bool = False,
-        disable_view_after: bool = False,
-        message: discord.Message = None,
-    ):
-        self.lock = asyncio.Lock()
         self.source = source
         self.ctx = ctx
         self.disable_view_after = disable_view_after
@@ -123,25 +63,6 @@ class AvimetryPages(AvimetryView):
         self.current_page = current_page
         self.message = message
         super().__init__(timeout=timeout, member=ctx.author)
-        self.clear_items()
-        self.add_items()
-
-    def add_items(self):
-        if self.source.is_paginating():
-            max_pages = self.source.get_max_pages()
-            if max_pages <= 1:
-                pass
-            elif max_pages > 2:
-                self.add_item(self.skip_to_first)
-                self.add_item(self.go_back_one)
-                self.add_item(self.show_page_number)
-                self.add_item(self.go_forward_one)
-                self.add_item(self.skip_to_last)
-            else:
-                self.add_item(self.go_back_one)
-                self.add_item(self.show_page_number)
-                self.add_item(self.go_forward_one)
-        self.add_item(self.stop_view)
 
     async def interaction_check(self, item: discord.ui.Item, interaction: discord.Interaction):
         if interaction.user and interaction.user.id in (
@@ -151,41 +72,12 @@ class AvimetryPages(AvimetryView):
             return True
         embed = discord.Embed(
             title="Error",
-            description=f"This may only be used by {self.ctx.author}, not you. Sorry!",
+            description=f"This menu may only be used by {self.ctx.author}, not you. Sorry!",
             color=discord.Color.red(),
             timestamp=datetime.datetime.now(datetime.timezone.utc),
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
         return False
-
-    def _update(self, page: int):
-        self.go_forward_one.disabled = False
-        self.go_back_one.disabled = False
-        self.skip_to_last.disabled = False
-        self.skip_to_first.disabled = False
-
-        if self.show_page_number.emoji:
-            self.show_page_number.emoji = None
-        current = self.current_page + 1
-        most = self.source.get_max_pages()
-        self.show_page_number.label = f"{current}/{most}"
-
-        self.skip_to_first.label = "1"
-        self.skip_to_last.label = str(most)
-
-        if most <= 2:
-            self.show_page_number.disabled = True
-
-        if page + 2 == most:
-            self.skip_to_last.disabled = True
-        if page == 1:
-            self.skip_to_first.disabled = True
-        if page + 1 == most:
-            self.go_forward_one.disabled = True
-            self.skip_to_last.disabled = True
-        if page == 0:
-            self.go_back_one.disabled = True
-            self.skip_to_first.disabled = True
 
     async def show_page(self, interaction: discord.Interaction, page_num: int):
         page = await self.source.get_page(page_num)
@@ -242,8 +134,85 @@ class AvimetryPages(AvimetryView):
         await self.source._prepare_once()
         page = await self.source.get_page(self.current_page)
         kwargs = await self.get_page_kwargs(page)
-        self._update(self.current_page)
         self.message = await self.ctx.send(**kwargs, view=self)
+
+
+class AvimetryPages(BasePaginator):
+    def __init__(
+        self,
+        source: PageSource,
+        *,
+        ctx: AvimetryContext,
+        timeout: int = 180,
+        current_page: int = 0,
+        delete_message_after: bool = False,
+        remove_view_after: bool = False,
+        disable_view_after: bool = False,
+        message: discord.Message = None,
+    ):
+        self.lock = asyncio.Lock()
+        super().__init__(
+            source,
+            ctx=ctx,
+            timeout=timeout,
+            current_page=current_page,
+            delete_message_after=delete_message_after,
+            remove_view_after=remove_view_after,
+            disable_view_after=disable_view_after,
+            message=message
+        )
+        self.clear_items()
+        self.add_items()
+
+    def add_items(self):
+        if self.source.is_paginating():
+            max_pages = self.source.get_max_pages()
+            if max_pages <= 1:
+                pass
+            elif max_pages > 2:
+                self.add_item(self.skip_to_first)
+                self.add_item(self.go_back_one)
+                self.add_item(self.show_page_number)
+                self.add_item(self.go_forward_one)
+                self.add_item(self.skip_to_last)
+            else:
+                self.add_item(self.go_back_one)
+                self.add_item(self.show_page_number)
+                self.add_item(self.go_forward_one)
+        self.add_item(self.stop_view)
+
+    def _update(self, page: int):
+        self.go_forward_one.disabled = False
+        self.go_back_one.disabled = False
+        self.skip_to_last.disabled = False
+        self.skip_to_first.disabled = False
+
+        if self.show_page_number.emoji:
+            self.show_page_number.emoji = None
+        current = self.current_page + 1
+        most = self.source.get_max_pages()
+        self.show_page_number.label = f"{current}/{most}"
+
+        self.skip_to_first.label = "1"
+        self.skip_to_last.label = str(most)
+
+        if most <= 2:
+            self.show_page_number.disabled = True
+
+        if page + 2 == most:
+            self.skip_to_last.disabled = True
+        if page == 1:
+            self.skip_to_first.disabled = True
+        if page + 1 == most:
+            self.go_forward_one.disabled = True
+            self.skip_to_last.disabled = True
+        if page == 0:
+            self.go_back_one.disabled = True
+            self.skip_to_first.disabled = True
+
+    async def start(self):
+        self._update(self.current_page)
+        await super().start()
 
     @discord.ui.button(emoji="\U000023ee\U0000fe0f")
     async def skip_to_first(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -411,3 +380,6 @@ class OldAvimetryPages(ViewMenuPages):
                     return await self.message.edit(view=self.view)
             except Exception:
                 pass
+
+
+WrappedPaginator = WrappedPaginator
