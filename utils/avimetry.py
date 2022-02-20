@@ -71,11 +71,7 @@ logger.addHandler(handler)
 async def get_prefix(bot: "AvimetryBot", message: discord.Message):
     prefixes = [f"<@{bot.user.id}>", f"<@!{bot.user.id}>"]
     commands = ("dev", "developer", "jsk", "jishaku")
-    if (
-        await bot.is_owner(message.author)
-        and message.content.lower().startswith(commands)
-        and message.guild
-    ):
+    if await bot.is_owner(message.author) and message.content.lower().startswith(commands):
         prefixes.append("")
     elif not message.guild:
         prefixes.extend(DEFAULT_PREFIXES)
@@ -89,9 +85,7 @@ async def get_prefix(bot: "AvimetryBot", message: discord.Message):
     else:
         prefixes.extend(get_prefix)
     command_prefix = "|".join(map(re.escape, prefixes))
-    prefix = re.match(
-        rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE
-    )
+    prefix = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
     if prefix:
         prefixes.append(prefix.group(1))
     return prefixes

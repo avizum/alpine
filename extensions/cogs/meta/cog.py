@@ -51,7 +51,7 @@ class RTFMPageSource(menus.ListPageSource):
 
     async def format_page(self, menu, page):
         embed = PaginatorEmbed(
-            self.ctx,
+            ctx=self.ctx,
             description=(
                 "\n".join(
                     f"[`{k.replace('discord.', '').replace('discord.ext.commands.', '')}`]({v})"
@@ -150,12 +150,7 @@ class Meta(core.Cog):
 
     @core.command(aliases=["ui", "uinfo", "whois"])
     @commands.cooldown(1, 15, commands.BucketType.user)
-    async def userinfo(
-        self,
-        ctx: AvimetryContext,
-        *,
-        member: typing.Union[discord.Member, discord.User] = None,
-    ):
+    async def userinfo(self, ctx: AvimetryContext, *, member: typing.Union[discord.Member, discord.User] = None):
         """
         Get info about a user.
 
@@ -181,8 +176,7 @@ class Meta(core.Cog):
             return await about(ctx)
         else:
             userroles = ["@everyone"]
-            for roles in member.roles:
-                userroles.append(roles.mention)
+            userroles.extend(roles.mention for roles in member.roles)
             userroles.remove(ctx.guild.default_role.mention)
             ie = discord.Embed(
                 title="User Information",
@@ -206,7 +200,6 @@ class Meta(core.Cog):
                 value=f"{timestamp(member.created_at)} ({timestamp(member.created_at, 'R')})",
                 inline=False,
             )
-            ie.add_field(name="Shared Servers", value=len(member.mutual_guilds) or 0)
             top_role = member.top_role.mention
             if top_role == ctx.guild.default_role.mention:
                 top_role = "@everyone"
@@ -305,7 +298,7 @@ class Meta(core.Cog):
         if banner:
             embed = discord.Embed(title=f"{member}'s banner")
             embed.set_image(
-                url=banner.url.replace("cdn", "media").replace(".com", ".net")
+                url=banner.url
             )
         elif fetched.accent_color:
             embed = discord.Embed(
@@ -393,8 +386,8 @@ class Meta(core.Cog):
             return await ctx.send("Remove timezone")
         try:
             timezones = pytz.timezone(timezone)
-        except KeyError:
-            raise TimeZoneError(timezone)
+        except KeyError as e:
+            raise TimeZoneError(timezone) from e
         await self.bot.pool.execute(query, ctx.author.id, timezone)
         try:
             ctx.cache.users[ctx.author.id]["timezone"] = timezone

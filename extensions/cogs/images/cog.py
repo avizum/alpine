@@ -738,7 +738,6 @@ class Images(core.Cog):
             )
         await self.dag_embed(ctx, image, ctx.command.name)
 
-
     @core.command()
     async def emojiurl(self, ctx: AvimetryContext, emoji):
         """

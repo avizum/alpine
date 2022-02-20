@@ -46,6 +46,9 @@ class Command(commands.Command):
             )
             self._buckets._cooldown = commands.Cooldown(1, 3)
 
+    def __repr__(self) -> str:
+        return f"<core.Command name={self.qualified_name}>"
+
     async def can_run(self, ctx: commands.Context) -> bool:
         if not self.enabled:
             raise DisabledCommand(f"{self.name} command is disabled")

@@ -336,7 +336,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             description=(
                 "```py\n"
                 f"Files: {files:,}\n"
-                f"Imports: {imports:,}"
+                f"Imports: {imports:,}\n"
                 f"Characters: {char:,}\n"
                 f"Lines: {lines:,}\n"
                 f"Classes: {classes:,}\n"

@@ -233,8 +233,8 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         jishaku_embed = discord.Embed(description="\n".join(summary))
         await ctx.send(embed=jishaku_embed)
 
-    @Feature.Command(parent="jsk", name="restart", aliases=["reboot", "rb", "rs"])
-    async def jsk_restart(self, ctx: AvimetryContext):
+    @Feature.Command(parent="jsk", name="shutdown", aliases=["reboot", "logout", "rb", "rs"])
+    async def jsk_shutdown(self, ctx: AvimetryContext):
         """
         Reboot the bot.
         """
