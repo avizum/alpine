@@ -24,7 +24,7 @@ class MainHelp(menus.PageSource):
         return True
 
     def get_max_pages(self):
-        return 3
+        return 4
 
     async def get_page(self, page_number):
         self.index = page_number
@@ -62,6 +62,15 @@ class MainHelp(menus.PageSource):
                 "Have fun using Avimetry!"
             )
         if self.index == 2:
+            embed.description = (
+                "Command Flags:\n\n"
+                "Flags will show in the help command like this:\n`flag name:` <flag description>\n"
+                "To use a flag, you type the command, arguments then the flags like this:\n"
+                "a.ban @avizum reason: loser dm: yes delete_days: *2*\n"
+                "If you have any questions, join the support server."
+
+            )
+        if self.index == 3:
             embed.description = (
                 f"You can support Avimetry by voting. Here are some links.\n{info}\n"
                 f"If you need help using paginators, use `{self.ctx.prefix}help paginator`"

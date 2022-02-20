@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import itertools
 import discord
 import datetime
 from typing import Optional, Mapping, List
@@ -55,6 +56,26 @@ class AvimetryHelp(commands.HelpCommand):
             return f"{per} every {rate} {time} per {cd_type}"
         except AttributeError:
             return None
+
+    def get_flags(self, command: core.Command):
+        flagconverter: commands.FlagConverter = None
+        for _, param in command.params.items():
+            if isinstance(param.annotation, commands.flags.FlagsMeta):
+                flagconverter = param.annotation
+        if not flagconverter:
+            return None
+        flags = flagconverter.get_flags()
+        flag_prefix = flagconverter.__commands_flag_prefix__ or ''
+        flag_delimiter = flagconverter.__commands_flag_delimiter__ or ''
+        flgs = []
+        for name, flag in flags.items():
+            if type(flag.description) == discord.utils._MissingSentinel:
+                flag.description = "No description provided."
+            f_name = f"{flag_prefix}{name}{flag_delimiter}"
+            f_aliases = [f"{flag_prefix}{alias}{flag_delimiter}" for alias in flag.aliases]
+            chained = itertools.chain([f_name], f_aliases)
+            flgs.append(f"`{' | '.join(chained)}` {flag.description}")
+        return flgs
 
     def ending_note(self):
         return f"Use {self.context.clean_prefix}{self.invoked_with} [command|module] for more help."
@@ -112,6 +133,8 @@ class AvimetryHelp(commands.HelpCommand):
             name="Command Usage",
             value=f"`{self.context.clean_prefix}{command.qualified_name} {command.signature}`",
         )
+        if flags := self.get_flags(command):
+            embed.add_field(name="Command Flags", value="\n".join(flags), inline=False)
         if command.aliases:
             embed.add_field(
                 name="Command Aliases", value=", ".join(command.aliases), inline=False
@@ -167,7 +190,7 @@ class AvimetryHelp(commands.HelpCommand):
                     self.context.bot.get_command(match[0])
                 )
             return await conf.message.delete()
-        return await self.context.send("Command not found.")
+        return "Command not found"
 
     async def subcommand_not_found(self, command, string):
         return await self.context.send(

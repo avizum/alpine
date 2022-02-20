@@ -35,14 +35,23 @@ from utils import (
 )
 
 
+class ModActionFlag(commands.FlagConverter):
+    reason: ModReason = commands.flag(description="Reason that will show up in the audit log", default=None)
+    dm: bool = commands.flag(description="Whether to DM the offender.", default=False)
+
+
+class BanFlag(ModActionFlag):
+    delete_days: int = commands.flag(description="How many days of messages to delete", default=0)
+
+
 class PurgeAmount(commands.Converter):
     async def convert(self, ctx, argument):
         try:
             number = int(argument)
-        except Exception:
+        except Exception as e:
             raise commands.BadArgument(
                 f"{argument} is not a number. Please give a number."
-            )
+            ) from e
         if number < 1 or number > 1000:
             raise commands.BadArgument(
                 "Number must be greater than 0 and less than 1000"
@@ -57,22 +66,33 @@ class Moderation(core.Cog):
 
     def __init__(self, bot: AvimetryBot):
         self.bot = bot
+        self.color = 0xf56058
         self.emoji = "\U0001f6e1"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
-    @core.command(usage="<member> [reason]")
+    @core.command()
     @core.has_permissions(kick_members=True)
     @core.bot_has_permissions(kick_members=True)
-    async def kick(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
+    async def kick(self, ctx: AvimetryContext, member: TargetMember, *, flags: ModActionFlag):
         """
         Kicks someone from the server.
 
         You can not kick people with higher permissions than you.
         """
-        reason = reason or f"{ctx.author}: No reason provided"
-        kick_embed = discord.Embed(title="Kicked Member", color=discord.Color.green())
+        reason = flags.reason or f"{ctx.author}: No reason provided"
         await member.kick(reason=reason)
+        kick_embed = discord.Embed(title="Kicked Member", color=discord.Color.green())
         kick_embed.description = f"**{member}** has been kicked from the server."
+        if flags.dm:
+            try:
+                embed = discord.Embed(
+                    title=f"You have been kicked from {ctx.guild.name}",
+                    description=f"Reason:\n> {reason}",
+                    color=self.color
+                )
+                await member.send(embed=embed)
+            except discord.Forbidden:
+                kick_embed.description = f"**{member}** has been kicked from the server, However, I could not DM them."
         await ctx.send(embed=kick_embed)
 
     @core.command()
@@ -106,9 +126,9 @@ class Moderation(core.Cog):
             )
 
     @core.command()
-    @core.has_permissions(kick_members=True)
+    @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def softban(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
+    async def softban(self, ctx: AvimetryContext, member: TargetMember, *, flags: ModActionFlag):
         """
         Softban someone from the server.
 
@@ -116,38 +136,51 @@ class Moderation(core.Cog):
         This is like kicking them and deleting their messages.
         You can not softban people with higher permissions than you.
         """
-        reason = reason or f"{ctx.author}: No reason provided"
-        soft_ban_embed = discord.Embed(
-            title="Soft-Banned Member",
-            description=f"**{member}** has been soft banned from the server.",
-            color=discord.Color.green(),
-        )
+        reason = flags.reason or f"{ctx.author}: No reason provided"
         await member.ban(reason=reason)
-        await ctx.send(embed=soft_ban_embed)
+        await ctx.guild.unban(reason="Soft-ban")
+        kick_embed = discord.Embed(title="Soft-banned Member", color=discord.Color.green())
+        kick_embed.description = f"**{member}** has been soft-banned from the server."
+        if flags.dm:
+            try:
+                embed = discord.Embed(
+                    title=f"You have been soft-banned from {ctx.guild.name}",
+                    description=f"Reason:\n> {reason}",
+                    color=self.color
+                )
+                await member.send(embed=embed)
+            except discord.Forbidden:
+                kick_embed.description = f"**{member}** has been soft-banned, However, I could not DM them."
+        await ctx.send(embed=kick_embed)
 
-    @core.command(usage="<member> [reason]")
+    @core.command()
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def ban(self, ctx: AvimetryContext, member: TargetMember, *, reason: ModReason = None):
+    async def ban(self, ctx: AvimetryContext, member: TargetMember, *, flags: BanFlag):
         """
         Ban someone from the server.
 
         You can ban people whether they are in the server or not.
-
         You can not ban people with higher permissions than you.
         """
-        reason = reason or f"{ctx.author}: No reason provided"
-        ban_embed = discord.Embed(title="Banned Member", color=discord.Color.green())
-        if isinstance(member, discord.User):
-            await ctx.guild.ban(member, reason=reason)
-            ban_embed.description = (
-                f"**{str(member)}** has been banned from the server."
-            )
-            return await ctx.send(embed=ban_embed)
-
-        await member.ban(reason=reason)
-        ban_embed.description = f"**{member}** has been banned from the server."
-        await ctx.send(embed=ban_embed)
+        member: discord.Member = member
+        reason = flags.reason or f"{ctx.author}: No reason provided"
+        if flags.delete_days > 7:
+            raise commands.BadArgument("Delete days must be between 0 and 7 days.")
+        await member.ban(reason=reason, delete_message_days=flags.delete_days)
+        kick_embed = discord.Embed(title="Banned Member", color=discord.Color.green())
+        kick_embed.description = f"**{member}** has been banned from the server."
+        if flags.dm:
+            try:
+                embed = discord.Embed(
+                    title=f"You have been banned from {ctx.guild.name}",
+                    description=f"Reason:\n> {reason}",
+                    color=self.color
+                )
+                await member.send(embed=embed)
+            except discord.Forbidden:
+                kick_embed.description = f"**{member}** has been kicked from the server, However, I could not DM them."
+        await ctx.send(embed=kick_embed)
 
     @core.command()
     @core.has_permissions(ban_members=True)

@@ -125,8 +125,8 @@ class AkinatorGameView(AvimetryView):
 
 
 class AkinatorFlags(commands.FlagConverter):
-    mode: str = "en"
-    child: bool = True
+    language: str = commands.flag(description="What language to use (Default: en)", default="en")
+    child: bool = commands.flag(description="Whether to enable or disable child mode. (Default: True)", default=True)
 
 
 class RockPaperScissorGame(AvimetryView):

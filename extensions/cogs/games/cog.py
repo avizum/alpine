@@ -152,7 +152,7 @@ class Games(core.Cog):
         akiclient = Akinator()
         async with ctx.channel.typing():
             game = await akiclient.start_game(
-                language=flags.mode, child_mode=flags.child
+                language=flags.language, child_mode=flags.child
             )
             if akiclient.child_mode is False and ctx.channel.nsfw is False:
                 return await ctx.send(
