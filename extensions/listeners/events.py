@@ -21,11 +21,14 @@ import datetime
 import asyncio
 import base64
 import re
-import core
+from io import BytesIO
+from typing import Union, List
 
 from discord.ext import tasks
 from utils import AvimetryBot
 from asyncgist import File
+
+import core
 
 TOKEN_REGEX = (
     r"([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}|mfa\.[a-zA-Z0-9_\-]{84})"
@@ -85,13 +88,12 @@ class BotLogs(core.Cog):
                 return
 
     @core.Cog.listener("on_message_delete")
-    async def logging_delete(self, message: discord.Message):
-        context = await self.bot.get_context(message)
-        if context.valid:
-            return
-        if not message.guild:
-            return
-        data = self.bot.cache.logging.get(message.guild.id)
+    @core.Cog.listener("on_bulk_message_delete")
+    async def logging_delete(self, message: Union[discord.Message, List[discord.Message]]):
+        try:
+            data = self.bot.cache.logging.get(message.guild.id)
+        except AttributeError:
+            data = self.bot.cache.logging.get(message[0].guild.id)
         if (
             not data
             or data["enabled"] is not True
@@ -99,21 +101,40 @@ class BotLogs(core.Cog):
             or not data["channel_id"]
         ):
             return
-        if message.author == self.bot.user or message.author.bot:
-            return
-        embed = discord.Embed(
-            title="Message Delete",
-            timestamp=datetime.datetime.now(datetime.timezone.utc),
-            description=f"Message was deleted by {message.author.mention} in {message.channel.mention}",
-        )
-        embed.set_footer(text="Deleted at")
-        if message.content:
-            embed.add_field(name="Deleted content", value=f">>> {message.content}")
-        if not message.content:
-            return
-        channel_id = data["channel_id"]
-        channel = discord.utils.get(message.guild.channels, id=channel_id)
-        await channel.send(embed=embed)
+        channel = self.bot.get_channel(data["channel_id"])
+        if isinstance(message, discord.Message):
+            context = await self.bot.get_context(message)
+            if context.valid or not message.guild:
+                return
+            if message.author == self.bot.user or message.author.bot:
+                return
+            embed = discord.Embed(
+                title="Message Delete",
+                timestamp=datetime.datetime.now(datetime.timezone.utc),
+                description=f"Message from {message.author.mention} deleted in {message.channel.mention}",
+                color=discord.Color.red()
+            )
+            embed.set_footer(text="Deleted at")
+            if message.content:
+                embed.add_field(name="Deleted content", value=f">>> {message.content}")
+            if not message.content:
+                return
+        if isinstance(message, list):
+            list_of_messages = [f"[{m.author}]: {m.content}" for m in message if m.content and not m.author.bot]
+            if not list_of_messages:
+                return
+            embed = discord.Embed(
+                title="Bulk Message Delete",
+                timestamp=datetime.datetime.now(datetime.timezone.utc),
+                color=discord.Color.red()
+            )
+            embed.set_footer(text=f"{len(message)} deleted")
+            messages = "\n\n----------\n\n".join(list_of_messages)
+            if len(messages) > 4000:
+                message_file = discord.File(filename="messages.txt", fp=BytesIO(messages.encode("utf-8")))
+                return await channel.send(embed=embed, file=message_file)
+            embed.description = "\n".join(list_of_messages)
+            return await channel.send(embed=embed)
 
     @core.Cog.listener("on_message_edit")
     async def logging_edit(self, before: discord.Message, after: discord.Message):
@@ -149,11 +170,10 @@ class BotLogs(core.Cog):
             timestamp=datetime.datetime.now(datetime.timezone.utc),
             description=f"Message was edited by {before.author.mention} in {before.channel.mention}",
         )
-        embed.add_field(name="Message Before", value=f">>> {bef_con}", inline=False)
-        embed.add_field(name="Message After", value=f">>> {aft_con}", inline=False)
+        embed.add_field(name="Before", value=f">>> {bef_con}", inline=False)
+        embed.add_field(name="After", value=f">>> {aft_con}", inline=False)
         embed.set_footer(text="Edited at")
-        channel_id = data["channel_id"]
-        channel = discord.utils.get(before.guild.channels, id=channel_id)
+        channel = self.bot.get_channel(data["channel_id"])
         await channel.send(embed=embed)
 
     @core.Cog.listener("on_member_ban")
@@ -194,11 +214,7 @@ class BotLogs(core.Cog):
             or not data["channel_id"]
         ):
             return
-        entry = (
-            await member.guild.audit_logs(
-                limit=1, action=discord.AuditLogAction.kick
-            ).flatten()
-        )[0]
+        entry = (await member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick).flatten())[0]
         if entry.target == member:
             channel = self.bot.get_channel(data["channel_id"])
             embed = discord.Embed(
@@ -214,13 +230,13 @@ class BotLogs(core.Cog):
             await channel.send(embed=embed)
 
     @core.Cog.listener("on_guild_channel_create")
-    async def logging_channel_one(self, channel: discord.abc.GuildChannel):
+    async def logging_channel_create(self, channel: discord.abc.GuildChannel):
         thing = self.bot.cache.logging.get(channel.guild.id)
         if not thing:
             return
         if thing["enabled"] is not True:
             return
-        if not thing["channel"]:
+        if not thing["channel_create"]:
             return
         if not thing["channel_id"]:
             return
@@ -228,32 +244,18 @@ class BotLogs(core.Cog):
         await channel.send(f"Channel has been created: {channel.mention}")
 
     @core.Cog.listener("on_guild_channel_delete")
-    async def logging_channel_two(self, channel: discord.abc.GuildChannel):
+    async def logging_channel_delete(self, channel: discord.abc.GuildChannel):
         thing = self.bot.cache.logging.get(channel.guild.id)
         if not thing:
             return
         if thing["enabled"] is not True:
             return
-        if not thing["channel"]:
+        if not thing["channel_delete"]:
             return
         if not thing["channel_id"]:
             return
         channel = self.bot.get_channel(thing["channel_id"])
         await channel.send(f"Channel has been deleted: {channel.name}")
-
-    @core.Cog.listener("on_guild_channel_edit")
-    async def logging_channel_three(
-        self, before: discord.abc.GuildChannel, after: discord.abc.GuildChannel
-    ):
-        thing = self.bot.cache.logging.get(before.guild.id)
-        if not thing:
-            return
-        if thing["enabled"] is not True:
-            return
-        if not thing["channel"]:
-            return
-        if not thing["channel_id"]:
-            return
 
     @core.Cog.listener("on_guild_update")
     async def logging_guild(self, before: discord.Guild, after: discord.Guild):
