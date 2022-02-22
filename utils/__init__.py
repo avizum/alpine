@@ -1,5 +1,5 @@
 """
-Initialize
+[Avimetry Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -17,30 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 # flake8: noqa
-from .avimetry import AvimetryBot
-from .cache import AvimetryCache
-from .context import AvimetryContext
-from .converters import (
-    TimeConverter,
-    ModReason,
-    TargetMember,
-    FindBan,
-    Prefix,
-    CogConverter,
-    GetAvatar,
-    GetCommand,
-)
-from .exceptions import (
-    TimeZoneError,
-    BlacklistWarn,
-    Blacklisted,
-    PrivateServer,
-    Maintenance,
-    NotGuildOwner,
-    CommandDisabledGuild,
-    CommandDisabledChannel,
-)
-from .utils import Timer, format_string, format_list, timestamp, format_seconds
+from .cache import Cache
+from .converters import ModReason
+from .helpers import Timer, format_string, format_list, timestamp, format_seconds
 from .parser import preview_message
-from .paginators import AvimetryPages, OldAvimetryPages, PaginatorEmbed, WrappedPaginator
-from .view import AvimetryView
+from .paginators import Paginator, OldAvimetryPages, PaginatorEmbed, WrappedPaginator
+from .view import View

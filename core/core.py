@@ -29,10 +29,10 @@ def to_list(thing):
 
 class Command(commands.Command):
     def __init__(self, func, **kwargs):
-        self.user_permissions = to_list(
-            kwargs.get("user_permissions")
-            or getattr(func, "user_permissions", ["send_messages"])
-            or kwargs.get("extras", {}).get("user_permissions")
+        self.member_permissions = to_list(
+            kwargs.get("member_permissions")
+            or getattr(func, "member_permissions", ["send_messages"])
+            or kwargs.get("extras", {}).get("member_permissions")
         )
         self.bot_permissions = to_list(
             kwargs.get("bot_permissions")

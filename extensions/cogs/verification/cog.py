@@ -24,11 +24,11 @@ import string
 import discord
 
 import core
-from utils import AvimetryBot, AvimetryContext
+from core import Bot, Context
 
 
 class MemberJoin(core.Cog):
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.messages = {}
@@ -93,7 +93,7 @@ class MemberJoin(core.Cog):
 
     @core.command(hidden=True)
     @core.bot_has_permissions(manage_messages=True, manage_roles=True)
-    async def verify(self, ctx: AvimetryContext):
+    async def verify(self, ctx: Context):
         """
         Verify.
 
@@ -141,7 +141,7 @@ class MemberJoin(core.Cog):
                     title="Your Key has expired",
                     description=(
                         "Sorry, your key has expired. If you want to generate a new key, "
-                        f"use the command `{ctx.clean_prefix}.verify` to generate a new key."
+                        f"use the command `{ctx.clean_prefix}verify` to generate a new key."
                     ),
                 )
                 await ctx.author.send(embed=timeup)
@@ -160,5 +160,5 @@ class MemberJoin(core.Cog):
                     break
 
 
-def setup(bot: AvimetryBot):
+def setup(bot: Bot):
     bot.add_cog(MemberJoin(bot))

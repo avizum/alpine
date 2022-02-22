@@ -26,14 +26,14 @@ from discord.ext.menus import button, Position, PageSource
 from discord.ext.menus.views import ViewMenuPages
 from jishaku.paginators import WrappedPaginator
 
-from utils.view import AvimetryView
+from utils.view import View
 
 if TYPE_CHECKING:
-    from .context import AvimetryContext
+    from .context import Context
 
 
 class PaginatorEmbed(discord.Embed):
-    def __init__(self, *, ctx: AvimetryContext, **kwargs):
+    def __init__(self, *, ctx: Context, **kwargs):
         super().__init__(**kwargs)
         self.color = ctx.get_color()
         self.timestamp = datetime.datetime.now(datetime.timezone.utc)
@@ -42,12 +42,12 @@ class PaginatorEmbed(discord.Embed):
 
 # This paginator is essentially discord.ext.menus but changed a bit so that it uses buttons instead of reactions.
 # https://github.com/Rapptz/discord-ext-menus
-class BasePaginator(AvimetryView):
+class BasePaginator(View):
     def __init__(
         self,
         source: PageSource,
         *,
-        ctx: AvimetryContext,
+        ctx: Context,
         timeout: int = 180,
         current_page: int = 0,
         delete_message_after: bool = False,
@@ -137,12 +137,12 @@ class BasePaginator(AvimetryView):
         self.message = await self.ctx.send(**kwargs, view=self)
 
 
-class AvimetryPages(BasePaginator):
+class Paginator(BasePaginator):
     def __init__(
         self,
         source: PageSource,
         *,
-        ctx: AvimetryContext,
+        ctx: Context,
         timeout: int = 180,
         current_page: int = 0,
         delete_message_after: bool = False,

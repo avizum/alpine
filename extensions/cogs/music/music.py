@@ -28,12 +28,8 @@ import wavelink
 from discord.ext import menus
 from wavelink.ext import spotify
 
-from utils import (
-    AvimetryBot,
-    AvimetryContext,
-    AvimetryView,
-    format_seconds
-)
+from core import Bot, Context
+from utils import View, format_seconds
 
 URL_REG = re.compile(r"https?://(?:www\.)?.+")
 
@@ -44,7 +40,7 @@ async def do_after(time, coro, *args, **kwargs):
 
 
 class IsResponding:
-    def __init__(self, emoji: str, message: discord.Message, bot: AvimetryBot) -> None:
+    def __init__(self, emoji: str, message: discord.Message, bot: Bot) -> None:
         self.task = None
         self.message = message
         self.bot = bot
@@ -141,12 +137,12 @@ class Player(wavelink.Player):
     def __init__(
         self,
         *args,
-        context: AvimetryContext = None,
+        context: Context = None,
         announce: bool = True,
         allow_duplicates: bool = True,
         **kwargs
     ):
-        self.context: AvimetryContext = context
+        self.context: Context = context
         self.youtube_reg = re.compile(
             r"https?://((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$"
         )
@@ -281,8 +277,8 @@ class PaginatorSource(menus.ListPageSource):
         return embed
 
 
-class SearchView(AvimetryView):
-    def __init__(self, *, ctx: AvimetryContext):
+class SearchView(View):
+    def __init__(self, *, ctx: Context):
         self.ctx = ctx
         self.option = None
         super().__init__(member=ctx.author, timeout=180)

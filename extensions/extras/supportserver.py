@@ -21,8 +21,8 @@ import re
 import datetime
 import core
 
-from discord.ext import tasks
-from utils import AvimetryBot, AvimetryContext, PrivateServer
+from discord.ext import commands, tasks
+from core import Bot, Context
 
 
 URL_REGEX = re.compile(
@@ -30,6 +30,8 @@ URL_REGEX = re.compile(
         [^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
 )
 
+class PrivateServer(commands.CheckFailure):
+    pass
 
 class ButtonRole(discord.ui.View):
     def __init__(self):
@@ -93,7 +95,7 @@ class Servers(core.Cog):
     Commands for bot's servers only.
     """
 
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.update_count.start()
@@ -105,7 +107,7 @@ class Servers(core.Cog):
         if ButtonRole() not in self.bot.persistent_views:
             bot.add_view(ButtonRole())
 
-    def cog_check(self, ctx: AvimetryContext):
+    def cog_check(self, ctx: Context):
         if ctx.guild.id not in self.guild_id:
             raise PrivateServer("This command only works in a private server.")
         return True
@@ -132,7 +134,7 @@ class Servers(core.Cog):
         await self.bot.wait_until_ready()
 
     @core.command(hidden=True, aliases=["tester"])
-    async def testing(self, ctx: AvimetryContext):
+    async def testing(self, ctx: Context):
         """
         Gives testing role.
 
@@ -147,7 +149,7 @@ class Servers(core.Cog):
         await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
 
     @testing.error
-    async def testing_error(self, ctx: AvimetryContext, error):
+    async def testing_error(self, ctx: Context, error):
         if isinstance(error, PrivateServer):
             return
         raise error

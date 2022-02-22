@@ -5,10 +5,11 @@ from discord.ext import commands
 from akinator import CantGoBackAnyFurther
 from akinator.async_aki import Akinator
 
-from utils import AvimetryView, AvimetryContext
+from core import Context
+from utils import View
 
 
-class AkinatorConfirmView(AvimetryView):
+class AkinatorConfirmView(View):
     def __init__(
         self,
         *,
@@ -32,12 +33,12 @@ class AkinatorConfirmView(AvimetryView):
         await self.message.edit(embed=self.embed, view=None)
 
 
-class AkinatorGameView(AvimetryView):
+class AkinatorGameView(View):
     def __init__(
         self,
         *,
         member: discord.Member,
-        ctx: AvimetryContext,
+        ctx: Context,
         client: Akinator,
         embed: discord.Embed,
     ):
@@ -129,7 +130,7 @@ class AkinatorFlags(commands.FlagConverter):
     child: bool = commands.flag(description="Whether to enable or disable child mode. (Default: True)", default=True)
 
 
-class RockPaperScissorGame(AvimetryView):
+class RockPaperScissorGame(View):
     def __init__(self, timeout=8, *, ctx, member, embed):
         super().__init__(timeout=timeout, member=member)
         self.ctx = ctx

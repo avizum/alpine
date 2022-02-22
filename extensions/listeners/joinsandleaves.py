@@ -22,7 +22,7 @@ import json
 import core
 
 from tagformatter import Parser
-from utils import AvimetryBot
+from core import Bot
 
 
 parser = Parser(case_insensitive=True)
@@ -83,7 +83,7 @@ class JoinsAndLeaves(core.Cog):
     Cog for handling joins and leave messages.
     """
 
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 

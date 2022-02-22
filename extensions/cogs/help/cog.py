@@ -26,7 +26,8 @@ from difflib import get_close_matches
 from discord.ext import commands, menus
 
 import core
-from utils import AvimetryBot, AvimetryContext, AvimetryPages
+from core import Bot, Context
+from utils import Paginator
 from .paginators import MainHelp, HelpPages, HelpSelect, CogHelp, GroupHelp
 
 
@@ -39,7 +40,7 @@ class AvimetryHelp(commands.HelpCommand):
             ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
         )
 
-    async def can_run(self, command: core.Command, ctx: AvimetryContext):
+    async def can_run(self, command: core.Command, ctx: Context):
         try:
             await command.can_run(ctx)
             emoji = ctx.bot.emoji_dictionary["green_tick"]
@@ -149,7 +150,7 @@ class AvimetryHelp(commands.HelpCommand):
             value=(
                 f"Can Run: {await self.can_run(command, self.context)}\n"
                 f"I Need: `{self.get_perms('bot_permissions', command)}`\n"
-                f"You Need: `{self.get_perms('user_permissions', command)}`"
+                f"You Need: `{self.get_perms('member_permissions', command)}`"
             ),
             inline=False,
         )
@@ -199,7 +200,7 @@ class AvimetryHelp(commands.HelpCommand):
 
 
 class AllCommandsPageSource(menus.ListPageSource):
-    def __init__(self, commands: List[commands.Command], ctx: AvimetryContext):
+    def __init__(self, commands: List[commands.Command], ctx: Context):
         self.ctx = ctx
         super().__init__(commands, per_page=4)
 
@@ -211,7 +212,7 @@ class AllCommandsPageSource(menus.ListPageSource):
 
 
 class HelpCommand(core.Cog):
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.default = bot.help_command
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
@@ -231,11 +232,11 @@ class HelpCommand(core.Cog):
         self.bot.help_command = help_command
 
     @core.command(hidden=True)
-    async def allcommands(self, ctx: AvimetryContext):
+    async def allcommands(self, ctx: Context):
         """
         A list of all commands.
         """
-        menu = AvimetryPages(
+        menu = Paginator(
             AllCommandsPageSource(list(self.bot.commands), ctx),
             ctx=ctx,
             remove_view_after=True,
@@ -246,5 +247,5 @@ class HelpCommand(core.Cog):
         self.bot.help_command = self.default
 
 
-def setup(bot: AvimetryBot):
+def setup(bot: Bot):
     bot.add_cog(HelpCommand(bot))

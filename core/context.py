@@ -15,25 +15,28 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+from __future__ import annotations
 
 import asyncio
 import datetime
 import re
 from datetime import timedelta
-from typing import List, Sequence, Union
+from typing import List, Sequence, Union, TYPE_CHECKING
 
 import discord
 from asyncgist import File
 from discord.ext import commands, menus
 
-from .avimetry import AvimetryBot
-from .view import AvimetryView
-from .paginators import AvimetryPages, WrappedPaginator
+from utils.view import View
+from utils.paginators import Paginator, WrappedPaginator
+
+if TYPE_CHECKING:
+    from .avimetry import Bot
 
 emoji_regex = "<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>"
 
 
-class TrashView(AvimetryView):
+class TrashView(View):
     def __init__(self, *, member: discord.Member, timeout: int = 60, ctx):
         self.ctx = ctx
         super().__init__(member=member, timeout=timeout)
@@ -56,7 +59,7 @@ class TrashView(AvimetryView):
         await self.ctx.message.add_reaction(self.ctx.bot.emoji_dictionary["green_tick"])
 
 
-class ConfirmView(AvimetryView):
+class ConfirmView(View):
     def __init__(self, *, member: discord.Member, timeout=None):
         super().__init__(member=member, timeout=timeout)
         self.value = None
@@ -97,10 +100,10 @@ class AutoPageSource(menus.ListPageSource):
         return page
 
 
-class AvimetryContext(commands.Context):
-    def __init__(self, *, bot: AvimetryBot, **kwargs):
+class Context(commands.Context):
+    def __init__(self, *, bot: Bot, **kwargs):
         super().__init__(bot=bot, **kwargs)
-        self.bot: AvimetryBot = bot
+        self.bot: Bot = bot
         self.locally_handled = None
         self.tokens = []
         self.tokens.extend(self.bot.settings["bot_tokens"].values())
@@ -194,7 +197,7 @@ class AvimetryContext(commands.Context):
         disable_view_after: bool = False,
     ):
 
-        menu = AvimetryPages(
+        menu = Paginator(
             AutoPageSource(entry, lang, limit=limit),
             ctx=self,
             remove_view_after=remove_view_after,
@@ -284,7 +287,12 @@ class AvimetryContext(commands.Context):
                     )
             else:
                 try:
-                    reference = None if no_reply else self.message
+                    if reference:
+                        reference = reference
+                    elif no_reply:
+                        reference = None
+                    elif self.message in self.bot.cached_messages:
+                        reference = self.message
                     message = await super().send(
                         content,
                         tts=tts,
@@ -418,9 +426,9 @@ class AvimetryContext(commands.Context):
         view.message = await self.send(*args, **kwargs, view=view)
 
 
-def setup(bot: AvimetryBot):
-    bot.context = AvimetryContext
+def setup(bot: Bot):
+    bot.context = Context
 
 
-def teardown(bot: AvimetryBot):
+def teardown(bot: Bot):
     bot.context = commands.Context

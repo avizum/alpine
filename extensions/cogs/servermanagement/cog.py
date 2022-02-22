@@ -22,7 +22,8 @@ import discord
 from discord.ext import commands
 
 import core
-from utils import AvimetryBot, AvimetryContext, ModReason
+from core import Bot, Context
+from utils import ModReason
 
 
 class ServerManagement(commands.Cog, name="Server Management"):
@@ -30,7 +31,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
     Commands to manage your server.
     """
 
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.emoji = "<:server:913309745073504307>"
@@ -62,7 +63,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @channel.group(invoke_without_command=True)
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def create(self, ctx: AvimetryContext):
+    async def create(self, ctx: Context):
         """
         Creates a channel.
 
@@ -73,7 +74,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @create.command(aliases=["tc", "text", "textchannel", "text-channel"])
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def text_channel(self, ctx: AvimetryContext, name):
+    async def text_channel(self, ctx: Context, name):
         """
         Creates a text chanel.
 
@@ -85,14 +86,14 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @create.command(aliases=["vc", "voice", "voicechannel", "voice-channel"])
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def voice_channel(self, ctx: AvimetryContext, name):
+    async def voice_channel(self, ctx: Context, name):
         channel = await ctx.guild.create_voice_channel(name)
         await ctx.send(f"Created channel {channel.mention}.")
 
     @create.command()
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def category(self, ctx: AvimetryContext, name):
+    async def category(self, ctx: Context, name):
         """
         Creates a category.
 
@@ -104,7 +105,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @channel.command()
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def clone(self, ctx: AvimetryContext, channel: discord.abc.GuildChannel):
+    async def clone(self, ctx: Context, channel: discord.abc.GuildChannel):
         """
         Clones a channel.
 
@@ -122,7 +123,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @channel.command()
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def delete(self, ctx: AvimetryContext, channel: discord.abc.GuildChannel):
+    async def delete(self, ctx: Context, channel: discord.abc.GuildChannel):
         """
         Deletes a channel.
 
@@ -138,7 +139,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @core.bot_has_permissions(manage_emojis=True)
     async def steal_emoji(
         self,
-        ctx: AvimetryContext,
+        ctx: Context,
         emoji: discord.PartialEmoji,
         *,
         reason: ModReason = None,
@@ -158,7 +159,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @core.bot_has_permissions(manage_roles=True)
     async def create_role(
         self,
-        ctx: AvimetryContext,
+        ctx: Context,
         name: str,
         color: discord.Color = None,
         reason: ModReason = None,
@@ -173,5 +174,5 @@ class ServerManagement(commands.Cog, name="Server Management"):
         await ctx.send(f"Created {r}")
 
 
-def setup(bot: AvimetryBot):
+def setup(bot: Bot):
     bot.add_cog(ServerManagement(bot))

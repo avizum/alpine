@@ -24,11 +24,12 @@ import core
 
 from discord.ext import commands, menus
 from difflib import get_close_matches
-from utils import AvimetryBot, AvimetryContext, AvimetryPages
+from core import Bot, Context
+from utils import Paginator
 
 
 class MainHelp(menus.ListPageSource):
-    def __init__(self, ctx: AvimetryContext, mapping, help_command: "AvimetryHelp"):
+    def __init__(self, ctx: Context, mapping, help_command: "AvimetryHelp"):
         super().__init__(entries=mapping, per_page=4)
         self.ctx = ctx
         self.mapping = mapping
@@ -70,7 +71,7 @@ class MainHelp(menus.ListPageSource):
 class CogHelp(menus.ListPageSource):
     def __init__(
         self,
-        ctx: AvimetryContext,
+        ctx: Context,
         commands,
         cog: commands.Cog,
         help_command: "AvimetryHelp",
@@ -108,7 +109,7 @@ class CogHelp(menus.ListPageSource):
 class GroupHelp(menus.ListPageSource):
     def __init__(
         self,
-        ctx: AvimetryContext,
+        ctx: Context,
         commands,
         group: commands.Group,
         help_command: "AvimetryHelp",
@@ -139,7 +140,7 @@ class GroupHelp(menus.ListPageSource):
             value=(
                 f"Can Use: {await self.hc.can_run(self.group, self.ctx)}\n"
                 f"Bot Permissions: `{self.hc.get_perms('bot_permissions', self.group)}`\n"
-                f"User Permissions: `{self.hc.get_perms('user_permissions', self.group)}`"
+                f"User Permissions: `{self.hc.get_perms('member_permissions', self.group)}`"
             ),
             inline=False,
         )
@@ -250,14 +251,14 @@ class AvimetryHelp(commands.HelpCommand):
         filtered = await self.filter_commands(cog.get_commands(), sort=False)
         if not filtered:
             return
-        menu = AvimetryPages(CogHelp(self.context, filtered, cog, self))
+        menu = Paginator(CogHelp(self.context, filtered, cog, self))
         await menu.start(self.context)
 
     async def send_group_help(self, group):
         filtered = await self.filter_commands(group.commands, sort=False)
         if not filtered:
             return
-        menu = AvimetryPages(GroupHelp(self.context, filtered, group, self))
+        menu = Paginator(GroupHelp(self.context, filtered, group, self))
         await menu.start(self.context)
 
     async def send_command_help(self, command: commands.Command):
@@ -281,7 +282,7 @@ class AvimetryHelp(commands.HelpCommand):
             value=(
                 f"Can Use: {await self.can_run(command, self.context)}\n"
                 f"Bot Permissions: `{self.get_perms('bot_perms', command)}`\n"
-                f"User Permissions: `{self.get_perms('user_permissions', command)}`"
+                f"User Permissions: `{self.get_perms('member_permissions', command)}`"
             ),
             inline=False,
         )
@@ -312,7 +313,7 @@ class AvimetryHelp(commands.HelpCommand):
 
 
 class HelpCommand(core.Cog):
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.default = bot.help_command
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)

@@ -23,11 +23,11 @@ from typing import TYPE_CHECKING
 from discord.ext import tasks
 
 if TYPE_CHECKING:
-    from .avimetry import AvimetryBot
+    from .avimetry import Bot
 
 
-class AvimetryCache:
-    def __init__(self, bot: AvimetryBot):
+class Cache:
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.cache_loop.start()
         self.guild_settings = {}
@@ -68,7 +68,7 @@ class AvimetryCache:
             self.disabled_commmand,
             self.users,
         ]
-        return f"<AvimetryCache size={sum(cache.__sizeof__() for cache in caches)}>"
+        return f"<Cache size={sum(cache.__sizeof__() for cache in caches)}>"
 
     async def delete_all(self, gid):
         await self.bot.pool.execute(

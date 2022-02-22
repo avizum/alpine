@@ -20,7 +20,7 @@ import datetime
 import core
 
 from discord.ext import commands
-from utils import AvimetryContext, AvimetryBot
+from core import Bot, Context
 
 
 class CooldownByContent(commands.CooldownMapping):
@@ -29,7 +29,7 @@ class CooldownByContent(commands.CooldownMapping):
 
 
 class Setup(core.Cog):
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.content_cd = CooldownByContent.from_cooldown(
@@ -161,7 +161,7 @@ class Setup(core.Cog):
         await self.guild_webhook.send(embed=embed, username="Left Guild")
 
     @core.Cog.listener("on_command")
-    async def on_command(self, ctx: AvimetryContext):
+    async def on_command(self, ctx: Context):
         if not ctx.guild:
             return
         try:

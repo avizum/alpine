@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
 import logging
-import os
 import re
 
 import aiohttp
@@ -26,6 +25,7 @@ import asyncdagpi
 import asyncpg
 import core
 import discord
+import jishaku
 import mystbin
 import sr_api
 import toml
@@ -36,7 +36,7 @@ from discord.ext import commands
 from wavelink.ext import spotify
 
 from core import Command, Group
-from .cache import AvimetryCache
+from utils.cache import Cache
 from .exceptions import (
     Blacklisted,
     CommandDisabledChannel,
@@ -44,9 +44,9 @@ from .exceptions import (
     Maintenance
 )
 
-os.environ["JISHAKU_HIDE"] = "True"
-os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
-os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
+jishaku.Flags.HIDE = True
+jishaku.Flags.NO_UNDERSCORE = True
+jishaku.Flags.NO_DM_TRACEBACK = True
 
 
 DEFAULT_PREFIXES = ["a."]
@@ -68,7 +68,7 @@ handler.setFormatter(logging.Formatter("%(levelname)s:%(name)s: %(message)s"))
 logger.addHandler(handler)
 
 
-async def get_prefix(bot: "AvimetryBot", message: discord.Message):
+async def get_prefix(bot: "Bot", message: discord.Message):
     prefixes = [f"<@{bot.user.id}>", f"<@!{bot.user.id}>"]
     commands = ("dev", "developer", "jsk", "jishaku")
     if await bot.is_owner(message.author) and message.content.lower().startswith(commands):
@@ -107,7 +107,7 @@ intents = discord.Intents(
 activity = discord.Game("Loading...")
 
 
-class AvimetryBot(commands.Bot):
+class Bot(commands.Bot):
     def __init__(self, **kwargs):
         super().__init__(
             **kwargs,
@@ -130,7 +130,7 @@ class AvimetryBot(commands.Bot):
         self.commands_ran = 0
         self.command_usage = {}
         self.command_cache = {}
-        self.cache = AvimetryCache(self)
+        self.cache = Cache(self)
         self.invite = str(
             discord.utils.oauth_url(PUBLIC_BOT_ID, permissions=discord.Permissions(8))
         )
@@ -150,7 +150,7 @@ class AvimetryBot(commands.Bot):
             "extensions.listeners.events",
             "extensions.cogs.owner",
             "extensions.extras.setup",
-            "utils.context",
+            "core.context",
         ]
         self.secondary_extensions = [
             "extensions.cogs.animals",
@@ -207,7 +207,7 @@ class AvimetryBot(commands.Bot):
             return True
 
     def __repr__(self):
-        return f"<AvimetryBot id={self.user.id}>"
+        return f"<Bot id={self.user.id}>"
 
     async def load_extensions(self):
         for ext in self.primary_extensions:

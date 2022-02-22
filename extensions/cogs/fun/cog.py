@@ -27,7 +27,7 @@ from aiogtts import aiogTTS
 from discord.ext import commands
 
 import core
-from utils import AvimetryBot, AvimetryContext
+from core import Bot, Context
 
 
 class Fun(core.Cog):
@@ -35,7 +35,7 @@ class Fun(core.Cog):
     Fun commands for you and friends.
     """
 
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.emoji = "\U0001f3b1"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
@@ -48,7 +48,7 @@ class Fun(core.Cog):
 
     @core.command(aliases=["8ball", "8b"])
     @commands.cooldown(5, 15, commands.BucketType.member)
-    async def eightball(self, ctx: AvimetryContext, *, question):
+    async def eightball(self, ctx: Context, *, question):
         """
         Ask the magic 8 ball a question.
 
@@ -100,7 +100,7 @@ class Fun(core.Cog):
 
     @core.command(aliases=["murder"])
     @commands.cooldown(2, 30, commands.BucketType.member)
-    async def kill(self, ctx: AvimetryContext, member: discord.Member):
+    async def kill(self, ctx: Context, member: discord.Member):
         """
         Kill some people.
 
@@ -133,7 +133,7 @@ class Fun(core.Cog):
 
     @core.command()
     @commands.cooldown(1, 120, commands.BucketType.member)
-    async def say(self, ctx: AvimetryContext, *, message):
+    async def say(self, ctx: Context, *, message):
         """
         Makes me say something.
 
@@ -146,7 +146,7 @@ class Fun(core.Cog):
     @commands.cooldown(1, 120, commands.BucketType.user)
     async def copy(
         self,
-        ctx: AvimetryContext,
+        ctx: Context,
         member: typing.Union[discord.User, discord.Member],
         *,
         text: str,
@@ -175,7 +175,7 @@ class Fun(core.Cog):
         )
 
     @core.command(aliases=["fp", "facep", "fpalm"])
-    async def facepalm(self, ctx: AvimetryContext, member: discord.Member = None):
+    async def facepalm(self, ctx: Context, member: discord.Member = None):
         """
         Sends a message saying you hit your head.
         """
@@ -186,7 +186,7 @@ class Fun(core.Cog):
         )
 
     @core.command(aliases=["sd"])
-    async def selfdestruct(self, ctx: AvimetryContext):
+    async def selfdestruct(self, ctx: Context):
         """
         Self desctruct?!?!! Who put that there?!!?
         """
@@ -199,7 +199,7 @@ class Fun(core.Cog):
         await ctx.send(embed=a)
 
     @core.command()
-    async def dropkick(self, ctx: AvimetryContext, *, mention: discord.Member):
+    async def dropkick(self, ctx: Context, *, mention: discord.Member):
         """
         Sends a message saying you dropped kicked someone.
 
@@ -216,7 +216,7 @@ class Fun(core.Cog):
         await ctx.send(embed=embed)
 
     @core.command()
-    async def ship(self, ctx: AvimetryContext, person1: discord.Member, person2: discord.Member):
+    async def ship(self, ctx: Context, person1: discord.Member, person2: discord.Member):
         """
         Check if someone is compatible with someone.
         """
@@ -232,7 +232,7 @@ class Fun(core.Cog):
         )
 
     @core.command(aliases=["pp", "penis", "penissize"])
-    async def ppsize(self, ctx: AvimetryContext, member: discord.Member = None):
+    async def ppsize(self, ctx: Context, member: discord.Member = None):
         """
         Get the person's pp size. Why not?
         """
@@ -245,7 +245,7 @@ class Fun(core.Cog):
 
     @core.command()
     @commands.cooldown(1, 15, commands.BucketType.member)
-    async def reddit(self, ctx: AvimetryContext, subreddit):
+    async def reddit(self, ctx: Context, subreddit):
         """
         Gets a random post from a subreddit you provide.
 
@@ -299,7 +299,7 @@ class Fun(core.Cog):
 
     @core.command()
     @commands.cooldown(1, 15, commands.BucketType.member)
-    async def meme(self, ctx: AvimetryContext):
+    async def meme(self, ctx: Context):
         """
         Get a meme from Reddit.
 
@@ -309,7 +309,7 @@ class Fun(core.Cog):
         await ctx.invoke(self.reddit, random.choice(subreddits))
 
     @core.command(name="roast")
-    async def dag_roast(self, ctx: AvimetryContext, member: discord.Member):
+    async def dag_roast(self, ctx: Context, member: discord.Member):
         """
         Roasts a person. May be offensive/NSFW.
 
@@ -319,7 +319,7 @@ class Fun(core.Cog):
         await ctx.send(f"{member.mention}, {roast}")
 
     @core.command(name="funfact", aliases=["fact"])
-    async def dag_fact(self, ctx: AvimetryContext):
+    async def dag_fact(self, ctx: Context):
         """
         Get a fun fact.
 
@@ -329,7 +329,7 @@ class Fun(core.Cog):
         await ctx.send(fact)
 
     @core.command(aliases=["gaymeter"])
-    async def gayrate(self, ctx: AvimetryContext, member: discord.Member = None):
+    async def gayrate(self, ctx: Context, member: discord.Member = None):
         """
         Check how gay a person is.
 
@@ -346,7 +346,7 @@ class Fun(core.Cog):
         )
 
     @core.command()
-    async def height(self, ctx: AvimetryContext):
+    async def height(self, ctx: Context):
         """
         This command tells you how tall you are.
 
@@ -369,7 +369,7 @@ class Fun(core.Cog):
             await ctx.send(embed=embed)
 
     @core.command()
-    async def clap(self, ctx: AvimetryContext, *, words):
+    async def clap(self, ctx: Context, *, words):
         """
         Adds the 👏 emoji between each word you provide
 
@@ -382,7 +382,7 @@ class Fun(core.Cog):
     @core.command()
     @core.cooldown(1, 60, commands.BucketType.user)
     @commands.max_concurrency(1, commands.BucketType.user)
-    async def tts(self, ctx: AvimetryContext, *, text):
+    async def tts(self, ctx: Context, *, text):
         """
         Text to speech!
 
@@ -397,5 +397,5 @@ class Fun(core.Cog):
         await ctx.send(file=file)
 
 
-def setup(bot: AvimetryBot):
+def setup(bot: Bot):
     bot.add_cog(Fun(bot))

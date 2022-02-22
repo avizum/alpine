@@ -6,7 +6,8 @@ import discord
 from discord.ext import commands, menus
 
 import core
-from utils import AvimetryContext, AvimetryPages
+from core import Context
+from utils import Paginator
 
 
 if TYPE_CHECKING:
@@ -15,7 +16,7 @@ if TYPE_CHECKING:
 
 # This help command is inspired by R. Danny, When I am not lazy I might make my own
 class MainHelp(menus.PageSource):
-    def __init__(self, ctx: AvimetryContext, help: "AvimetryHelp"):
+    def __init__(self, ctx: Context, help: "AvimetryHelp"):
         self.ctx = ctx
         self.help = help
         super().__init__()
@@ -83,7 +84,7 @@ class MainHelp(menus.PageSource):
 class CogHelp(menus.ListPageSource):
     def __init__(
         self,
-        ctx: AvimetryContext,
+        ctx: Context,
         commands,
         cog: commands.Cog,
         help_command: "AvimetryHelp",
@@ -116,7 +117,7 @@ class CogHelp(menus.ListPageSource):
 class GroupHelp(menus.ListPageSource):
     def __init__(
         self,
-        ctx: AvimetryContext,
+        ctx: Context,
         commands,
         group: commands.Group,
         help_command: "AvimetryHelp",
@@ -150,7 +151,7 @@ class GroupHelp(menus.ListPageSource):
                 value=(
                     f"Can Run: {await self.hc.can_run(self.group, self.ctx)}\n"
                     f"I Need: `{self.hc.get_perms('bot_permissions', self.group)}`\n"
-                    f"You Need: `{self.hc.get_perms('user_permissions', self.group)}`"
+                    f"You Need: `{self.hc.get_perms('member_permissions', self.group)}`"
                 ),
                 inline=False,
             )
@@ -179,7 +180,7 @@ class GroupHelp(menus.ListPageSource):
 
 
 class HelpSelect(discord.ui.Select["HelpPages"]):
-    def __init__(self, ctx: AvimetryContext, hc: "AvimetryHelp", cogs: List[core.Cog]):
+    def __init__(self, ctx: Context, hc: "AvimetryHelp", cogs: List[core.Cog]):
         self.ctx = ctx
         self.hc = hc
         self.current_module = None
@@ -219,9 +220,9 @@ class HelpSelect(discord.ui.Select["HelpPages"]):
             self.current_module = cog
 
 
-class HelpPages(AvimetryPages):
+class HelpPages(Paginator):
     def __init__(
-        self, source: menus.PageSource, *, ctx: AvimetryContext, current_page=0
+        self, source: menus.PageSource, *, ctx: Context, current_page=0
     ):
         super().__init__(
             source,

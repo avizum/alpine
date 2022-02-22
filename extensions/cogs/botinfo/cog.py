@@ -29,7 +29,8 @@ from discord.ext import commands
 from topgg import NotFound
 
 import core
-from utils import AvimetryContext, AvimetryBot, Timer
+from core import Bot, Context
+from utils import Timer
 
 
 class BotInfo(commands.Cog, name="Bot Info"):
@@ -37,7 +38,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
     Bot Information commands
     """
 
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.emoji = "\U00002139"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
@@ -48,7 +49,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @core.Cog.listener()
     async def on_message(self, message):
-        ctx = await self.bot.get_context(message, cls=AvimetryContext)
+        ctx = await self.bot.get_context(message, cls=Context)
         if message.author == self.bot.user:
             return
         if message.content in [
@@ -60,7 +61,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             await command(ctx)
 
     @core.command()
-    async def news(self, ctx: AvimetryContext):
+    async def news(self, ctx: Context):
         """
         Show the bot's news.
         """
@@ -70,7 +71,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=embed)
 
     @core.command()
-    async def about(self, ctx: AvimetryContext):
+    async def about(self, ctx: Context):
         """
         Show some information about Avimetry.
         """
@@ -106,7 +107,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=embed)
 
     @core.command(name="credits")
-    async def avimetry_credits(self, ctx: AvimetryContext):
+    async def avimetry_credits(self, ctx: Context):
         """
         List of people that have contributed to Avimetry.
 
@@ -131,7 +132,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=embed)
 
     @core.command(aliases=["github"])
-    async def commits(self, ctx: AvimetryContext):
+    async def commits(self, ctx: Context):
         """
         Gets the recent commits in the Avimetry repo.
 
@@ -159,7 +160,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=embed)
 
     @core.command()
-    async def uptime(self, ctx: AvimetryContext):
+    async def uptime(self, ctx: Context):
         """
         Check how long the bot has been up for.
         """
@@ -173,7 +174,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=ue)
 
     @core.command()
-    async def ping(self, ctx: AvimetryContext):
+    async def ping(self, ctx: Context):
         """
         Check the bot's latencies.
 
@@ -204,7 +205,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=ping_embed)
 
     @core.command()
-    async def hello(self, ctx: AvimetryContext):
+    async def hello(self, ctx: Context):
         """
         Shows the message that is sent when I join a server.
         """
@@ -234,8 +235,8 @@ class BotInfo(commands.Cog, name="Bot Info"):
         embed.set_footer(text="Made by avizum :)")
         await ctx.send(embed=embed)
 
-    @core.command(invoke_without_command=True)
-    async def invite(self, ctx: AvimetryContext, bot: Union[discord.Member, discord.User] = None):
+    @core.command()
+    async def invite(self, ctx: Context):
         """
         Invite me to your server.
 
@@ -243,28 +244,31 @@ class BotInfo(commands.Cog, name="Bot Info"):
         I will generate an invite link and send it.
         """
         view = discord.ui.View(timeout=None)
-        if bot is None:
-            invite_embed = discord.Embed(
-                title=f"{self.bot.user.name} Invite",
-                description="Invite me to your server! Here is the invite link.",
+        invite_embed = discord.Embed(
+            title=f"{self.bot.user.name} Invite",
+            description="Invite me to your server! Here is the invite link.",
+        )
+        invite_embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+        view.add_item(
+            discord.ui.Button(
+                style=discord.ButtonStyle.link,
+                url=self.bot.invite,
+                label="Invite me",
             )
-            invite_embed.set_thumbnail(url=self.bot.user.display_avatar.url)
-            view.add_item(
-                discord.ui.Button(
-                    style=discord.ButtonStyle.link,
-                    url=self.bot.invite,
-                    label="Invite me",
-                )
+        )
+        view.add_item(
+            discord.ui.Button(
+                style=discord.ButtonStyle.link,
+                url=self.bot.support,
+                label="Avimetry support server",
             )
-            view.add_item(
-                discord.ui.Button(
-                    style=discord.ButtonStyle.link,
-                    url=self.bot.support,
-                    label="Avimetry support server",
-                )
-            )
-            await ctx.send(embed=invite_embed, view=view)
-        elif bot.bot:
+        )
+        await ctx.send(embed=invite_embed, view=view)
+
+    @core.command()
+    async def invitebot(self, ctx: Context, bot: Union[discord.Member, discord.User]):
+        view = discord.ui.View(timeout=None)
+        if bot.bot:
             invite_embed = discord.Embed(title=f"{bot.name} Invite")
             invite_embed.set_thumbnail(url=bot.display_avatar.url)
             try:
@@ -356,7 +360,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @core.command()
     @commands.cooldown(1, 300, commands.BucketType.user)
-    async def request(self, ctx: AvimetryContext, *, request):
+    async def request(self, ctx: Context, *, request):
         """
         Request a feature to be added to Avimetry.
 
@@ -384,14 +388,14 @@ class BotInfo(commands.Cog, name="Bot Info"):
         return await conf.message.edit(content="Okay, I will not send it.")
 
     @core.command()
-    async def support(self, ctx: AvimetryContext):
+    async def support(self, ctx: Context):
         """
         Send the bot's support server link.
         """
         await ctx.send(self.bot.support)
 
     @core.command()
-    async def vote(self, ctx: AvimetryContext):
+    async def vote(self, ctx: Context):
         """
         Support Avimetry by voting!
         """
@@ -399,7 +403,6 @@ class BotInfo(commands.Cog, name="Bot Info"):
         links = [
             ("Top.gg", "https://top.gg/bot/756257170521063444/vote"),
             ("Discord Bot List", "https://discordbotlist.com/bots/avimetry/upvote"),
-            ("Discord Boats", "https://discord.boats/bot/756257170521063444/vote"),
         ]
         for name, link in links:
             view.add_item(
@@ -415,7 +418,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
     # If you run an instance of this bot, Please do not remove this command.
     # - avizum
     @core.command()
-    async def source(self, ctx: AvimetryContext, *, command: str = None):
+    async def source(self, ctx: Context, *, command: str = None):
         """
         Send the bot's source or a source of a command.
 
@@ -501,7 +504,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             "byebyedata",
         ]
     )
-    async def deletemydata(self, ctx: AvimetryContext):
+    async def deletemydata(self, ctx: Context):
         """
         Delete all the data I have about you.
 
@@ -529,7 +532,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         return await conf.message.edit(content="Aborted.")
 
     @core.command()
-    async def error(self, ctx: AvimetryContext, error_id: int = None):
+    async def error(self, ctx: Context, error_id: int = None):
         """
         Get some error about an error
 
@@ -553,7 +556,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=embed)
 
     @core.command(
-        user_permissions="None, This is help for the paginator",
+        member_permissions="None, This is help for the paginator",
         bot_permissions="idk",
         hidden=True,
     )
@@ -571,5 +574,5 @@ class BotInfo(commands.Cog, name="Bot Info"):
         return
 
 
-def setup(bot: AvimetryBot):
+def setup(bot: Bot):
     bot.add_cog(BotInfo(bot))

@@ -30,7 +30,8 @@ from discord.ext import commands
 from akinator.async_aki import Akinator
 
 import core
-from utils import AvimetryBot, AvimetryContext, Timer
+from core import Bot, Context
+from utils import Timer
 from .components import CookieView, AkinatorFlags, AkinatorGameView, RockPaperScissorGame
 
 
@@ -39,7 +40,7 @@ class Games(core.Cog):
     Game commands.
     """
 
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.emoji = "\U0001f3ae"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
@@ -48,7 +49,7 @@ class Games(core.Cog):
     @core.group(aliases=["\U0001F36A", "vookir", "kookie"])
     @commands.cooldown(5, 10, commands.BucketType.member)
     @commands.max_concurrency(2, commands.BucketType.channel)
-    async def cookie(self, ctx: AvimetryContext, member: typing.Optional[discord.Member] = None):
+    async def cookie(self, ctx: Context, member: typing.Optional[discord.Member] = None):
         """
         Grab the cookie!
 
@@ -144,7 +145,7 @@ class Games(core.Cog):
     @core.command(name="akinator", aliases=["aki"])
     @commands.cooldown(1, 60, commands.BucketType.member)
     @commands.max_concurrency(1, commands.BucketType.channel)
-    async def akinator(self, ctx: AvimetryContext, *, flags: AkinatorFlags):
+    async def akinator(self, ctx: Context, *, flags: AkinatorFlags):
         """
         Play a game of akinator.
         """
@@ -171,7 +172,7 @@ class Games(core.Cog):
     @core.command(aliases=["rps"])
     @commands.max_concurrency(1, commands.BucketType.channel)
     @commands.cooldown(2, 5, commands.BucketType.member)
-    async def rockpaperscissors(self, ctx: AvimetryContext):
+    async def rockpaperscissors(self, ctx: Context):
         """
         Play a game of rock paper scissors.
         """
@@ -181,7 +182,7 @@ class Games(core.Cog):
 
     @core.command(name="10s")
     @core.bot_has_permissions(add_reactions=True)
-    async def _10s(self, ctx: AvimetryContext):
+    async def _10s(self, ctx: Context):
         """
         Test your reaction time.
 
@@ -221,7 +222,7 @@ class Games(core.Cog):
 
     @core.command(name="guessthatlogo", aliases=["gtl"])
     @commands.cooldown(2, 10, commands.BucketType.member)
-    async def dag_guess_that_logo(self, ctx: AvimetryContext):
+    async def dag_guess_that_logo(self, ctx: Context):
         """
         Try to guess the logo given to you.
 
@@ -269,7 +270,7 @@ class Games(core.Cog):
     @core.command()
     @commands.cooldown(1, 10, commands.BucketType.channel)
     @core.bot_has_permissions(add_reactions=True)
-    async def reaction(self, ctx: AvimetryContext):
+    async def reaction(self, ctx: Context):
         """
         See how fast you can get the correct emoji.
         """
@@ -318,7 +319,7 @@ class Games(core.Cog):
                 return await first.edit(embed=embed)
 
     @core.group()
-    async def roblox(self, ctx: AvimetryContext):
+    async def roblox(self, ctx: Context):
         """
         Base command for all the ROBLOX commands.
 
@@ -327,7 +328,7 @@ class Games(core.Cog):
         await ctx.send_help(ctx.command)
 
     @roblox.group()
-    async def user(self, ctx: AvimetryContext, name_or_id: Union[str, int]):
+    async def user(self, ctx: Context, name_or_id: Union[str, int]):
         """
         Gets ROBLOX User Information.
         """
@@ -409,7 +410,7 @@ class Games(core.Cog):
             return await ctx.send("Could not find any users.")
 
     @user.command()
-    async def search(self, ctx: AvimetryContext, *query: int | str):
+    async def search(self, ctx: Context, *query: int | str):
         try:
             a = await self.rclient.get_users(
                 query
@@ -419,5 +420,5 @@ class Games(core.Cog):
             await ctx.send(e)
 
 
-def setup(bot: AvimetryBot):
+def setup(bot: Bot):
     bot.add_cog(Games(bot))

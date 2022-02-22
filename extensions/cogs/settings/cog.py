@@ -23,13 +23,9 @@ import discord
 from discord.ext import commands
 
 import core
-from utils import (
-    AvimetryBot,
-    AvimetryContext,
-    GetCommand,
-    Prefix,
-    preview_message
-)
+from .converters import Prefix, GetCommand
+from core import Bot, Context
+from utils import preview_message
 
 
 class Settings(core.Cog):
@@ -37,14 +33,14 @@ class Settings(core.Cog):
     Configure bot settings.
     """
 
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.emoji = "\U00002699"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.map = {True: "Enabled", False: "Disabled", None: "Not Set"}
 
     @core.group(case_insensitive=True, invoke_without_command=True)
-    async def prefix(self, ctx: AvimetryContext):
+    async def prefix(self, ctx: Context):
         """
         Show custom prefix configuration.
         """
@@ -62,7 +58,7 @@ class Settings(core.Cog):
 
     @prefix.command(name="add", aliases=["append"])
     @core.has_permissions(manage_guild=True)
-    async def prefix_add(self, ctx: AvimetryContext, prefix: Prefix):
+    async def prefix_add(self, ctx: Context, prefix: Prefix):
         """
         Adds a prefix to the server.
 
@@ -86,7 +82,7 @@ class Settings(core.Cog):
 
     @prefix.command(name="remove")
     @core.has_permissions(manage_guild=True)
-    async def prefix_remove(self, ctx: AvimetryContext, prefix):
+    async def prefix_remove(self, ctx: Context, prefix):
         """
         Removes a prefix from the server.
 
@@ -115,7 +111,7 @@ class Settings(core.Cog):
 
     @core.group(invoke_without_command=True)
     @core.has_permissions(manage_guild=True)
-    async def logging(self, ctx: AvimetryContext, toggle: bool = None):
+    async def logging(self, ctx: Context, toggle: bool = None):
         """
         Configure logging.
 
@@ -130,11 +126,10 @@ class Settings(core.Cog):
                 title="Logging Configuation",
                 description=(
                     "```py\n"
-                    f"Global Toggle: {self.map[config.get('enabled')]}\n"
+                    f"Logging Enabled: {self.map[config.get('enabled')]}\n"
                     f"Logging Channel ID: {config.get('channel_id')}\n"
                     f"Message Delete: {self.map[config.get('message_delete')]}\n"
                     f"Message Edit: {self.map[config.get('message_edit')]}\n"
-                    f"Member Kick: {self.map[config.get('member_kick')]}\n"
                     f"Member Ban: {self.map[config.get('member_ban')]}\n"
                     "```"
                 ),
@@ -152,7 +147,7 @@ class Settings(core.Cog):
 
     @logging.command(name="channel")
     @core.has_permissions(manage_guild=True)
-    async def logging_channel(self, ctx: AvimetryContext, channel: discord.TextChannel):
+    async def logging_channel(self, ctx: Context, channel: discord.TextChannel):
         """
         Set the channel for logging.
 
@@ -170,7 +165,7 @@ class Settings(core.Cog):
 
     @logging.command(name="message-delete", aliases=["msgdelete", "messagedelete"])
     @core.has_permissions(manage_guild=True)
-    async def logging_message_delete(self, ctx: AvimetryContext, toggle: bool):
+    async def logging_message_delete(self, ctx: Context, toggle: bool):
         """
         Configure message delete logging.
 
@@ -189,7 +184,7 @@ class Settings(core.Cog):
 
     @logging.command(name="message-edit", aliases=["msgedit", "messageedit"])
     @core.has_permissions(manage_guild=True)
-    async def logging_message_edit(self, ctx: AvimetryContext, toggle: bool):
+    async def logging_message_edit(self, ctx: Context, toggle: bool):
         """
         Configure message edit logging.
 
@@ -208,7 +203,7 @@ class Settings(core.Cog):
     @logging.command(name="member-kick", aliases=["mkick", "memberkick"])
     @core.has_permissions(manage_guild=True)
     @core.bot_has_permissions(view_audit_log=True)
-    async def logging_member_kick(self, ctx: AvimetryContext, toggle: bool):
+    async def logging_member_kick(self, ctx: Context, toggle: bool):
         """
         Configure member kick logging.
 
@@ -228,7 +223,7 @@ class Settings(core.Cog):
     @logging.command(name="member-ban", aliases=["mban", "memberban"])
     @core.has_permissions(manage_guild=True)
     @core.bot_has_permissions(view_audit_log=True)
-    async def logging_member_ban(self, ctx: AvimetryContext, toggle: bool):
+    async def logging_member_ban(self, ctx: Context, toggle: bool):
         """
         Configure member ban logging.
 
@@ -247,7 +242,7 @@ class Settings(core.Cog):
 
     @core.group(name="join-message", invoke_without_command=True)
     @core.has_permissions(manage_guild=True)
-    async def join_message(self, ctx: AvimetryContext, toggle: bool = None):
+    async def join_message(self, ctx: Context, toggle: bool = None):
         """
         Configure the join message.
 
@@ -292,7 +287,7 @@ class Settings(core.Cog):
 
     @join_message.command(name="set")
     @core.has_permissions(manage_guild=True)
-    async def join_message_set(self, ctx: AvimetryContext, *, message: str):
+    async def join_message_set(self, ctx: Context, *, message: str):
         """
         Set the the join message.
 
@@ -319,7 +314,7 @@ class Settings(core.Cog):
     @join_message.command(name="channel")
     @core.has_permissions(manage_guild=True)
     async def join_message_channel(
-        self, ctx: AvimetryContext, channel: discord.TextChannel
+        self, ctx: Context, channel: discord.TextChannel
     ):
         """
         Set the join message channel.
@@ -338,7 +333,7 @@ class Settings(core.Cog):
 
     @join_message.command(name="setup")
     @core.has_permissions(manage_guild=True)
-    async def join_message_setup(self, ctx: AvimetryContext):
+    async def join_message_setup(self, ctx: Context):
         """
         Interactive setup for join messages.
 
@@ -415,7 +410,7 @@ class Settings(core.Cog):
 
     @core.group(name="leave-message", invoke_without_command=True)
     @core.has_permissions(manage_guild=True)
-    async def leave_message(self, ctx: AvimetryContext, toggle: bool = None):
+    async def leave_message(self, ctx: Context, toggle: bool = None):
         """
         Configure the leave message.
 
@@ -460,7 +455,7 @@ class Settings(core.Cog):
 
     @leave_message.command(name="set")
     @core.has_permissions(manage_guild=True)
-    async def leave_message_set(self, ctx: AvimetryContext, *, message: str):
+    async def leave_message_set(self, ctx: Context, *, message: str):
         """
         Set the the leave message.
 
@@ -487,7 +482,7 @@ class Settings(core.Cog):
     @leave_message.command(name="channel")
     @core.has_permissions(manage_guild=True)
     async def leave_message_channel(
-        self, ctx: AvimetryContext, channel: discord.TextChannel
+        self, ctx: Context, channel: discord.TextChannel
     ):
         """
         Set the leave message channel.
@@ -506,7 +501,7 @@ class Settings(core.Cog):
 
     @leave_message.command(name="setup")
     @core.has_permissions(manage_guild=True)
-    async def leave_message_setup(self, ctx: AvimetryContext):
+    async def leave_message_setup(self, ctx: Context):
         """
         Interactive setup for goodbye messages.
 
@@ -586,7 +581,7 @@ class Settings(core.Cog):
     @core.bot_has_permissions(
         manage_channels=True, manage_roles=True, manage_messages=True
     )
-    async def verification(self, ctx: AvimetryContext, toggle: bool = None):
+    async def verification(self, ctx: Context, toggle: bool = None):
         """
         Set verification.
 
@@ -619,7 +614,7 @@ class Settings(core.Cog):
     @core.bot_has_permissions(
         manage_channels=True, manage_roles=True, manage_messages=True
     )
-    async def verification_role(self, ctx: AvimetryContext, role: discord.Role):
+    async def verification_role(self, ctx: Context, role: discord.Role):
         """
         Set verification role.
 
@@ -641,7 +636,7 @@ class Settings(core.Cog):
         manage_channels=True, manage_roles=True, manage_messages=True
     )
     async def verification_channel(
-        self, ctx: AvimetryContext, channel: discord.TextChannel
+        self, ctx: Context, channel: discord.TextChannel
     ):
         """
         Set verification channel.
@@ -660,7 +655,7 @@ class Settings(core.Cog):
 
     @core.group()
     @core.has_permissions(manage_guild=True)
-    async def disable(self, ctx: AvimetryContext, command: GetCommand):
+    async def disable(self, ctx: Context, command: GetCommand):
         """
         Disable a command in the current server.
 
@@ -702,7 +697,7 @@ class Settings(core.Cog):
 
     @core.group()
     @core.has_permissions(manage_guild=True)
-    async def enable(self, ctx: AvimetryContext, command: GetCommand):
+    async def enable(self, ctx: Context, command: GetCommand):
         """
         Enable a disabled command in this server.
         """
@@ -773,7 +768,7 @@ class Settings(core.Cog):
 
     @core.group(invoke_without_command=True, case_insensitive=True)
     @commands.cooldown(1, 60, commands.BucketType.user)
-    async def theme(self, ctx: AvimetryContext, *, color: discord.Color):
+    async def theme(self, ctx: Context, *, color: discord.Color):
         """
         Set the theme.
 
@@ -798,7 +793,7 @@ class Settings(core.Cog):
         return await conf.message.edit(content="Aborted.", embed=None)
 
     @theme.command(aliases=["none", "no", "not", "gone"])
-    async def remove(self, ctx: AvimetryContext):
+    async def remove(self, ctx: Context):
         """
         Remove theme
 
@@ -821,7 +816,7 @@ class Settings(core.Cog):
         return await conf.message.edit(content="Aborted.")
 
     @theme.command()
-    async def random(self, ctx: AvimetryContext):
+    async def random(self, ctx: Context):
         """
         Set a random theme.
 
@@ -844,7 +839,7 @@ class Settings(core.Cog):
         await ctx.send(embed=embed)
 
     @theme.command()
-    async def view(self, ctx: AvimetryContext):
+    async def view(self, ctx: Context):
         """
         Show your current theme preview.
         """
@@ -854,7 +849,7 @@ class Settings(core.Cog):
         await ctx.send(embed=embed)
 
     @core.command(hidden=True)
-    async def getowner(self, ctx: AvimetryContext):
+    async def getowner(self, ctx: Context):
         """
         Command for me to get bot owner if I somehow lose it.
         """
@@ -863,5 +858,5 @@ class Settings(core.Cog):
             self.bot.owner_ids = set()
 
 
-def setup(bot: AvimetryBot):
+def setup(bot: Bot):
     bot.add_cog(Settings(bot))

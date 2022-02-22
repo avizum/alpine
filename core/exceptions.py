@@ -18,48 +18,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from discord.ext import commands
 
-
-class TimeZoneError(commands.BadArgument):
-    def __init__(self, argument):
-        self.argument = argument
-        super().__init__(
-            f'Timezone "{argument}" was not found. [Here]'
-            "(https://gist.github.com/Soheab/3bec6dd6c1e90962ef46b8545823820d) "
-            "are all the valid timezones you can use."
-        )
-
-
 class NotGuildOwner(commands.CheckFailure):
     def __init__(self, message=None, *args):
         message = message or "You do not own this server."
         super().__init__(message=message, *args)
 
-
-class BlacklistWarn(commands.CheckFailure):
-    def __init__(self, reason):
-        self.reason = reason
-
-
 class Blacklisted(commands.CheckFailure):
     def __init__(self, reason):
         self.reason = reason
 
-
-class PrivateServer(commands.CheckFailure):
-    pass
-
-
 class Maintenance(commands.CheckFailure):
     pass
 
-
 class CommandDisabledGuild(commands.DisabledCommand):
-    """Used when command is disabled in guild"""
-
     pass
 
 
 class CommandDisabledChannel(commands.DisabledCommand):
-    """Used when command is disabled in channel"""
-
     pass

@@ -1,5 +1,5 @@
 """
-Initialize
+[Avimetry Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -26,3 +26,5 @@ from .checks import (
     cooldown,
     is_guild_owner,
 )
+from .avimetry import Bot
+from .context import Context

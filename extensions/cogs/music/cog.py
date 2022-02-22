@@ -30,12 +30,8 @@ import wavelink
 from discord.ext import commands
 
 import core
-from utils import (
-    AvimetryBot,
-    AvimetryContext,
-    AvimetryPages,
-    format_seconds
-)
+from core import Bot, Context
+from utils import Paginator, format_seconds
 from .exceptions import NotInVoice
 from .music import Player, Track, IsResponding, SearchView, SearchSelect, PaginatorSource
 
@@ -50,7 +46,7 @@ def in_voice():
 
 
 def in_correct_channel():
-    def predicate(ctx: AvimetryContext):
+    def predicate(ctx: Context):
         vc: Player = ctx.voice_client
         if not vc:
             raise NotInVoice
@@ -81,7 +77,7 @@ class Music(core.Cog):
     Music commands for music.
     """
 
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.emoji = "\U0001f3b5"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
@@ -153,14 +149,14 @@ class Music(core.Cog):
         player: Player = ctx.voice_client
         return player.dj == ctx.author or ctx.author.guild_permissions.kick_members
 
-    async def cog_command_error(self, ctx: AvimetryContext, error: commands.CommandError):
+    async def cog_command_error(self, ctx: Context, error: commands.CommandError):
         ctx.locally_handled = True
         if isinstance(error, NotInVoice):
             return await ctx.send("You must be in a voice channel to use this command.")
         else:
             ctx.locally_handled = False
 
-    def required(self, ctx: AvimetryContext):
+    def required(self, ctx: Context):
         """Method which returns required votes based on amount of members in a channel."""
         player: Player = ctx.voice_client
         channel = player.channel
@@ -173,7 +169,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["join"])
     @in_voice()
-    async def connect(self, ctx: AvimetryContext):
+    async def connect(self, ctx: Context):
         """Connect to a voice channel."""
         player: Player = ctx.voice_client
         channel = ctx.author.voice.channel
@@ -189,7 +185,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["stop", "leave", "fuckoff"])
     @in_voice()
-    async def disconnect(self, ctx: AvimetryContext):
+    async def disconnect(self, ctx: Context):
         """
         Stop the player and leave the channel.
 
@@ -222,7 +218,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["enqueue", "p"])
     @in_voice()
-    async def play(self, ctx: AvimetryContext, *, query: str):
+    async def play(self, ctx: Context, *, query: str):
         """Play or queue a song with the given query."""
         player: Player = ctx.voice_client
 
@@ -282,7 +278,7 @@ class Music(core.Cog):
 
     @core.command()
     @in_voice()
-    async def loop(self, ctx: AvimetryContext):
+    async def loop(self, ctx: Context):
         """
         Loops the currently playing song.
 
@@ -303,7 +299,7 @@ class Music(core.Cog):
     @core.command()
     @in_voice()
     @core.is_owner()
-    async def search(self, ctx: AvimetryContext, *, query: str):
+    async def search(self, ctx: Context, *, query: str):
         """
         Search for a song on youtube and play it.
         """
@@ -320,7 +316,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["ptop"])
     @in_voice()
-    async def playtop(self, ctx: AvimetryContext, *, query: wavelink.YouTubeTrack):
+    async def playtop(self, ctx: Context, *, query: wavelink.YouTubeTrack):
         """
         Adds a song to the top of the queue.
         """
@@ -366,7 +362,7 @@ class Music(core.Cog):
 
     @core.command()
     @in_voice()
-    async def pause(self, ctx: AvimetryContext):
+    async def pause(self, ctx: Context):
         """
         Pause the currently playing song.
 
@@ -399,7 +395,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["unpause"])
     @in_voice()
-    async def resume(self, ctx: AvimetryContext):
+    async def resume(self, ctx: Context):
         """
         Resume the currently playing song.
 
@@ -433,7 +429,7 @@ class Music(core.Cog):
 
     @core.command()
     @in_voice()
-    async def skip(self, ctx: AvimetryContext):
+    async def skip(self, ctx: Context):
         """
         Skip the current playing song.
 
@@ -471,7 +467,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["ff", "fastf", "fforward"])
     @in_voice()
-    async def fastforward(self, ctx: AvimetryContext, seconds: convert_time):
+    async def fastforward(self, ctx: Context, seconds: convert_time):
         """
         Fast forward an amount of seconds in the current song.
 
@@ -488,7 +484,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["rw"])
     @in_voice()
-    async def rewind(self, ctx: AvimetryContext, seconds: convert_time):
+    async def rewind(self, ctx: Context, seconds: convert_time):
         """
         Rewind a certain amount of seconds in the current song.
 
@@ -505,7 +501,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["sk"])
     @in_voice()
-    async def seek(self, ctx: AvimetryContext, seconds: convert_time):
+    async def seek(self, ctx: Context, seconds: convert_time):
         """
         Seek in the cuuent song.
 
@@ -523,7 +519,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["v", "vol"])
     @in_voice()
-    async def volume(self, ctx: AvimetryContext, *, vol: int):
+    async def volume(self, ctx: Context, *, vol: int):
         """
         Change the player's volume.
 
@@ -545,7 +541,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["mix"])
     @in_voice()
-    async def shuffle(self, ctx: AvimetryContext):
+    async def shuffle(self, ctx: Context):
         """
         Shuffles the queue.
 
@@ -585,7 +581,7 @@ class Music(core.Cog):
 
     @core.command()
     @in_voice()
-    async def announce(self, ctx: AvimetryContext, toggle: bool):
+    async def announce(self, ctx: Context, toggle: bool):
         """
         Whether to announce the song.
 
@@ -599,7 +595,7 @@ class Music(core.Cog):
 
     @core.command()
     @in_voice()
-    async def duplicated(self, ctx: AvimetryContext, toggle: bool):
+    async def duplicated(self, ctx: Context, toggle: bool):
         """
         Whether to allow duplicated in the queue.
 
@@ -613,7 +609,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["eq"], enabled=False)
     @in_voice()
-    async def equalizer(self, ctx: AvimetryContext, *, equalizer: str):
+    async def equalizer(self, ctx: Context, *, equalizer: str):
         """Change the players equalizer."""
         player: Player = ctx.voice_client
 
@@ -641,7 +637,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["q", "upnext"])
     @in_voice()
-    async def queue(self, ctx: AvimetryContext):
+    async def queue(self, ctx: Context):
         """Display the players queued songs."""
         player: Player = ctx.voice_client
 
@@ -658,14 +654,14 @@ class Music(core.Cog):
             for index, track in enumerate(player.queue._queue)
         ]
         pages = PaginatorSource(entries=entries, ctx=ctx)
-        paginator = AvimetryPages(
+        paginator = Paginator(
             source=pages, timeout=120, ctx=ctx, disable_view_after=True
         )
         await paginator.start()
 
     @core.command(aliases=["clq", "clqueue", "cqueue"])
     @in_voice()
-    async def clearqueue(self, ctx: AvimetryContext):
+    async def clearqueue(self, ctx: Context):
         """
         Clears the player's queue.
         """
@@ -683,7 +679,7 @@ class Music(core.Cog):
         await ctx.send("Only the DJ can clear the queue.")
 
     @core.command(aliases=["np", "now_playing", "current"])
-    async def nowplaying(self, ctx: AvimetryContext):
+    async def nowplaying(self, ctx: Context):
         """
         Show the currenly playing song.
         """
@@ -696,7 +692,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["swap", "new_dj"])
     @in_voice()
-    async def swap_dj(self, ctx: AvimetryContext, *, member: discord.Member = None):
+    async def swap_dj(self, ctx: Context, *, member: discord.Member = None):
         """Swap the current DJ to another member in the voice channel."""
         player: Player = ctx.voice_client
 
@@ -731,5 +727,5 @@ class Music(core.Cog):
                 return await ctx.send(f"{member.mention} is now the DJ.")
 
 
-def setup(bot: AvimetryBot):
+def setup(bot: Bot):
     bot.add_cog(Music(bot))

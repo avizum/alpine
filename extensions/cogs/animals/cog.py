@@ -22,8 +22,8 @@ from io import BytesIO
 import discord
 
 import core
-from utils.utils import Timer
-from utils import AvimetryContext, AvimetryBot
+from core import Bot, Context
+from utils import Timer
 
 
 class Animals(core.Cog):
@@ -31,12 +31,12 @@ class Animals(core.Cog):
     Get images of animals.
     """
 
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.emoji = "\U0001f98a"
 
-    async def do_animal(self, ctx: AvimetryContext, animal: str):
+    async def do_animal(self, ctx: Context, animal: str):
         async with ctx.channel.typing():
             with Timer() as timer:
                 e = await self.bot.sr.get_image(animal)
@@ -49,63 +49,63 @@ class Animals(core.Cog):
         await ctx.send(file=file, embed=embed, no_edit=True)
 
     @core.command()
-    async def dog(self, ctx: AvimetryContext):
+    async def dog(self, ctx: Context):
         """
         Gets a random image of a dog online.
         """
         await self.do_animal(ctx, "dog")
 
     @core.command()
-    async def cat(self, ctx: AvimetryContext):
+    async def cat(self, ctx: Context):
         """
         Gets a random image of a cat online.
         """
         await self.do_animal(ctx, "cat")
 
     @core.command()
-    async def panda(self, ctx: AvimetryContext):
+    async def panda(self, ctx: Context):
         """
         Gets a random image of a panda online.
         """
         await self.do_animal(ctx, "panda")
 
     @core.command()
-    async def fox(self, ctx: AvimetryContext):
+    async def fox(self, ctx: Context):
         """
         Gets a random image of a fox online.
         """
         await self.do_animal(ctx, "fox")
 
     @core.command()
-    async def koala(self, ctx: AvimetryContext):
+    async def koala(self, ctx: Context):
         """
         Gets a random image of a koala online.
         """
         await self.do_animal(ctx, "koala")
 
     @core.command(aliases=["birb"])
-    async def bird(self, ctx: AvimetryContext):
+    async def bird(self, ctx: Context):
         """
         Gets a random image of a bird online.
         """
         await self.do_animal(ctx, "birb")
 
     @core.command()
-    async def racoon(self, ctx: AvimetryContext):
+    async def racoon(self, ctx: Context):
         """
         Gets a random image of a racoon online.
         """
         await self.do_animal(ctx, "racoon")
 
     @core.command()
-    async def kangaroo(self, ctx: AvimetryContext):
+    async def kangaroo(self, ctx: Context):
         """
         Gets a random image of a kangaroo online.
         """
         await self.do_animal(ctx, "kangaroo")
 
     @core.command()
-    async def duck(self, ctx: AvimetryContext):
+    async def duck(self, ctx: Context):
         """
         Gets a random image of a duck online.
         """
@@ -116,5 +116,5 @@ class Animals(core.Cog):
         await ctx.send(embed=embed)
 
 
-def setup(bot: AvimetryBot):
+def setup(bot: Bot):
     bot.add_cog(Animals(bot))

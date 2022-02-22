@@ -28,16 +28,15 @@ import core
 
 
 from prettify_exceptions import DefaultFormatter
-from utils import (
-    AvimetryBot,
-    AvimetryContext,
+from core import Bot, Context
+from core.exceptions import (
     Blacklisted,
     Maintenance,
     NotGuildOwner,
-    CommandDisabledGuild,
     CommandDisabledChannel,
-    AvimetryView
+    CommandDisabledGuild,
 )
+from utils import View
 from discord.ext import commands
 from difflib import get_close_matches
 
@@ -54,8 +53,8 @@ class CooldownByContent(commands.CooldownMapping):
         return (message.channel.id, message.content)
 
 
-class UnknownError(AvimetryView):
-    def __init__(self, *, member: discord.Member, bot: AvimetryBot, error_id: int):
+class UnknownError(View):
+    def __init__(self, *, member: discord.Member, bot: Bot, error_id: int):
         self.error_id = error_id
         self.bot = bot
         super().__init__(member=member, timeout=3600)
@@ -87,7 +86,7 @@ class UnknownError(AvimetryView):
 
 
 class ErrorHandler(core.Cog):
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.blacklist_cooldown = commands.CooldownMapping.from_cooldown(
@@ -116,7 +115,7 @@ class ErrorHandler(core.Cog):
             session=self.bot.session,
         )
 
-    def reset(self, ctx: AvimetryContext):
+    def reset(self, ctx: Context):
         try:
             ctx.command.reset_cooldown(ctx)
         except Exception:
@@ -133,7 +132,7 @@ class ErrorHandler(core.Cog):
             return None
 
     @core.Cog.listener()
-    async def on_command_error(self, ctx: AvimetryContext, error: commands.CommandError):
+    async def on_command_error(self, ctx: Context, error: commands.CommandError):
         error = getattr(error, "original", error)
 
         cog_has_handler = ctx.cog.has_error_handler() if ctx.cog else None

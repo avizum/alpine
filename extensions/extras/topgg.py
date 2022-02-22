@@ -20,13 +20,13 @@ import discord
 import datetime
 import core
 
-from utils import AvimetryBot
+from core import Bot
 from discord.ext import tasks
 from topgg.types import BotVoteData
 
 
 class TopGG(core.Cog):
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.webhook = discord.Webhook.from_url(self.bot.settings["webhooks"]["vote_log"], session=self.bot.session)

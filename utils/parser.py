@@ -18,8 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import json
+
 from tagformatter import Parser
-from .context import AvimetryContext
+
+from core.context import Context
 
 
 parser = Parser(case_insensitive=True)
@@ -70,7 +72,7 @@ def guild_icon(env):
     return str(env.guild.icon.replace(format="png", static_format="png", size=512))
 
 
-async def preview_message(message, ctx: AvimetryContext):
+async def preview_message(message, ctx: Context):
     env = {"member": ctx.author, "guild": ctx.guild}
     message = parser.parse(message, env=env)
     try:

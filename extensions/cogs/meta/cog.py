@@ -31,19 +31,20 @@ from jishaku.codeblocks import codeblock_converter
 from pytz import UnknownTimeZoneError
 
 import core
-from utils import (
-    AvimetryBot,
-    AvimetryContext,
-    TimeZoneError,
-    GetAvatar,
-    timestamp,
-    AvimetryPages,
-    PaginatorEmbed
-)
+from core import Bot, Context
+from utils import timestamp, Paginator, PaginatorEmbed
 
+class TimeZoneError(commands.BadArgument):
+    def __init__(self, argument):
+        self.argument = argument
+        super().__init__(
+            f'Timezone "{argument}" was not found. [Here]'
+            "(https://gist.github.com/Soheab/3bec6dd6c1e90962ef46b8545823820d) "
+            "are all the valid timezones you can use."
+        )
 
 class RTFMPageSource(menus.ListPageSource):
-    def __init__(self, ctx: AvimetryContext, items, query):
+    def __init__(self, ctx: Context, items, query):
         super().__init__(items, per_page=12)
         self.ctx = ctx
         self.items = items
@@ -62,20 +63,19 @@ class RTFMPageSource(menus.ListPageSource):
         embed.set_footer(text=f"{len(self.items)} results found")
         return embed
 
-
 class Meta(core.Cog):
     """
     Extra commands that do not lie in any category.
     """
 
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.scraper = AsyncScraper(self.bot.loop, self.bot.session)
 
     @core.command()
     @commands.cooldown(1, 300, commands.BucketType.user)
-    async def poll(self, ctx: AvimetryContext, question, *options: str):
+    async def poll(self, ctx: Context, question, *options: str):
         """
         Send a poll for people to vote to.
 
@@ -136,7 +136,7 @@ class Meta(core.Cog):
 
     @core.command()
     @commands.cooldown(1, 1, commands.BucketType.member)
-    async def pick(self, ctx: AvimetryContext, *, options):
+    async def pick(self, ctx: Context, *, options):
         """
         Pick one of your options you provided.
 
@@ -150,7 +150,7 @@ class Meta(core.Cog):
 
     @core.command(aliases=["ui", "uinfo", "whois"])
     @commands.cooldown(1, 15, commands.BucketType.user)
-    async def userinfo(self, ctx: AvimetryContext, *, member: typing.Union[discord.Member, discord.User] = None):
+    async def userinfo(self, ctx: Context, *, member: typing.Union[discord.Member, discord.User] = None):
         """
         Get info about a user.
 
@@ -224,7 +224,7 @@ class Meta(core.Cog):
 
     @core.command()
     @core.is_owner()
-    async def roleinfo(self, ctx: AvimetryContext, role: discord.Role):
+    async def roleinfo(self, ctx: Context, role: discord.Role):
         embed = discord.Embed(title="Role Info")
         embed.add_field(
             name="Created At", value=discord.utils.format_dt(role.created_at)
@@ -232,7 +232,7 @@ class Meta(core.Cog):
         embed.add_field(name="Role ID", value=role.id)
 
     @core.group(aliases=["members", "mc"])
-    async def membercount(self, ctx: AvimetryContext):
+    async def membercount(self, ctx: Context):
         """
         Show the member count.
         """
@@ -246,7 +246,7 @@ class Meta(core.Cog):
         await ctx.send(embed=mce)
 
     @membercount.command()
-    async def role(self, ctx: AvimetryContext, role: discord.Role):
+    async def role(self, ctx: Context, role: discord.Role):
         """
         Show the members in a role.
         """
@@ -261,7 +261,7 @@ class Meta(core.Cog):
         await ctx.send(embed=mce)
 
     @core.command()
-    async def avatar(self, ctx: AvimetryContext, member: discord.Member = None):
+    async def avatar(self, ctx: Context, member: discord.Member = None):
         """
         Sends the avatar of a member.
         """
@@ -284,7 +284,7 @@ class Meta(core.Cog):
     @core.cooldown(2, 10, commands.BucketType.guild)
     async def banner(
         self,
-        ctx: AvimetryContext,
+        ctx: Context,
         member: typing.Union[discord.Member, discord.User] = None,
     ):
         """
@@ -309,8 +309,8 @@ class Meta(core.Cog):
             return await ctx.send("This person does not have a banner.")
         await ctx.send(embed=embed)
 
-    @core.group(invoke_without_command=True)
-    async def qr(self, ctx: AvimetryContext, *, content):
+    @core.command(invoke_without_command=True)
+    async def qr(self, ctx: Context, *, content):
         """
         Create a QR code.
         """
@@ -321,19 +321,8 @@ class Meta(core.Cog):
         )
         await ctx.send(embed=qr_embed)
 
-    @qr.command()
-    async def read(self, ctx: AvimetryContext, *, image: GetAvatar):
-        """
-        Read a QR code.
-        """
-        async with self.bot.session.get(
-            f"https://api.qrserver.com/v1/read-qr-code/?fileurl={image}"
-        ) as resp:
-            thing = await resp.json()
-            await ctx.send((str(thing[0]["symbol"][0]["data"])))
-
     @core.group(case_insensitive=True, invoke_without_command=True)
-    async def time(self, ctx: AvimetryContext, *, member: discord.Member = None):
+    async def time(self, ctx: Context, *, member: discord.Member = None):
         """
         Get the time for a user.
 
@@ -364,7 +353,7 @@ class Meta(core.Cog):
         await ctx.send(embed=time_embed)
 
     @time.command(name="set")
-    async def time_set(self, ctx: AvimetryContext, *, timezone):
+    async def time_set(self, ctx: Context, *, timezone):
         """
         Set your timezone.
 
@@ -399,7 +388,7 @@ class Meta(core.Cog):
     @core.command()
     @commands.cooldown(1, 15, commands.BucketType.guild)
     async def firstmessage(
-        self, ctx: AvimetryContext, *, channel: discord.TextChannel = None
+        self, ctx: Context, *, channel: discord.TextChannel = None
     ):
         """
         Get the first message of the channel.
@@ -422,27 +411,27 @@ class Meta(core.Cog):
         aliases=["rtfd", "rtm", "rtd", "docs"],
         invoke_without_command=True,
     )
-    async def rtfm(self, ctx: AvimetryContext, query):
+    async def rtfm(self, ctx: Context, query):
         """
         Get the docs for the discord.py library.
         """
         q = await self.scraper.search(
             query, page="https://discordpy.readthedocs.io/en/stable/"
         )
-        menu = AvimetryPages(
+        menu = Paginator(
             RTFMPageSource(ctx, q[:79], "Discord.py"), ctx=ctx, remove_view_after=True
         )
         await menu.start()
 
     @rtfm.command()
-    async def master(self, ctx: AvimetryContext, query):
+    async def master(self, ctx: Context, query):
         """
         Get the docs for the discord.py master branch library.
         """
         q = await self.scraper.search(
             query, page="https://discordpy.readthedocs.io/en/master/"
         )
-        menu = AvimetryPages(
+        menu = Paginator(
             RTFMPageSource(ctx, q[:79], "Discord.py 2.0"),
             ctx=ctx,
             remove_view_after=True,
@@ -450,44 +439,44 @@ class Meta(core.Cog):
         await menu.start()
 
     @rtfm.command(aliases=["py"])
-    async def python(self, ctx: AvimetryContext, query):
+    async def python(self, ctx: Context, query):
         """
         Get the docs for the latest Python version
         """
         q = await self.scraper.search(query, page="https://docs.python.org/3/")
-        menu = AvimetryPages(
+        menu = Paginator(
             RTFMPageSource(ctx, q[:79], "Python"), ctx=ctx, remove_view_after=True
         )
         await menu.start()
 
     @rtfm.command(aliases=["ob"])
-    async def obsidian(self, ctx: AvimetryContext, query):
+    async def obsidian(self, ctx: Context, query):
         """
         Get the docs for the Obsidian.py library
         """
         q = await self.scraper.search(
             query, page="https://obsidianpy.readthedocs.io/en/latest/"
         )
-        menu = AvimetryPages(
+        menu = Paginator(
             RTFMPageSource(ctx, q[:79], "Obsidian"), ctx=ctx, remove_view_after=True
         )
         await menu.start()
 
     @rtfm.command(aliases=["wl"])
-    async def wavelink(self, ctx: AvimetryContext, query):
+    async def wavelink(self, ctx: Context, query):
         """
         Get the docs for the Wavelink library
         """
         q = await self.scraper.search(
             query, page="https://wavelink.readthedocs.io/en/latest/"
         )
-        menu = AvimetryPages(
+        menu = Paginator(
             RTFMPageSource(ctx, q[:79], "Wavelink"), ctx=ctx, remove_view_after=True
         )
         await menu.start()
 
     @rtfm.command(aliases=["c"])
-    async def custom(self, ctx: AvimetryContext, doc_url, query):
+    async def custom(self, ctx: Context, doc_url, query):
         """
         Search any Sphinx docs.
         """
@@ -495,14 +484,14 @@ class Meta(core.Cog):
             q = await self.scraper.search(query, page=doc_url)
         except Exception as e:
             return await ctx.send(e)
-        menu = AvimetryPages(
+        menu = Paginator(
             RTFMPageSource(ctx, q[:79], "Custom Docs"), ctx=ctx, remove_view_after=True
         )
         await menu.start()
 
     @core.command()
     @commands.cooldown(1, 300, commands.BucketType.member)
-    async def embed(self, ctx: AvimetryContext, *, thing: str):
+    async def embed(self, ctx: Context, *, thing: str):
         """
         Make embeds with JSON.
 
@@ -523,7 +512,7 @@ class Meta(core.Cog):
             return await ctx.no_reply(embed=embed)
 
     @core.command(enabled=False)
-    async def redirectcheck(self, ctx: AvimetryContext, url: str):
+    async def redirectcheck(self, ctx: Context, url: str):
         """
         Check what a URL leads to.
 
@@ -534,7 +523,7 @@ class Meta(core.Cog):
             await ctx.no_reply(f"This url redirects to:\n\n{f.real_url}")
 
     @redirectcheck.error
-    async def redirectcheck_error(self, ctx: AvimetryContext, error):
+    async def redirectcheck_error(self, ctx: Context, error):
         if isinstance(error, aiohttp.InvalidURL):
             return await ctx.send(
                 "This is not a valid url. Make sure you start links with `http://` or `https://`."
@@ -548,7 +537,7 @@ class Meta(core.Cog):
 
     @core.group(name="gist")
     @commands.cooldown(1, 60, commands.BucketType.user)
-    async def gist(self, ctx: AvimetryContext, *, code: codeblock_converter):
+    async def gist(self, ctx: Context, *, code: codeblock_converter):
         """
         Posts a gist.
 
@@ -584,18 +573,18 @@ class Meta(core.Cog):
             gist = await self.bot.gist.fetch_gist(gist_id)
         except asyncgist.NotFound:
             return await ctx.send("Gist was not found.")
-        from utils.context import AutoPageSource
+        from core.context import AutoPageSource
         pag = commands.Paginator()
         for i in gist.files[0].content.split("\n"):
             pag.add_line(i.replace("`", "\u200b`"))
         source = AutoPageSource(pag)
-        pages = AvimetryPages(source, ctx=ctx, delete_message_after=True)
+        pages = Paginator(source, ctx=ctx, delete_message_after=True)
         await pages.start()
 
     @core.command(aliases=["rawmessage", "rmessage", "rmsg"])
     @core.cooldown(1, 15, commands.BucketType.user)
     @commands.max_concurrency(1, commands.BucketType.user)
-    async def rawmsg(self, ctx: AvimetryContext, message_id: int = None):
+    async def rawmsg(self, ctx: Context, message_id: int = None):
         """
         Get the raw content of a message.
 
@@ -623,5 +612,5 @@ class Meta(core.Cog):
         return
 
 
-def setup(bot: AvimetryBot):
+def setup(bot: Bot):
     bot.add_cog(Meta(bot))

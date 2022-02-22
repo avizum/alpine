@@ -25,7 +25,7 @@ from io import BytesIO
 from typing import Union, List
 
 from discord.ext import tasks
-from utils import AvimetryBot
+from core import Bot
 from asyncgist import File
 
 import core
@@ -36,7 +36,7 @@ TOKEN_REGEX = (
 
 
 class BotLogs(core.Cog):
-    def __init__(self, bot: AvimetryBot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.clear_cache.start()
@@ -52,24 +52,25 @@ class BotLogs(core.Cog):
             return
         tokens = re.findall(TOKEN_REGEX, message.content)
         if tokens:
+            split_token = tokens[0].split(".")
+            try:
+                user_bytes = split_token[0].encode()
+                user_id_decoded = base64.b64decode(user_bytes)
+                user_id_decoded.decode("ascii")
+            except Exception:
+                if not split_token[0].startswith("mfa"):
+                    return
+
             gist = await self.bot.gist.post_gist(
                 description="Tokens found.",
                 files=File(filename="tokens.txt", content="\n".join(tokens)),
                 public=True
             )
-
-            split_token = tokens[0].split(".")
-            try:
-                user_bytes = split_token[0].encode()
-                user_id_decoded = base64.b64decode(user_bytes)
-                uid = user_id_decoded.decode("ascii")
-            except Exception:
-                uid = 0
             embed = discord.Embed(
                 description=(
-                    f"Hey {message.author.name},\n"
-                    f"It appears that you posted a Discord authentication token here. I uploaded it [here.]({gist})\n"
-                    f"You can get a new token [here.](https://discord.com/developers/applications/{uid}/bot)"
+                    f"Hey {message.author.name}, "
+                    "I found Discord authentication tokens in your message. "
+                    f"It was [uploaded to a Gist.]({gist.html_url})\n"
                 ),
                 color=discord.Color.red(),
                 timestamp=datetime.datetime.now(datetime.timezone.utc),
@@ -78,14 +79,11 @@ class BotLogs(core.Cog):
                 name=message.author, icon_url=message.author.display_avatar.url
             )
             mentions = discord.AllowedMentions.all()
-            try:
-                if message.guild is not None:
-                    return
-                await message.reply(
-                    embed=embed, allowed_mentions=mentions, mention_author=True
-                )
-            except discord.Forbidden:
+            if message.guild is None:
                 return
+            await message.reply(
+                embed=embed, allowed_mentions=mentions, mention_author=True
+            )
 
     @core.Cog.listener("on_message_delete")
     @core.Cog.listener("on_bulk_message_delete")

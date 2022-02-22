@@ -16,8 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from utils import AvimetryBot
+from core.avimetry import Bot
 
 if __name__ == "__main__":
-    avi = AvimetryBot()
+    avi = Bot()
     avi.run()

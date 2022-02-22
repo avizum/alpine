@@ -16,31 +16,42 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
 import asyncio
 import datetime
 import importlib
 import math
 import sys
+from typing import List
+from difflib import get_close_matches
 
 import discord
-import jishaku
 import psutil
 import toml
 import utils
+from asyncpg import Record
 from discord.ext import commands, menus
 from jishaku import Feature
 from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
+from jishaku.codeblocks import codeblock_converter
 from jishaku.flags import Flags
 from jishaku.models import copy_context_with
+from jishaku.modules import package_version
 from jishaku.paginators import PaginatorInterface
+from jishaku.repl import AsyncCodeExecutor, get_var_dict_from_ctx
+from jishaku.exception_handling import ReplResponseReactor
+from jishaku.functools import AsyncSender
+from importlib.metadata import distribution, packages_distributions
 
 import core
-from utils import AvimetryBot, AvimetryContext, CogConverter, timestamp
+from core import Bot, Context
+from utils import timestamp
 from utils.converters import ModReason
-from utils.paginators import AvimetryPages, PaginatorEmbed
+from utils.paginators import Paginator, PaginatorEmbed
 
 
-def naturalsize(size_in_bytes: int):
+def naturalsize(size_in_bytes: int) -> str:
     """
     Converts a number of bytes to an appropriately-scaled unit
     E.g.:
@@ -53,14 +64,26 @@ def naturalsize(size_in_bytes: int):
 
     return f"{size_in_bytes / (1024 ** power):.2f} {units[power]}"
 
+class CogConverter(commands.Converter):
+    async def convert(self, ctx: Context, argument):
+        exts = []
+        if argument in ["~", "*", "a", "all"]:
+            exts.extend(ctx.bot.extensions)
+        elif argument not in ctx.bot.extensions:
+            arg = get_close_matches(argument, ctx.bot.extensions)
+            if arg:
+                exts.append(arg[0])
+        else:
+            exts.append(argument)
+        return exts
 
 class ErrorSource(menus.ListPageSource):
-    def __init__(self, ctx: AvimetryContext, errors, *, title="Errors", per_page=1):
+    def __init__(self, ctx: Context, errors: List[Record], *, title: str = "Errors", per_page: int = 1) -> None:
         super().__init__(entries=errors, per_page=per_page)
         self.ctx = ctx
         self.title = title
 
-    async def format_page(self, menu, page):
+    async def format_page(self, menu: menus.Menu, page: List[Record]) -> discord.Embed:
         embed = discord.Embed(title=self.title, color=await self.ctx.fetch_color())
         for error in page:
             embed.add_field(
@@ -70,13 +93,12 @@ class ErrorSource(menus.ListPageSource):
             )
         return embed
 
-
 class GuildPageSource(menus.ListPageSource):
-    def __init__(self, ctx: AvimetryContext, guilds: list[discord.Guild]):
+    def __init__(self, ctx: Context, guilds: List[discord.Guild]) -> None:
         self.ctx = ctx
         super().__init__(guilds, per_page=2)
 
-    async def format_page(self, menu, page):
+    async def format_page(self, menu: menus.Menu, page: List[discord.Guild]) -> discord.Embed:
         embed = PaginatorEmbed(ctx=self.ctx)
         for guild in page:
             embed.add_field(
@@ -91,13 +113,12 @@ class GuildPageSource(menus.ListPageSource):
             )
         return embed
 
-
 class BlacklistedPageSource(menus.ListPageSource):
-    def __init__(self, ctx: AvimetryContext, blacklisted):
+    def __init__(self, ctx: Context, blacklisted: List[int]) -> None:
         self.ctx = ctx
         super().__init__(blacklisted, per_page=2)
 
-    async def format_page(self, menu, page):
+    async def format_page(self, menu: menus.Menu, page: List[int]) -> discord.Embed:
         embed = PaginatorEmbed(ctx=self.ctx, title="Blacklisted Users")
         for entry in page:
             user = self.ctx.bot.get_user(entry)
@@ -105,20 +126,20 @@ class BlacklistedPageSource(menus.ListPageSource):
             embed.add_field(name=f"{user}({user.id})" if user else entry, value=f"[Reason]\n{bl_entry}", inline=False)
         return embed
 
-
 class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     """
     Advanced debug cog for bot Developers.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, bot: Bot, **kwargs) -> None:
         self.emoji = "<:jishaku:913256121542791178>"
-        super().__init__(*args, **kwargs)
+        self.bot = bot
+        super().__init__(bot=bot, **kwargs)
         for i in self.walk_commands():
-            i.user_permissions = ["Bot Owner"]
+            i.member_permissions = ["Bot Owner"]
 
     @core.Cog.listener()
-    async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member):
+    async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member) -> None:
         waste = "\U0001f5d1\U0000fe0f"
         if (
             reaction.emoji == waste
@@ -133,20 +154,33 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         hidden=Flags.HIDE,
         invoke_without_command=True,
         ignore_extra=False,
-        extras={"user_permissions": ["bot_owner"]},
+        extras={"member_permissions": ["bot_owner"]},
     )
-    async def jsk(self, ctx: AvimetryContext):
+    async def jsk(self, ctx: Context):
         """
         The Jishaku debug and diagnostic commands.
 
         This command on its own gives a status brief.
         All other functionality is within its subcommands.
         """
+        distributions = [
+            dist for dist in packages_distributions()["discord"]
+            if any(
+                file.parts == ("discord", "__init__.py")
+                for file in distribution(dist).files
+            )
+        ]
+
+        if distributions:
+            dist_version = f"{distributions[0]} `{package_version(distributions[0])}`"
+        else:
+            dist_version = f"unknown `{discord.__version__}`"
+
         summary = [
-            f"Jishaku `v{jishaku.__version__}`, discord.py `v{discord.__version__}`, "
+            f"Jishaku `v{package_version('jishaku')}`, {dist_version}, "
             f"Python `{sys.version}` on `{sys.platform}`, ".replace("\n", ""),
             f"Jishaku was loaded {timestamp(self.load_time, 'R')} "
-            f"and module was loaded {timestamp(self.start_time, 'R')}.",
+            f"and cog was loaded {timestamp(self.start_time, 'R')}.",
             "",
         ]
         if psutil:
@@ -167,23 +201,20 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                         name = proc.name()
                         pid = proc.pid
                         tc = proc.num_threads()
-                        summary.append(
-                            f"This process is running on Process ID `{pid}` (`{name}`) with {tc} threads."
-                        )
+
+                        summary.append(f"This process is running on  PID `{pid}` (`{name}`) with {tc} threads.")
                     except psutil.AccessDenied:
                         pass
                     summary.append("")
 
             except psutil.AccessDenied:
-                summary.append(
-                    "psutil is installed but this process does not have access to display this information"
-                )
+                summary.append("psutil is installed but this process does not have access to display this information")
                 summary.append("")
 
-        guilds = f"{len(self.bot.guilds)} guilds"
-        humans = f"{sum(not m.bot for m in self.bot.users)} humans"
-        bots = f"{sum(m.bot for m in self.bot.users)} bots"
-        users = f"{len(self.bot.users)} users"
+        guilds = f"{len(self.bot.guilds):,} guilds"
+        humans = f"{sum(not m.bot for m in self.bot.users):,} humans"
+        bots = f"{sum(m.bot for m in self.bot.users):,} bots"
+        users = f"{len(self.bot.users):,} users"
 
         cache_summary = f"can see {guilds}, {humans}, and {bots}, totaling to {users}."
 
@@ -191,16 +222,18 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             if len(self.bot.shards) > 20:
                 summary.append(
                     f"This bot is automatically sharded ({len(self.bot.shards)} shards of {self.bot.shard_count}) "
-                    f"{cache_summary}"
+                    f"and {cache_summary}"
                 )
             else:
                 shard_ids = ", ".join(str(i) for i in self.bot.shards.keys())
                 summary.append(
-                    f"This bot is automatically sharded (Shards {shard_ids} of {self.bot.shard_count}) {cache_summary}"
+                    f"This bot is automatically sharded (Shards {shard_ids} of {self.bot.shard_count})"
+                    f"and {cache_summary}"
                 )
         elif self.bot.shard_count:
             summary.append(
-                f"This bot is manually sharded (Shard {self.bot.shard_id} of {self.bot.shard_count}) {cache_summary}"
+                f"This bot is manually sharded (Shard {self.bot.shard_id} of {self.bot.shard_count})"
+                f"and {cache_summary}"
             )
         else:
             summary.append(f"This bot is not sharded and {cache_summary}")
@@ -213,28 +246,49 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             message_cache = "Message cache is not enabled."
         summary.append(message_cache)
 
-        if discord.version_info >= (1, 5, 0):
-            presence_intent = f"Presences intent `{'enabled' if self.bot.intents.presences else 'disabled'}`"
-            members_intent = f"Members intent `{'enabled' if self.bot.intents.members else 'disabled'}`"
-            message_intent = f"Message intent `{'enabled' if self.bot.intents.messages else 'disabled'}`"
-            summary.append(f"{presence_intent}, {members_intent} and {message_intent}.")
-        else:
-            guild_subs = self.bot._connection.guild_subscriptions
-            guild_subscriptions = (
-                f"`guild subscriptions` are `{'enabled' if guild_subs else 'disabled'}`"
-            )
-            summary.append(f"{message_cache} and {guild_subscriptions}.")
+        presence_intent = f"Presences intent `{'enabled' if self.bot.intents.presences else 'disabled'}`"
+        members_intent = f"Members intent `{'enabled' if self.bot.intents.members else 'disabled'}`"
+        message_intent = f"Message intent `{'enabled' if self.bot.intents.messages else 'disabled'}`"
+        summary.append(f"{presence_intent}, {members_intent} and {message_intent}.")
         summary.append("")
 
-        summary.append(
-            f"Average websocket latency: `{round(self.bot.latency * 1000)}ms`"
-        )
+        summary.append(f"Average websocket latency: `{round(self.bot.latency * 1000)}ms`")
 
         jishaku_embed = discord.Embed(description="\n".join(summary))
         await ctx.send(embed=jishaku_embed)
 
+    @Feature.Command(parent="jsk", name="py", aliases=["python"])
+    async def jsk_python(self, ctx: Context, *, argument: codeblock_converter):
+        """
+        Direct evaluation of Python code.
+        """
+
+        arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
+        message_reference = getattr(ctx.message.reference, "resolved", None)
+        arg_dict["reference"] = message_reference
+        arg_dict["ref"] = message_reference
+        arg_dict["core"] = core
+        arg_dict["_"] = self.last_result
+
+        scope = self.scope
+
+        try:
+            async with ReplResponseReactor(ctx.message):
+                with self.submit(ctx):
+                    executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict)
+                    async for send, result in AsyncSender(executor):
+                        if result is None:
+                            continue
+
+                        self.last_result = result
+
+                        send(await self.jsk_python_result_handling(ctx, result))
+
+        finally:
+            scope.clear_intersection(arg_dict)
+
     @Feature.Command(parent="jsk", name="shutdown", aliases=["reboot", "logout", "rb", "rs"])
-    async def jsk_shutdown(self, ctx: AvimetryContext):
+    async def jsk_shutdown(self, ctx: Context):
         """
         Reboot the bot.
         """
@@ -258,7 +312,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             )
 
     @Feature.Command(parent="jsk", name="battery")
-    async def jsk_battery(self, ctx: AvimetryContext):
+    async def jsk_battery(self, ctx: Context):
         """
         Shows the system battery.
         """
@@ -271,7 +325,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
     @Feature.Command(parent="jsk", name="su")
     async def jsk_su(
-        self, ctx: AvimetryContext, member: discord.Member, *, command_string
+        self, ctx: Context, member: discord.Member, *, command_string
     ):
         """
         Run a command as someone else.
@@ -284,7 +338,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         return await alt_ctx.command.invoke(alt_ctx)
 
     @Feature.Command(parent="jsk", name="sudo", aliases=["admin", "bypass"])
-    async def jsk_sudo(self, ctx: AvimetryContext, *, command_string):
+    async def jsk_sudo(self, ctx: Context, *, command_string):
         """
         Run a command, bypassing all checks.
         """
@@ -295,7 +349,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
     @Feature.Command(parent="jsk", name="in", aliases=["channel", "inside"])
     async def jsk_in(
-        self, ctx: AvimetryContext, channel: discord.TextChannel, *, command_string
+        self, ctx: Context, channel: discord.TextChannel, *, command_string
     ):
         """
         Run a command in another channel.
@@ -308,7 +362,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         return await alt_ctx.command.invoke(alt_ctx)
 
     @Feature.Command(parent="jsk", name="tasks")
-    async def jsk_tasks(self, ctx: AvimetryContext):
+    async def jsk_tasks(self, ctx: Context):
         """
         Shows the currently running jishaku tasks.
         """
@@ -328,7 +382,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         return await interface.send_to(ctx)
 
     @Feature.Command(parent="jsk")
-    async def news(self, ctx: AvimetryContext, *, news: str):
+    async def news(self, ctx: Context, *, news: str):
         """
         Change the bot's current news.
         """
@@ -344,7 +398,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.send(embed=embed)
 
     @Feature.Command(parent="jsk")
-    async def ilreload(self, ctx: AvimetryContext, module: str):
+    async def ilreload(self, ctx: Context, module: str):
         """
         Reload a module using importlib.
         """
@@ -355,7 +409,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             await ctx.send(str(exc))
 
     @Feature.Command(parent="jsk", name="load", aliases=["l"])
-    async def jsk_load(self, ctx: AvimetryContext, *module: str):
+    async def jsk_load(self, ctx: Context, *module: str):
         """
         Load cogs.
         """
@@ -375,7 +429,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.send(embed=embed)
 
     @Feature.Command(parent="jsk", name="unload", aliases=["u"])
-    async def jsk_unload(self, ctx: AvimetryContext, module: CogConverter):
+    async def jsk_unload(self, ctx: Context, module: CogConverter):
         """
         Unload cogs.
         """
@@ -392,7 +446,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.send(embed=embed)
 
     @Feature.Command(parent="jsk", name="reload", aliases=["r"])
-    async def jsk_reload(self, ctx: AvimetryContext, module: CogConverter):
+    async def jsk_reload(self, ctx: Context, module: CogConverter):
         """
         Reload cogs.
         """
@@ -406,11 +460,11 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                     f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```'
                 )
         description = "\n".join(reload_list)
-        embed = discord.Embed(title="Reloaded cogs", description=description)
+        embed = discord.Embed(title="Reloaded Extensions", description=description)
         await ctx.send(embed=embed)
 
     @Feature.Command(parent="jsk")
-    async def sync(self, ctx: AvimetryContext):
+    async def sync(self, ctx: Context):
         """
         Pulls from GitHub then reloads all modules.
 
@@ -451,7 +505,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await edit_sync.edit(embed=sync_embed)
 
     @Feature.Command(parent="jsk")
-    async def leave(self, ctx: AvimetryContext, guild: discord.Guild):
+    async def leave(self, ctx: Context, guild: discord.Guild):
         """
         Command to leave a guild that may be abusing the bot.
         """
@@ -466,18 +520,18 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await conf.message.edit(content="Okay, Aborted.")
 
     @Feature.Command(parent="jsk", aliases=["bl"], invoke_without_command=True)
-    async def blacklist(self, ctx: AvimetryContext):
+    async def blacklist(self, ctx: Context):
         """
         Show blacklisted users on the bot.
         """
         blacklist_ids = list(ctx.cache.blacklist.keys())
         source = BlacklistedPageSource(ctx, blacklist_ids)
-        pages = AvimetryPages(source, ctx=ctx, delete_message_after=True)
+        pages = Paginator(source, ctx=ctx, delete_message_after=True)
         await pages.start()
 
     @Feature.Command(parent="blacklist", name="add", aliases=["a"])
     async def blacklist_add(
-        self, ctx: AvimetryContext, user: discord.User, *, reason: ModReason = None
+        self, ctx: Context, user: discord.User, *, reason: ModReason = None
     ):
         """
         Adds a user to the global blacklist.
@@ -501,7 +555,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
     @Feature.Command(parent="blacklist", name="remove", aliases=["r"])
     async def blacklist_remove(
-        self, ctx: AvimetryContext, user: discord.User, *, reason=None
+        self, ctx: Context, user: discord.User, *, reason=None
     ):
         """
         Removes a user from the global blacklist.
@@ -517,7 +571,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
     @Feature.Command(parent="blacklist", name="update", aliases=["up"])
     async def blacklist_update(
-        self, ctx: AvimetryContext, user: discord.User, *, new_reason: str
+        self, ctx: Context, user: discord.User, *, new_reason: str
     ):
         try:
             ctx.cache.blacklist[user.id]
@@ -527,7 +581,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await self.bot.pool.execute(query, user.id, new_reason)
 
     @Feature.Command(parent="jsk")
-    async def cleanup(self, ctx: AvimetryContext, amount: int = 15):
+    async def cleanup(self, ctx: Context, amount: int = 15):
         """
         Delete only the bot messages.
 
@@ -543,7 +597,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.can_delete(embed=await cog.do_affected(purged))
 
     @Feature.Command(parent="jsk")
-    async def maintenance(self, ctx: AvimetryContext, toggle: bool):
+    async def maintenance(self, ctx: Context, toggle: bool):
         """
         Enables maintenance mode.
 
@@ -554,7 +608,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.send(f"Maintenance mode has been {match[toggle]}")
 
     @Feature.Command(parent="jsk", aliases=["cog", "extensions", "extension", "ext"])
-    async def cogs(self, ctx: AvimetryContext, cog: str = None):
+    async def cogs(self, ctx: Context, cog: str = None):
         """
         Shows all the loaded cogs and how long ago they were loaded.
         """
@@ -571,13 +625,13 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.send(embed=embed)
 
     @Feature.Command(parent="jsk")
-    async def guilds(self, ctx: AvimetryContext):
+    async def guilds(self, ctx: Context):
         source = GuildPageSource(ctx, guilds=self.bot.guilds)
-        pages = AvimetryPages(source, ctx=ctx, disable_view_after=True)
+        pages = Paginator(source, ctx=ctx, disable_view_after=True)
         await pages.start()
 
     @Feature.Command(parent="jsk", invoke_without_command=True, aliases=["error"])
-    async def errors(self, ctx: AvimetryContext):
+    async def errors(self, ctx: Context):
         """
         Show all the errors in the bot.
         """
@@ -589,7 +643,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 title="Errors", description="No active errors have been found."
             )
             return await ctx.send(embed=embed)
-        menu = AvimetryPages(
+        menu = Paginator(
             ErrorSource(ctx, errors, title="Unfixed errors", per_page=4),
             ctx=ctx,
             delete_message_after=True,
@@ -597,7 +651,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         return await menu.start()
 
     @Feature.Command(parent="errors")
-    async def fixed(self, ctx: AvimetryContext):
+    async def fixed(self, ctx: Context):
         """
         Shows all fixed errors.
         """
@@ -609,7 +663,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 title="Errors", description="No fixed errors have been found."
             )
             return await ctx.send(embed=embed)
-        menu = AvimetryPages(
+        menu = Paginator(
             ErrorSource(ctx, errors, title="Fixed errors", per_page=4),
             ctx=ctx,
             delete_message_after=True,
@@ -629,7 +683,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 await asyncio.sleep(1)
 
     @Feature.Command(parent="errors")
-    async def fix(self, ctx: AvimetryContext, *error_id: int):
+    async def fix(self, ctx: Context, *error_id: int):
         """
         Marks an error as fixed.
 
@@ -657,7 +711,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         aliases=["dmsg", "dmessage", "delmsg", "deletem", "deletemsg", "delmessage"],
     )
     async def deletemessage(
-        self, ctx: AvimetryContext, message: discord.Message = None
+        self, ctx: Context, message: discord.Message = None
     ):
         if message is None and ctx.reference is not None:
             if ctx.reference.author == ctx.me:
@@ -671,5 +725,5 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         return await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
 
 
-def setup(bot: AvimetryBot):
+def setup(bot: Bot):
     bot.add_cog(Owner(bot=bot))

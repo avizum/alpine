@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import discord
 
 
-class AvimetryView(discord.ui.View):
+class View(discord.ui.View):
     def __init__(self, *, member: discord.Member, timeout: int = 180):
         self.member = member
         super().__init__(timeout=timeout)

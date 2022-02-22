@@ -5,13 +5,13 @@ import discord
 from discord.ext import commands
 
 from .core import Command
-from utils.exceptions import NotGuildOwner
+from.exceptions import NotGuildOwner
 
 
-def check(predicate, user_permissions=None, bot_permissions=None):
+def check(predicate, member_permissions=None, bot_permissions=None):
     def decorator(func):
-        if user_permissions:
-            func.user_permissions = user_permissions
+        if member_permissions:
+            func.member_permissions = member_permissions
         if bot_permissions:
             func.bot_permissions = bot_permissions
         if isinstance(func, Command):
@@ -56,7 +56,7 @@ def has_permissions(**perms):
 
         raise commands.MissingPermissions(missing)
 
-    return check(predicate, user_permissions=perms)
+    return check(predicate, member_permissions=perms)
 
 
 def bot_has_permissions(**perms):
@@ -100,7 +100,7 @@ def is_owner():
             raise commands.NotOwner("You do not own this bot.")
         return True
 
-    return check(predicate, user_permissions=["bot_owner"])
+    return check(predicate, member_permissions=["bot_owner"])
 
 
 def is_guild_owner():
@@ -109,4 +109,4 @@ def is_guild_owner():
             raise NotGuildOwner
         return True
 
-    return check(predicate, user_permissions=["guild_owner"])
+    return check(predicate, member_permissions=["guild_owner"])
