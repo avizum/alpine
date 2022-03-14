@@ -21,6 +21,7 @@ from __future__ import annotations
 import asyncio
 import datetime
 import importlib
+import inspect
 import math
 import sys
 from typing import List
@@ -268,6 +269,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         arg_dict["reference"] = message_reference
         arg_dict["ref"] = message_reference
         arg_dict["core"] = core
+        arg_dict["source"] = inspect.getsource
         arg_dict["_"] = self.last_result
 
         scope = self.scope
@@ -324,9 +326,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         )
 
     @Feature.Command(parent="jsk", name="su")
-    async def jsk_su(
-        self, ctx: Context, member: discord.Member, *, command_string
-    ):
+    async def jsk_su(self, ctx: Context, member: discord.Member, *, command_string):
         """
         Run a command as someone else.
         """
@@ -348,9 +348,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         return await alt_ctx.command.reinvoke(alt_ctx)
 
     @Feature.Command(parent="jsk", name="in", aliases=["channel", "inside"])
-    async def jsk_in(
-        self, ctx: Context, channel: discord.TextChannel, *, command_string
-    ):
+    async def jsk_in(self, ctx: Context, channel: discord.TextChannel, *, command_string):
         """
         Run a command in another channel.
         """
@@ -513,7 +511,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             f"Are you sure you want me to leave {guild.name} ({guild.id})?"
         )
         if conf.result:
-            await ctx.guild.leave()
+            await guild.leave()
             return await ctx.message.add_reaction(
                 self.bot.emoji_dictionary["green_tick"]
             )
@@ -530,55 +528,60 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await pages.start()
 
     @Feature.Command(parent="blacklist", name="add", aliases=["a"])
-    async def blacklist_add(
-        self, ctx: Context, user: discord.User, *, reason: ModReason = None
-    ):
+    async def blacklist_add(self, ctx: Context, user: discord.User, *, reason: ModReason = None):
         """
-        Adds a user to the global blacklist.
+        Add a user to the global blacklist.
         """
-        reason = reason or f"{ctx.author}: No reason provided, Ask in support server."
+        reason = reason or f"{ctx.author}: No reason provided."
         if user.id in self.bot.owner_ids:
-            return await ctx.send("Nope, won't do that.")
-        try:
-            ctx.cache.blacklist[user.id]
+            return await ctx.send("Can not blacklist that user.")
+        blacklist_user = ctx.cache.blacklist.get(user.id)
+        if blacklist_user:
             return await ctx.send(f"{user} is already blacklisted.")
-        except KeyError:
+        else:
             query = "INSERT INTO blacklist VALUES ($1, $2)"
             await self.bot.pool.execute(query, user.id, reason)
             ctx.cache.blacklist[user.id] = reason
+            embed = discord.Embed(
+                title="Updated Blacklist",
+                description=f"Added {user} to the blacklist\nReason: `{reason}`"
+            )
+            await ctx.send(embed=embed)
 
-        embed = discord.Embed(
-            title="Blacklisted User",
-            description=(f"Added {user} to the blacklist.\n" f"Reason: `{reason}`"),
-        )
-        await ctx.send(embed=embed)
 
     @Feature.Command(parent="blacklist", name="remove", aliases=["r"])
-    async def blacklist_remove(
-        self, ctx: Context, user: discord.User, *, reason=None
-    ):
+    async def blacklist_remove(self, ctx: Context, user: discord.User, *, reason: ModReason = None):
         """
         Removes a user from the global blacklist.
         """
-        try:
-            ctx.cache.blacklist[user.id]
-        except KeyError:
-            return await ctx.send(f"{user} is not blacklisted")
-        query = "DELETE FROM blacklist WHERE user_id=$1"
-        await self.bot.pool.execute(query, user.id)
-        self.bot.cache.blacklist.pop(user.id)
-        await ctx.send(f"Unblacklisted {user}. Reason: {reason}")
+        reason = reason or f"{ctx.author}: No reason provided."
+        blacklist_user = ctx.cache.blacklist.get(user.id)
+        if blacklist_user:
+            query = "DELETE FROM blacklist WHERE user_id = $1"
+            await self.bot.pool.execute(query, user.id)
+            del ctx.cache.blacklist[user.id]
+            embed = discord.Embed(
+                title="Updated Blacklist",
+                description=f"Removed {user} from the blacklist.\nReason: `{reason}`"
+            )
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send(f"{user} is not blacklisted.")
 
     @Feature.Command(parent="blacklist", name="update", aliases=["up"])
-    async def blacklist_update(
-        self, ctx: Context, user: discord.User, *, new_reason: str
-    ):
-        try:
-            ctx.cache.blacklist[user.id]
-        except KeyError:
-            return await ctx.send(f"{user} is not blacklisted.")
-        query = "UPDATE blacklist SET reason = $2 WHERE user_id=$1"
-        await self.bot.pool.execute(query, user.id, new_reason)
+    async def blacklist_update(self, ctx: Context, user: discord.User, *, reason: ModReason):
+        blacklist_user = ctx.cache.blacklist.get(user.id)
+        if blacklist_user:
+            query = "UPDATE blacklist SET reason = $2 WHERE user_id = $1"
+            await self.bot.pool.execute(query, user.id, reason)
+            ctx.cache.blacklist[user.id] = reason
+            embed = discord.Embed(
+                title="Updated Blacklist",
+                description=f"Updated {user} blacklist reason.\nOld Reason: `{blacklist_user}`\nNew Reason: `{reason}`"
+            )
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send(f"{user} is not blacklisted.")
 
     @Feature.Command(parent="jsk")
     async def cleanup(self, ctx: Context, amount: int = 15):
@@ -723,7 +726,3 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         if message and message.author == ctx.me:
             await message.delete()
         return await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
-
-
-def setup(bot: Bot):
-    bot.add_cog(Owner(bot=bot))

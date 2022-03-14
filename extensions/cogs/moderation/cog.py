@@ -145,7 +145,7 @@ class Moderation(core.Cog):
         reason = flags.reason or f"{ctx.author}: No reason provided"
         if flags.delete_days > 7:
             raise commands.BadArgument("Delete days must be between 0 and 7 days.")
-        await member.ban(reason=reason, delete_message_days=flags.delete_days)
+        await ctx.guild.ban(member, reason=reason, delete_message_days=flags.delete_days)
         kick_embed = discord.Embed(title="Banned Member", color=discord.Color.green())
         kick_embed.description = f"**{member}** has been banned from the server."
         if flags.dm:
@@ -237,7 +237,7 @@ class Moderation(core.Cog):
         dur = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(
             seconds=duration
         )
-        await member.edit(timeout_until=dur, reason=reason)
+        await member.edit(timed_out_until=dur, reason=reason)
         embed = discord.Embed(
             title="Muted Member",
             description=f"{member.mention} will be muted until {discord.utils.format_dt(dur)}.\nReason: {reason}",
@@ -255,7 +255,7 @@ class Moderation(core.Cog):
         You can not unmute people that are higher than you in the role hierarchy.
         """
         reason = reason or f"{ctx.author}: No reason provided."
-        await member.edit(timeout_until=None, reason=reason)
+        await member.edit(timed_out_until=None, reason=reason)
         await ctx.send(f"Unmuted {member}.")
 
     @core.command()
@@ -277,7 +277,7 @@ class Moderation(core.Cog):
             delete_after=True,
         )
         if conf.result:
-            await ctx.author.edit(timeout_until=dur, reason=f"Self mute. Expires {dur}")
+            await ctx.author.edit(timed_out_until=dur, reason=f"Self mute. Expires {dur}")
             embed = discord.Embed(
                 title="Self muted",
                 description="You have been muted. Do not complain to the moderators about your decision.",
@@ -522,7 +522,3 @@ class Moderation(core.Cog):
         nickembed.add_field(name="From", value=f"{oldnick}", inline=True)
         nickembed.add_field(name="To", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)
-
-
-def setup(bot: Bot):
-    bot.add_cog(Moderation(bot))

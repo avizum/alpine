@@ -15,6 +15,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+from __future__ import annotations
+
 
 import datetime
 
@@ -23,12 +25,12 @@ from discord.ext import commands
 from discord.ext.commands import DisabledCommand, CheckFailure
 
 
-def to_list(thing):
+def to_list(thing) -> list[str]:
     return [thing] if isinstance(thing, str) else list(thing)
 
 
 class Command(commands.Command):
-    def __init__(self, func, **kwargs):
+    def __init__(self, func, **kwargs) -> None:
         self.member_permissions = to_list(
             kwargs.get("member_permissions")
             or getattr(func, "member_permissions", ["send_messages"])
@@ -81,11 +83,11 @@ class Command(commands.Command):
 
 
 class Group(Command, commands.Group):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.invoke_without_command = kwargs.get("invoke_without_command", True)
 
-    def command(self, *args, **kwargs):
+    def command(self, *args, **kwargs) -> Command:
         def decorator(func):
             kwargs.setdefault("parent", self)
             result = command(*args, **kwargs)(func)
@@ -94,7 +96,7 @@ class Group(Command, commands.Group):
 
         return decorator
 
-    def group(self, *args, **kwargs):
+    def group(self, *args, **kwargs) -> Group:
         def decorator(func):
             kwargs.setdefault("parent", self)
             result = group(*args, **kwargs)(func)
@@ -105,12 +107,12 @@ class Group(Command, commands.Group):
 
 
 class Cog(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
         self.bot = bot
         self.load_time = datetime.datetime.now(tz=datetime.timezone.utc)
 
 
-def command(name=None, cls=None, **kwargs):
+def command(name=None, cls=None, **kwargs) -> Command:
     if cls is None:
         cls = Command
 
@@ -122,5 +124,5 @@ def command(name=None, cls=None, **kwargs):
     return decorator
 
 
-def group(name=None, **kwargs):
+def group(name=None, **kwargs) -> Group:
     return command(name=name, cls=Group, **kwargs)

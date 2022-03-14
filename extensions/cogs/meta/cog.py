@@ -610,7 +610,3 @@ class Meta(core.Cog):
         Congrats have a cookie! 🍪
         """
         return
-
-
-async def setup(bot: Bot):
-    await bot.add_cog(Meta(bot))

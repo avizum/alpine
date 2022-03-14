@@ -121,7 +121,7 @@ class Images(core.Cog):
         meth = await self.do_dagpi(ctx, ImageFeatures.pixel(), item, False)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
-    @core.command(name="mirror", enabled=False)
+    @core.command(name="mirror")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_mirror(self, ctx: Context, *, item=None):
         """
@@ -130,7 +130,7 @@ class Images(core.Cog):
         meth = await self.do_dagpi(ctx, ImageFeatures.mirror(), item, False)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
-    @core.command(name="flip", enabled=False)
+    @core.command(name="flip")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_flip(self, ctx: Context, item=None):
         """
@@ -175,7 +175,7 @@ class Images(core.Cog):
         meth = await self.do_dagpi(ctx, ImageFeatures.triggered(), item, True)
         await self.dag_embed(ctx, meth, ctx.command.name)
 
-    @core.command(name="expand", enabled=False)
+    @core.command(name="expand")
     @commands.cooldown(2, 10, commands.BucketType.member)
     async def dag_expand(self, ctx: Context, *, item=None):
         """

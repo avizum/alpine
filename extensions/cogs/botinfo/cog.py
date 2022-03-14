@@ -236,7 +236,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=embed)
 
     @core.command()
-    async def invite(self, ctx: Context):
+    async def invite(self, ctx: Context, permissions: int):
         """
         Invite me to your server.
 
@@ -252,7 +252,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         view.add_item(
             discord.ui.Button(
                 style=discord.ButtonStyle.link,
-                url=self.bot.invite,
+                url=discord.utils.oauth_url(self.bot.user.id, permissions=permissions),
                 label="Invite me",
             )
         )
@@ -266,7 +266,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=invite_embed, view=view)
 
     @core.command()
-    async def invitebot(self, ctx: Context, bot: Union[discord.Member, discord.User]):
+    async def invitebot(self, ctx: Context, bot: Union[discord.Member, discord.User], permissions: str):
         view = discord.ui.View(timeout=None)
         if bot.bot:
             invite_embed = discord.Embed(title=f"{bot.name} Invite")
@@ -296,7 +296,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
                     f"Invite {bot.name} to your server! Here is the invite link."
                 )
                 link = str(
-                    discord.utils.oauth_url(bot.id, permissions=discord.Permissions(8))
+                    discord.utils.oauth_url(bot.id, permissions=discord.Permissions(permissions))
                 )
                 view.add_item(
                     discord.ui.Button(
@@ -572,7 +572,3 @@ class BotInfo(commands.Cog, name="Bot Info"):
         1/x: Click on it to choose a page to jump to.
         """
         return
-
-
-def setup(bot: Bot):
-    bot.add_cog(BotInfo(bot))
