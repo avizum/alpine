@@ -612,5 +612,5 @@ class Meta(core.Cog):
         return
 
 
-def setup(bot: Bot):
-    bot.add_cog(Meta(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(Meta(bot))

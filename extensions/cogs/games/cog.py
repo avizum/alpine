@@ -418,7 +418,3 @@ class Games(core.Cog):
             await ctx.send(a)
         except Exception as e:
             await ctx.send(e)
-
-
-def setup(bot: Bot):
-    bot.add_cog(Games(bot))

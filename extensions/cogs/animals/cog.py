@@ -114,7 +114,3 @@ class Animals(core.Cog):
         embed = discord.Embed(title="Here is a duck")
         embed.set_image(url=image["url"])
         await ctx.send(embed=embed)
-
-
-def setup(bot: Bot):
-    bot.add_cog(Animals(bot))

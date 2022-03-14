@@ -80,7 +80,7 @@ class Setup(core.Cog):
                 return
             await self.request_wh.send(embed=embed)
         try:
-            if message.channel.id == 817093957322407956:
+            if message.channel.id == 945187311509962782:
                 resolved = message.reference.resolved.embeds[0]
                 if resolved.footer.text.isdigit():
                     user = self.bot.get_user(int(resolved.footer.text))
@@ -112,7 +112,8 @@ class Setup(core.Cog):
         embed = discord.Embed(
             title="New guild", description="\n".join(summary), color=guild.owner.color
         )
-        embed.set_thumbnail(url=guild.icon.url)
+        if guild.icon:
+            embed.set_thumbnail(url=guild.icon.url)
         await self.guild_webhook.send(embed=embed, username="Joined Guild")
         if not guild.chunked:
             await guild.chunk()
@@ -171,7 +172,3 @@ class Setup(core.Cog):
         if not ctx.guild.chunked:
             await ctx.guild.chunk()
         self.bot.commands_ran += 1
-
-
-def setup(bot):
-    bot.add_cog(Setup(bot))

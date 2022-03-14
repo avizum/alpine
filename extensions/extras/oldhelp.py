@@ -337,5 +337,5 @@ class HelpCommand(core.Cog):
         self.bot.help_command = self.default
 
 
-def setup(bot):
-    bot.add_cog(HelpCommand(bot))
+async def setup(bot):
+    await bot.add_cog(HelpCommand(bot))

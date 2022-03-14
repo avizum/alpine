@@ -27,13 +27,15 @@ from typing import Union
 
 import discord
 import wavelink
+from wavelink import YouTubeTrack
 from discord.ext import commands
+from wavelink.ext import spotify
 
 import core
 from core import Bot, Context
 from utils import Paginator, format_seconds
 from .exceptions import NotInVoice
-from .music import Player, Track, IsResponding, SearchView, SearchSelect, PaginatorSource
+from .music import Player, Track, SpotifyTrack, YouTubePlaylist, SearchView, SearchSelect, PaginatorSource
 
 
 def in_voice():
@@ -109,7 +111,7 @@ class Music(core.Cog):
 
         if member == self.bot.user:
             if after.channel is None:
-                await player.teardown()
+                await player.disconnect()
 
         if member.bot:
             return
@@ -199,7 +201,7 @@ class Music(core.Cog):
 
         if self.is_privileged(ctx):
             await ctx.send("Goodbye! :wave:")
-            return await player.teardown()
+            return await player.disconnect()
 
         required = self.required(ctx)
         player.stop_votes.add(ctx.author)
@@ -218,7 +220,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["enqueue", "p"])
     @in_voice()
-    async def play(self, ctx: Context, *, query: str):
+    async def play(self, ctx: Context, *, query: YouTubeTrack | YouTubePlaylist | SpotifyTrack):
         """Play or queue a song with the given query."""
         player: Player = ctx.voice_client
 
@@ -229,49 +231,49 @@ class Music(core.Cog):
         if not player.channel:
             return
 
-        async with IsResponding("\U000025b6\U0000fe0f", ctx.message, self.bot):
-            tracks = await player.get_tracks(query)
-
-        if not tracks:
-            return await ctx.send("Could not find anything. Try again.")
-
-        if isinstance(tracks, wavelink.YouTubePlaylist):
-            for track in tracks.tracks:
-                track = Track(
-                    track.id, track.info, requester=ctx.author, thumb=track.thumb
-                )
-                await player.queue.put(track)
-
-            embed = discord.Embed(
-                title="Enqueued playlist",
-                description=(
-                    f"Playlist {tracks.name} with {len(tracks.tracks)} tracks added to the queue."
-                ),
-            )
-            if tracks.tracks[0].thumb:
-                embed.set_thumbnail(url=tracks.tracks[0].thumb)
-            await ctx.send(embed=embed)
-        elif isinstance(tracks, list):
-            for track in tracks:
-                track = Track(
-                    track.id, track.info, requester=ctx.author, thumb=track.thumb
-                )
-                await player.queue.put(track)
-            embed = discord.Embed(
-                title="Enqueued Spotify playlist",
-                description=(
-                    f"Spotify playlist with {len(tracks)} tracks added to the queue."
-                ),
-            )
-            if tracks[0].thumb:
-                embed.set_thumbnail(url=tracks[0].thumb)
-            await ctx.send(embed=embed)
-        else:
-            track = Track(
-                tracks.id, tracks.info, requester=ctx.author, thumb=tracks.thumb
-            )
-            await ctx.send(embed=await player.build_added(track))
+        if isinstance(query, wavelink.YouTubeTrack):
+            track = Track(query.id, query.info, requester=ctx.author, thumb=query.thumb)
             await player.queue.put(track)
+            await ctx.send(embed=await player.build_added(track))
+
+        elif isinstance(query, list):
+            if isinstance(query[0], wavelink.YouTubeTrack):
+                for track in query.tracks:
+                    track = Track(
+                        track.id, track.info, requester=ctx.author, thumb=track.thumb
+                    )
+                    await player.queue.put(track)
+
+                embed = discord.Embed(
+                    title="Enqueued YouTube playlist",
+                    description=(
+                        f"Playlist {query.name} with {len(query.tracks)} tracks added to the queue."
+                    ),
+                )
+                if query.tracks[0].thumb:
+                    embed.set_thumbnail(url=query.tracks[0].thumb)
+                await ctx.send(embed=embed)
+
+            elif isinstance(query[0], spotify.SpotifyTrack):
+                for track in query:
+                    track = Track(track.id, track.info, requester=ctx.author, thumb=track.thumb)
+
+                    await player.queue.put(track)
+                embed = discord.Embed(
+                    title="Enqueued Spotify playlist",
+                    description=(
+                        f"Spotify playlist with {len(query)} tracks added to the queue."
+                    ),
+                )
+                if query[0].thumb:
+                    embed.set_thumbnail(url=query[0].thumb)
+                await ctx.send(embed=embed)
+
+        elif isinstance(query, spotify.SpotifyTrack):
+            track = Track(query.id, query.info, requester=ctx.author, thumb=query.thumb)
+            await player.queue.put(track)
+            await ctx.send(await player.build_added(track))
+
 
         if not player.is_playing():
             await player.do_next()
@@ -727,5 +729,5 @@ class Music(core.Cog):
                 return await ctx.send(f"{member.mention} is now the DJ.")
 
 
-def setup(bot: Bot):
-    bot.add_cog(Music(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(Music(bot))

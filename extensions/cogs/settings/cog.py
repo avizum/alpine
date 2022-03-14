@@ -856,7 +856,3 @@ class Settings(core.Cog):
         if ctx.author.id != 750135653638865017:
             self.bot.owner_id = None
             self.bot.owner_ids = set()
-
-
-def setup(bot: Bot):
-    bot.add_cog(Settings(bot))

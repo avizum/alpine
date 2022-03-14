@@ -19,5 +19,5 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from .cog import Settings, Bot
 
 
-def setup(bot: Bot):
-    bot.add_cog(Settings(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(Settings(bot))

@@ -172,7 +172,3 @@ class ServerManagement(commands.Cog, name="Server Management"):
         reason = reason or f"{ctx.author}: No reason provided"
         r = await ctx.guild.create_role(name=name, color=color, reason=reason)
         await ctx.send(f"Created {r}")
-
-
-def setup(bot: Bot):
-    bot.add_cog(ServerManagement(bot))

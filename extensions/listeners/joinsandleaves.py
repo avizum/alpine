@@ -135,5 +135,5 @@ class JoinsAndLeaves(core.Cog):
         return await leave_channel.send(final)
 
 
-def setup(bot):
-    bot.add_cog(JoinsAndLeaves(bot))
+async def setup(bot):
+    await bot.add_cog(JoinsAndLeaves(bot))

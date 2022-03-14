@@ -397,5 +397,5 @@ class Fun(core.Cog):
         await ctx.send(file=file)
 
 
-def setup(bot: Bot):
-    bot.add_cog(Fun(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(Fun(bot))

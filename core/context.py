@@ -20,8 +20,7 @@ from __future__ import annotations
 import asyncio
 import datetime
 import re
-from datetime import timedelta
-from typing import List, Sequence, Union, TYPE_CHECKING
+from typing import List, Sequence, Union, Optional, TYPE_CHECKING
 
 import discord
 from asyncgist import File
@@ -37,11 +36,11 @@ emoji_regex = "<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22
 
 
 class TrashView(View):
-    def __init__(self, *, member: discord.Member, timeout: int = 60, ctx):
+    def __init__(self, *, member: discord.Member, timeout: int = 60, ctx: Context) -> None:
         self.ctx = ctx
         super().__init__(member=member, timeout=timeout)
 
-    async def stop(self):
+    async def stop(self) -> None:
         for button in self.children:
             button.disabled = True
         try:
@@ -50,7 +49,7 @@ class TrashView(View):
             pass
         super().stop()
 
-    async def on_timeout(self):
+    async def on_timeout(self) -> None:
         await self.stop()
 
     @discord.ui.button(emoji="\U0001f5d1", style=discord.ButtonStyle.danger)
@@ -104,11 +103,12 @@ class Context(commands.Context):
     def __init__(self, *, bot: Bot, **kwargs):
         super().__init__(bot=bot, **kwargs)
         self.bot: Bot = bot
-        self.locally_handled = None
-        self.tokens = []
-        self.tokens.extend(self.bot.settings["bot_tokens"].values())
-        self.tokens.extend(self.bot.settings["api_tokens"].values())
-        self.tokens.extend(self.bot.settings["webhooks"].values())
+        self.locally_handled: bool = None
+        tokens: List = []
+        tokens.extend(self.bot.settings["bot_tokens"].values())
+        tokens.extend(self.bot.settings["api_tokens"].values())
+        tokens.extend(self.bot.settings["webhooks"].values())
+        self.tokens: List = tokens
 
     @property
     def cache(self):
@@ -119,7 +119,7 @@ class Context(commands.Context):
         return self.bot.pool
 
     @property
-    def clean_prefix(self):
+    def clean_prefix(self) -> str:
         match = re.match(emoji_regex, self.prefix)
         if match:
             return re.sub(emoji_regex, match.group(2), self.prefix)
@@ -129,11 +129,11 @@ class Context(commands.Context):
         )
 
     @property
-    def content(self):
+    def content(self) -> str:
         return self.message.content
 
     @property
-    async def get_prefix(self):
+    async def get_prefix(self) -> str:
         get_prefix = await self.cache.get_guild_settings(self.guild.id)
         if get_prefix:
             prefix = get_prefix["prefixes"]
@@ -142,7 +142,7 @@ class Context(commands.Context):
         return f"`{'` | `'.join(prefix)}`"
 
     @property
-    def reference(self):
+    def reference(self) -> Optional[discord.Message]:
         ref = self.message.reference
         if isinstance(ref.resolved, discord.Message):
             return ref.resolved
@@ -247,111 +247,78 @@ class Context(commands.Context):
                 embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
             if not embed.color:
                 embed.color = await self.fetch_color()
-        if self._typing_task is not None:
-            self._typing_task.cancel()
-            self._typing_task = None
 
-        if self.interaction is None or (
-            self.interaction.response.responded_at is not None
-            and discord.utils.utcnow() - self.interaction.response.responded_at
-            >= timedelta(minutes=15)
+        if (
+            self.message.id in self.bot.command_cache
+            and self.message.edited_at
+            and not no_edit
         ):
-            if (
-                self.message.id in self.bot.command_cache
-                and self.message.edited_at
-                and not no_edit
-            ):
-                try:
-                    message = await self.bot.command_cache[self.message.id].edit(
-                        content,
-                        embed=embed,
-                        delete_after=delete_after,
-                        allowed_mentions=allowed_mentions,
-                        view=view,
-                    )
-                except discord.HTTPException:
-                    message = await super().send(
-                        content,
-                        tts=tts,
-                        embed=embed,
-                        embeds=embeds,
-                        file=file,
-                        files=files,
-                        stickers=stickers,
-                        delete_after=delete_after,
-                        nonce=nonce,
-                        allowed_mentions=allowed_mentions,
-                        reference=reference,
-                        mention_author=mention_author,
-                        view=view,
-                    )
-            else:
-                try:
-                    if reference:
-                        reference = reference
-                    elif no_reply:
-                        reference = None
-                    elif self.message in self.bot.cached_messages:
-                        reference = self.message
-                    message = await super().send(
-                        content,
-                        tts=tts,
-                        embed=embed,
-                        embeds=embeds,
-                        file=file,
-                        files=files,
-                        stickers=stickers,
-                        delete_after=delete_after,
-                        nonce=nonce,
-                        allowed_mentions=allowed_mentions,
-                        reference=reference,
-                        mention_author=mention_author,
-                        view=view,
-                    )
-                except Exception as e:
-                    print(e)
-                    message = await super().send(
-                        content,
-                        tts=tts,
-                        embed=embed,
-                        embeds=embeds,
-                        file=file,
-                        files=files,
-                        stickers=stickers,
-                        delete_after=delete_after,
-                        nonce=nonce,
-                        allowed_mentions=allowed_mentions,
-                        reference=reference,
-                        mention_author=mention_author,
-                        view=view,
-                    )
-            self.bot.command_cache[self.message.id] = message
-            return message
-
-        if not (
-            return_message
-            or self.interaction.response.is_done()
-            # or any(arg in kwargs for arg in ("file", "files", "allowed_mentions"))
-        ):
-            send = self.interaction.response.send_message
+            try:
+                message = await self.bot.command_cache[self.message.id].edit(
+                    content,
+                    embed=embed,
+                    delete_after=delete_after,
+                    allowed_mentions=allowed_mentions,
+                    view=view,
+                )
+            except discord.HTTPException:
+                message = await super().send(
+                    content,
+                    tts=tts,
+                    embed=embed,
+                    embeds=embeds,
+                    file=file,
+                    files=files,
+                    stickers=stickers,
+                    delete_after=delete_after,
+                    nonce=nonce,
+                    allowed_mentions=allowed_mentions,
+                    reference=reference,
+                    mention_author=mention_author,
+                    view=view,
+                )
         else:
-            # We have to defer in order to use the followup webhook
-            if not self.interaction.response.is_done():
-                await self.interaction.response.defer(ephemeral=ephemeral)
-
-            send = self.interaction.followup.send
-
-        return await send(
-            content,
-            tts=tts,
-            embed=embed,
-            embeds=embeds,
-            file=file,
-            files=files,
-            delete_after=delete_after,
-            allowed_mentions=allowed_mentions,
-            view=view,
-        )  # type: ignore
+            try:
+                if reference:
+                    reference = reference
+                elif no_reply:
+                    reference = None
+                elif self.message in self.bot.cached_messages:
+                    reference = self.message
+                message = await super().send(
+                    content,
+                    tts=tts,
+                    embed=embed,
+                    embeds=embeds,
+                    file=file,
+                    files=files,
+                    stickers=stickers,
+                    delete_after=delete_after,
+                    nonce=nonce,
+                    allowed_mentions=allowed_mentions,
+                    reference=reference,
+                    mention_author=mention_author,
+                    view=view,
+                )
+            except Exception as e:
+                print(e)
+                message = await super().send(
+                    content,
+                    tts=tts,
+                    embed=embed,
+                    embeds=embeds,
+                    file=file,
+                    files=files,
+                    stickers=stickers,
+                    delete_after=delete_after,
+                    nonce=nonce,
+                    allowed_mentions=allowed_mentions,
+                    reference=reference,
+                    mention_author=mention_author,
+                    view=view,
+                )
+        self.bot.command_cache[self.message.id] = message
+        return message
 
     def codeblock(self, content: str, language: str = "py"):
         return f"```{language}\n{content}\n```"
@@ -426,9 +393,9 @@ class Context(commands.Context):
         view.message = await self.send(*args, **kwargs, view=view)
 
 
-def setup(bot: Bot):
+async def setup(bot: Bot):
     bot.context = Context
 
 
-def teardown(bot: Bot):
+async def teardown(bot: Bot):
     bot.context = commands.Context

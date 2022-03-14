@@ -158,7 +158,3 @@ class MemberJoin(core.Cog):
                     await msg.delete(delay=5)
                     await member.add_roles(role)
                     break
-
-
-def setup(bot: Bot):
-    bot.add_cog(MemberJoin(bot))

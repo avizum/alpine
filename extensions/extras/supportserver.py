@@ -155,5 +155,5 @@ class Servers(core.Cog):
         raise error
 
 
-def setup(bot):
-    bot.add_cog(Servers(bot))
+async def setup(bot):
+    await bot.add_cog(Servers(bot))

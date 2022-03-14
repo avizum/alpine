@@ -18,5 +18,5 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from .cog import Meta, Bot
 
 
-def setup(bot: Bot):
-    bot.add_cog(Meta(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(Meta(bot))
