@@ -22,16 +22,16 @@ from typing import Union
 import discord
 from discord.ext import commands
 
-from core import Context
+from core import Context, flag
 from utils import ModReason
 
 
 class ModActionFlag(commands.FlagConverter):
-    reason: ModReason = commands.flag(description="Reason that will show up in the audit log", default=None)
-    dm: bool = commands.flag(description="Whether to DM the offender.", default=False)
+    reason: ModReason = flag(default=None, description="Reason that will show up in the audit log.")
+    dm: bool = flag(default=False, description="Whether to DM the user.")
 
 class BanFlag(ModActionFlag):
-    delete_days: int = commands.flag(description="How many days of messages to delete", default=0)
+    delete_days: int = flag(default=0, description="How many days of messages to delete.")
 
 time_regex = re.compile(r"(?:(\d{1,5})\s?(h|s|m|d|w|y))+?")
 time_dict = {
@@ -87,7 +87,7 @@ class PurgeAmount(commands.Converter):
             )
         return number
 
-class TargetMember(commands.Converter):
+class TargetMember(commands.Converter[discord.Member]):
     async def convert(
         self, ctx: Context, argument: discord.Member
     ) -> discord.Member:
@@ -131,7 +131,7 @@ class TargetMember(commands.Converter):
 
         return member
 
-class FindBan(commands.Converter):
+class FindBan(commands.Converter[discord.Member]):
     async def convert(
         self, ctx: Context, argument: str
     ) -> Union[discord.Member, discord.User]:

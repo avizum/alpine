@@ -5,7 +5,7 @@ from discord.ext import commands
 from akinator import CantGoBackAnyFurther
 from akinator.async_aki import Akinator
 
-from core import Context
+from core import Context, flag
 from utils import View
 
 
@@ -126,8 +126,8 @@ class AkinatorGameView(View):
 
 
 class AkinatorFlags(commands.FlagConverter):
-    language: str = commands.flag(description="What language to use (Default: en)", default="en")
-    child: bool = commands.flag(description="Whether to enable or disable child mode. (Default: True)", default=True)
+    language: str = flag(default="en", description="The language used for Akinator.")
+    child: bool = flag(default=True, description="Whether to use child mode.")
 
 
 class RockPaperScissorGame(View):

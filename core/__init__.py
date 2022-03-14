@@ -26,5 +26,6 @@ from .checks import (
     cooldown,
     is_guild_owner,
 )
+from .flags import Flag, flag
 from .avimetry import Bot
 from .context import Context

@@ -74,8 +74,11 @@ class AvimetryHelp(commands.HelpCommand):
                 flag.description = "No description provided."
             f_name = f"{flag_prefix}{name}{flag_delimiter}"
             f_aliases = [f"{flag_prefix}{alias}{flag_delimiter}" for alias in flag.aliases]
+            f_default = ""
+            if flag.default:
+                f_default = f"(Default: {flag.default})j"
             chained = itertools.chain([f_name], f_aliases)
-            flgs.append(f"`{' | '.join(chained)}` {flag.description}")
+            flgs.append(f"`{' | '.join(chained)}` {flag.description} {f_default}")
         return flgs
 
     def ending_note(self):
@@ -247,5 +250,5 @@ class HelpCommand(core.Cog):
         self.bot.help_command = self.default
 
 
-def setup(bot: Bot):
-    bot.add_cog(HelpCommand(bot))
+async def setup(bot: Bot):
+    await bot.add_cog(HelpCommand(bot))
