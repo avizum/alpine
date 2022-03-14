@@ -24,7 +24,7 @@ class View(discord.ui.View):
         self.member = member
         super().__init__(timeout=timeout)
 
-    async def interaction_check(self, item: discord.ui.Item, interaction: discord.Interaction):
+    async def interaction_check(self, interaction: discord.Interaction):
         if interaction.user != self.member:
             embed = discord.Embed(
                 description=f"This can only be used by {self.member}."

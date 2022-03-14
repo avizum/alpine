@@ -62,7 +62,7 @@ class UnknownError(View):
         self.add_item(support)
         self.cooldown = commands.CooldownMapping.from_cooldown(2, 60, commands.BucketType.user)
 
-    async def interaction_check(self, item: discord.ui.Item, interaction: discord.Interaction):
+    async def interaction_check(self, interaction: discord.Interaction):
         return True
 
     async def on_timeout(self) -> None:
@@ -120,7 +120,7 @@ class ErrorHandler(core.Cog):
             ctx.command.reset_cooldown(ctx)
         except Exception:
             pass
-    
+
     def get_cooldown(self, command):
         try:
             rate = command._buckets._cooldown.rate
@@ -421,5 +421,5 @@ class ErrorHandler(core.Cog):
             view.message = await ctx.send(embed=embed, view=view)
 
 
-def setup(bot):
-    bot.add_cog(ErrorHandler(bot))
+async def setup(bot):
+    await bot.add_cog(ErrorHandler(bot))
