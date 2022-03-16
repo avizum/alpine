@@ -176,10 +176,10 @@ class Bot(commands.Bot):
         self.sr: sr_api = sr_api.Client()
         self.dagpi: asyncgist.Client = asyncdagpi.Client(self.api["DagpiAPI"], session=self.session)
         self.myst: mystbin.Client = mystbin.Client(session=self.session)
-        await self.cache.populate_cache()
-        await self.load_extensions()
-        await self.start_nodes()
-        await self.find_restart_message()
+        self.loop.create_task(self.cache.populate_cache())
+        self.loop.create_task(self.load_extensions())
+        self.loop.create_task(self.start_nodes())
+        self.loop.create_task(self.find_restart_message())
         self.topgg_webhook.run(8025)
 
     async def get_prefix(self, message: discord.Message) -> list[str]:
