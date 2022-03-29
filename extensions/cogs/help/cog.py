@@ -40,7 +40,7 @@ class AvimetryHelp(commands.HelpCommand):
             ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
         )
 
-    async def can_run(self, command: core.Command, ctx: Context):
+    async def get_can_run(self, command: core.Command, ctx: Context):
         try:
             await command.can_run(ctx)
             emoji = ctx.bot.emoji_dictionary["green_tick"]
@@ -76,13 +76,10 @@ class AvimetryHelp(commands.HelpCommand):
             f_aliases = [f"{flag_prefix}{alias}{flag_delimiter}" for alias in flag.aliases]
             f_default = ""
             if flag.default:
-                f_default = f"(Default: {flag.default})j"
+                f_default = f"(Default: {flag.default})"
             chained = itertools.chain([f_name], f_aliases)
             flgs.append(f"`{' | '.join(chained)}` {flag.description} {f_default}")
         return flgs
-
-    def ending_note(self):
-        return f"Use {self.context.clean_prefix}{self.invoked_with} [command|module] for more help."
 
     async def filter_cogs(self, mapping: Mapping[Optional[core.Cog], List[core.Command]] = None):
         mapping = mapping or self.get_bot_mapping()
@@ -151,7 +148,7 @@ class AvimetryHelp(commands.HelpCommand):
         embed.add_field(
             name="Required Permissions",
             value=(
-                f"Can Run: {await self.can_run(command, self.context)}\n"
+                f"Can Run: {await self.get_can_run(command, self.context)}\n"
                 f"I Need: `{self.get_perms('bot_permissions', command)}`\n"
                 f"You Need: `{self.get_perms('member_permissions', command)}`"
             ),
@@ -161,7 +158,7 @@ class AvimetryHelp(commands.HelpCommand):
         if cooldown:
             embed.add_field(name="Cooldown", value=cooldown)
         embed.set_thumbnail(url=str(self.context.bot.user.display_avatar.url))
-        embed.set_footer(text=self.ending_note())
+        embed.set_footer(text=f"Use {self.context.clean_prefix}{self.invoked_with} [command|module] for more help.")
         await self.context.send(embed=embed)
 
     async def send_error_message(self, error):
@@ -187,12 +184,12 @@ class AvimetryHelp(commands.HelpCommand):
             )
             conf = await self.context.confirm(embed=embed)
             if conf.result:
-                self.context.message._edited_timestamp = datetime.datetime.now(
-                    datetime.timezone.utc
-                )
-                return await self.send_command_help(
-                    self.context.bot.get_command(match[0])
-                )
+                self.context.message._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
+                command = self.context.bot.get_command(match[0])
+                if isinstance(command, core.Group):
+                    return await self.send_group_help(command)
+                elif isinstance(command, core.Command):
+                    return await self.send_command_help(command)
             return await conf.message.delete()
         return "Command not found"
 

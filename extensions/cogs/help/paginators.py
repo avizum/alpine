@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 # This help command is inspired by R. Danny, When I am not lazy I might make my own
 class MainHelp(menus.PageSource):
-    def __init__(self, ctx: Context, help: "AvimetryHelp"):
+    def __init__(self, ctx: Context, help: AvimetryHelp):
         self.ctx = ctx
         self.help = help
         super().__init__()
@@ -77,7 +77,7 @@ class MainHelp(menus.PageSource):
                 f"If you need help using paginators, use `{self.ctx.prefix}help paginator`"
             )
         embed.set_thumbnail(url=bot.user.avatar.url)
-        embed.set_footer(text=self.help.ending_note())
+        embed.set_footer(text=f"Use {self.ctx.clean_prefix}{self.ctx.invoked_with} [command|module] for more help.")
         return embed
 
 
@@ -110,7 +110,7 @@ class CogHelp(menus.ListPageSource):
             name=f"Commands in {self.cog.qualified_name.title()}",
             value="\n".join(thing) or "error",
         )
-        embed.set_footer(text=self.help_command.ending_note())
+        embed.set_footer(text=f"Use {self.ctx.clean_prefix}{self.ctx.invoked_with} [command|module] for more help.")
         return embed
 
 
