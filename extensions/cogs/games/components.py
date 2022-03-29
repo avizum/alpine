@@ -1,4 +1,23 @@
+"""
+[Avimetry Bot]
+Copyright (C) 2021 - 2022 avizum
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+
 import random
+from typing import Literal
 
 import discord
 from discord.ext import commands
@@ -23,12 +42,12 @@ class AkinatorConfirmView(View):
         self.embed = embed
 
     @discord.ui.button(label="Yes", style=discord.ButtonStyle.success)
-    async def yes(self, button, interaction):
+    async def yes(self, interaction: discord.Interaction, button: discord.Button):
         self.embed.description = f"{self.embed.description}\n---\nNice!"
         await self.message.edit(embed=self.embed, view=None)
 
     @discord.ui.button(label="No", style=discord.ButtonStyle.danger)
-    async def no(self, button, interaction):
+    async def no(self, interaction: discord.Interaction, button: discord.Button):
         self.embed.description = f"{self.embed.description}\n---\nAww, Maybe next time!"
         await self.message.edit(embed=self.embed, view=None)
 
@@ -64,8 +83,8 @@ class AkinatorGameView(View):
     async def answer(self, interaction, answer):
         if answer == "back":
             try:
-                next = await self.client.back()
-                self.embed.description = f"{self.client.step+1}. {next}"
+                nxt = await self.client.back()
+                self.embed.description = f"{self.client.step+1}. {nxt}"
                 await interaction.response.edit_message(embed=self.embed)
             except CantGoBackAnyFurther:
                 await interaction.response.send_message(
@@ -73,8 +92,8 @@ class AkinatorGameView(View):
                 )
         elif self.client.progression <= 80:
             await interaction.response.defer()
-            next = await self.client.answer(answer)
-            self.embed.description = f"{self.client.step+1}. {next}"
+            nxt = await self.client.answer(answer)
+            self.embed.description = f"{self.client.step+1}. {nxt}"
             await self.message.edit(embed=self.embed)
         else:
             await self.client.win()
@@ -90,35 +109,31 @@ class AkinatorGameView(View):
             await self.message.edit(view=new_view, embed=self.embed)
 
     @discord.ui.button(label="Yes", style=discord.ButtonStyle.success, row=1)
-    async def game_yes(self, button: discord.Button, interaction: discord.Interaction):
+    async def game_yes(self, interaction: discord.Interaction, button: discord.Button):
         await self.answer(interaction, "yes")
 
     @discord.ui.button(label="No", style=discord.ButtonStyle.danger, row=1)
-    async def game_no(self, button: discord.Button, interaction: discord.Interaction):
+    async def game_no(self, interaction: discord.Interaction, button: discord.Button):
         await self.answer(interaction, "no")
 
     @discord.ui.button(label="I don't know", style=discord.ButtonStyle.primary, row=1)
-    async def game_idk(self, button: discord.Button, interaction: discord.Interaction):
+    async def game_idk(self, interaction: discord.Interaction, button: discord.Button):
         await self.answer(interaction, "i dont know")
 
     @discord.ui.button(label="Probably", style=discord.ButtonStyle.secondary, row=2)
-    async def game_probably(
-        self, button: discord.Button, interaction: discord.Interaction
-    ):
+    async def game_probably(self, interaction: discord.Interaction, button: discord.Button):
         await self.answer(interaction, "probably")
 
     @discord.ui.button(label="Probably Not", style=discord.ButtonStyle.secondary, row=2)
-    async def game_probably_not(
-        self, button: discord.Button, interaction: discord.Interaction
-    ):
+    async def game_probably_not(self, interaction: discord.Interaction, button: discord.Button):
         await self.answer(interaction, "probably not")
 
     @discord.ui.button(label="Back", style=discord.ButtonStyle.secondary, row=3)
-    async def game_back(self, button: discord.Button, interaction: discord.Interaction):
+    async def game_back(self, interaction: discord.Interaction, button: discord.Button):
         await self.answer(interaction, "back")
 
     @discord.ui.button(label="Stop", style=discord.ButtonStyle.danger, row=3)
-    async def game_stop(self, button: discord.Button, interaction: discord.Interaction):
+    async def game_stop(self, interaction: discord.Interaction, button: discord.Button):
         await self.client.win()
         self.embed.description = "Game stopped."
         await interaction.response.edit_message(embed=self.embed, view=None)
@@ -126,7 +141,7 @@ class AkinatorGameView(View):
 
 
 class AkinatorFlags(commands.FlagConverter):
-    language: str = flag(default="en", description="The language used for Akinator.")
+    mode: Literal["default", "animals", "objects"] = flag(default="default", description="The mode used for Akinator.")
     child: bool = flag(default=True, description="Whether to use child mode.")
 
 
@@ -163,19 +178,15 @@ class RockPaperScissorGame(View):
         await interaction.response.edit_message(embed=self.embed, view=self)
         await self.stop()
 
-    @discord.ui.button(
-        label="Rock", emoji="\U0001faa8", style=discord.ButtonStyle.secondary, row=1
-    )
-    async def game_rock(self, button: discord.Button, interaction: discord.Interaction):
+    @discord.ui.button(label="Rock", emoji="\U0001faa8", style=discord.ButtonStyle.secondary, row=1)
+    async def game_rock(self, interaction: discord.Interaction, button: discord.Button):
         await self.answer(button, interaction, 0)
         button.style = discord.ButtonStyle.success
 
     @discord.ui.button(
         label="Paper", emoji="\U0001f4f0", style=discord.ButtonStyle.secondary, row=1
     )
-    async def game_paper(
-        self, button: discord.Button, interaction: discord.Interaction
-    ):
+    async def game_paper(self, interaction: discord.Interaction, button: discord.Button):
         await self.answer(button, interaction, 1)
         button.style = discord.ButtonStyle.success
 
@@ -185,9 +196,7 @@ class RockPaperScissorGame(View):
         style=discord.ButtonStyle.secondary,
         row=1,
     )
-    async def game_scissors(
-        self, button: discord.Button, interaction: discord.Interaction
-    ):
+    async def game_scissors(self, interaction: discord.Interaction, button: discord.Button):
         await self.answer(button, interaction, 2)
         button.style = discord.ButtonStyle.success
 
@@ -202,7 +211,7 @@ class CookieView(discord.ui.View):
         await self.message.edit(embed=None, content="Nobody got the cookie", view=None)
 
     @discord.ui.button(emoji="🍪")
-    async def cookie(self, button, interaction):
+    async def cookie(self, interaction: discord.Interaction, button: discord.Button):
         self.winner = interaction.user
         button.disabled = True
         self.stop()

@@ -53,7 +53,7 @@ class TrashView(View):
         await self.stop()
 
     @discord.ui.button(emoji="\U0001f5d1", style=discord.ButtonStyle.danger)
-    async def trash(self, button, interaction):
+    async def trash(self, interaction: discord.Interaction, button: discord.Button):
         await self.message.delete()
         await self.ctx.message.add_reaction(self.ctx.bot.emoji_dictionary["green_tick"])
 
@@ -64,12 +64,12 @@ class ConfirmView(View):
         self.value = None
 
     @discord.ui.button(label="Yes", style=discord.ButtonStyle.green)
-    async def yes(self, button, interaction):
+    async def yes(self, interaction: discord.Interaction, button: discord.Button):
         self.value = True
         self.stop()
 
     @discord.ui.button(label="No", style=discord.ButtonStyle.red)
-    async def no(self, button, interaction):
+    async def no(self, interaction: discord.Interaction, button: discord.Button):
         self.value = False
         self.stop()
 

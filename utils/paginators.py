@@ -215,21 +215,21 @@ class Paginator(BasePaginator):
         await super().start()
 
     @discord.ui.button(emoji="\U000023ee\U0000fe0f")
-    async def skip_to_first(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def skip_to_first(self, interaction: discord.Interaction, button: discord.Button):
         """
         Skips to the first page.
         """
         await self.show_page(interaction, 0)
 
     @discord.ui.button(emoji="\U000025c0\U0000fe0f")
-    async def go_back_one(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def go_back_one(self, interaction: discord.Interaction, button: discord.Button):
         """
         Goes back one page.
         """
         await self.show_checked_page(interaction, self.current_page - 1)
 
     @discord.ui.button(emoji="<:avimetry:940147134471213077>", disabled=False, style=discord.ButtonStyle.blurple,)
-    async def show_page_number(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def show_page_number(self, interaction: discord.Interaction, button: discord.Button):
         """
         Shows the current page number.
         This button also is used for skipping to pages.
@@ -268,21 +268,21 @@ class Paginator(BasePaginator):
                     pass
 
     @discord.ui.button(emoji="\U000025b6\U0000fe0f")
-    async def go_forward_one(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def go_forward_one(self, interaction: discord.Interaction, button: discord.Button):
         """
         Goes to the next page.
         """
         await self.show_checked_page(interaction, self.current_page + 1)
 
     @discord.ui.button(emoji="\U000023ed\U0000fe0f")
-    async def skip_to_last(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def skip_to_last(self, interaction: discord.Interaction, button: discord.Button):
         """
         Skips to the last page.
         """
         await self.show_page(interaction, self.source.get_max_pages() - 1)
 
     @discord.ui.button(emoji="\U000023f9\U0000fe0f", label="Stop", style=discord.ButtonStyle.red, row=2)
-    async def stop_view(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def stop_view(self, interaction: discord.Interaction, button: discord.Button):
         """
         Stops the paginator and view.
         """
