@@ -172,3 +172,7 @@ class Setup(core.Cog):
         if not ctx.guild.chunked:
             await ctx.guild.chunk()
         self.bot.commands_ran += 1
+
+
+async def setup(bot: Bot):
+    await bot.add_cog(Setup(bot))
