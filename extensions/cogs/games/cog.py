@@ -151,9 +151,14 @@ class Games(core.Cog):
         """
         fm = await ctx.send("Starting game, please wait...")
         akiclient = Akinator()
+        mode_map = {
+            "default": "en",
+            "animals": "en_animals",
+            "objects": "en_objects"
+        }
         async with ctx.channel.typing():
             game = await akiclient.start_game(
-                language=flags.language, child_mode=flags.child
+                language=mode_map[flags.mode], child_mode=flags.child
             )
             if akiclient.child_mode is False and ctx.channel.nsfw is False:
                 return await ctx.send(

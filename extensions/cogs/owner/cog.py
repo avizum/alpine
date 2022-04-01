@@ -249,7 +249,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
         presence_intent = f"Presences intent `{'enabled' if self.bot.intents.presences else 'disabled'}`"
         members_intent = f"Members intent `{'enabled' if self.bot.intents.members else 'disabled'}`"
-        message_intent = f"Message intent `{'enabled' if self.bot.intents.messages else 'disabled'}`"
+        message_intent = f"Message intent `{'enabled' if self.bot.intents.message_content else 'disabled'}`"
         summary.append(f"{presence_intent}, {members_intent} and {message_intent}.")
         summary.append("")
 
@@ -417,7 +417,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         load_list = []
         for cog in module:
             try:
-                self.bot.load_extension(cog)
+                await self.bot.load_extension(cog)
                 load_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
             except (commands.ExtensionError, ModuleNotFoundError) as e:
                 load_list.append(
@@ -434,7 +434,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         unload_list = []
         for cog in module:
             try:
-                self.bot.unload_extension(cog)
+                await self.bot.unload_extension(cog)
                 unload_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
             except (commands.ExtensionError, ModuleNotFoundError) as e:
                 unload_list.append(
@@ -451,7 +451,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         reload_list = []
         for cog in module:
             try:
-                self.bot.reload_extension(cog)
+                await self.bot.reload_extension(cog)
                 reload_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
             except (commands.ExtensionError, ModuleNotFoundError) as e:
                 reload_list.append(
@@ -490,7 +490,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         reload_list = []
         for cog in modules:
             try:
-                self.bot.reload_extension(cog)
+                await self.bot.reload_extension(cog)
             except commands.ExtensionError as e:
                 reload_list.append(
                     f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```'
