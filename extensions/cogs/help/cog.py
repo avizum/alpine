@@ -40,7 +40,7 @@ class AvimetryHelp(commands.HelpCommand):
             ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
         )
 
-    async def get_can_run(self, command: core.Command, ctx: Context):
+    async def can_run(self, command: core.Command, ctx: Context):
         try:
             await command.can_run(ctx)
             emoji = ctx.bot.emoji_dictionary["green_tick"]
@@ -57,6 +57,9 @@ class AvimetryHelp(commands.HelpCommand):
             return f"{per} every {rate} {time} per {cd_type}"
         except AttributeError:
             return None
+
+    def ending_note(self):
+        return f"Use {self.context.clean_prefix}{self.invoked_with} [command|module] for more help."
 
     def get_flags(self, command: core.Command):
         flagconverter: commands.FlagConverter = None
@@ -148,7 +151,7 @@ class AvimetryHelp(commands.HelpCommand):
         embed.add_field(
             name="Required Permissions",
             value=(
-                f"Can Run: {await self.get_can_run(command, self.context)}\n"
+                f"Can Run: {await self.can_run(command, self.context)}\n"
                 f"I Need: `{self.get_perms('bot_permissions', command)}`\n"
                 f"You Need: `{self.get_perms('member_permissions', command)}`"
             ),
@@ -158,7 +161,7 @@ class AvimetryHelp(commands.HelpCommand):
         if cooldown:
             embed.add_field(name="Cooldown", value=cooldown)
         embed.set_thumbnail(url=str(self.context.bot.user.display_avatar.url))
-        embed.set_footer(text=f"Use {self.context.clean_prefix}{self.invoked_with} [command|module] for more help.")
+        embed.set_footer(text=self.ending_note())
         await self.context.send(embed=embed)
 
     async def send_error_message(self, error):

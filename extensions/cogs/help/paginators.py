@@ -77,7 +77,7 @@ class MainHelp(menus.PageSource):
                 f"If you need help using paginators, use `{self.ctx.prefix}help paginator`"
             )
         embed.set_thumbnail(url=bot.user.avatar.url)
-        embed.set_footer(text=f"Use {self.ctx.clean_prefix}{self.ctx.invoked_with} [command|module] for more help.")
+        embed.set_footer(text=self.help.ending_note())
         return embed
 
 
