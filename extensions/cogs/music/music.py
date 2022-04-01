@@ -25,7 +25,7 @@ from typing import List, Optional, Union
 import async_timeout
 import discord
 import wavelink
-from discord.ext import menus
+from discord.ext import commands, menus
 from wavelink.ext import spotify
 
 from core import Bot, Context
@@ -55,6 +55,33 @@ class IsResponding:
             self.task.cancel()
 
 
+class SpotifyTrack(spotify.SpotifyTrack):
+    @classmethod
+    async def convert(cls, ctx: Context, argument: str):
+        decoded = spotify.decode_url(argument)
+        if decoded is None:
+            raise commands.BadArgument("URL must be a Spotify URL.")
+
+        results = await cls.search(argument, type=decoded["type"])
+        if not results:
+            raise commands.BadArgument("Could not find any songs matching that query.")
+        if decoded["type"] == spotify.SpotifySearchType.track:
+            return results[0]
+        else:
+            return results
+
+
+class YouTubePlaylist(wavelink.YouTubePlaylist):
+    @classmethod
+    async def convert(cls, ctx: Context, argument: str):
+        results = await cls.search(argument)
+
+        if not results:
+            raise commands.BadArgument("Could not find any songs matching that query.")
+
+        return results
+
+
 class Queue(asyncio.Queue):
     """
     Queue for music.
@@ -75,6 +102,9 @@ class Queue(asyncio.Queue):
 
     def remove(self, track):
         self._queue.remove(track)
+
+    def remove_at_index(self, index: int):
+        self._queue.pop(index)
 
     def clear(self):
         self._queue.clear()
@@ -111,7 +141,7 @@ class Queue(asyncio.Queue):
 
     @property
     def up_next(self):
-        return None if not self.size else self._queue[0]
+        return self._queue[0] if self.size else None
 
     @property
     def size(self):
@@ -155,11 +185,11 @@ class Player(wavelink.Player):
         self.queue: Queue = Queue()
         self.waiting: bool = False
         self.loop_song: Optional[Track] = None
-        self.pause_votes: set = set()
-        self.resume_votes: set = set()
-        self.skip_votes: set = set()
-        self.shuffle_votes: set = set()
-        self.stop_votes: set = set()
+        self.pause_votes: set[discord.Member] = set()
+        self.resume_votes: set[discord.Member] = set()
+        self.skip_votes: set[discord.Member] = set()
+        self.shuffle_votes: set[discord.Member] = set()
+        self.stop_votes: set[discord.Member] = set()
 
     async def get_tracks(self, query: str, *, bulk: bool = False) -> typing.Union[Track, typing.List[Track]]:
         """
@@ -209,7 +239,9 @@ class Player(wavelink.Player):
             if self.loop_song:
                 track = self.loop_song
         except asyncio.TimeoutError:
-            return await self.teardown()
+            if self.context:
+                await self.context.send("Disconnecting due to inactivity.")
+            return await self.disconnect()
 
         await self.play(track)
         self.waiting = False
@@ -256,10 +288,10 @@ class Player(wavelink.Player):
             embed.set_thumbnail(url=track.thumb)
         return embed
 
-    async def teardown(self):
+    async def disconnect(self, *, force: bool = False) -> None:
         self.queue.clear()
         await self.stop()
-        await self.disconnect(force=False)
+        return await super().disconnect(force=force)
 
 
 class PaginatorSource(menus.ListPageSource):
@@ -284,7 +316,7 @@ class SearchView(View):
         super().__init__(member=ctx.author, timeout=180)
 
     @discord.ui.button(label="Stop", style=discord.ButtonStyle.red)
-    async def stop_view(self, button, interaction):
+    async def stop_view(self, interaction: discord.Interaction, button: discord.Button):
         await self.ctx.message.delete()
         await self.stop()
 
