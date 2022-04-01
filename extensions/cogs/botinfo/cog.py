@@ -26,7 +26,7 @@ from typing import Union
 import discord
 import psutil
 from discord.ext import commands
-from topgg import NotFound
+from topgg import NotFound, ServerError
 
 import core
 from core import Bot, Context
@@ -236,37 +236,49 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=embed)
 
     @core.command()
-    async def invite(self, ctx: Context, permissions: int):
+    async def invite(self, ctx: Context, permissions: int = 8):
         """
         Invite me to your server.
-
-        If you mention a bot, I will try to find their Top.GG page and send it. If I can't find it, then
-        I will generate an invite link and send it.
         """
+        permissions = discord.Permissions(permissions)
         view = discord.ui.View(timeout=None)
         invite_embed = discord.Embed(
             title=f"{self.bot.user.name} Invite",
-            description="Invite me to your server! Here is the invite link.",
+            description="Invite me to your server! Here are the invite links.",
         )
         invite_embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         view.add_item(
             discord.ui.Button(
                 style=discord.ButtonStyle.link,
                 url=discord.utils.oauth_url(self.bot.user.id, permissions=permissions),
-                label="Invite me",
+                label="Invite with slash-commands",
+            )
+        )
+        view.add_item(
+            discord.ui.Button(
+                style=discord.ButtonStyle.link,
+                url=discord.utils.oauth_url(self.bot.user.id, permissions=permissions, scopes=["bot"]),
+                label="Invite without slash-commands",
             )
         )
         view.add_item(
             discord.ui.Button(
                 style=discord.ButtonStyle.link,
                 url=self.bot.support,
-                label="Avimetry support server",
+                label="Support server",
             )
         )
         await ctx.send(embed=invite_embed, view=view)
 
     @core.command()
-    async def invitebot(self, ctx: Context, bot: Union[discord.Member, discord.User], permissions: str):
+    async def invitebot(self, ctx: Context, bot: Union[discord.Member, discord.User], permissions: int = 8):
+        """
+        Get the invite link for a Bot.
+
+        If you mention a bot, I will try to find their Top.GG page and send it. If I can't find it, then
+        I will generate an invite link and send it.
+        """
+        permissions = discord.Permissions(permissions)
         view = discord.ui.View(timeout=None)
         if bot.bot:
             invite_embed = discord.Embed(title=f"{bot.name} Invite")
@@ -291,18 +303,21 @@ class BotInfo(commands.Cog, name="Bot Info"):
                         url=f"https://discord.gg/{top.support}",
                     )
                 )
-            except NotFound:
-                invite_embed.description = (
-                    f"Invite {bot.name} to your server! Here is the invite link."
-                )
-                link = str(
-                    discord.utils.oauth_url(bot.id, permissions=discord.Permissions(permissions))
+            except (NotFound, ServerError):
+                invite_embed.description = f"Invite {bot.name} to your server! Here is the invite link."
+                link = discord.utils.oauth_url(bot.id, permissions=permissions)
+                view.add_item(
+                    discord.ui.Button(
+                        style=discord.ButtonStyle.link,
+                        label=f"{bot.name} Invite with slash commands",
+                        url=discord.utils.oauth_url(bot.id, permissions=permissions),
+                    )
                 )
                 view.add_item(
                     discord.ui.Button(
                         style=discord.ButtonStyle.link,
-                        label=f"{bot.name} Invite",
-                        url=link,
+                        label=f"{bot.name} Invite without slash commands",
+                        url=discord.utils.oauth_url(bot.id, permissions=permissions, scopes=["bot"]),
                     )
                 )
             await ctx.send(embed=invite_embed, view=view)

@@ -24,6 +24,7 @@ import core
 from core import Bot
 from discord.ext import tasks
 from topgg.types import BotVoteData
+from topgg import ServerError
 
 
 class TopGG(core.Cog):
@@ -38,7 +39,10 @@ class TopGG(core.Cog):
     async def post(self):
         if self.bot.user.id != 756257170521063444:
             return
-        await self.bot.topgg.post_guild_count(len(self.bot.guilds))
+        try:
+            await self.bot.topgg.post_guild_count(len(self.bot.guilds))
+        except ServerError:
+            pass
         headers = {"Authorization": self.bot.api["DBL"]}
         data = {
             "voice_connections": len(self.bot.voice_clients),
