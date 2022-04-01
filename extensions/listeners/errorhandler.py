@@ -36,7 +36,7 @@ from core.exceptions import (
     CommandDisabledChannel,
     CommandDisabledGuild,
 )
-from utils import View
+from utils import View, format_list
 from discord.ext import commands
 from difflib import get_close_matches
 
@@ -69,7 +69,7 @@ class UnknownError(View):
         await self.message.edit(view=None)
 
     @discord.ui.button(label="Track Error", style=discord.ButtonStyle.blurple)
-    async def track_error(self, button: discord.Button, interaction: discord.Interaction):
+    async def track_error(self, interaction: discord.Interaction, button: discord.Button):
         retry = self.cooldown.update_rate_limit(self.message)
         if retry:
             return await interaction.response.send_message(
@@ -340,6 +340,14 @@ class ErrorHandler(core.Cog):
             self.reset(ctx)
             bad_union_arg = Embed(title="Bad Argument", description=error)
             return await ctx.send(embed=bad_union_arg)
+
+        elif isinstance(error, commands.BadLiteralArgument):
+            self.reset(ctx)
+            bad_literal_arg = Embed(
+                title="Bad Argument",
+                description=f"This argument must be:\n {format_list(error.literals, last='or')}."
+            )
+            return await ctx.send(embed=bad_literal_arg)
 
         elif isinstance(error, commands.TooManyArguments):
             self.reset(ctx)

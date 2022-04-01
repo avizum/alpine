@@ -28,7 +28,7 @@ def format_string(number, value):
     return f"{number} {value}" if number == 1 else f"{number} {value}s"
 
 
-def format_list(list):
+def format_list(list, *, seperator: str = ", ", last: str = "and"):
     """
     Makes a list easier to read
     """
@@ -37,8 +37,8 @@ def format_list(list):
     if len(list) == 1:
         return list[0]
     if len(list) == 2:
-        return " and ".join(list)
-    return f"{', '.join(str(item) for item in list[:-1])} and {list[-1]}"
+        return f" {last} ".join(list)
+    return f"{seperator.join(str(item) for item in list[:-1])} {last} {list[-1]}"
 
 
 def timestamp(times: datetime.datetime, format: typing.Optional[str] = None):
