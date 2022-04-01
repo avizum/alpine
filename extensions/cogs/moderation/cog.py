@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import datetime
+import re
 from typing import List
 
 import discord
@@ -341,6 +342,34 @@ class Moderation(core.Cog):
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command()
+    @core.has_permissions(manage_messages=True)
+    @core.bot_has_permissions(manage_messages=True)
+    async def links(self, ctx: Context, amount: PurgeAmount):
+        """
+        Purge any message that contains a link.
+        """
+        def check(m: discord.Message):
+            if re.match(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", m.content):
+                return True
+            return False
+        purged = await ctx.channel.purge(
+            limit=amount, check=check, before=ctx.message
+        )
+        await ctx.can_delete(embed=await self.do_affected(purged))
+
+    @purge.command(aliases=["images", "pictures"])
+    @core.has_permissions(manage_messages=True)
+    @core.bot_has_permissions(manage_messages=True)
+    async def files(self, ctx: Context, amount: PurgeAmount):
+        """
+        Purge any message that contains files.
+        """
+        purged = await ctx.channel.purge(
+            limit=amount, check=lambda m: m.attachments, before=ctx.message
+        )
+        await ctx.can_delete(embed=await self.do_affected(purged))
+
+    @purge.command(aliases=["in"])
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
     async def contains(self, ctx: Context, *, text):
