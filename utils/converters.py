@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import discord
 from discord.ext import commands
 
 from core.context import Context
@@ -24,9 +25,18 @@ from core.context import Context
 class ModReason(commands.Converter):
     async def convert(self, ctx: Context, argument=None) -> str:
         reason = f"{ctx.author}: {argument}"
-        if not argument:
-            reason = f"{ctx.author}: No reason was provided."
 
         if len(reason) > 512:
             raise commands.BadArgument(f"Reason is too long ({len(reason)}/512)")
         return reason
+
+
+def default_reason(ctx: Context) -> discord.Member:
+    return f"{ctx.author}: No reason was provided."
+
+
+DefaultReason: discord.Member = commands.parameter(
+    default=default_reason,
+    displayed_default="<reason>",
+    converter=ModReason
+)

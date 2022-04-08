@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # flake8: noqa
 from .cache import Cache
-from .converters import ModReason
+from .converters import ModReason, DefaultReason
 from .helpers import Timer, format_string, format_list, timestamp, format_seconds
 from .parser import preview_message
 from .paginators import Paginator, OldAvimetryPages, PaginatorEmbed, WrappedPaginator

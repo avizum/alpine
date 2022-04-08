@@ -35,7 +35,7 @@ from .converters import (
     TargetMember,
     FindBan
 )
-from utils import ModReason
+from utils import ModReason, DefaultReason
 
 
 class Moderation(core.Cog):
@@ -77,7 +77,9 @@ class Moderation(core.Cog):
     @core.command()
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def masskick(self, ctx: Context, targets: commands.Greedy[TargetMember], *, reason: ModReason = None):
+    async def masskick(
+        self, ctx: Context, targets: commands.Greedy[TargetMember], *, reason: ModReason = DefaultReason
+    ):
         """
         Mass kick people from the server.
 
@@ -164,7 +166,7 @@ class Moderation(core.Cog):
     @core.command()
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def massban(self, ctx: Context, targets: commands.Greedy[TargetMember], *, reason: ModReason = None):
+    async def massban(self, ctx: Context, targets: commands.Greedy[TargetMember], *, reason: ModReason = DefaultReason):
         """
         Mass ban people from the server.
 
@@ -194,7 +196,7 @@ class Moderation(core.Cog):
     @core.command()
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def unban(self, ctx: Context, member: FindBan, *, reason: ModReason = None):
+    async def unban(self, ctx: Context, member: FindBan, *, reason: ModReason = DefaultReason):
         """
         Unbans/Removes a ban from someone from the server.
 
@@ -214,7 +216,7 @@ class Moderation(core.Cog):
     @core.has_permissions(moderate_members=True)
     @core.bot_has_permissions(moderate_members=True)
     async def mute(
-        self, ctx: Context, member: TargetMember, duration: TimeConverter, *, reason: ModReason = None
+        self, ctx: Context, member: TargetMember, duration: TimeConverter, *, reason: ModReason = DefaultReason
     ):
         """
         Temporarily mutes a member in the server.
@@ -225,7 +227,7 @@ class Moderation(core.Cog):
         """
         if duration > 2419200 or duration < 60:
             return await ctx.send("Mute time must be over 1 minute and under 28 days.")
-        if member.timed_out:
+        if member.is_timed_out():
             conf = await ctx.confirm(
                 f"{member.mention} is already muted. Do you want to overwrite their mute?",
                 delete_after=True,
@@ -248,7 +250,7 @@ class Moderation(core.Cog):
     @core.command(aliases=["untimeout", "untempmute"])
     @core.has_permissions(moderate_members=True)
     @core.bot_has_permissions(moderate_members=True)
-    async def unmute(self, ctx: Context, member: TargetMember, *, reason: ModReason = None):
+    async def unmute(self, ctx: Context, member: TargetMember, *, reason: ModReason = DefaultReason):
         """
         Unmutes a member in the server.
 
@@ -436,7 +438,7 @@ class Moderation(core.Cog):
     @core.command(usage="<channel> [reason]")
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def lock(self, ctx: Context, channel: discord.TextChannel, *, reason: ModReason = None):
+    async def lock(self, ctx: Context, channel: discord.TextChannel, *, reason: ModReason = DefaultReason):
         """
         Locks a channel.
 
@@ -452,14 +454,14 @@ class Moderation(core.Cog):
         )
         lc = discord.Embed(
             title=":lock: This channel has been locked.",
-            description=f"{ctx.author.mention} has locked down <#{channel.id}> with the reason of {reason}."
+            description=f"{ctx.author.mention} has locked down <#{channel.id}> reason: {reason}."
         )
         await channel.send(embed=lc)
 
     @core.command(usage="<channel> [reason]")
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def unlock(self, ctx: Context, channel: discord.TextChannel, *, reason="No Reason Provided"):
+    async def unlock(self, ctx: Context, channel: discord.TextChannel, *, reason: ModReason = DefaultReason):
         """
         Unlocks a channel.
 
@@ -468,7 +470,7 @@ class Moderation(core.Cog):
         await channel.set_permissions(ctx.guild.default_role, send_messages=None)
         uc = discord.Embed(
             title=":unlock: This channel has been unlocked.",
-            description=f"{ctx.author.mention} has unlocked <#{channel.id}> with the reason of {reason}. "
+            description=f"{ctx.author.mention} has unlocked <#{channel.id}> reason: {reason}. "
         )
         await channel.send(embed=uc)
 
