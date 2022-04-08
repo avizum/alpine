@@ -20,20 +20,31 @@ from discord.ext import commands
 
 
 class NoChannelProvided(commands.CommandError):
-    """Error raised when no suitable voice channel was supplied."""
+    """
+    Error raised when no suitable voice channel was supplied.
+    """
 
     pass
 
 
 class IncorrectChannelError(commands.CommandError):
-    """Error raised when commands are issued outside of the players session channel."""
+    """
+    Error raised when commands are issued outside of the players session channel.
+    """
 
     pass
 
 
 class NotInVoice(commands.CheckFailure):
     """
-    Error raised when someone tries do to something when they are not DJ.
+    Error raised when someone tries do to something when they are not in the voice channel.
+    """
+
+    pass
+
+class BotNotInVoice(commands.CheckFailure):
+    """
+    Error raised when the bot is not in the voice channel.
     """
 
     pass

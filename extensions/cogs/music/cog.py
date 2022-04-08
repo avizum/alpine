@@ -34,7 +34,7 @@ from wavelink.ext import spotify
 import core
 from core import Bot, Context
 from utils import Paginator, format_seconds
-from .exceptions import NotInVoice
+from .exceptions import NotInVoice, BotNotInVoice
 from .music import Player, Track, SpotifyTrack, YouTubePlaylist, SearchView, SearchSelect, PaginatorSource
 
 
@@ -43,6 +43,14 @@ def in_voice():
         if ctx.author.voice:
             return True
         raise NotInVoice
+
+    return commands.check(predicate)
+
+def bot_in_voice():
+    def predicate(ctx: Context):
+        if ctx.voice_client:
+            return True
+        raise BotNotInVoice
 
     return commands.check(predicate)
 
@@ -157,6 +165,8 @@ class Music(core.Cog):
         ctx.locally_handled = True
         if isinstance(error, NotInVoice):
             return await ctx.send("You must be in a voice channel to use this command.")
+        elif isinstance(error, BotNotInVoice):
+            return await ctx.send("I'm not in a voice channel.")
         else:
             ctx.locally_handled = False
 
@@ -272,18 +282,17 @@ class Music(core.Cog):
         if not player.is_playing():
             await player.do_next()
 
-    @core.command()
+    @core.group(name="loop")
     @in_voice()
-    async def loop(self, ctx: Context):
+    @bot_in_voice()
+    async def track_loop(self, ctx: Context):
         """
         Loops the currently playing song.
 
-        Use this command again to disable loop.
+        This command toggles the looping of the track.
         """
         player: Player = ctx.voice_client
 
-        if not player:
-            return await ctx.send("I need to be in a voice channel.")
         if not player.track:
             return await ctx.send("There is no song playing to loop.")
         if player.loop_song:
@@ -291,6 +300,20 @@ class Music(core.Cog):
             return await ctx.send(f"No longer looping: {player.track.title}")
         player.loop_song = player.track
         await ctx.send(f"Now looping: {player.track.title}")
+
+    @track_loop.command(name="queue")
+    @in_voice()
+    async def loop_queue(self, ctx: Context):
+        """
+        Loops the whole queue.
+
+        This command toggles the looping of the queue.
+        """
+        player: Player = ctx.voice_client
+
+        if not player:
+            return await ctx.send()
+
 
     @core.command()
     @in_voice()
