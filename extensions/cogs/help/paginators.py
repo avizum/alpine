@@ -149,7 +149,7 @@ class GroupHelp(menus.ListPageSource):
             embed.add_field(
                 name="Required Permissions",
                 value=(
-                    f"Can Run: {await self.hc.can_run(self.group, self.ctx)}\n"
+                    f"Can be used by you: {await self.hc.can_run(self.group, self.ctx)}\n"
                     f"I Need: `{self.hc.get_perms('bot_permissions', self.group)}`\n"
                     f"You Need: `{self.hc.get_perms('member_permissions', self.group)}`"
                 ),

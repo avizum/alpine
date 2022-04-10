@@ -26,19 +26,15 @@ from difflib import get_close_matches
 from discord.ext import commands, menus
 
 import core
-from core import Bot, Context
+from core import Bot, Context, Command
 from utils import Paginator
 from .paginators import MainHelp, HelpPages, HelpSelect, CogHelp, GroupHelp
 
 
 class AvimetryHelp(commands.HelpCommand):
     def get_perms(self, perm_type: str, command: commands.Command):
-        permissions = getattr(command, perm_type, None) or command.extras.get(
-            perm_type, ["send_messages"]
-        )
-        return (
-            ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
-        )
+        permissions = getattr(command, perm_type, None) or command.extras.get(perm_type, ["send_messages"])
+        return ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
 
     async def can_run(self, command: core.Command, ctx: Context):
         try:
@@ -48,15 +44,15 @@ class AvimetryHelp(commands.HelpCommand):
             emoji = ctx.bot.emoji_dictionary["red_tick"]
         return emoji
 
-    def get_cooldown(self, command):
-        try:
-            rate = command._buckets._cooldown.rate
-            cd_type = command._buckets.type.name
-            per = humanize.precisedelta(command._buckets._cooldown.per)
+    def get_cooldown(self, command: Command):
+        cooldown = command.cooldown
+        if cooldown:
+            rate = cooldown.rate
+            _type = command._buckets.type.name
+            per = humanize.precisedelta(cooldown.per)
             time = "times" if rate > 1 else "time"
-            return f"{per} every {rate} {time} per {cd_type}"
-        except AttributeError:
-            return None
+            return f"{per} every {rate} {time} per {_type}"
+        return None
 
     def ending_note(self):
         return f"Use {self.context.clean_prefix}{self.invoked_with} [command|module] for more help."
@@ -69,8 +65,8 @@ class AvimetryHelp(commands.HelpCommand):
         if not flagconverter:
             return None
         flags = flagconverter.get_flags()
-        flag_prefix = flagconverter.__commands_flag_prefix__ or ''
-        flag_delimiter = flagconverter.__commands_flag_delimiter__ or ''
+        flag_prefix = flagconverter.__commands_flag_prefix__ or ""
+        flag_delimiter = flagconverter.__commands_flag_delimiter__ or ""
         flgs = []
         for name, flag in flags.items():
             if type(flag.description) == discord.utils._MissingSentinel:
@@ -121,13 +117,9 @@ class AvimetryHelp(commands.HelpCommand):
         if not cmds:
             return
         # Lazy way to not show commands on the first page.
-        filtered = [
-            '1', '2', '3', '4', '5'
-        ]
+        filtered = ["1", "2", "3", "4", "5"]
         filtered.extend(cmds)
-        menu = HelpPages(
-            GroupHelp(self.context, filtered, group, self), ctx=self.context
-        )
+        menu = HelpPages(GroupHelp(self.context, filtered, group, self), ctx=self.context)
         await menu.start()
 
     async def send_command_help(self, command: core.Command):
@@ -140,9 +132,7 @@ class AvimetryHelp(commands.HelpCommand):
         if flags := self.get_flags(command):
             embed.add_field(name="Command Flags", value="\n".join(flags), inline=False)
         if command.aliases:
-            embed.add_field(
-                name="Command Aliases", value=", ".join(command.aliases), inline=False
-            )
+            embed.add_field(name="Command Aliases", value=", ".join(command.aliases), inline=False)
         embed.add_field(
             name="Description",
             value=command.help or "No help was provided.",
@@ -151,7 +141,7 @@ class AvimetryHelp(commands.HelpCommand):
         embed.add_field(
             name="Required Permissions",
             value=(
-                f"Can Run: {await self.can_run(command, self.context)}\n"
+                f"Can be used by you: {await self.can_run(command, self.context)}\n"
                 f"I Need: `{self.get_perms('bot_permissions', command)}`\n"
                 f"You Need: `{self.get_perms('member_permissions', command)}`"
             ),
@@ -197,9 +187,7 @@ class AvimetryHelp(commands.HelpCommand):
         return "Command not found"
 
     async def subcommand_not_found(self, command, string):
-        return await self.context.send(
-            f'"{string}" is not a subcommand of "{command}".'
-        )
+        return await self.context.send(f'"{string}" is not a subcommand of "{command}".')
 
 
 class AllCommandsPageSource(menus.ListPageSource):
@@ -226,9 +214,7 @@ class HelpCommand(core.Cog):
                 hidden=True,
                 usage="[command|module]",
                 aliases=["h"],
-                cooldown=commands.CooldownMapping(
-                    commands.Cooldown(1, 2), commands.BucketType.user
-                ),
+                cooldown=commands.CooldownMapping(commands.Cooldown(1, 2), commands.BucketType.user),
             ),
         )
         help_command.cog = self
