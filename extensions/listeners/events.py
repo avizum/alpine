@@ -95,8 +95,8 @@ class BotLogs(core.Cog):
         if (
             not data
             or data["enabled"] is not True
-            or not data["message_delete"]
-            or not data["channel_id"]
+            or not data.get("message_delete")
+            or not data.get("channel_id")
         ):
             return
         channel = self.bot.get_channel(data["channel_id"])
@@ -145,8 +145,8 @@ class BotLogs(core.Cog):
         if (
             not data
             or data["enabled"] is not True
-            or not data["message_edit"]
-            or not data["channel_id"]
+            or not data.get("message_edit")
+            or not data.get("channel_id")
         ):
             return
         if before.author == self.bot.user or before.author.bot:
@@ -180,8 +180,8 @@ class BotLogs(core.Cog):
         if (
             not data
             or data["enabled"] is not True
-            or not data["member_ban"]
-            or not data["channel_id"]
+            or not data.get("member_ban")
+            or not data.get("channel_id")
         ):
             return
         await asyncio.sleep(2)
@@ -208,8 +208,8 @@ class BotLogs(core.Cog):
         if (
             not data
             or data["enabled"] is not True
-            or not data["member_kick"]
-            or not data["channel_id"]
+            or not data.get("member_kick")
+            or not data.get("channel_id")
         ):
             return
         entry = (await member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick).flatten())[0]
