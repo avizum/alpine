@@ -152,6 +152,9 @@ class ErrorHandler(core.Cog):
         if (command_has_handler or cog_has_handler) and ctx.locally_handled is True:
             return
 
+        if not ctx.channel.permissions_for(ctx.me).send_messages:
+            return
+
         if await self.bot.is_owner(ctx.author) and isinstance(error, reinvoke):
             try:
                 return await ctx.reinvoke()
@@ -256,7 +259,7 @@ class ErrorHandler(core.Cog):
             ]
 
             if len(missing) > 2:
-                fmt = "{}, and {}".format(", ".join(missing[:-1]), missing[-1])
+                fmt = f'{", ".join(missing[:-1])}, and {missing[-1]}'
             else:
                 fmt = " and ".join(missing)
 
@@ -276,7 +279,7 @@ class ErrorHandler(core.Cog):
             ]
 
             if len(missing) > 2:
-                fmt = "{}, and `{}`".format(", ".join(missing[:-1]), missing[-1])
+                fmt = f'{", ".join(missing[:-1])}, and `{missing[-1]}`'
             else:
                 fmt = " and ".join(missing)
 
@@ -421,9 +424,7 @@ class ErrorHandler(core.Cog):
             await self.error_webhook.send(
                 embed=webhook_error_embed, username="Command Error"
             )
-            print(
-                "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
-            )
+            print(f"Ignoring exception in command {ctx.command}:", file=sys.stderr)
             tb.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
             view = UnknownError(member=ctx.author, bot=self.bot, error_id=error_info['id'])
             view.message = await ctx.send(embed=embed, view=view)
