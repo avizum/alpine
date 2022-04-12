@@ -37,6 +37,7 @@ class Cache:
         self.blacklist = {}
         self.disabled_commmand = {}
         self.users = {}
+        self.highlights = {}
 
     @tasks.loop(minutes=5)
     async def cache_loop(self):
@@ -126,6 +127,7 @@ class Cache:
         join_leave = await self.bot.pool.fetch("SELECT * FROM join_leave")
         users = await self.bot.pool.fetch("SELECT * FROM user_settings")
         blacklist = await self.bot.pool.fetch("SELECT * FROM blacklist")
+        highlight = await self.bot.pool.fetch("SELECT * FROM highlight")
 
         print("Populating Cache...")
         for entry in guild_settings:
@@ -155,4 +157,11 @@ class Cache:
             item = dict(entry)
             item.pop("guild_id")
             self.join_leave[entry["guild_id"]] = item
+
+        for entry in highlight:
+            item = dict(entry)
+            try:
+                self.highlights[item["user_id"]].append(item)
+            except KeyError:
+                self.highlights[item["user_id"]] = [item]
         print("Cache Populated.")
