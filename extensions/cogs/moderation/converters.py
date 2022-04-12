@@ -129,6 +129,11 @@ class TargetMember(commands.Converter[discord.Member]):
                 f"You can't {action} {member} because they have the same top role as you."
             )
 
+        if ctx.command.qualified_name == "mute" and member.guild_permissions.administrator:
+            raise commands.BadArgument(
+                f"You can't {action} {member} because they have administrator permissions."
+            )
+
         return member
 
 class FindBan(commands.Converter[discord.Member]):
