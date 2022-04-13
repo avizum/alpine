@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from .cog import HighlightCommands, Bot
-from .events import HighlightListener
+from .listener import HighlightListener
 
 
 class Highlight(HighlightCommands, HighlightListener):
