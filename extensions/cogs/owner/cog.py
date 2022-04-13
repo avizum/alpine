@@ -23,6 +23,7 @@ import datetime
 import importlib
 import inspect
 import math
+import re
 import sys
 from typing import List
 from difflib import get_close_matches
@@ -43,13 +44,15 @@ from jishaku.paginators import PaginatorInterface
 from jishaku.repl import AsyncCodeExecutor, get_var_dict_from_ctx
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.functools import AsyncSender
+from jishaku.paginators import WrappedPaginator
 from importlib.metadata import distribution, packages_distributions
 
 import core
 from core import Bot, Context
-from utils import timestamp
+from utils.helpers import timestamp
 from utils.converters import ModReason
 from utils.paginators import Paginator, PaginatorEmbed
+from utils.view import View
 
 
 def naturalsize(size_in_bytes: int) -> str:
@@ -126,6 +129,43 @@ class BlacklistedPageSource(menus.ListPageSource):
             bl_entry = self.ctx.cache.blacklist[entry]
             embed.add_field(name=f"{user}({user.id})" if user else entry, value=f"[Reason]\n{bl_entry}", inline=False)
         return embed
+
+class ReloadView(View):
+    def __init__(self, ctx: Context, bot: Bot, to_reload: list[str], embed: discord.Embed) -> None:
+        self.ctx = ctx
+        self.bot = bot
+        self.embed = embed
+        self.to_reload = None
+        self.get_close_cogs(to_reload)
+        super().__init__(member=self.ctx.author, timeout=60)
+
+    def get_close_cogs(self, argument: list[str]) -> list[str]:
+        self.to_reload = [get_close_matches(cog, self.bot.extensions)[0] for cog in argument]
+
+    @discord.ui.button(label="Reload", style=discord.ButtonStyle.blurple)
+    async def reload_modules(self, interaction: discord.Interaction, button: discord.Button):
+        reload_list = []
+        for cog in self.to_reload:
+            try:
+                await self.bot.reload_extension(cog)
+                reload_list.append(f"{self.bot.emoji_dictionary['green_tick']} | {cog}")
+            except commands.ExtensionError as e:
+                reload_list.append(f"{self.bot.emoji_dictionary['red_tick']} | {cog}\n```{e}```")
+            else:
+                if not reload_list:
+                    self.embed.add_field(name="Reloaded Modules", value="No modules were reloaded")
+                else:
+                    self.embed.add_field(name="Reloaded Modules", value="\n".join(reload_list))
+        self.embed.set_footer()
+        await interaction.response.edit_message(embed=self.embed, view=None)
+        self.stop()
+
+    @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
+    async def cancel_reload(self, interaction: discord.Interaction, button: discord.Button):
+        await interaction.response.edit_message(view=None)
+        self.stop()
+
+FILE_REGEX = re.compile(r"^(.*[^/\n]+)(\.py)")
 
 class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     """
@@ -461,8 +501,8 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         embed = discord.Embed(title="Reloaded Extensions", description=description)
         await ctx.send(embed=embed)
 
-    @Feature.Command(parent="jsk")
-    async def sync(self, ctx: Context):
+    @Feature.Command(parent="jsk", name="sync", aliases=["s"])
+    async def jsk_sync(self, ctx: Context):
         """
         Pulls from GitHub then reloads all modules.
 
@@ -486,21 +526,36 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         sync_embed.description = f"```bash\n{output}\n```"
         sync_embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
         sync_embed.title = "Synced With GitHub"
-        modules = await CogConverter().convert(ctx, "~")
-        reload_list = []
-        for cog in modules:
-            try:
-                await self.bot.reload_extension(cog)
-            except commands.ExtensionError as e:
-                reload_list.append(
-                    f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```'
-                )
-        if not reload_list:
-            value = "All modules were reloaded successfully"
+
+        to_reload = [item.replace("/", ".").strip() for item in re.findall(r".*[^\/\n]+\.py", output, re.MULTILINE)]
+        view = None
+        if to_reload:
+            sync_embed.set_footer(text="Reload Changed Files?")
+            view = ReloadView(ctx, self.bot, to_reload, sync_embed)
+        await edit_sync.edit(view=view, embed=sync_embed)
+
+    @Feature.Command(parent="jsk", name="treesync", aliases=["ts", "synctree", "tsync", "stree"])
+    async def jsk_tree_sync(self, ctx: commands.Context, *guild_ids: int):
+        """
+        Sync global or guild application commands to Discord.
+        """
+
+        paginator = WrappedPaginator(prefix='', suffix='')
+
+        if not guild_ids:
+            synced = await self.bot.tree.sync()
+            paginator.add_line(f"\N{SATELLITE ANTENNA} Synced {len(synced)} global commands")
         else:
-            value = "\n".join(reload_list)
-        sync_embed.add_field(name="Reloaded Modules", value=value)
-        await edit_sync.edit(embed=sync_embed)
+            for guild_id in guild_ids:
+                try:
+                    synced = await self.bot.tree.sync(guild=discord.Object(guild_id))
+                except discord.HTTPException as exc:
+                    paginator.add_line(f"\N{WARNING SIGN} `{guild_id}`: {exc.text}")
+                else:
+                    paginator.add_line(f"\N{SATELLITE ANTENNA} `{guild_id}` Synced {len(synced)} guild commands")
+
+        for page in paginator.pages:
+            await ctx.send(page)
 
     @Feature.Command(parent="jsk")
     async def leave(self, ctx: Context, guild: discord.Guild):
