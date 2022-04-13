@@ -30,14 +30,14 @@ class Cache:
     def __init__(self, bot: Bot):
         self.bot = bot
         self.cache_loop.start()
-        self.guild_settings = {}
-        self.verification = {}
-        self.logging = {}
-        self.join_leave = {}
-        self.blacklist = {}
-        self.disabled_commmand = {}
-        self.users = {}
-        self.highlights = {}
+        self.guild_settings: dict = {}
+        self.verification: dict = {}
+        self.logging: dict[int, dict] = {}
+        self.join_leave: dict[int, dict] = {}
+        self.blacklist: dict[int, str] = {}
+        self.disabled_commmand: dict = {}
+        self.users: dict[int, dict] = {}
+        self.highlights: dict[int, dict] = {}
 
     @tasks.loop(minutes=5)
     async def cache_loop(self):
@@ -127,7 +127,7 @@ class Cache:
         join_leave = await self.bot.pool.fetch("SELECT * FROM join_leave")
         users = await self.bot.pool.fetch("SELECT * FROM user_settings")
         blacklist = await self.bot.pool.fetch("SELECT * FROM blacklist")
-        highlight = await self.bot.pool.fetch("SELECT * FROM highlight")
+        highlight = await self.bot.pool.fetch("SELECT * FROM highlights")
 
         print("Populating Cache...")
         for entry in guild_settings:
@@ -160,8 +160,6 @@ class Cache:
 
         for entry in highlight:
             item = dict(entry)
-            try:
-                self.highlights[item["user_id"]].append(item)
-            except KeyError:
-                self.highlights[item["user_id"]] = [item]
+            item.pop("user_id")
+            self.highlights[entry["user_id"]] = item
         print("Cache Populated.")

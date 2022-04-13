@@ -39,25 +39,28 @@ class HighlightListener(core.Cog):
 
         history = None
 
+        highlight_list = []
         for user_id, data in self.bot.cache.highlights.items():
             if user_id == message.author.id:
                 continue
 
-            reg = "|".join(f"({entry['phrase']})" for entry in data)
+            if data["blocked"] and message.author.id in data["blocked"] or message.channel.id in data["blocked"]:
+                continue
 
-            match = re.search(reg, message.content, re.IGNORECASE)
+            for word in data["triggers"]:
+                highlight_list.append(word)
+            reg = "|".join(rf"\b({h})\b" for h in highlight_list)
+
+            match = re.search(reg, message.content, flags=re.IGNORECASE)
             if not match:
                 continue
 
-            groups = match.groups()
-            try:
-                phrase = discord.utils.find(lambda e: e["phrase"] in groups, data)["phrase"]
-            except KeyError:
-                phrase = None
-            if not phrase:
+            trigger = discord.utils.find(lambda t: t in match.groups(), data["triggers"])
+            if not trigger:
                 continue
 
             if history is None:
+
                 def check(msg: discord.Message):
                     return msg.author.id == user_id and msg.channel == message.channel
 
@@ -66,27 +69,29 @@ class HighlightListener(core.Cog):
                 except asyncio.TimeoutError:
                     messages = []
                     async for msg in message.channel.history(limit=9, around=message):
+                        timestamp = format_dt(msg.created_at, "t")
+                        author = msg.author
+                        content = msg.content[:90] or "*No message content*"
                         if msg.id == message.id:
-                            messages.append(
-                                f"[**[{format_dt(msg.created_at, 't')}] {msg.author}: {msg.content}**]({msg.jump_url})"
-                            )
+                            content = content.replace(trigger, f"*__{trigger}__*")
+                            messages.append(f"[**[{timestamp}] {author}: {content}**]({msg.jump_url})")
                         else:
-                            messages.append(
-                                f"[{format_dt(msg.created_at, 't')}] {msg.author}: {msg.content}"
-                            )
+                            messages.append(f"[{timestamp}] {author}: {content}")
                     messages.reverse()
                     embed = discord.Embed(
-                        title=f"Highlight trigger: {phrase}",
+                        title=f"Highlight trigger: {trigger}",
                         description=(
                             f"In the server {message.guild.name}, you were highlighted"
                             f" by {message.author.mention} ({message.author.id})."
                         ),
                         color=0xF2D413,
+                        timestamp=message.created_at,
                     )
                     embed.add_field(
                         name="Messages",
                         value="\n".join(messages),
                     )
+                    embed.set_footer(text="Triggered at")
                     user = (
                         message.guild.get_member(user_id)
                         or self.bot.get_user(user_id)
