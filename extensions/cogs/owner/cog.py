@@ -31,7 +31,7 @@ from difflib import get_close_matches
 import discord
 import psutil
 import toml
-import utils
+from discord.utils import format_dt
 from asyncpg import Record
 from discord.ext import commands, menus
 from jishaku import Feature
@@ -650,7 +650,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 return await ctx.send(f"{cog} does not exist.")
             return await ctx.send(f"{ext.qualified_name} | Loaded {discord.utils.format_dt(ext.load_time, 'R')}")
         thing_list = [
-            f"{val.qualified_name} | Loaded {utils.timestamp(val.load_time, 'R')}" for _, val in self.bot.cogs.items()
+            f"{val.qualified_name} | Loaded {format_dt(val.load_time, 'R')}" for _, val in self.bot.cogs.items()
         ]
         embed = discord.Embed(title="Loaded Cogs", description="\n".join(thing_list))
         await ctx.send(embed=embed)

@@ -15,10 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-
-import datetime
 import time
-import typing
 
 
 def format_string(number, value):
@@ -39,12 +36,6 @@ def format_list(list, *, seperator: str = ", ", last: str = "and"):
     if len(list) == 2:
         return f" {last} ".join(list)
     return f"{seperator.join(str(item) for item in list[:-1])} {last} {list[-1]}"
-
-
-def timestamp(times: datetime.datetime, format: typing.Optional[str] = None):
-    if format:
-        return f"<t:{int(times.replace(tzinfo=datetime.timezone.utc).timestamp())}:{format}>"
-    return f"<t:{int(times.replace(tzinfo=datetime.timezone.utc).timestamp())}>"
 
 
 class Timer:
