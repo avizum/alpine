@@ -118,7 +118,11 @@ class BotLogs(core.Cog):
             if not message.content:
                 return
         if isinstance(message, list):
-            list_of_messages = [f"[{m.author}]: {m.content}" for m in message if m.content and not m.author.bot]
+            list_of_messages = []
+            for m in message:
+                timestamp = discord.utils.format_dt(m.created_at, "t")
+                content = m.content[:90] or "*No content*"
+                list_of_messages.append(f"[{timestamp}] {m.author}: {content}")
             if not list_of_messages:
                 return
             embed = discord.Embed(
@@ -132,7 +136,7 @@ class BotLogs(core.Cog):
                 message_file = discord.File(filename="messages.txt", fp=BytesIO(messages.encode("utf-8")))
                 return await channel.send(embed=embed, file=message_file)
             embed.description = "\n".join(list_of_messages)
-            return await channel.send(embed=embed)
+        return await channel.send(embed=embed)
 
     @core.Cog.listener("on_message_edit")
     async def logging_edit(self, before: discord.Message, after: discord.Message):
@@ -185,9 +189,9 @@ class BotLogs(core.Cog):
         ):
             return
         await asyncio.sleep(2)
-        entry = (
-            await guild.audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten()
-        )[0]
+        entry = [
+            entry async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.ban)
+        ][0]
         if entry.target == user:
             channel = self.bot.get_channel(data["channel_id"])
             embed = discord.Embed(
@@ -212,7 +216,7 @@ class BotLogs(core.Cog):
             or not data.get("channel_id")
         ):
             return
-        entry = (await member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick).flatten())[0]
+        entry = [member async for member in member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick)][0]
         if entry.target == member:
             channel = self.bot.get_channel(data["channel_id"])
             embed = discord.Embed(
@@ -232,11 +236,11 @@ class BotLogs(core.Cog):
         thing = self.bot.cache.logging.get(channel.guild.id)
         if not thing:
             return
-        if thing["enabled"] is not True:
+        if thing.get("enabled") is not True:
             return
-        if not thing["channel_create"]:
+        if not thing.get("channel_create"):
             return
-        if not thing["channel_id"]:
+        if not thing.get("channel_id"):
             return
         channel = self.bot.get_channel(thing["channel_id"])
         await channel.send(f"Channel has been created: {channel.mention}")
@@ -246,11 +250,11 @@ class BotLogs(core.Cog):
         thing = self.bot.cache.logging.get(channel.guild.id)
         if not thing:
             return
-        if thing["enabled"] is not True:
+        if thing.get("enabled") is not True:
             return
-        if not thing["channel_delete"]:
+        if not thing.get("channel_delete"):
             return
-        if not thing["channel_id"]:
+        if not thing.get("channel_id"):
             return
         channel = self.bot.get_channel(thing["channel_id"])
         await channel.send(f"Channel has been deleted: {channel.name}")

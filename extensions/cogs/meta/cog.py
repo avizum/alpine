@@ -397,7 +397,7 @@ class Meta(core.Cog):
         """
         if channel is None:
             channel = ctx.channel
-        messages = await channel.history(limit=1, oldest_first=True).flatten()
+        messages = [message async for message in channel.history(limit=1, oldest_first=True)]
         if len(messages[0].content) > 100:
             mg_cnt = messages[0].content[:100]
         mg_cnt = messages[0].content

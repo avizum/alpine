@@ -351,9 +351,9 @@ class Moderation(core.Cog):
         Purge any message that contains a link.
         """
         def check(m: discord.Message):
-            if re.match(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", m.content):
-                return True
-            return False
+            return bool(
+                re.match(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", m.content)
+            )
         purged = await ctx.channel.purge(
             limit=amount, check=check, before=ctx.message
         )
