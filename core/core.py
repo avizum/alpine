@@ -43,9 +43,7 @@ class Command(commands.Command):
         )
         super().__init__(func, **kwargs)
         if not self._buckets._cooldown:
-            self._buckets = commands.CooldownMapping(
-                commands.Cooldown(1, 3), commands.BucketType.user
-            )
+            self._buckets = commands.CooldownMapping(commands.Cooldown(1, 3), commands.BucketType.user)
             self._buckets._cooldown = commands.Cooldown(1, 3)
 
     def __repr__(self) -> str:
@@ -60,9 +58,7 @@ class Command(commands.Command):
 
         try:
             if not await ctx.bot.can_run(ctx):
-                raise CheckFailure(
-                    f"The global check functions for command {self.qualified_name} failed."
-                )
+                raise CheckFailure(f"The global check functions for command {self.qualified_name} failed.")
 
             cog = self.cog
             if cog is not None:

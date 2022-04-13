@@ -65,9 +65,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         """
         Show the bot's news.
         """
-        embed = discord.Embed(
-            title="\U0001f4f0 Avimetry News", description=self.bot.news
-        )
+        embed = discord.Embed(title="\U0001f4f0 Avimetry News", description=self.bot.news)
         await ctx.send(embed=embed)
 
     @core.command()
@@ -78,21 +76,14 @@ class BotInfo(commands.Cog, name="Bot Info"):
         embed = discord.Embed(title="Info about Avimetry")
         embed.add_field(name="Latest News", value=self.bot.news, inline=False)
         async with ctx.channel.typing():
-            async with self.bot.session.get(
-                "https://api.github.com/repos/avimetry/avimetry/commits"
-            ) as resp:
+            async with self.bot.session.get("https://api.github.com/repos/avimetry/avimetry/commits") as resp:
                 items = await resp.json()
         try:
-            commits = "\n".join(
-                f"[`{cm['sha'][:7]}`]({cm['html_url']}) {cm['commit']['message']}"
-                for cm in items[:3]
-            )
+            commits = "\n".join(f"[`{cm['sha'][:7]}`]({cm['html_url']}) {cm['commit']['message']}" for cm in items[:3])
         except KeyError:
             commits = "Could not get commits."
         embed.add_field(name="Latest Commits", value=commits, inline=False)
-        delta_uptime = (
-            datetime.datetime.now(datetime.timezone.utc) - self.bot.launch_time
-        )
+        delta_uptime = datetime.datetime.now(datetime.timezone.utc) - self.bot.launch_time
         embed.add_field(
             name="Info",
             value=f"Up for {humanize.precisedelta(delta_uptime)},\n`{round(self.bot.latency*1000)}ms` latency",
@@ -140,22 +131,13 @@ class BotInfo(commands.Cog, name="Bot Info"):
         You can contribute on the repo.
         """
         async with ctx.channel.typing():
-            async with self.bot.session.get(
-                "https://api.github.com/repos/avimetry/avimetry/commits"
-            ) as resp:
+            async with self.bot.session.get("https://api.github.com/repos/avimetry/avimetry/commits") as resp:
                 items = await resp.json()
         try:
-            commit_list = [
-                f"[`{cm['sha'][:7]}`]({cm['html_url']}) {cm['commit']['message']}"
-                for cm in items[:10]
-            ]
+            commit_list = [f"[`{cm['sha'][:7]}`]({cm['html_url']}) {cm['commit']['message']}" for cm in items[:10]]
         except KeyError:
-            return await ctx.send(
-                "An error occured while trying to get the commits. Try again later."
-            )
-        embed = discord.Embed(
-            title="Recent commits", description="\n".join(commit_list)
-        )
+            return await ctx.send("An error occured while trying to get the commits. Try again later.")
+        embed = discord.Embed(title="Recent commits", description="\n".join(commit_list))
         embed.set_footer(text="Contribute to Avimetry by doing magic.")
         await ctx.send(embed=embed)
 
@@ -164,9 +146,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         """
         Check how long the bot has been up for.
         """
-        delta_uptime = (
-            datetime.datetime.now(datetime.timezone.utc) - self.bot.launch_time
-        )
+        delta_uptime = datetime.datetime.now(datetime.timezone.utc) - self.bot.launch_time
         ue = discord.Embed(
             title="Current Uptime",
             description=humanize.precisedelta(delta_uptime, format="%.2g"),
@@ -214,9 +194,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             description=f"Hello {ctx.author.mention}, I am a bot made by [avizum.](https://github.com/avizum)",
             color=ctx.guild.owner.color,
         )
-        embed.add_field(
-            name=f"{ctx.clean_prefix}help", value="Sends the help page.", inline=False
-        )
+        embed.add_field(name=f"{ctx.clean_prefix}help", value="Sends the help page.", inline=False)
         embed.add_field(
             name=f"{ctx.clean_prefix}prefix add",
             value="Adds a prefix to this server. (You can have up to 15 prefixes)",
@@ -285,9 +263,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             invite_embed.set_thumbnail(url=bot.display_avatar.url)
             try:
                 top = await self.bot.topgg.get_bot_info(bot.id)
-                invite_embed.description = (
-                    f"Invite {bot.name} to your server! Here is the invite link."
-                )
+                invite_embed.description = f"Invite {bot.name} to your server! Here is the invite link."
                 link = f"https://top.gg/bot/{bot.id}"
                 view.add_item(
                     discord.ui.Button(
@@ -366,11 +342,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             ),
         )
         view = discord.ui.View(timeout=None)
-        view.add_item(
-            discord.ui.Button(
-                style=discord.ui.Button, url=self.bot.source, label="Source"
-            )
-        )
+        view.add_item(discord.ui.Button(style=discord.ui.Button, url=self.bot.source, label="Source"))
         await ctx.send(embed=embed, view=view)
 
     @core.command()
@@ -381,14 +353,10 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
         Spamming this command or sending spam requests will get you blacklisted from the bot.
         """
-        conf = await ctx.confirm(
-            f"Are sure you want to send this request?\n> {request}"
-        )
+        conf = await ctx.confirm(f"Are sure you want to send this request?\n> {request}")
         if conf.result:
 
-            req_send = discord.Embed(
-                title=f"Request from {ctx.author}", description=f"```{request}```"
-            )
+            req_send = discord.Embed(title=f"Request from {ctx.author}", description=f"```{request}```")
 
             await self.request_wh.send(embed=req_send)
             req_embed = discord.Embed(
@@ -420,9 +388,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             ("Discord Bot List", "https://discordbotlist.com/bots/avimetry/upvote"),
         ]
         for name, link in links:
-            view.add_item(
-                discord.ui.Button(style=discord.ButtonStyle.link, label=name, url=link)
-            )
+            view.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label=name, url=link))
         vote_embed = discord.Embed(
             title=f"Vote for {self.bot.user.name}",
             description="Thank you for voting for me!\nYour support is greatly appreciated :)",
@@ -461,16 +427,8 @@ class BotInfo(commands.Cog, name="Bot Info"):
                     "I am made by avizum\n"
                     "Follow the license and please star :)"
                 )
-            view.add_item(
-                button(
-                    style=discord.ButtonStyle.link, label="Source", url=self.bot.source
-                )
-            )
-            view.add_item(
-                button(
-                    style=discord.ButtonStyle.link, label="License", url=license_link
-                )
-            )
+            view.add_item(button(style=discord.ButtonStyle.link, label="Source", url=self.bot.source))
+            view.add_item(button(style=discord.ButtonStyle.link, label="License", url=license_link))
             return await ctx.send(embed=source_embed, view=view)
 
         if command == "help":
@@ -494,18 +452,10 @@ class BotInfo(commands.Cog, name="Bot Info"):
         command = "help" if isinstance(command, commands.HelpCommand) else command
         link = f"{git_link}{path}#L{number_one}-L{number_two}"
         source_embed.description = (
-            f"Click below for the source of `{command}`.\n"
-            "Remember to follow the license.\n"
-            "Made by avizum."
+            f"Click below for the source of `{command}`.\n" "Remember to follow the license.\n" "Made by avizum."
         )
-        view.add_item(
-            button(
-                style=discord.ButtonStyle.link, label=f"Source for {command}", url=link
-            )
-        )
-        view.add_item(
-            button(style=discord.ButtonStyle.link, label="License", url=license_link)
-        )
+        view.add_item(button(style=discord.ButtonStyle.link, label=f"Source for {command}", url=link))
+        view.add_item(button(style=discord.ButtonStyle.link, label="License", url=license_link))
         await ctx.send(embed=source_embed, view=view)
 
     @core.command(

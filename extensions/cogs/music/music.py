@@ -86,6 +86,7 @@ class Queue(asyncio.Queue):
     """
     Queue for music.
     """
+
     def __init__(self, *, max_size: int = 0, allow_duplicates: bool = True):
         super().__init__(maxsize=max_size)
         self._queue: Union[collections.deque, List[Track]] = collections.deque()
@@ -164,14 +165,8 @@ class Player(wavelink.Player):
     """
     Custom wavelink Player class.
     """
-    def __init__(
-        self,
-        *args,
-        context: Context = None,
-        announce: bool = True,
-        allow_duplicates: bool = True,
-        **kwargs
-    ):
+
+    def __init__(self, *args, context: Context = None, announce: bool = True, allow_duplicates: bool = True, **kwargs):
         self.context: Context = context
         self.youtube_reg = re.compile(
             r"https?://((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$"
@@ -215,7 +210,7 @@ class Player(wavelink.Player):
         elif self.spotify_reg.match(query):
             search_type = spotify.decode_url(query)
             if search_type:
-                return await spotify.SpotifyTrack.search(query, type=search_type['type'])
+                return await spotify.SpotifyTrack.search(query, type=search_type["type"])
         else:
             tracks = await self.node.get_tracks(wavelink.YouTubeTrack, f"ytsearch:{query}")
         if tracks:
@@ -300,9 +295,7 @@ class PaginatorSource(menus.ListPageSource):
         self.ctx = ctx
 
     async def format_page(self, menu: menus.Menu, page):
-        embed = discord.Embed(
-            title=f"Queue for {self.ctx.guild}", color=await self.ctx.fetch_color()
-        )
+        embed = discord.Embed(title=f"Queue for {self.ctx.guild}", color=await self.ctx.fetch_color())
         embed.description = "\n".join(page)
         if self.ctx.guild.icon.url:
             embed.set_thumbnail(url=self.ctx.guild.icon.url)
@@ -323,10 +316,7 @@ class SearchView(View):
 
 class SearchSelect(discord.ui.Select):
     def __init__(self, *, options: List[Track]):
-        options = [
-            discord.SelectOption(label=f"{number+1}) {track.title}")
-            for number, track in enumerate(options)
-        ]
+        options = [discord.SelectOption(label=f"{number+1}) {track.title}") for number, track in enumerate(options)]
         super().__init__(
             placeholder="Select the songs you want to play",
             options=options,

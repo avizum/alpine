@@ -49,12 +49,8 @@ class Settings(core.Cog):
             return await ctx.send("The default prefix is `a.`")
         guild_prefix = prefix["prefixes"]
         if len(guild_prefix) == 1:
-            return await ctx.send(
-                f"Hey {ctx.author}, the prefix for {ctx.guild.name} is `{guild_prefix[0]}`"
-            )
-        await ctx.send(
-            f"Hey {ctx.author}, here are the prefixes for {ctx.guild.name}:\n`{'` | `'.join(guild_prefix)}`"
-        )
+            return await ctx.send(f"Hey {ctx.author}, the prefix for {ctx.guild.name} is `{guild_prefix[0]}`")
+        await ctx.send(f"Hey {ctx.author}, here are the prefixes for {ctx.guild.name}:\n`{'` | `'.join(guild_prefix)}`")
 
     @prefix.command(name="add", aliases=["append"])
     @core.has_permissions(manage_guild=True)
@@ -265,10 +261,7 @@ class Settings(core.Cog):
             except KeyError:
                 embed = discord.Embed(
                     title="Join Message Configutation",
-                    description=(
-                        "You do not have join messages setup yet.\n"
-                        "Do you want to set them up?"
-                    ),
+                    description=("You do not have join messages setup yet.\n" "Do you want to set them up?"),
                 )
                 confirm = await ctx.confirm(embed=embed)
                 if confirm.result:
@@ -313,9 +306,7 @@ class Settings(core.Cog):
 
     @join_message.command(name="channel")
     @core.has_permissions(manage_guild=True)
-    async def join_message_channel(
-        self, ctx: Context, channel: discord.TextChannel
-    ):
+    async def join_message_channel(self, ctx: Context, channel: discord.TextChannel):
         """
         Set the join message channel.
 
@@ -361,16 +352,13 @@ class Settings(core.Cog):
                 embed.description = "Okay, I cancelled the setup, Goodbye."
                 return await wait_channel.reply(embed=embed)
             try:
-                channel = await commands.TextChannelConverter().convert(
-                    ctx, wait_channel.content
-                )
+                channel = await commands.TextChannelConverter().convert(ctx, wait_channel.content)
             except commands.ChannelNotFound:
                 embed.description = "That is not a channel. Goodbye."
                 return await wait_channel.reply(embed=embed)
             if channel:
                 embed.description = (
-                    f"Okay, the channel will be {channel.mention}.\n"
-                    "What should the join message be? (5 minutes)"
+                    f"Okay, the channel will be {channel.mention}.\n" "What should the join message be? (5 minutes)"
                 )
                 await wait_channel.reply(embed=embed)
         try:
@@ -387,9 +375,7 @@ class Settings(core.Cog):
             if type(preview) is discord.Embed:
                 conf = await ctx.confirm(conf_message, embed=preview, no_reply=True)
             else:
-                conf = await ctx.confirm(
-                    f"{conf_message}\n=====\n{preview}", no_reply=True
-                )
+                conf = await ctx.confirm(f"{conf_message}\n=====\n{preview}", no_reply=True)
             if conf.result:
                 query = """
                     INSERT INTO join_leave (guild_id, join_enabled, join_message, join_channel)
@@ -397,9 +383,7 @@ class Settings(core.Cog):
                     ON CONFLICT (guild_id) DO
                     UPDATE SET guild_id = $1, join_enabled = $2, join_message = $3, join_channel = $4
                     """
-                await self.bot.pool.execute(
-                    query, ctx.guild.id, True, message, channel.id
-                )
+                await self.bot.pool.execute(query, ctx.guild.id, True, message, channel.id)
                 ctx.cache.join_leave[ctx.guild.id]["join_enabled"] = True
                 ctx.cache.join_leave[ctx.guild.id]["join_message"] = message
                 ctx.cache.join_leave[ctx.guild.id]["join_channel"] = channel.id
@@ -433,10 +417,7 @@ class Settings(core.Cog):
             except KeyError:
                 embed = discord.Embed(
                     title="Leave Message Configuration",
-                    description=(
-                        "You do not have leave messages setup yet.\n"
-                        "Do you want to set them up?"
-                    ),
+                    description=("You do not have leave messages setup yet.\n" "Do you want to set them up?"),
                 )
                 confirm = await ctx.confirm(embed=embed)
                 if confirm.result:
@@ -481,9 +462,7 @@ class Settings(core.Cog):
 
     @leave_message.command(name="channel")
     @core.has_permissions(manage_guild=True)
-    async def leave_message_channel(
-        self, ctx: Context, channel: discord.TextChannel
-    ):
+    async def leave_message_channel(self, ctx: Context, channel: discord.TextChannel):
         """
         Set the leave message channel.
 
@@ -529,16 +508,13 @@ class Settings(core.Cog):
                 embed.description = "Okay, I cancelled the setup, Goodbye."
                 return await wait_channel.reply(embed=embed)
             try:
-                channel = await commands.TextChannelConverter().convert(
-                    ctx, wait_channel.content
-                )
+                channel = await commands.TextChannelConverter().convert(ctx, wait_channel.content)
             except commands.ChannelNotFound:
                 embed.description = "That is not a channel. Goodbye."
                 return await wait_channel.reply(embed=embed)
             if channel:
                 embed.description = (
-                    f"Okay, the channel will be {channel.mention}.\n"
-                    "What should the leave message be? (5 minutes)"
+                    f"Okay, the channel will be {channel.mention}.\n" "What should the leave message be? (5 minutes)"
                 )
                 await wait_channel.reply(embed=embed)
         try:
@@ -555,9 +531,7 @@ class Settings(core.Cog):
             if type(preview) is discord.Embed:
                 conf = await ctx.confirm(conf_message, embed=preview, no_reply=True)
             else:
-                conf = await ctx.confirm(
-                    f"{conf_message}\n=====\n{preview}", no_reply=True
-                )
+                conf = await ctx.confirm(f"{conf_message}\n=====\n{preview}", no_reply=True)
             if conf.result:
                 query = (
                     "INSERT INTO join_leave (guild_id, leave_enabled, leave_message, leave_channel) "
@@ -565,9 +539,7 @@ class Settings(core.Cog):
                     "ON CONFLICT (guild_id) DO "
                     "UPDATE SET guild_id = $1, leave_enabled = $2, leave_message = $3, leave_channel = $4"
                 )
-                await self.bot.pool.execute(
-                    query, ctx.guild.id, True, message, channel.id
-                )
+                await self.bot.pool.execute(query, ctx.guild.id, True, message, channel.id)
                 ctx.cache.join_leave[ctx.guild.id]["leave_enabled"] = True
                 ctx.cache.join_leave[ctx.guild.id]["leave_message"] = message
                 ctx.cache.join_leave[ctx.guild.id]["leave_channel"] = channel.id
@@ -578,9 +550,7 @@ class Settings(core.Cog):
 
     @core.group(invoke_without_command=True)
     @core.has_permissions(manage_guild=True)
-    @core.bot_has_permissions(
-        manage_channels=True, manage_roles=True, manage_messages=True
-    )
+    @core.bot_has_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
     async def verification(self, ctx: Context, toggle: bool = None):
         """
         Set verification.
@@ -593,11 +563,7 @@ class Settings(core.Cog):
                 veri = ctx.cache.verification[ctx.guild.id]
             except KeyError:
                 return await ctx.send("Verification is not setup.")
-            embed = discord.Embed(
-                description=(
-                    f"Role: {veri.get('role_id')}\n" f"Toggle: {veri.get('high')}"
-                )
-            )
+            embed = discord.Embed(description=(f"Role: {veri.get('role_id')}\n" f"Toggle: {veri.get('high')}"))
             return await ctx.send(embed=embed)
         query = (
             "INSERT INTO verification (guild_id, high) "
@@ -611,9 +577,7 @@ class Settings(core.Cog):
 
     @verification.command(name="role")
     @core.has_permissions(manage_guild=True)
-    @core.bot_has_permissions(
-        manage_channels=True, manage_roles=True, manage_messages=True
-    )
+    @core.bot_has_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
     async def verification_role(self, ctx: Context, role: discord.Role):
         """
         Set verification role.
@@ -632,12 +596,8 @@ class Settings(core.Cog):
 
     @verification.command(name="channel")
     @core.has_permissions(manage_guild=True)
-    @core.bot_has_permissions(
-        manage_channels=True, manage_roles=True, manage_messages=True
-    )
-    async def verification_channel(
-        self, ctx: Context, channel: discord.TextChannel
-    ):
+    @core.bot_has_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
+    async def verification_channel(self, ctx: Context, channel: discord.TextChannel):
         """
         Set verification channel.
 
@@ -701,10 +661,7 @@ class Settings(core.Cog):
         """
         Enable a disabled command in this server.
         """
-        if (
-            str(command)
-            not in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]
-        ):
+        if str(command) not in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]:
             return await ctx.send("This command is not disabled.")
         query = "UPDATE guild_settings SET disabled_commands = ARRAY_REMOVE(disabled_commands, $2) WHERE guild_id = $1"
         ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"].remove(str(command))
@@ -717,10 +674,7 @@ class Settings(core.Cog):
         """
         Allow the bot to work again in a channel.
         """
-        if (
-            channel.id
-            not in ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"]
-        ):
+        if channel.id not in ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"]:
             return await ctx.send("Commands in this channel are not disabled.")
         query = "UPDATE guild_settings SET disabled_channels = ARRAY_REMOVE(disabled_channels, $2) WHERE guild_id = $1"
         ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"].remove(channel.id)
@@ -745,9 +699,7 @@ class Settings(core.Cog):
         """
         auto_unarchive = self.bot.cache.guild_settings[ctx.guild.id]["auto_unarchive"]
         if thread.id in auto_unarchive:
-            return await ctx.send(
-                "This channel is already being automatically unarchived."
-            )
+            return await ctx.send("This channel is already being automatically unarchived.")
         auto_unarchive.append(thread.id)
         query = "UPDATE guild_settings SET auto_unarchive = ARRAY_APPEND(auto_unarchive, $2) WHERE guild_id = $1"
         await self.bot.pool.execute(query, ctx.guild.id, thread.id)
@@ -843,9 +795,7 @@ class Settings(core.Cog):
         """
         Show your current theme preview.
         """
-        embed = discord.Embed(
-            title="Preview", description="This is how your embeds will look like."
-        )
+        embed = discord.Embed(title="Preview", description="This is how your embeds will look like.")
         await ctx.send(embed=embed)
 
     @core.command(hidden=True)

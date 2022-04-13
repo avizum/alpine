@@ -42,6 +42,7 @@ class NotInVoice(commands.CheckFailure):
 
     pass
 
+
 class BotNotInVoice(commands.CheckFailure):
     """
     Error raised when the bot is not in the voice channel.

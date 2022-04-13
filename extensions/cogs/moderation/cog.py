@@ -27,14 +27,7 @@ from discord.ext import commands
 import core
 import utils
 from core import Bot, Context
-from .converters import (
-    ModActionFlag,
-    BanFlag,
-    PurgeAmount,
-    TimeConverter,
-    TargetMember,
-    FindBan
-)
+from .converters import ModActionFlag, BanFlag, PurgeAmount, TimeConverter, TargetMember, FindBan
 from utils import ModReason, DefaultReason
 
 
@@ -45,7 +38,7 @@ class Moderation(core.Cog):
 
     def __init__(self, bot: Bot):
         self.bot = bot
-        self.color = 0xf56058
+        self.color = 0xF56058
         self.emoji = "\U0001f6e1"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
@@ -67,7 +60,7 @@ class Moderation(core.Cog):
                 embed = discord.Embed(
                     title=f"You have been kicked from {ctx.guild.name}",
                     description=f"Reason:\n> {reason}",
-                    color=self.color
+                    color=self.color,
                 )
                 await member.send(embed=embed)
             except discord.Forbidden:
@@ -87,13 +80,9 @@ class Moderation(core.Cog):
         """
         reason = reason or f"{ctx.author}: No reason provided"
         if not targets:
-            return await ctx.send(
-                "One or more members can not be kick by you. Try again."
-            )
+            return await ctx.send("One or more members can not be kick by you. Try again.")
         new_targets = ", ".join(str(i) for i in targets)
-        conf = await ctx.confirm(
-            f"Do you want to kick {new_targets} ({len(targets)} members) with reason {reason}?"
-        )
+        conf = await ctx.confirm(f"Do you want to kick {new_targets} ({len(targets)} members) with reason {reason}?")
         if conf.result:
             fail = 0
             m = await ctx.send("Kicking...")
@@ -102,9 +91,7 @@ class Moderation(core.Cog):
                     await member.kick(reason=reason)
                 except Exception:
                     fail += 1
-            await m.edit(
-                content=f"Sucessfully kicked {len(targets)-fail}/{len(targets)} members."
-            )
+            await m.edit(content=f"Sucessfully kicked {len(targets)-fail}/{len(targets)} members.")
 
     @core.command()
     @core.has_permissions(ban_members=True)
@@ -127,7 +114,7 @@ class Moderation(core.Cog):
                 embed = discord.Embed(
                     title=f"You have been soft-banned from {ctx.guild.name}",
                     description=f"Reason:\n> {reason}",
-                    color=self.color
+                    color=self.color,
                 )
                 await member.send(embed=embed)
             except discord.Forbidden:
@@ -156,7 +143,7 @@ class Moderation(core.Cog):
                 embed = discord.Embed(
                     title=f"You have been banned from {ctx.guild.name}",
                     description=f"Reason:\n> {reason}",
-                    color=self.color
+                    color=self.color,
                 )
                 await member.send(embed=embed)
             except discord.Forbidden:
@@ -174,13 +161,9 @@ class Moderation(core.Cog):
         """
         reason = reason or f"{ctx.author}: No reason provided"
         if not targets:
-            return await ctx.send(
-                "One or more members can not be banned by you. Try again."
-            )
+            return await ctx.send("One or more members can not be banned by you. Try again.")
         new_targets = ", ".join(str(i) for i in targets)
-        conf = await ctx.confirm(
-            f"Do you want to ban {new_targets} ({len(targets)} members) with reason {reason}?"
-        )
+        conf = await ctx.confirm(f"Do you want to ban {new_targets} ({len(targets)} members) with reason {reason}?")
         if conf.result:
             fail = 0
             m = await ctx.send("Banning...")
@@ -189,9 +172,7 @@ class Moderation(core.Cog):
                     await member.ban(reason=reason)
                 except Exception:
                     fail += 1
-            await m.edit(
-                content=f"Sucessfully banned {len(targets)-fail}/{len(targets)} members."
-            )
+            await m.edit(content=f"Sucessfully banned {len(targets)-fail}/{len(targets)} members.")
 
     @core.command()
     @core.has_permissions(ban_members=True)
@@ -233,13 +214,9 @@ class Moderation(core.Cog):
                 delete_after=True,
             )
             if not conf.result:
-                return await ctx.send(
-                    "Okay, I won't replace their mute.", delete_after=10
-                )
+                return await ctx.send("Okay, I won't replace their mute.", delete_after=10)
         reason = reason or f"{ctx.author}: No reason provided."
-        dur = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(
-            seconds=duration
-        )
+        dur = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=duration)
         await member.edit(timed_out_until=dur, reason=reason)
         embed = discord.Embed(
             title="Muted Member",
@@ -265,16 +242,10 @@ class Moderation(core.Cog):
     @core.bot_has_permissions(moderate_members=True)
     async def selfmute(self, ctx: Context, duration: TimeConverter):
         if ctx.author.top_role > ctx.me.top_role:
-            return await ctx.send(
-                "I can not mute you because your role is higher than mine."
-            )
+            return await ctx.send("I can not mute you because your role is higher than mine.")
         if duration > 86400 or duration < 300:
-            return await ctx.send(
-                "Self mute time must be over 5 minutes and under 1 day."
-            )
-        dur = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(
-            seconds=duration
-        )
+            return await ctx.send("Self mute time must be over 5 minutes and under 1 day.")
+        dur = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=duration)
         conf = await ctx.confirm(
             f"Are you sure you want to mute yourself for {utils.format_seconds(duration, friendly=True)}?",
             delete_after=True,
@@ -296,9 +267,7 @@ class Moderation(core.Cog):
                 authors[message.author] = 1
             else:
                 authors[message.author] += 1
-        message = "\n".join(
-            f"{author.mention}: {amount} messages" for author, amount in authors.items()
-        )
+        message = "\n".join(f"{author.mention}: {amount} messages" for author, amount in authors.items())
         return discord.Embed(title="Affected Messages", description=message)
 
     @core.group(invoke_without_command=True)
@@ -312,9 +281,7 @@ class Moderation(core.Cog):
         This always avoids pinned messages.
         You can only purge up to 1000 messages at a time.
         """
-        purged = await ctx.channel.purge(
-            limit=amount, check=lambda m: not m.pinned, before=ctx.message
-        )
+        purged = await ctx.channel.purge(limit=amount, check=lambda m: not m.pinned, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command(aliases=["user", "person"])
@@ -326,9 +293,7 @@ class Moderation(core.Cog):
 
         You can purge up to 1000 messages from a member.
         """
-        purged = await ctx.channel.purge(
-            limit=amount, check=lambda m: m.author == member, before=ctx.message
-        )
+        purged = await ctx.channel.purge(limit=amount, check=lambda m: m.author == member, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command()
@@ -338,9 +303,7 @@ class Moderation(core.Cog):
         """
         Purge any message sent from a bot, including me.
         """
-        purged = await ctx.channel.purge(
-            limit=amount, check=lambda m: m.author.bot, before=ctx.message
-        )
+        purged = await ctx.channel.purge(limit=amount, check=lambda m: m.author.bot, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command()
@@ -350,13 +313,13 @@ class Moderation(core.Cog):
         """
         Purge any message that contains a link.
         """
+
         def check(m: discord.Message):
             return bool(
                 re.match(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", m.content)
             )
-        purged = await ctx.channel.purge(
-            limit=amount, check=check, before=ctx.message
-        )
+
+        purged = await ctx.channel.purge(limit=amount, check=check, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command(aliases=["images", "pictures"])
@@ -366,9 +329,7 @@ class Moderation(core.Cog):
         """
         Purge any message that contains files.
         """
-        purged = await ctx.channel.purge(
-            limit=amount, check=lambda m: m.attachments, before=ctx.message
-        )
+        purged = await ctx.channel.purge(limit=amount, check=lambda m: m.attachments, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command(aliases=["in"])
@@ -380,9 +341,7 @@ class Moderation(core.Cog):
 
         This removes up to 100 messages.
         """
-        purged = await ctx.channel.purge(
-            limit=100, check=lambda m: text in m.content, before=ctx.message
-        )
+        purged = await ctx.channel.purge(limit=100, check=lambda m: text in m.content, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command(aliases=["sw", "starts"])
@@ -394,9 +353,7 @@ class Moderation(core.Cog):
 
         This removes up to 100 messages.
         """
-        purged = await ctx.channel.purge(
-            limit=100, check=lambda m: m.content.startswith(text)
-        )
+        purged = await ctx.channel.purge(limit=100, check=lambda m: m.content.startswith(text))
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command(aliases=["ew", "ends"])
@@ -408,9 +365,7 @@ class Moderation(core.Cog):
 
         This removes up to 100 messages.
         """
-        purged = await ctx.channel.purge(
-            limit=100, check=lambda m: m.content.endswith(text)
-        )
+        purged = await ctx.channel.purge(limit=100, check=lambda m: m.content.endswith(text))
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @core.command(usage="[amount]")
@@ -428,9 +383,7 @@ class Moderation(core.Cog):
         prefixes = tuple(base)
 
         def check(message: discord.Message):
-            return (
-                message.content.startswith(prefixes) or message.author == self.bot.user
-            )
+            return message.content.startswith(prefixes) or message.author == self.bot.user
 
         purged = await ctx.channel.purge(limit=amount, check=check, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged))
@@ -454,7 +407,7 @@ class Moderation(core.Cog):
         )
         lc = discord.Embed(
             title=":lock: This channel has been locked.",
-            description=f"{ctx.author.mention} has locked down <#{channel.id}> reason: {reason}."
+            description=f"{ctx.author.mention} has locked down <#{channel.id}> reason: {reason}.",
         )
         await channel.send(embed=lc)
 
@@ -470,7 +423,7 @@ class Moderation(core.Cog):
         await channel.set_permissions(ctx.guild.default_role, send_messages=None)
         uc = discord.Embed(
             title=":unlock: This channel has been unlocked.",
-            description=f"{ctx.author.mention} has unlocked <#{channel.id}> reason: {reason}. "
+            description=f"{ctx.author.mention} has unlocked <#{channel.id}> reason: {reason}. ",
         )
         await channel.send(embed=uc)
 
@@ -488,8 +441,7 @@ class Moderation(core.Cog):
             raise commands.BadArgument("Amount should be less than or equal to 6 hours")
         await ctx.channel.edit(slowmode_delay=seconds)
         smembed = discord.Embed(
-            title="Changed Slowmode",
-            description=f"Slowmode delay has been set to {humanize.precisedelta(seconds)}"
+            title="Changed Slowmode", description=f"Slowmode delay has been set to {humanize.precisedelta(seconds)}"
         )
         await ctx.send(embed=smembed)
 
@@ -547,9 +499,7 @@ class Moderation(core.Cog):
         oldnick = member.display_name
         await member.edit(nick=nick)
         newnick = member.display_name
-        nickembed = discord.Embed(
-            title="Changed Nickname"
-        )
+        nickembed = discord.Embed(title="Changed Nickname")
         nickembed.add_field(name="From", value=f"{oldnick}", inline=True)
         nickembed.add_field(name="To", value=f"{newnick}", inline=True)
         await ctx.send(embed=nickembed)

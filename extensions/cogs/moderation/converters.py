@@ -30,8 +30,10 @@ class ModActionFlag(commands.FlagConverter):
     reason: ModReason = flag(default=None, description="Reason that will show up in the audit log.")
     dm: bool = flag(default=False, description="Whether to DM the user.")
 
+
 class BanFlag(ModActionFlag):
     delete_days: int = flag(default=0, description="How many days of messages to delete.")
+
 
 time_regex = re.compile(r"(?:(\d{1,5})\s?(h|s|m|d|w|y))+?")
 time_dict = {
@@ -57,6 +59,7 @@ time_dict = {
     "years": 31557600,
 }
 
+
 class TimeConverter(commands.Converter):
     async def convert(self, ctx: Context, argument):
         args = argument.lower()
@@ -73,24 +76,20 @@ class TimeConverter(commands.Converter):
             raise commands.BadArgument("Time can not be under 1 second")
         return time
 
+
 class PurgeAmount(commands.Converter):
     async def convert(self, ctx, argument):
         try:
             number = int(argument)
         except Exception as e:
-            raise commands.BadArgument(
-                f"{argument} is not a number. Please give a number."
-            ) from e
+            raise commands.BadArgument(f"{argument} is not a number. Please give a number.") from e
         if number < 1 or number > 1000:
-            raise commands.BadArgument(
-                "Number must be greater than 0 and less than 1000"
-            )
+            raise commands.BadArgument("Number must be greater than 0 and less than 1000")
         return number
 
+
 class TargetMember(commands.Converter[discord.Member]):
-    async def convert(
-        self, ctx: Context, argument: discord.Member
-    ) -> discord.Member:
+    async def convert(self, ctx: Context, argument: discord.Member) -> discord.Member:
         try:
             member = await commands.MemberConverter().convert(ctx, argument)
         except Exception:
@@ -102,9 +101,7 @@ class TargetMember(commands.Converter[discord.Member]):
             raise commands.BadArgument(f"I can not {action} the server owner.")
 
         if member == ctx.message.author:
-            raise commands.BadArgument(
-                f"You can not {action} yourself, That would be stupid."
-            )
+            raise commands.BadArgument(f"You can not {action} yourself, That would be stupid.")
 
         if ctx.me.top_role < member.top_role:
             raise commands.BadArgument(
@@ -112,34 +109,25 @@ class TargetMember(commands.Converter[discord.Member]):
             )
 
         if ctx.me.top_role == member.top_role:
-            raise commands.BadArgument(
-                f"I can't {action} {member} because they have the same top role as me."
-            )
+            raise commands.BadArgument(f"I can't {action} {member} because they have the same top role as me.")
 
         if member == ctx.me:
             raise commands.BadArgument(f"I can not {action} myself. Nice try.")
 
         if ctx.author.top_role < member.top_role:
-            raise commands.BadArgument(
-                f"You can't {action} {member} because their role is is higher than your role."
-            )
+            raise commands.BadArgument(f"You can't {action} {member} because their role is is higher than your role.")
 
         if ctx.author.top_role == member.top_role:
-            raise commands.BadArgument(
-                f"You can't {action} {member} because they have the same top role as you."
-            )
+            raise commands.BadArgument(f"You can't {action} {member} because they have the same top role as you.")
 
         if ctx.command.qualified_name == "mute" and member.guild_permissions.administrator:
-            raise commands.BadArgument(
-                f"You can't {action} {member} because they have administrator permissions."
-            )
+            raise commands.BadArgument(f"You can't {action} {member} because they have administrator permissions.")
 
         return member
 
+
 class FindBan(commands.Converter[discord.Member]):
-    async def convert(
-        self, ctx: Context, argument: str
-    ) -> Union[discord.Member, discord.User]:
+    async def convert(self, ctx: Context, argument: str) -> Union[discord.Member, discord.User]:
         try:
             user = await commands.UserConverter().convert(ctx, argument)
             try:

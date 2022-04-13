@@ -124,9 +124,7 @@ class Context(commands.Context):
         if match:
             return re.sub(emoji_regex, match.group(2), self.prefix)
 
-        return re.sub(
-            f"<@!?{self.bot.user.id}>", f"@{self.me.display_name} ", self.prefix
-        )
+        return re.sub(f"<@!?{self.bot.user.id}>", f"@{self.me.display_name} ", self.prefix)
 
     @property
     def content(self) -> str:
@@ -154,14 +152,10 @@ class Context(commands.Context):
     async def post(self, content, syntax: str = "py", gist: bool = False):
         if gist:
             gist_file = [File(filename=f"output.{syntax}", content=content)]
-            link = (await self.bot.gist.post_gist(
-                description=str(self.author), files=gist_file, public=True
-            )).html_url
+            link = (await self.bot.gist.post_gist(description=str(self.author), files=gist_file, public=True)).html_url
         else:
             link = await self.bot.myst.post(content, syntax=syntax)
-        embed = discord.Embed(
-            description=f"Output for {self.command.qualified_name}: [Here]({link})"
-        )
+        embed = discord.Embed(description=f"Output for {self.command.qualified_name}: [Here]({link})")
         await self.send(embed=embed)
 
     async def fetch_color(self, member: discord.Member = None):
@@ -248,11 +242,7 @@ class Context(commands.Context):
             if not embed.color:
                 embed.color = await self.fetch_color()
 
-        if (
-            self.message.id in self.bot.command_cache
-            and self.message.edited_at
-            and not no_edit
-        ):
+        if self.message.id in self.bot.command_cache and self.message.edited_at and not no_edit:
             try:
                 message = await self.bot.command_cache[self.message.id].edit(
                     content,
@@ -337,9 +327,7 @@ class Context(commands.Context):
         if delete_after:
             remove_view_after = False
         view = ConfirmView(member=self.author, timeout=timeout)
-        check_message = (
-            confirm_message or 'Press "yes" to accept, or press "no" to deny.'
-        )
+        check_message = confirm_message or 'Press "yes" to accept, or press "no" to deny.'
         if no_reply is True:
             send = await self.no_reply(content=message, embed=embed, view=view)
         elif message:

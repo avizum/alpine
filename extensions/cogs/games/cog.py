@@ -58,9 +58,7 @@ class Games(core.Cog):
         """
         if member == ctx.author:
             return await ctx.send("You can't play against yourself.")
-        cookie_embed = discord.Embed(
-            title="Get the cookie!", description="Get ready to grab the cookie!"
-        )
+        cookie_embed = discord.Embed(title="Get the cookie!", description="Get ready to grab the cookie!")
         cd_cookie = await ctx.send(embed=cookie_embed)
         await asyncio.sleep(random.randint(1, 12))
         cookie_embed.title = "GO!"
@@ -88,9 +86,7 @@ class Games(core.Cog):
 
         try:
             with Timer() as reaction_time:
-                reaction, user = await self.bot.wait_for(
-                    "reaction_add", check=check, timeout=10
-                )
+                reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=10)
         except asyncio.TimeoutError:
             cookie_embed.title = "Game over!"
             cookie_embed.description = "Nobody got the cookie :("
@@ -104,9 +100,7 @@ class Games(core.Cog):
                     gettime = thing / 1000
                     total_second = f"**{gettime:.2f}s**"
                 cookie_embed.title = "Nice!"
-                cookie_embed.description = (
-                    f"{user.mention} got the cookie in **{total_second}**"
-                )
+                cookie_embed.description = f"{user.mention} got the cookie in **{total_second}**"
                 await cd_cookie.remove_reaction("\U0001F36A", ctx.me)
                 return await cd_cookie.edit(embed=cookie_embed)
 
@@ -120,9 +114,7 @@ class Games(core.Cog):
         Just like the cookie command but it uses buttons instead of reactions.
         """
         view = CookieView(10, ctx)
-        cookie_embed = discord.Embed(
-            title="Get the cookie!", description="Get ready to grab the cookie!"
-        )
+        cookie_embed = discord.Embed(title="Get the cookie!", description="Get ready to grab the cookie!")
         cookie_message = await ctx.send(embed=cookie_embed)
         view.message = cookie_message
         await asyncio.sleep(random.randint(1, 12))
@@ -137,9 +129,7 @@ class Games(core.Cog):
             gettime = thing / 1000
             total_second = f"**{gettime:.2f}s**"
         cookie_embed.title = "Nice!"
-        cookie_embed.description = (
-            f"{view.winner.mention} got the cookie in **{total_second}**"
-        )
+        cookie_embed.description = f"{view.winner.mention} got the cookie in **{total_second}**"
         return await cookie_message.edit(embed=cookie_embed, view=None)
 
     @core.command(name="akinator", aliases=["aki"])
@@ -151,25 +141,13 @@ class Games(core.Cog):
         """
         fm = await ctx.send("Starting game, please wait...")
         akiclient = Akinator()
-        mode_map = {
-            "default": "en",
-            "animals": "en_animals",
-            "objects": "en_objects"
-        }
+        mode_map = {"default": "en", "animals": "en_animals", "objects": "en_objects"}
         async with ctx.channel.typing():
-            game = await akiclient.start_game(
-                language=mode_map[flags.mode], child_mode=flags.child
-            )
+            game = await akiclient.start_game(language=mode_map[flags.mode], child_mode=flags.child)
             if akiclient.child_mode is False and ctx.channel.nsfw is False:
-                return await ctx.send(
-                    "Child mode can only be disabled in NSFW channels."
-                )
-            embed = discord.Embed(
-                title="Akinator", description=f"{akiclient.step+1}. {game}"
-            )
-        view = AkinatorGameView(
-            member=ctx.author, ctx=ctx, client=akiclient, embed=embed
-        )
+                return await ctx.send("Child mode can only be disabled in NSFW channels.")
+            embed = discord.Embed(title="Akinator", description=f"{akiclient.step+1}. {game}")
+        view = AkinatorGameView(member=ctx.author, ctx=ctx, client=akiclient, embed=embed)
         if not fm.edited_at:
             await fm.delete()
         view.message = await ctx.send(embed=embed, view=view)
@@ -193,24 +171,18 @@ class Games(core.Cog):
 
         See how close you can get to 10 exactly seconds.
         """
-        embed_10s = discord.Embed(
-            title="10 seconds", description="Click the cookie in 10 seconds"
-        )
+        embed_10s = discord.Embed(title="10 seconds", description="Click the cookie in 10 seconds")
         react_message = await ctx.send(embed=embed_10s)
         await react_message.add_reaction("\U0001F36A")
 
         def check_10s(reaction, user):
             return (
-                reaction.message.id == react_message.id
-                and str(reaction.emoji) in "\U0001F36A"
-                and user == ctx.author
+                reaction.message.id == react_message.id and str(reaction.emoji) in "\U0001F36A" and user == ctx.author
             )
 
         try:
             with Timer() as timer:
-                reaction, user = await self.bot.wait_for(
-                    "reaction_add", check=check_10s, timeout=20
-                )
+                reaction, user = await self.bot.wait_for("reaction_add", check=check_10s, timeout=20)
         except asyncio.TimeoutError:
             pass
         else:
@@ -220,7 +192,8 @@ class Games(core.Cog):
                     embed_10s.description = "Wait 10 seconds to get the cookie."
                     return await react_message.edit(embed=embed_10s)
                 embed_10s.description = (
-                    f"You got the cookie in {final:.2f} seconds with {(final-10)*1000:.2f}ms reaction time\n")
+                    f"You got the cookie in {final:.2f} seconds with {(final-10)*1000:.2f}ms reaction time\n"
+                )
                 if final < 9.99:
                     embed_10s.description = f"You got the cookie in {final:.2f} seconds"
                 await react_message.edit(embed=embed_10s)
@@ -297,17 +270,11 @@ class Games(core.Cog):
         await first.edit(embed=embed)
 
         def check(reaction, user):
-            return (
-                reaction.message.id == first.id
-                and str(reaction.emoji) == random_emoji
-                and user != self.bot.user
-            )
+            return reaction.message.id == first.id and str(reaction.emoji) == random_emoji and user != self.bot.user
 
         try:
             with Timer() as timer:
-                reaction, user = await self.bot.wait_for(
-                    "reaction_add", check=check, timeout=15
-                )
+                reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=15)
         except asyncio.TimeoutError:
             embed.description = "Timeout"
             await first.edit(embed=embed)
@@ -318,9 +285,7 @@ class Games(core.Cog):
                 if gettime > 1000:
                     gettime = gettime / 1000
                     total_second = f"**{gettime:.2f}s**"
-                embed.description = (
-                    f"{user.mention} got the {random_emoji} in {total_second}"
-                )
+                embed.description = f"{user.mention} got the {random_emoji} in {total_second}"
                 return await first.edit(embed=embed)
 
     @core.group()
@@ -346,9 +311,7 @@ class Games(core.Cog):
 
             if user:
                 embed = discord.Embed(title=f"Roblox User: {user.name}")
-                embed.add_field(
-                    name="Display Name", value=user.display_name, inline=True
-                )
+                embed.add_field(name="Display Name", value=user.display_name, inline=True)
                 embed.add_field(name="User ID", value=user.id, inline=True)
                 embed.add_field(
                     name="Description",
@@ -363,12 +326,8 @@ class Games(core.Cog):
                 pres = await user.get_presence()
                 presence = pres.last_location or "Not Found"
                 embed.add_field(name="Last Location", value=presence, inline=True)
-                embed.add_field(
-                    name="Friends", value=await user.get_friend_count(), inline=True
-                )
-                embed.add_field(
-                    name="Followers", value=await user.get_follower_count(), inline=True
-                )
+                embed.add_field(name="Friends", value=await user.get_friend_count(), inline=True)
+                embed.add_field(name="Followers", value=await user.get_follower_count(), inline=True)
                 embed.add_field(
                     name="Following",
                     value=await user.get_following_count(),
@@ -376,9 +335,7 @@ class Games(core.Cog):
                 )
                 past = await user.username_history(max_items=10).flatten()
                 if past:
-                    embed.add_field(
-                        name="Past Usernames", value=", ".join(past), inline=True
-                    )
+                    embed.add_field(name="Past Usernames", value=", ".join(past), inline=True)
                 else:
                     embed.add_field(name="\u200b", value="\u200b", inline=True)
                 embed.add_field(
@@ -391,22 +348,18 @@ class Games(core.Cog):
                     value=discord.utils.format_dt(pres.last_online),
                     inline=True,
                 )
-                user_thumbnails = (
-                    await self.rclient.thumbnails.get_user_avatar_thumbnails(
-                        users=[user],
-                        type=roblox.AvatarThumbnailType.headshot,
-                        size=(100, 100),
-                    )
+                user_thumbnails = await self.rclient.thumbnails.get_user_avatar_thumbnails(
+                    users=[user],
+                    type=roblox.AvatarThumbnailType.headshot,
+                    size=(100, 100),
                 )
                 if len(user_thumbnails) > 0:
                     user_thumbnail = user_thumbnails[0]
                     embed.set_thumbnail(url=user_thumbnail.image_url)
-                user_thumbnails = (
-                    await self.rclient.thumbnails.get_user_avatar_thumbnails(
-                        users=[user],
-                        type=roblox.AvatarThumbnailType.full_body,
-                        size=(250, 250),
-                    )
+                user_thumbnails = await self.rclient.thumbnails.get_user_avatar_thumbnails(
+                    users=[user],
+                    type=roblox.AvatarThumbnailType.full_body,
+                    size=(250, 250),
                 )
                 if len(user_thumbnails) > 0:
                     user_thumbnail = user_thumbnails[0]
@@ -417,9 +370,7 @@ class Games(core.Cog):
     @user.command()
     async def search(self, ctx: Context, *query: int | str):
         try:
-            a = await self.rclient.get_users(
-                query
-            ) or await self.rclient.get_users_by_usernames(query)
+            a = await self.rclient.get_users(query) or await self.rclient.get_users_by_usernames(query)
             await ctx.send(a)
         except Exception as e:
             await ctx.send(e)

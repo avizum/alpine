@@ -25,6 +25,7 @@ from core import Context
 PREFIX_CHAR_LIMIT = 35
 MAX_PREFIX_AMOUNT = 20
 
+
 class Prefix(commands.Converter):
     async def convert(self, ctx: Context, argument) -> str:
         user_mention = re.findall(r"<@(!?)([0-9]*)>", argument)
@@ -41,17 +42,14 @@ class Prefix(commands.Converter):
         elif channel_mention:
             raise commands.BadArgument("You can not add a channel mention as a prefix.")
         elif len(argument) > PREFIX_CHAR_LIMIT:
-            raise commands.BadArgument(
-                f"That prefix is too long ({len(argument)}/{PREFIX_CHAR_LIMIT})"
-            )
+            raise commands.BadArgument(f"That prefix is too long ({len(argument)}/{PREFIX_CHAR_LIMIT})")
         elif len(guild_prefix) > MAX_PREFIX_AMOUNT:
-            raise commands.BadArgument(
-                f"You already the max amount of prefixes {MAX_PREFIX_AMOUNT} prefixes"
-            )
+            raise commands.BadArgument(f"You already the max amount of prefixes {MAX_PREFIX_AMOUNT} prefixes")
         elif argument in guild_prefix:
             raise commands.BadArgument("That is already a prefix for this server.")
 
         return argument.lower()
+
 
 class GetCommand(commands.Converter):
     async def convert(self, ctx: Context, argument: str):

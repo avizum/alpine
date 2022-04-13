@@ -39,9 +39,7 @@ class Fun(core.Cog):
         self.bot = bot
         self.emoji = "\U0001f3b1"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
-        self._cd = commands.CooldownMapping.from_cooldown(
-            1.0, 60.0, commands.BucketType.user
-        )
+        self._cd = commands.CooldownMapping.from_cooldown(1.0, 60.0, commands.BucketType.user)
 
     async def do_mock(self, string: str):
         return "".join(random.choice([mock.upper, mock.lower])() for mock in string)
@@ -93,9 +91,7 @@ class Fun(core.Cog):
         ]
         ballembed = discord.Embed(title=":8ball: Magic 8 Ball")
         ballembed.add_field(name="Question:", value=f"{question}", inline=False)
-        ballembed.add_field(
-            name="Answer:", value=f"{random.choice(responses)}", inline=False
-        )
+        ballembed.add_field(name="Answer:", value=f"{random.choice(responses)}", inline=False)
         await ctx.send(embed=ballembed)
 
     @core.command(aliases=["murder"])
@@ -181,9 +177,7 @@ class Fun(core.Cog):
         """
         if member is None:
             return await ctx.send(f"{ctx.author.mention} facepalmed.")
-        return await ctx.send(
-            f"{ctx.author.mention} facepalmed because {member.mention} was being stupid."
-        )
+        return await ctx.send(f"{ctx.author.mention} facepalmed because {member.mention} was being stupid.")
 
     @core.command(aliases=["sd"])
     async def selfdestruct(self, ctx: Context):
@@ -193,9 +187,7 @@ class Fun(core.Cog):
         if await self.bot.is_owner(ctx.author):
             command = self.bot.get_command("dev reboot")
             return await command(ctx)
-        a = discord.Embed(
-            description=f"{ctx.author.mention} self destructed due to overloaded fuel canisters"
-        )
+        a = discord.Embed(description=f"{ctx.author.mention} self destructed due to overloaded fuel canisters")
         await ctx.send(embed=a)
 
     @core.command()
@@ -206,13 +198,9 @@ class Fun(core.Cog):
         Funny am I right?
         """
         if mention == ctx.author:
-            embed = discord.Embed(
-                description=f"{ctx.author.mention} drop kicked themselves. Amazing."
-            )
+            embed = discord.Embed(description=f"{ctx.author.mention} drop kicked themselves. Amazing.")
         else:
-            embed = discord.Embed(
-                description=f"{ctx.author.mention} dropkicked {mention.mention}."
-            )
+            embed = discord.Embed(description=f"{ctx.author.mention} dropkicked {mention.mention}.")
         await ctx.send(embed=embed)
 
     @core.command()
@@ -221,15 +209,11 @@ class Fun(core.Cog):
         Check if someone is compatible with someone.
         """
         if 750135653638865017 in (person1.id, person2.id):
-            return await ctx.send(
-                f"{person1.mention} and {person2.mention} are 0% compatible with each other"
-            )
+            return await ctx.send(f"{person1.mention} and {person2.mention} are 0% compatible with each other")
         if person1 == person2:
             return await ctx.send("That's not how that works")
         percent = random.randint(0, 100)
-        await ctx.send(
-            f"{person1.mention} and {person2.mention} are {percent}% compatible with each other"
-        )
+        await ctx.send(f"{person1.mention} and {person2.mention} are {percent}% compatible with each other")
 
     @core.command(aliases=["pp", "penis", "penissize"])
     async def ppsize(self, ctx: Context, member: discord.Member = None):
@@ -254,17 +238,11 @@ class Fun(core.Cog):
         """
         if subreddit.startswith("r/"):
             subreddit = subreddit.replace("r/", "")
-        async with self.bot.session.get(
-            f"https://www.reddit.com/r/{subreddit}.json"
-        ) as content:
+        async with self.bot.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
             if content.status == 404:
-                return await ctx.send(
-                    "Could not find that subreddit. Please check your spelling and try again."
-                )
+                return await ctx.send("Could not find that subreddit. Please check your spelling and try again.")
             if content.status != 200:
-                return await ctx.send(
-                    "There has been a problem at Reddit. Please try again later."
-                )
+                return await ctx.send("There has been a problem at Reddit. Please try again later.")
             stuff = await content.json()
         get_data = stuff["data"]["children"]
         if not get_data:
@@ -338,12 +316,8 @@ class Fun(core.Cog):
         if member is None:
             member = ctx.author
         if await self.bot.is_owner(member):
-            return await ctx.send(
-                f"{member.mention} is **{random.randint(0, 10)}%** gay :rainbow:"
-            )
-        return await ctx.send(
-            f"{member.mention} is **{random.randint(10, 100)}%** gay :rainbow:"
-        )
+            return await ctx.send(f"{member.mention} is **{random.randint(0, 10)}%** gay :rainbow:")
+        return await ctx.send(f"{member.mention} is **{random.randint(10, 100)}%** gay :rainbow:")
 
     @core.command()
     async def height(self, ctx: Context):
@@ -362,9 +336,7 @@ class Fun(core.Cog):
         except asyncio.TimeoutError:
             await ctx.send("You didn't respond in time!")
         else:
-            embed = discord.Embed(
-                title="Height", description=f"You are {height.content}!"
-            )
+            embed = discord.Embed(title="Height", description=f"You are {height.content}!")
             embed.set_footer(text="No need to thank me.")
             await ctx.send(embed=embed)
 

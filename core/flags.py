@@ -46,10 +46,5 @@ def flag(
     override: bool = MISSING,
 ) -> Any:
     return Flag(
-        name=name,
-        description=description,
-        aliases=aliases,
-        default=default,
-        max_args=max_args,
-        override=override
+        name=name, description=description, aliases=aliases, default=default, max_args=max_args, override=override
     )

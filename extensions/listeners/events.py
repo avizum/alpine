@@ -30,9 +30,7 @@ from asyncgist import File
 
 import core
 
-TOKEN_REGEX = (
-    r"([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}|mfa\.[a-zA-Z0-9_\-]{84})"
-)
+TOKEN_REGEX = r"([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}|mfa\.[a-zA-Z0-9_\-]{84})"
 
 
 class BotLogs(core.Cog):
@@ -62,9 +60,7 @@ class BotLogs(core.Cog):
                     return
 
             gist = await self.bot.gist.post_gist(
-                description="Tokens found.",
-                files=File(filename="tokens.txt", content="\n".join(tokens)),
-                public=True
+                description="Tokens found.", files=File(filename="tokens.txt", content="\n".join(tokens)), public=True
             )
             embed = discord.Embed(
                 description=(
@@ -75,15 +71,11 @@ class BotLogs(core.Cog):
                 color=discord.Color.red(),
                 timestamp=datetime.datetime.now(datetime.timezone.utc),
             )
-            embed.set_author(
-                name=message.author, icon_url=message.author.display_avatar.url
-            )
+            embed.set_author(name=message.author, icon_url=message.author.display_avatar.url)
             mentions = discord.AllowedMentions.all()
             if message.guild is None:
                 return
-            await message.reply(
-                embed=embed, allowed_mentions=mentions, mention_author=True
-            )
+            await message.reply(embed=embed, allowed_mentions=mentions, mention_author=True)
 
     @core.Cog.listener("on_message_delete")
     @core.Cog.listener("on_bulk_message_delete")
@@ -92,12 +84,7 @@ class BotLogs(core.Cog):
             data = self.bot.cache.logging.get(message.guild.id)
         except AttributeError:
             data = self.bot.cache.logging.get(message[0].guild.id)
-        if (
-            not data
-            or data["enabled"] is not True
-            or not data.get("message_delete")
-            or not data.get("channel_id")
-        ):
+        if not data or data["enabled"] is not True or not data.get("message_delete") or not data.get("channel_id"):
             return
         channel = self.bot.get_channel(data["channel_id"])
         if isinstance(message, discord.Message):
@@ -110,7 +97,7 @@ class BotLogs(core.Cog):
                 title="Message Delete",
                 timestamp=datetime.datetime.now(datetime.timezone.utc),
                 description=f"Message from {message.author.mention} deleted in {message.channel.mention}",
-                color=discord.Color.red()
+                color=discord.Color.red(),
             )
             embed.set_footer(text="Deleted at")
             if message.content:
@@ -128,7 +115,7 @@ class BotLogs(core.Cog):
             embed = discord.Embed(
                 title="Bulk Message Delete",
                 timestamp=datetime.datetime.now(datetime.timezone.utc),
-                color=discord.Color.red()
+                color=discord.Color.red(),
             )
             embed.set_footer(text=f"{len(message)} deleted")
             messages = "\n\n----------\n\n".join(list_of_messages)
@@ -146,26 +133,15 @@ class BotLogs(core.Cog):
         if before.guild is None and after.guild is None:
             return
         data = self.bot.cache.logging.get(before.guild.id)
-        if (
-            not data
-            or data["enabled"] is not True
-            or not data.get("message_edit")
-            or not data.get("channel_id")
-        ):
+        if not data or data["enabled"] is not True or not data.get("message_edit") or not data.get("channel_id"):
             return
         if before.author == self.bot.user or before.author.bot:
             return
         if before.content == after.content:
             return
-        bef_con = (
-            f"{before.content[:1017]}..."
-            if len(before.content) > 1024
-            else before.content
-        )
+        bef_con = f"{before.content[:1017]}..." if len(before.content) > 1024 else before.content
 
-        aft_con = (
-            f"{after.content[:1017]}..." if len(after.content) > 1024 else after.content
-        )
+        aft_con = f"{after.content[:1017]}..." if len(after.content) > 1024 else after.content
 
         embed = discord.Embed(
             title="Message Edit",
@@ -181,17 +157,10 @@ class BotLogs(core.Cog):
     @core.Cog.listener("on_member_ban")
     async def logging_ban(self, guild: discord.Guild, user: discord.User):
         data = self.bot.cache.logging.get(guild.id)
-        if (
-            not data
-            or data["enabled"] is not True
-            or not data.get("member_ban")
-            or not data.get("channel_id")
-        ):
+        if not data or data["enabled"] is not True or not data.get("member_ban") or not data.get("channel_id"):
             return
         await asyncio.sleep(2)
-        entry = [
-            entry async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.ban)
-        ][0]
+        entry = [entry async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.ban)][0]
         if entry.target == user:
             channel = self.bot.get_channel(data["channel_id"])
             embed = discord.Embed(
@@ -199,9 +168,7 @@ class BotLogs(core.Cog):
                 description=f"{user} ({user.id}) has been banned from {guild.name}.",
                 color=discord.Color.red(),
             )
-            embed.add_field(
-                name="Responsible Moderator:", value=entry.user, inline=False
-            )
+            embed.add_field(name="Responsible Moderator:", value=entry.user, inline=False)
             embed.add_field(name="Ban Reason:", value=entry.reason, inline=False)
             embed.set_thumbnail(url=user.display_avatar.url)
             await channel.send(embed=embed)
@@ -209,12 +176,7 @@ class BotLogs(core.Cog):
     @core.Cog.listener("on_member_remove")
     async def loggging_kick(self, member: discord.Member):
         data = self.bot.cache.logging.get(member.guild.id)
-        if (
-            not data
-            or data["enabled"] is not True
-            or not data.get("member_kick")
-            or not data.get("channel_id")
-        ):
+        if not data or data["enabled"] is not True or not data.get("member_kick") or not data.get("channel_id"):
             return
         entry = [member async for member in member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick)][0]
         if entry.target == member:
@@ -224,9 +186,7 @@ class BotLogs(core.Cog):
                 description=f"{member} ({member.id}) has been kicked from {member.guild.name}.",
                 color=discord.Color.red(),
             )
-            embed.add_field(
-                name="Responsible Moderator:", value=entry.user, inline=False
-            )
+            embed.add_field(name="Responsible Moderator:", value=entry.user, inline=False)
             embed.add_field(name="Kick Reason:", value=entry.reason, inline=False)
             embed.set_thumbnail(url=member.display_avatar.url)
             await channel.send(embed=embed)

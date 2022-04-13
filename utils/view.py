@@ -26,9 +26,7 @@ class View(discord.ui.View):
 
     async def interaction_check(self, interaction: discord.Interaction):
         if interaction.user != self.member:
-            embed = discord.Embed(
-                description=f"This can only be used by {self.member}."
-            )
+            embed = discord.Embed(description=f"This can only be used by {self.member}.")
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return False
         return True

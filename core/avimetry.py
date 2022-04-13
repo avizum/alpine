@@ -41,12 +41,7 @@ from topgg.webhook import WebhookManager
 
 from core import Command, Group
 from utils.cache import Cache
-from .exceptions import (
-    Blacklisted,
-    CommandDisabledChannel,
-    CommandDisabledGuild,
-    Maintenance
-)
+from .exceptions import Blacklisted, CommandDisabledChannel, CommandDisabledGuild, Maintenance
 
 if TYPE_CHECKING:
     from .context import Context
@@ -156,7 +151,7 @@ class Bot(commands.Bot):
             chunk_guilds_at_startup=True,
             max_messages=5000,
             slash_commands=False,
-            owner_ids=OWNER_IDS
+            owner_ids=OWNER_IDS,
         )
         self._BotBase__cogs: dict[str, commands.Cog] = commands.core._CaseInsensitiveDict()
         self.add_check(self.bot_check)
@@ -168,9 +163,7 @@ class Bot(commands.Bot):
         self.session: ClientSession = ClientSession()
         self.cache: Cache = Cache(self)
         self.pool: asyncpg.Pool = await asyncpg.create_pool(**self.settings["postgresql"])
-        self.topgg: DBLClient = DBLClient(
-            self, self.api["TopGG"], autopost_interval=None, session=self.session
-        )
+        self.topgg: DBLClient = DBLClient(self, self.api["TopGG"], autopost_interval=None, session=self.session)
         self.topgg_webhook: WebhookManager = WebhookManager(self).dbl_webhook("/dbl", self.api["TopGGWH"])
         self.gist: asyncgist.Client = asyncgist.Client(self.api["GitHub"], self.session)
         self.sr: sr_api = sr_api.Client()
@@ -239,9 +232,7 @@ class Bot(commands.Bot):
                 message: discord.PartialMessage = channel.get_partial_message(info["message_id"])
                 if message:
                     now: datetime = datetime.now(tz=dt.timezone.utc)
-                    await message.edit(
-                        content=f"Took {(now - info['restart_time']).seconds} seconds to restart."
-                    )
+                    await message.edit(content=f"Took {(now - info['restart_time']).seconds} seconds to restart.")
                 f.truncate(0)
             f.close()
 
@@ -256,9 +247,8 @@ class Bot(commands.Bot):
                 password="youshallnotpass",
                 identifier="MAIN",
                 spotify_client=spotify.SpotifyClient(
-                    client_id=self.api["SpotifyClientID"],
-                    client_secret=self.api["SpotifySecret"]
-                )
+                    client_id=self.api["SpotifyClientID"], client_secret=self.api["SpotifySecret"]
+                ),
             )
         except Exception as e:
             cog: commands.Cog = self.get_cog("errorhandler")
@@ -276,11 +266,7 @@ class Bot(commands.Bot):
         )
 
     async def wait_for(
-        self,
-        event: str,
-        *,
-        check: Callable[..., bool] | None = None,
-        timeout: float | None = None
+        self, event: str, *, check: Callable[..., bool] | None = None, timeout: float | None = None
     ) -> Any:
         if event == "message":
 
@@ -346,7 +332,6 @@ class Bot(commands.Bot):
         await super().close()
         timenow: str = datetime.now().strftime("%m/%d/%Y at %I:%M %p")
         print(
-            f"\n{self.user.name} logged out:\n"
-            f"Logged out time: {timenow}",
+            f"\n{self.user.name} logged out:\n" f"Logged out time: {timenow}",
             end="\n\n",
         )

@@ -45,7 +45,7 @@ class Embed(discord.Embed):
     def __init__(self, *args, **kwargs):
         kwargs.pop("color", None)
         kwargs.pop("colour", None)
-        super().__init__(colour=0xf56058, *args, **kwargs)
+        super().__init__(colour=0xF56058, *args, **kwargs)
 
 
 class CooldownByContent(commands.CooldownMapping):
@@ -76,7 +76,7 @@ class UnknownError(View):
                 f"You are doing that too fast. Please try again in {retry:,.2f} seconds.", ephemeral=True
             )
         check = await self.bot.pool.fetchrow("SELECT trackers FROM command_errors WHERE id = $1", self.error_id)
-        if self.member.id in check['trackers']:
+        if self.member.id in check["trackers"]:
             remove_tracker = "UPDATE command_errors SET trackers = ARRAY_REMOVE(trackers, $2) WHERE id = $1"
             await self.bot.pool.execute(remove_tracker, self.error_id, self.member)
             return await interaction.response.send_message(f"No longer tracking Error #{self.error_id}", ephemeral=True)
@@ -89,27 +89,13 @@ class ErrorHandler(core.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
-        self.blacklist_cooldown = commands.CooldownMapping.from_cooldown(
-            1, 300, commands.BucketType.user
-        )
-        self.maintenance_cooldown = commands.CooldownMapping.from_cooldown(
-            1, 300, commands.BucketType.channel
-        )
-        self.no_dm_command_cooldown = commands.CooldownMapping.from_cooldown(
-            1, 300, commands.BucketType.user
-        )
-        self.not_found_cooldown_content = CooldownByContent.from_cooldown(
-            1, 15, commands.BucketType.user
-        )
-        self.not_found_cooldown = commands.CooldownMapping.from_cooldown(
-            2, 30, commands.BucketType.user
-        )
-        self.disabled_channel = commands.CooldownMapping.from_cooldown(
-            1, 60, commands.BucketType.channel
-        )
-        self.disabled_command = commands.CooldownMapping.from_cooldown(
-            1, 60, commands.BucketType.channel
-        )
+        self.blacklist_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
+        self.maintenance_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.channel)
+        self.no_dm_command_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
+        self.not_found_cooldown_content = CooldownByContent.from_cooldown(1, 15, commands.BucketType.user)
+        self.not_found_cooldown = commands.CooldownMapping.from_cooldown(2, 30, commands.BucketType.user)
+        self.disabled_channel = commands.CooldownMapping.from_cooldown(1, 60, commands.BucketType.channel)
+        self.disabled_command = commands.CooldownMapping.from_cooldown(1, 60, commands.BucketType.channel)
         self.error_webhook = discord.Webhook.from_url(
             self.bot.settings["webhooks"]["error_log"],
             session=self.bot.session,
@@ -160,20 +146,13 @@ class ErrorHandler(core.Cog):
                 return await ctx.reinvoke()
             except Exception:
                 pass
-        elif (
-            await self.bot.is_owner(ctx.author)
-            and ctx.prefix == ""
-            and isinstance(error, commands.CommandNotFound)
-        ):
+        elif await self.bot.is_owner(ctx.author) and ctx.prefix == "" and isinstance(error, commands.CommandNotFound):
             return
 
         elif isinstance(error, Blacklisted):
             blacklisted = Embed(
                 title=f"You are blacklisted from {self.bot.user.name}",
-                description=(
-                    f"Reason: `{error.reason}`\n"
-                    f"If you want to appeal, please join the support server."
-                ),
+                description=(f"Reason: `{error.reason}`\n" f"If you want to appeal, please join the support server."),
             )
             retry_after = self.blacklist_cooldown.update_rate_limit(ctx.message)
             if not retry_after:
@@ -222,9 +201,7 @@ class ErrorHandler(core.Cog):
                     conf = await ctx.confirm(embed=embed)
                     if conf.result:
                         new = copy.copy(ctx.message)
-                        new._edited_timestamp = datetime.datetime.now(
-                            datetime.timezone.utc
-                        )
+                        new._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
                         new.content = new.content.replace(ctx.invoked_with, match[0])
                         ctx = await self.bot.get_context(new)
                         await self.bot.invoke(ctx)
@@ -253,10 +230,7 @@ class ErrorHandler(core.Cog):
             return await ctx.send(embed=max_uses)
 
         elif isinstance(error, commands.BotMissingPermissions):
-            missing = [
-                perm.replace("_", " ").replace("guild", "server").title()
-                for perm in error.missing_permissions
-            ]
+            missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_permissions]
 
             if len(missing) > 2:
                 fmt = f'{", ".join(missing[:-1])}, and {missing[-1]}'
@@ -273,10 +247,7 @@ class ErrorHandler(core.Cog):
                 return
 
         elif isinstance(error, commands.MissingPermissions):
-            missing = [
-                perm.replace("_", " ").replace("guild", "server").title()
-                for perm in error.missing_permissions
-            ]
+            missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_permissions]
 
             if len(missing) > 2:
                 fmt = f'{", ".join(missing[:-1])}, and `{missing[-1]}`'
@@ -290,15 +261,11 @@ class ErrorHandler(core.Cog):
             return await ctx.send(embed=np)
 
         elif isinstance(error, commands.NotOwner):
-            no = Embed(
-                title="Missing Permissions", description="You do not own this bot."
-            )
+            no = Embed(title="Missing Permissions", description="You do not own this bot.")
             return await ctx.send(embed=no)
 
         elif isinstance(error, NotGuildOwner):
-            no = Embed(
-                title="Missing Permissions", description="You do not own this server."
-            )
+            no = Embed(title="Missing Permissions", description="You do not own this server.")
             return await ctx.send(embed=no)
 
         elif isinstance(error, commands.MissingRequiredArgument):
@@ -319,9 +286,7 @@ class ErrorHandler(core.Cog):
         elif isinstance(error, CommandDisabledGuild):
             retry_after = self.disabled_command.update_rate_limit(ctx.message)
             if not retry_after:
-                return await ctx.send(
-                    "You can not use this command, It is disabled in this server."
-                )
+                return await ctx.send("You can not use this command, It is disabled in this server.")
 
         elif isinstance(error, CommandDisabledChannel):
             retry_after = self.disabled_channel.update_rate_limit(ctx.message)
@@ -347,8 +312,7 @@ class ErrorHandler(core.Cog):
         elif isinstance(error, commands.BadLiteralArgument):
             self.reset(ctx)
             bad_literal_arg = Embed(
-                title="Bad Argument",
-                description=f"This argument must be:\n {format_list(error.literals, last='or')}."
+                title="Bad Argument", description=f"This argument must be:\n {format_list(error.literals, last='or')}."
             )
             return await ctx.send(embed=bad_literal_arg)
 
@@ -369,23 +333,13 @@ class ErrorHandler(core.Cog):
             DefaultFormatter().theme["_ansi_enabled"] = False
             traceback = f"```{''.join(DefaultFormatter().format_exception(type(error), error, error.__traceback__))}```"
             if len(traceback) > 4096:
-                traceback = (
-                    f"Error was too long: {await self.bot.myst.post(traceback, 'bash')}"
-                )
+                traceback = f"Error was too long: {await self.bot.myst.post(traceback, 'bash')}"
 
             query = "SELECT * FROM command_errors WHERE command=$1 and error=$2"
-            in_db = await self.bot.pool.fetchrow(
-                query, ctx.command.qualified_name, str(error)
-            )
+            in_db = await self.bot.pool.fetchrow(query, ctx.command.qualified_name, str(error))
             if not in_db:
-                insert_query = (
-                    "INSERT INTO command_errors (command, error) "
-                    "VALUES ($1, $2) "
-                    "RETURNING *"
-                )
-                inserted_error = await self.bot.pool.fetchrow(
-                    insert_query, ctx.command.qualified_name, str(error)
-                )
+                insert_query = "INSERT INTO command_errors (command, error) " "VALUES ($1, $2) " "RETURNING *"
+                inserted_error = await self.bot.pool.fetchrow(insert_query, ctx.command.qualified_name, str(error))
                 embed = Embed(
                     title="An unknown error occured",
                     description=(
@@ -393,7 +347,7 @@ class ErrorHandler(core.Cog):
                         "You can track this error with the button below, or use "
                         f"`{ctx.prefix}error {inserted_error['id']}`.\n\n"
                         f"Error Information:```py\n{error}```"
-                    )
+                    ),
                 )
             elif in_db["error"] == str(error):
                 embed = Embed(
@@ -403,7 +357,7 @@ class ErrorHandler(core.Cog):
                         "You can track this error with the button below, or use "
                         f"`{ctx.prefix}error {in_db['id']}`.\n\n"
                         f"Error Information:```py\n{error}```"
-                    )
+                    ),
                 )
             webhook_error_embed = Embed(
                 title="A new error" if not in_db else "Old error, Fix soon",
@@ -411,22 +365,20 @@ class ErrorHandler(core.Cog):
             )
             error_info = in_db or inserted_error
             webhook_error_embed.add_field(
-                    name="Error Info",
-                    value=(
-                        f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
-                        f"Channel: {ctx.channel} ({ctx.channel.id})\n"
-                        f"Command: {ctx.command.qualified_name}\n"
-                        f"Message: {ctx.message.content}\n"
-                        f"Invoker: {ctx.author}\n"
-                        f"Error ID: {error_info['id']}"
-                    ),
-                )
-            await self.error_webhook.send(
-                embed=webhook_error_embed, username="Command Error"
+                name="Error Info",
+                value=(
+                    f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
+                    f"Channel: {ctx.channel} ({ctx.channel.id})\n"
+                    f"Command: {ctx.command.qualified_name}\n"
+                    f"Message: {ctx.message.content}\n"
+                    f"Invoker: {ctx.author}\n"
+                    f"Error ID: {error_info['id']}"
+                ),
             )
+            await self.error_webhook.send(embed=webhook_error_embed, username="Command Error")
             print(f"Ignoring exception in command {ctx.command}:", file=sys.stderr)
             tb.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
-            view = UnknownError(member=ctx.author, bot=self.bot, error_id=error_info['id'])
+            view = UnknownError(member=ctx.author, bot=self.bot, error_id=error_info["id"])
             view.message = await ctx.send(embed=embed, view=view)
 
 

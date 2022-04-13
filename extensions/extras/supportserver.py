@@ -30,8 +30,10 @@ URL_REGEX = re.compile(
         [^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
 )
 
+
 class PrivateServer(commands.CheckFailure):
     pass
+
 
 class ButtonRole(discord.ui.View):
     def __init__(self):
@@ -57,9 +59,7 @@ class ButtonRole(discord.ui.View):
                 ephemeral=True,
             )
         await member.add_roles(role)
-        return await interaction.response.send_message(
-            "You now have access to the General Channels.", ephemeral=True
-        )
+        return await interaction.response.send_message("You now have access to the General Channels.", ephemeral=True)
 
     @discord.ui.button(
         style=discord.ButtonStyle.blurple,
@@ -81,9 +81,7 @@ class ButtonRole(discord.ui.View):
                 ephemeral=True,
             )
         await member.add_roles(role)
-        return await interaction.response.send_message(
-            "You now have access to the Avimetry Channels.", ephemeral=True
-        )
+        return await interaction.response.send_message("You now have access to the Avimetry Channels.", ephemeral=True)
 
 
 class Servers(core.Cog):

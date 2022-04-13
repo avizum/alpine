@@ -50,10 +50,7 @@ class MainHelp(menus.ListPageSource):
         ]
         embed = discord.Embed(
             title=f"Avimetry {self.help_command.invoked_with.title()} Menu",
-            description=(
-                f"{self.help_command.command_signature()}\n"
-                f"{usable}\n{' | '.join(info)}"
-            ),
+            description=(f"{self.help_command.command_signature()}\n" f"{usable}\n{' | '.join(info)}"),
             color=await self.ctx.fetch_color(),
         )
         embed.add_field(name="Modules", value="\n".join(modules))
@@ -88,10 +85,7 @@ class CogHelp(menus.ListPageSource):
             color=await self.ctx.fetch_color(),
         )
         embed.set_thumbnail(url=self.ctx.bot.user.display_avatar.url)
-        thing = [
-            f"{command.name} - {command.short_doc or 'No help provided'}"
-            for command in commands
-        ]
+        thing = [f"{command.name} - {command.short_doc or 'No help provided'}" for command in commands]
 
         embed.add_field(
             name=f"Commands in {self.cog.qualified_name.title()}",
@@ -150,10 +144,7 @@ class GroupHelp(menus.ListPageSource):
             embed.add_field(name="Cooldown", value=cooldown, inline=False)
 
         embed.set_thumbnail(url=self.ctx.bot.user.display_avatar.url)
-        thing = [
-            f"{command.name} - {command.short_doc or 'No help provided'}"
-            for command in commands
-        ]
+        thing = [f"{command.name} - {command.short_doc or 'No help provided'}" for command in commands]
 
         embed.add_field(
             name=f"Commands in {self.group.qualified_name.title()}",
@@ -171,12 +162,8 @@ class GroupHelp(menus.ListPageSource):
 
 class AvimetryHelp(commands.HelpCommand):
     def get_perms(self, perm_type: str, command: commands.Command):
-        permissions = getattr(command, perm_type, None) or command.extras.get(
-            perm_type, ["send_messages"]
-        )
-        return (
-            ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
-        )
+        permissions = getattr(command, perm_type, None) or command.extras.get(perm_type, ["send_messages"])
+        return ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
 
     async def can_run(self, command, ctx):
         try:
@@ -202,16 +189,10 @@ class AvimetryHelp(commands.HelpCommand):
         return f"Use {self.context.clean_prefix}{self.invoked_with} [command|module] for more help."
 
     def command_signature(self):
-        return (
-            "```<> is a required argument\n"
-            "[] is an optional argument\n"
-            "[...] accepts multiple arguments```"
-        )
+        return "```<> is a required argument\n" "[] is an optional argument\n" "[...] accepts multiple arguments```"
 
     async def send_error_message(self, error):
-        embed = discord.Embed(
-            title="Help Error", description=error, color=discord.Color.red()
-        )
+        embed = discord.Embed(title="Help Error", description=error, color=discord.Color.red())
         embed.set_footer(text=self.ending_note())
         await self.get_destination().send(embed=embed)
 
@@ -269,9 +250,7 @@ class AvimetryHelp(commands.HelpCommand):
             value=f"`{self.context.clean_prefix}{command.qualified_name} {command.signature}`",
         )
         if command.aliases:
-            embed.add_field(
-                name="Command Aliases", value=", ".join(command.aliases), inline=False
-            )
+            embed.add_field(name="Command Aliases", value=", ".join(command.aliases), inline=False)
         embed.add_field(
             name="Description",
             value=command.help or "No help was provided.",
@@ -325,9 +304,7 @@ class HelpCommand(core.Cog):
                 aliases=["halp", "helps", "hlp", "hlep", "hep"],
                 usage="[command|module]",
                 checks=[core.bot_has_permissions(add_reactions=True).predicate],
-                cooldown=commands.CooldownMapping(
-                    commands.Cooldown(10, 30), commands.BucketType.user
-                ),
+                cooldown=commands.CooldownMapping(commands.Cooldown(10, 30), commands.BucketType.user),
             ),
         )
         help_command.cog = self

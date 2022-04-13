@@ -34,9 +34,7 @@ class MainHelp(menus.PageSource):
     async def format_page(self, menu: menus.Menu, page: str):
         bot = self.ctx.bot
         commands = list(bot.commands)
-        embed = discord.Embed(
-            title="Avimetry Help Menu", color=await self.ctx.fetch_color()
-        )
+        embed = discord.Embed(title="Avimetry Help Menu", color=await self.ctx.fetch_color())
         info = "\n".join(
             [
                 f"[Avimetry support server]({self.ctx.bot.support})",
@@ -69,7 +67,6 @@ class MainHelp(menus.PageSource):
                 "To use a flag, you type the command, arguments then the flags like this:\n"
                 "a.ban @avizum reason: loser dm: yes delete_days: *2*\n"
                 "If you have any questions, join the support server."
-
             )
         if self.index == 3:
             embed.description = (
@@ -101,10 +98,7 @@ class CogHelp(menus.ListPageSource):
             color=await self.ctx.fetch_color(),
         )
         embed.set_thumbnail(url=self.ctx.bot.user.display_avatar.url)
-        thing = [
-            f"{command.name} - {command.short_doc or 'No help provided'}"
-            for command in commands
-        ]
+        thing = [f"{command.name} - {command.short_doc or 'No help provided'}" for command in commands]
 
         embed.add_field(
             name=f"Commands in {self.cog.qualified_name.title()}",
@@ -161,10 +155,7 @@ class GroupHelp(menus.ListPageSource):
                 embed.add_field(name="Cooldown", value=cooldown, inline=False)
 
         else:
-            thing = [
-                f"{command.name} - {command.short_doc or 'No help provided'}"
-                for command in commands
-            ]
+            thing = [f"{command.name} - {command.short_doc or 'No help provided'}" for command in commands]
             embed.add_field(
                 name=f"Commands in {self.group.qualified_name.title()}",
                 value="\n".join(thing),
@@ -199,9 +190,7 @@ class HelpSelect(discord.ui.Select["HelpPages"]):
                     emoji=getattr(cog, "emoji", "<:avimetry:848820318117691432>"),
                 )
             )
-        super().__init__(
-            placeholder=f"Select a module ({len(cogs)} modules)", options=options
-        )
+        super().__init__(placeholder=f"Select a module ({len(cogs)} modules)", options=options)
 
     async def callback(self, interaction: discord.Interaction):
         cog = self.ctx.bot.get_cog(self.values[0])
@@ -221,9 +210,7 @@ class HelpSelect(discord.ui.Select["HelpPages"]):
 
 
 class HelpPages(Paginator):
-    def __init__(
-        self, source: menus.PageSource, *, ctx: Context, current_page=0
-    ):
+    def __init__(self, source: menus.PageSource, *, ctx: Context, current_page=0):
         super().__init__(
             source,
             ctx=ctx,

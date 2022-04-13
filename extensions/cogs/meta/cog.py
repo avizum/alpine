@@ -34,6 +34,7 @@ import core
 from core import Bot, Context
 from utils import timestamp, Paginator, PaginatorEmbed
 
+
 class TimeZoneError(commands.BadArgument):
     def __init__(self, argument):
         self.argument = argument
@@ -42,6 +43,7 @@ class TimeZoneError(commands.BadArgument):
             "(https://gist.github.com/Soheab/3bec6dd6c1e90962ef46b8545823820d) "
             "are all the valid timezones you can use."
         )
+
 
 class RTFMPageSource(menus.ListPageSource):
     def __init__(self, ctx: Context, items, query):
@@ -54,14 +56,12 @@ class RTFMPageSource(menus.ListPageSource):
         embed = PaginatorEmbed(
             ctx=self.ctx,
             description=(
-                "\n".join(
-                    f"[`{k.replace('discord.', '').replace('discord.ext.commands.', '')}`]({v})"
-                    for k, v in page
-                )
+                "\n".join(f"[`{k.replace('discord.', '').replace('discord.ext.commands.', '')}`]({v})" for k, v in page)
             ),
         )
         embed.set_footer(text=f"{len(self.items)} results found")
         return embed
+
 
 class Meta(core.Cog):
     """
@@ -83,27 +83,16 @@ class Meta(core.Cog):
         You can have up to 10 other options in a poll.
         """
         if len(options) < 2:
-            raise commands.BadArgument(
-                "You need to have at least two options in the poll."
-            )
+            raise commands.BadArgument("You need to have at least two options in the poll.")
         if len(options) > 10:
             raise commands.BadArgument("You can only have ten options in a poll")
-        if (
-            len(options) == 3
-            and options[0] == "yes"
-            and options[1] == "maybe"
-            and options[2] == "no"
-        ):
+        if len(options) == 3 and options[0] == "yes" and options[1] == "maybe" and options[2] == "no":
             reactions = [
                 self.bot.emoji_dictionary["green_tick"],
                 self.bot.emoji_dictionary["gray_tick"],
                 self.bot.emoji_dictionary["red_tick"],
             ]
-        elif (
-            len(options) == 2
-            and options[0].lower() == "yes"
-            and options[1].lower() == "no"
-        ):
+        elif len(options) == 2 and options[0].lower() == "yes" and options[1].lower() == "no":
             reactions = [
                 self.bot.emoji_dictionary["green_tick"],
                 self.bot.emoji_dictionary["red_tick"],
@@ -128,9 +117,7 @@ class Meta(core.Cog):
         react_message = await ctx.no_reply(embed=embed)
         for reaction in reactions[: len(options)]:
             await react_message.add_reaction(reaction)
-        embed.set_footer(
-            text=f"Poll from: {ctx.author}\nMessage ID: {react_message.id}"
-        )
+        embed.set_footer(text=f"Poll from: {ctx.author}\nMessage ID: {react_message.id}")
 
         await react_message.edit(embed=embed)
 
@@ -213,11 +200,7 @@ class Meta(core.Cog):
                 inline=False,
             )
             if member.public_flags.value > 0:
-                flags = [
-                    key.replace("_", " ").title()
-                    for key, val in member.public_flags
-                    if val is True
-                ]
+                flags = [key.replace("_", " ").title() for key, val in member.public_flags if val is True]
                 ie.add_field(name="Public Flags", value=", ".join(flags))
         ie.set_thumbnail(url=member.display_avatar.url)
         await ctx.send(embed=ie)
@@ -226,9 +209,7 @@ class Meta(core.Cog):
     @core.is_owner()
     async def roleinfo(self, ctx: Context, role: discord.Role):
         embed = discord.Embed(title="Role Info")
-        embed.add_field(
-            name="Created At", value=discord.utils.format_dt(role.created_at)
-        )
+        embed.add_field(name="Created At", value=discord.utils.format_dt(role.created_at))
         embed.add_field(name="Role ID", value=role.id)
 
     @core.group(aliases=["members", "mc"])
@@ -255,9 +236,7 @@ class Meta(core.Cog):
         mce = discord.Embed(title=f"Members in role: {role}")
         mce.add_field(name="Members:", value=f"{tmc} members", inline=False)
         mce.add_field(name="Bots:", value=f"{tbc} bots", inline=False)
-        mce.add_field(
-            name="Members", value=", ".join(i.mention for i in role.members[:42])
-        )
+        mce.add_field(name="Members", value=", ".join(i.mention for i in role.members[:42]))
         await ctx.send(embed=mce)
 
     @core.command()
@@ -297,9 +276,7 @@ class Meta(core.Cog):
         banner = fetched.banner
         if banner:
             embed = discord.Embed(title=f"{member}'s banner")
-            embed.set_image(
-                url=banner.url
-            )
+            embed.set_image(url=banner.url)
         elif fetched.accent_color:
             embed = discord.Embed(
                 description=f"This person does not have a banner. Their accent color is {fetched.accent_color}.",
@@ -316,9 +293,7 @@ class Meta(core.Cog):
         """
         qr_embed = discord.Embed()
         qr_embed.add_field(name="QR code", value=f"Here is your qr code ({content})")
-        qr_embed.set_image(
-            url=f"https://api.qrserver.com/v1/create-qr-code/?data={content}&size=250x250"
-        )
+        qr_embed.set_image(url=f"https://api.qrserver.com/v1/create-qr-code/?data={content}&size=250x250")
         await ctx.send(embed=qr_embed)
 
     @core.group(case_insensitive=True, invoke_without_command=True)
@@ -336,19 +311,13 @@ class Meta(core.Cog):
         except (KeyError, UnknownTimeZoneError):
             prefix = ctx.clean_prefix
             if member == ctx.author:
-                return await ctx.send(
-                    f"You don't have a timezone setup yet. Use {prefix}time set <timezone>."
-                )
-            return await ctx.send(
-                f"This user does not have a timezone setup. Use {prefix}time set <timezone>."
-            )
+                return await ctx.send(f"You don't have a timezone setup yet. Use {prefix}time set <timezone>.")
+            return await ctx.send(f"This user does not have a timezone setup. Use {prefix}time set <timezone>.")
         timezone = pytz.timezone(timezone)
         time = datetime.datetime.now(timezone)
         format_time = time.strftime("%A, %B %d at %I:%M %p")
         time_embed = discord.Embed(description=format_time)
-        time_embed.set_author(
-            name=f"{member.display_name}'s time", icon_url=member.display_avatar.url
-        )
+        time_embed.set_author(name=f"{member.display_name}'s time", icon_url=member.display_avatar.url)
         time_embed.set_footer(text=f"{member.display_name}'s' timezone: {timezone}")
         await ctx.send(embed=time_embed)
 
@@ -387,9 +356,7 @@ class Meta(core.Cog):
 
     @core.command()
     @commands.cooldown(1, 15, commands.BucketType.guild)
-    async def firstmessage(
-        self, ctx: Context, *, channel: discord.TextChannel = None
-    ):
+    async def firstmessage(self, ctx: Context, *, channel: discord.TextChannel = None):
         """
         Get the first message of the channel.
 
@@ -415,12 +382,8 @@ class Meta(core.Cog):
         """
         Get the docs for the discord.py library.
         """
-        q = await self.scraper.search(
-            query, page="https://discordpy.readthedocs.io/en/stable/"
-        )
-        menu = Paginator(
-            RTFMPageSource(ctx, q[:79], "Discord.py"), ctx=ctx, remove_view_after=True
-        )
+        q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/stable/")
+        menu = Paginator(RTFMPageSource(ctx, q[:79], "Discord.py"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
     @rtfm.command()
@@ -428,9 +391,7 @@ class Meta(core.Cog):
         """
         Get the docs for the discord.py master branch library.
         """
-        q = await self.scraper.search(
-            query, page="https://discordpy.readthedocs.io/en/master/"
-        )
+        q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/master/")
         menu = Paginator(
             RTFMPageSource(ctx, q[:79], "Discord.py 2.0"),
             ctx=ctx,
@@ -444,9 +405,7 @@ class Meta(core.Cog):
         Get the docs for the latest Python version
         """
         q = await self.scraper.search(query, page="https://docs.python.org/3/")
-        menu = Paginator(
-            RTFMPageSource(ctx, q[:79], "Python"), ctx=ctx, remove_view_after=True
-        )
+        menu = Paginator(RTFMPageSource(ctx, q[:79], "Python"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
     @rtfm.command(aliases=["ob"])
@@ -454,12 +413,8 @@ class Meta(core.Cog):
         """
         Get the docs for the Obsidian.py library
         """
-        q = await self.scraper.search(
-            query, page="https://obsidianpy.readthedocs.io/en/latest/"
-        )
-        menu = Paginator(
-            RTFMPageSource(ctx, q[:79], "Obsidian"), ctx=ctx, remove_view_after=True
-        )
+        q = await self.scraper.search(query, page="https://obsidianpy.readthedocs.io/en/latest/")
+        menu = Paginator(RTFMPageSource(ctx, q[:79], "Obsidian"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
     @rtfm.command(aliases=["wl"])
@@ -467,12 +422,8 @@ class Meta(core.Cog):
         """
         Get the docs for the Wavelink library
         """
-        q = await self.scraper.search(
-            query, page="https://wavelink.readthedocs.io/en/latest/"
-        )
-        menu = Paginator(
-            RTFMPageSource(ctx, q[:79], "Wavelink"), ctx=ctx, remove_view_after=True
-        )
+        q = await self.scraper.search(query, page="https://wavelink.readthedocs.io/en/latest/")
+        menu = Paginator(RTFMPageSource(ctx, q[:79], "Wavelink"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
     @rtfm.command(aliases=["c"])
@@ -484,9 +435,7 @@ class Meta(core.Cog):
             q = await self.scraper.search(query, page=doc_url)
         except Exception as e:
             return await ctx.send(e)
-        menu = Paginator(
-            RTFMPageSource(ctx, q[:79], "Custom Docs"), ctx=ctx, remove_view_after=True
-        )
+        menu = Paginator(RTFMPageSource(ctx, q[:79], "Custom Docs"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
     @core.command()
@@ -498,9 +447,7 @@ class Meta(core.Cog):
         This command has a high cooldown to prevent abuse.
         """
         if '"content":' in thing:
-            return await ctx.send(
-                'Remove the "content" part from your message and try again.'
-            )
+            return await ctx.send('Remove the "content" part from your message and try again.')
         try:
             thing = json.loads(thing)
             return await ctx.no_reply(embed=discord.Embed.from_dict(thing))
@@ -525,14 +472,10 @@ class Meta(core.Cog):
     @redirectcheck.error
     async def redirectcheck_error(self, ctx: Context, error):
         if isinstance(error, aiohttp.InvalidURL):
-            return await ctx.send(
-                "This is not a valid url. Make sure you start links with `http://` or `https://`."
-            )
+            return await ctx.send("This is not a valid url. Make sure you start links with `http://` or `https://`.")
         if isinstance(error, aiohttp.ClientConnectorError):
             return await ctx.send("I wasn't able to connect to this website.")
-        await ctx.send(
-            "An error occured while checking the link, Please try another link or try again later."
-        )
+        await ctx.send("An error occured while checking the link, Please try another link or try again later.")
         raise error
 
     @core.group(name="gist")
@@ -543,9 +486,7 @@ class Meta(core.Cog):
 
         These gists are public and if you want to get one removed, DM Avimetry or join the support server.
         """
-        file_post = asyncgist.File(
-            filename=f"output.{code.language or 'txt'}", content=code.content
-        )
+        file_post = asyncgist.File(filename=f"output.{code.language or 'txt'}", content=code.content)
         out = await self.bot.gist.post_gist(
             description=f"{ctx.author} at {datetime.datetime.now(datetime.timezone.utc).strftime('%x %X')}",
             files=[file_post],
@@ -574,6 +515,7 @@ class Meta(core.Cog):
         except asyncgist.NotFound:
             return await ctx.send("Gist was not found.")
         from core.context import AutoPageSource
+
         pag = commands.Paginator()
         for i in gist.files[0].content.split("\n"):
             pag.add_line(i.replace("`", "\u200b`"))
@@ -598,9 +540,7 @@ class Meta(core.Cog):
         mess = await self.bot.http.get_message(ctx.channel.id, message_id)
         info = ctx.codeblock(json.dumps(mess, indent=4), language="json")
         if len(info) > 2000:
-            return await ctx.post(
-                info.removeprefix("```json\n").removesuffix("```"), "json", gist=True
-            )
+            return await ctx.post(info.removeprefix("```json\n").removesuffix("```"), "json", gist=True)
         return await ctx.send(info)
 
     @core.command(hidden=True)

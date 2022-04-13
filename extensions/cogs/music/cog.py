@@ -46,6 +46,7 @@ def in_voice():
 
     return commands.check(predicate)
 
+
 def bot_in_voice():
     def predicate(ctx: Context):
         if ctx.voice_client:
@@ -63,6 +64,7 @@ def in_correct_channel():
         if ctx.channel == vc.channel:
             return True
         raise NotInVoice
+
     return commands.check(predicate)
 
 
@@ -129,11 +131,7 @@ class Music(core.Cog):
         def check(mem, bef, aft):
             return mem == member and aft.channel == channel
 
-        if (
-            after.channel is None
-            and len(channel.members) == 1
-            and member.guild.me in channel.members
-        ):
+        if after.channel is None and len(channel.members) == 1 and member.guild.me in channel.members:
             try:
                 await self.bot.wait_for("voice_state_update", timeout=30, check=check)
             except asyncio.TimeoutError:
@@ -244,16 +242,12 @@ class Music(core.Cog):
 
         if isinstance(query, wavelink.YouTubePlaylist):
             for track in query.tracks:
-                track = Track(
-                    track.id, track.info, requester=ctx.author, thumb=track.thumb
-                )
+                track = Track(track.id, track.info, requester=ctx.author, thumb=track.thumb)
                 await player.queue.put(track)
 
             embed = discord.Embed(
                 title="Enqueued YouTube playlist",
-                description=(
-                    f"Playlist {query.name} with {len(query.tracks)} tracks added to the queue."
-                ),
+                description=(f"Playlist {query.name} with {len(query.tracks)} tracks added to the queue."),
             )
             if query.tracks[0].thumb:
                 embed.set_thumbnail(url=query.tracks[0].thumb)
@@ -266,9 +260,7 @@ class Music(core.Cog):
                 await player.queue.put(track)
             embed = discord.Embed(
                 title="Enqueued Spotify playlist",
-                description=(
-                    f"Spotify playlist with {len(query)} tracks added to the queue."
-                ),
+                description=(f"Spotify playlist with {len(query)} tracks added to the queue."),
             )
             if query[0].thumb:
                 embed.set_thumbnail(url=query[0].thumb)
@@ -314,7 +306,6 @@ class Music(core.Cog):
         if not player:
             return await ctx.send()
 
-
     @core.command()
     @in_voice()
     @core.is_owner()
@@ -353,24 +344,18 @@ class Music(core.Cog):
 
             if isinstance(tracks, wavelink.YouTubePlaylist):
                 for track in tracks.tracks:
-                    track = Track(
-                        track.id, track.info, requester=ctx.author, thumb=track.thumb
-                    )
+                    track = Track(track.id, track.info, requester=ctx.author, thumb=track.thumb)
                     await player.queue.put(track, left=True)
 
                 embed = discord.Embed(
                     title="Enqueued playlist",
-                    description=(
-                        f"Playlist {tracks.name} with {len(tracks.tracks)} tracks added to the queue."
-                    ),
+                    description=(f"Playlist {tracks.name} with {len(tracks.tracks)} tracks added to the queue."),
                 )
                 if track.thumb:
                     embed.set_thumbnail(url=tracks[0].thumb)
                 await ctx.send(embed=embed)
             else:
-                track = Track(
-                    tracks.id, tracks.info, requester=ctx.author, thumb=tracks.thumb
-                )
+                track = Track(tracks.id, tracks.info, requester=ctx.author, thumb=tracks.thumb)
                 await ctx.send(embed=await player.build_added(track))
                 await player.queue.put(track)
 
@@ -416,9 +401,7 @@ class Music(core.Cog):
             return
 
         if self.is_privileged(ctx):
-            await ctx.send(
-                f":pause_button: {ctx.author.display_name} has paused the player."
-            )
+            await ctx.send(f":pause_button: {ctx.author.display_name} has paused the player.")
             player.pause_votes.clear()
             return await player.pause()
 
@@ -449,9 +432,7 @@ class Music(core.Cog):
             return
 
         if self.is_privileged(ctx):
-            await ctx.send(
-                f":arrow_forward: {ctx.author.display_name} has resumed the player."
-            )
+            await ctx.send(f":arrow_forward: {ctx.author.display_name} has resumed the player.")
             player.resume_votes.clear()
 
             return await player.resume()
@@ -481,9 +462,7 @@ class Music(core.Cog):
             return
 
         if self.is_privileged(ctx):
-            await ctx.send(
-                f":track_next: {ctx.author.display_name} has skipped the song."
-            )
+            await ctx.send(f":track_next: {ctx.author.display_name} has skipped the song.")
             player.skip_votes.clear()
 
             return await player.stop()
@@ -593,24 +572,18 @@ class Music(core.Cog):
             return
 
         if self.is_privileged(ctx):
-            await ctx.send(
-                f":twisted_rightwards_arrows: {ctx.author.display_name} shuffled the queue."
-            )
+            await ctx.send(f":twisted_rightwards_arrows: {ctx.author.display_name} shuffled the queue.")
             player.shuffle_votes.clear()
             return random.shuffle(player.queue._queue)
 
         if player.queue.size < 3:
-            return await ctx.send(
-                "Add more songs to the queue before shuffling.", delete_after=15
-            )
+            return await ctx.send("Add more songs to the queue before shuffling.", delete_after=15)
 
         required = self.required(ctx)
         player.shuffle_votes.add(ctx.author)
 
         if len(player.shuffle_votes) >= required:
-            await ctx.send(
-                ":twisted_rightwards_arrows: Shuffling queue because vote to shuffle passed."
-            )
+            await ctx.send(":twisted_rightwards_arrows: Shuffling queue because vote to shuffle passed.")
             player.shuffle_votes.clear()
             random.shuffle(player.queue._queue)
         else:
@@ -684,18 +657,11 @@ class Music(core.Cog):
             return
 
         if player.queue.size == 0:
-            return await ctx.send(
-                f"The queue is empty. Use {ctx.prefix}play to add some songs!"
-            )
+            return await ctx.send(f"The queue is empty. Use {ctx.prefix}play to add some songs!")
 
-        entries = [
-            f"`{index+1})` [{track.title}]({track.uri})"
-            for index, track in enumerate(player.queue._queue)
-        ]
+        entries = [f"`{index+1})` [{track.title}]({track.uri})" for index, track in enumerate(player.queue._queue)]
         pages = PaginatorSource(entries=entries, ctx=ctx)
-        paginator = Paginator(
-            source=pages, timeout=120, ctx=ctx, disable_view_after=True
-        )
+        paginator = Paginator(source=pages, timeout=120, ctx=ctx, disable_view_after=True)
         await paginator.start()
 
     @core.command(aliases=["clq", "clqueue", "cqueue"])
@@ -744,9 +710,7 @@ class Music(core.Cog):
         members = player.channel.members
 
         if member and member not in members:
-            return await ctx.send(
-                f"{member} is not currently in voice, so can not be a DJ."
-            )
+            return await ctx.send(f"{member} is not currently in voice, so can not be a DJ.")
 
         if member and member == player.dj:
             return await ctx.send("Cannot swap DJ to the current DJ... :)")

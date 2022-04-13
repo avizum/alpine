@@ -18,17 +18,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from discord.ext import commands
 
+
 class NotGuildOwner(commands.CheckFailure):
     def __init__(self, message=None, *args) -> None:
         message = message or "You do not own this server."
         super().__init__(message=message, *args)
 
+
 class Blacklisted(commands.CheckFailure):
     def __init__(self, reason) -> None:
         self.reason = reason
 
+
 class Maintenance(commands.CheckFailure):
     pass
+
 
 class CommandDisabledGuild(commands.DisabledCommand):
     pass

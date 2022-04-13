@@ -159,7 +159,7 @@ class Paginator(BasePaginator):
             delete_message_after=delete_message_after,
             remove_view_after=remove_view_after,
             disable_view_after=disable_view_after,
-            message=message
+            message=message,
         )
         self.clear_items()
         self.add_items()
@@ -228,16 +228,18 @@ class Paginator(BasePaginator):
         """
         await self.show_checked_page(interaction, self.current_page - 1)
 
-    @discord.ui.button(emoji="<:avimetry:940147134471213077>", disabled=False, style=discord.ButtonStyle.blurple,)
+    @discord.ui.button(
+        emoji="<:avimetry:940147134471213077>",
+        disabled=False,
+        style=discord.ButtonStyle.blurple,
+    )
     async def show_page_number(self, interaction: discord.Interaction, button: discord.Button):
         """
         Shows the current page number.
         This button also is used for skipping to pages.
         """
         if self.lock.locked():
-            return await interaction.response.send_message(
-                "You already clicked it, now send a number.", ephemeral=True
-            )
+            return await interaction.response.send_message("You already clicked it, now send a number.", ephemeral=True)
         async with self.lock:
             await interaction.response.send_message(
                 f"Which page would you like to go to? (1-{self.source.get_max_pages()})",
@@ -245,20 +247,12 @@ class Paginator(BasePaginator):
             )
 
             def check(m: discord.Message):
-                return (
-                    m.author == self.ctx.author
-                    and m.channel == self.ctx.channel
-                    and m.content.isdigit()
-                )
+                return m.author == self.ctx.author and m.channel == self.ctx.channel and m.content.isdigit()
 
             try:
-                message = await self.ctx.bot.wait_for(
-                    "message", check=check, timeout=10
-                )
+                message = await self.ctx.bot.wait_for("message", check=check, timeout=10)
             except asyncio.TimeoutError:
-                await interaction.followup.send(
-                    "You took too long to respond.", ephemeral=True
-                )
+                await interaction.followup.send("You took too long to respond.", ephemeral=True)
             else:
                 page = int(message.content)
                 await self.show_checked_page(interaction, page_num=page - 1)
@@ -307,9 +301,7 @@ class OldAvimetryPages(ViewMenuPages):
         page = await self._source.get_page(0)
         kwargs = await self._get_kwargs_from_page(page)
         if interaction:
-            return await interaction.response.edit_message(
-                **kwargs, view=self.build_view()
-            )
+            return await interaction.response.edit_message(**kwargs, view=self.build_view())
         return await self.send_with_view(ctx, **kwargs)
 
     def _skip_double_triangle_buttons(self):

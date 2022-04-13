@@ -25,6 +25,7 @@ class HighlightCommands(core.Cog):
     """
     Notifications for words or phrases.
     """
+
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
         self.emoji = "\U0001f58b"
@@ -78,11 +79,7 @@ class HighlightCommands(core.Cog):
         if trigger not in highlights["triggers"]:
             return await ctx.send("This highlight is not saved.")
 
-        query = (
-            "UPDATE highlights "
-            "SET triggers = $2 "
-            "WHERE user_id = $1 "
-        )
+        query = "UPDATE highlights " "SET triggers = $2 " "WHERE user_id = $1 "
 
         highlights["triggers"].remove(trigger)
         await self.bot.pool.execute(query, ctx.author.id, highlights["triggers"])

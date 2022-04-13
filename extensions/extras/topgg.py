@@ -47,12 +47,10 @@ class TopGG(core.Cog):
         data = {
             "voice_connections": len(self.bot.voice_clients),
             "users": len(self.bot.users),
-            "guilds": len(self.bot.guilds)
+            "guilds": len(self.bot.guilds),
         }
         await self.bot.session.post(
-            "https://discordbotlist.com/api/v1/bots/756257170521063444/stats",
-            headers=headers,
-            data=data
+            "https://discordbotlist.com/api/v1/bots/756257170521063444/stats", headers=headers, data=data
         )
 
     @post.before_loop
@@ -67,7 +65,7 @@ class TopGG(core.Cog):
         games = [
             discord.Game(f"@Avimetry | {len(self.bot.guilds)} Servers"),
             discord.Game(f"@Avimetry | {len(self.bot.users)} Users"),
-            discord.Game(f"@Avimetry | Made by @{self.bot.get_user(750135653638865017)}")
+            discord.Game(f"@Avimetry | Made by @{self.bot.get_user(750135653638865017)}"),
         ]
         game = random.choice(games)
         if game == self.bot.get_guild(814206001451761664).me:

@@ -75,9 +75,7 @@ class Images(core.Cog):
         self.emoji = "\U0001f4f7"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
-    async def do_dagpi(
-        self, ctx: Context, feature: ImageFeatures, argument, gif: bool = False
-    ):
+    async def do_dagpi(self, ctx: Context, feature: ImageFeatures, argument, gif: bool = False):
         converter = GetAvatar()
         image = await converter.convert(ctx, argument)
         if image is None:
@@ -85,11 +83,7 @@ class Images(core.Cog):
                 img = ctx.message.attachments[0]
                 image = img.url
             else:
-                image = str(
-                    ctx.author.avatar.replace(
-                        format="png", static_format="png", size=1024
-                    )
-                )
+                image = str(ctx.author.avatar.replace(format="png", static_format="png", size=1024))
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(feature, image)
         return image
@@ -465,13 +459,9 @@ class Images(core.Cog):
             "trans",
         ]
         if flag.lower() not in flags:
-            return await ctx.send(
-                f"Your flag must be one of these:\n{', '.join(flags)}"
-            )
+            return await ctx.send(f"Your flag must be one of these:\n{', '.join(flags)}")
         async with ctx.channel.typing():
-            image = await self.bot.dagpi.image_process(
-                ImageFeatures.pride(), url=item, flag=flag
-            )
+            image = await self.bot.dagpi.image_process(ImageFeatures.pride(), url=item, flag=flag)
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command(name="dgay", enabled=False)
@@ -589,9 +579,7 @@ class Images(core.Cog):
         Ya know, the five guys and one girl thing...
         """
         async with ctx.channel.typing():
-            image = await self.bot.dagpi.image_process(
-                ImageFeatures.five_guys_one_girl(), url=item1, url2=item2
-            )
+            image = await self.bot.dagpi.image_process(ImageFeatures.five_guys_one_girl(), url=item1, url2=item2)
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command(name="whyareyougay", aliases=["wayg"])
@@ -601,9 +589,7 @@ class Images(core.Cog):
         Well why are you??
         """
         async with ctx.channel.typing():
-            image = await self.bot.dagpi.image_process(
-                ImageFeatures.why_are_you_gay(), url=item1, url2=item2
-            )
+            image = await self.bot.dagpi.image_process(ImageFeatures.why_are_you_gay(), url=item1, url2=item2)
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command(name="obama")
@@ -695,9 +681,7 @@ class Images(core.Cog):
         Makes it look like you or someone else tweeted something.
         """
         async with ctx.channel.typing():
-            image = await self.bot.dagpi.image_process(
-                ImageFeatures.tweet(), text=text, url=user, username=username
-            )
+            image = await self.bot.dagpi.image_process(ImageFeatures.tweet(), text=text, url=user, username=username)
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command(name="youtube")
@@ -708,9 +692,7 @@ class Images(core.Cog):
         """
         user_name = None
         if text is None:
-            url = str(
-                ctx.author.avatar.replace(format="png", static_format="png", size=1024)
-            )
+            url = str(ctx.author.avatar.replace(format="png", static_format="png", size=1024))
             text = "I am an idiot for not putting the text in"
             user_name = ctx.author.name
         else:
@@ -732,9 +714,7 @@ class Images(core.Cog):
         """
         user_name = None
         if text is None:
-            url = str(
-                ctx.author.avatar.replace(format="png", static_format="png", size=1024)
-            )
+            url = str(ctx.author.avatar.replace(format="png", static_format="png", size=1024))
             text = "I am an idiot for not putting the text in"
             user_name = ctx.author.name
         else:
@@ -755,9 +735,7 @@ class Images(core.Cog):
         Overlays your image on a captcha grid.
         """
         async with ctx.channel.typing():
-            image = await self.bot.dagpi.image_process(
-                ImageFeatures.captcha(), item, text=text
-            )
+            image = await self.bot.dagpi.image_process(ImageFeatures.captcha(), item, text=text)
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command(name="thoughtimage", aliases=["thinking"])
@@ -767,9 +745,7 @@ class Images(core.Cog):
         Overlays your image on a captcha grid.
         """
         async with ctx.channel.typing():
-            image = await self.bot.dagpi.image_process(
-                ImageFeatures.thought_image(), item, text=text
-            )
+            image = await self.bot.dagpi.image_process(ImageFeatures.thought_image(), item, text=text)
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command()

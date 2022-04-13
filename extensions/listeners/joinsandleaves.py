@@ -100,9 +100,7 @@ class JoinsAndLeaves(core.Cog):
         config = self.bot.cache.join_leave.get(member.guild.id)
         if not config:
             return
-        join_channel = discord.utils.get(
-            member.guild.channels, id=config["join_channel"]
-        )
+        join_channel = discord.utils.get(member.guild.channels, id=config["join_channel"])
         join_message = config["join_message"]
         join_config = config["join_enabled"]
         if not join_channel or not join_message or not join_config:
@@ -120,9 +118,7 @@ class JoinsAndLeaves(core.Cog):
         config = self.bot.cache.join_leave.get(member.guild.id)
         if not config:
             return
-        leave_channel = discord.utils.get(
-            member.guild.channels, id=config["leave_channel"]
-        )
+        leave_channel = discord.utils.get(member.guild.channels, id=config["leave_channel"])
         leave_message = config["leave_message"]
         leave_config = config["leave_enabled"]
         if not leave_channel or not leave_message or not leave_config:

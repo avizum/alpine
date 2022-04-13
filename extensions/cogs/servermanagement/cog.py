@@ -38,10 +38,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
 
     @core.Cog.listener()
     async def on_thread_update(self, before: discord.Thread, after: discord.Thread):
-        if (
-            before.id
-            not in self.bot.cache.guild_settings[before.guild.id]["auto_unarchive"]
-        ):
+        if before.id not in self.bot.cache.guild_settings[before.guild.id]["auto_unarchive"]:
             return
 
         if before.archived is False and after.archived is True:

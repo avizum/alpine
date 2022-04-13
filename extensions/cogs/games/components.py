@@ -87,9 +87,7 @@ class AkinatorGameView(View):
                 self.embed.description = f"{self.client.step+1}. {nxt}"
                 await interaction.response.edit_message(embed=self.embed)
             except CantGoBackAnyFurther:
-                await interaction.response.send_message(
-                    "You can't go back. Sorry.", ephemeral=True
-                )
+                await interaction.response.send_message("You can't go back. Sorry.", ephemeral=True)
         elif self.client.progression <= 80:
             await interaction.response.defer()
             nxt = await self.client.answer(answer)
@@ -102,9 +100,7 @@ class AkinatorGameView(View):
                 f"Are you thinking of {client.first_guess['name']} ({client.first_guess['description']})?\n"
             )
             self.embed.set_image(url=client.first_guess["absolute_picture_path"])
-            new_view = AkinatorConfirmView(
-                member=self.member, message=self.message, embed=self.embed
-            )
+            new_view = AkinatorConfirmView(member=self.member, message=self.message, embed=self.embed)
             await self.stop()
             await self.message.edit(view=new_view, embed=self.embed)
 
@@ -183,9 +179,7 @@ class RockPaperScissorGame(View):
         await self.answer(button, interaction, 0)
         button.style = discord.ButtonStyle.success
 
-    @discord.ui.button(
-        label="Paper", emoji="\U0001f4f0", style=discord.ButtonStyle.secondary, row=1
-    )
+    @discord.ui.button(label="Paper", emoji="\U0001f4f0", style=discord.ButtonStyle.secondary, row=1)
     async def game_paper(self, interaction: discord.Interaction, button: discord.Button):
         await self.answer(button, interaction, 1)
         button.style = discord.ButtonStyle.success
@@ -218,9 +212,7 @@ class CookieView(discord.ui.View):
 
 
 class RPSButton(discord.ui.Button):
-    def __init__(
-        self, label: str, player_one: discord.Member, player_two: discord.Member
-    ):
+    def __init__(self, label: str, player_one: discord.Member, player_two: discord.Member):
         self.player_one = player_one
         self.player_two = player_two
         self.pa = None
@@ -228,14 +220,10 @@ class RPSButton(discord.ui.Button):
         super().__init__(style=discord.ButtonStyle.success, label=label)
 
     async def callback(self, interaction: discord.Interaction):
-        if interaction.user == self.player_one and not getattr(
-            self.player_one, "answer", None
-        ):
+        if interaction.user == self.player_one and not getattr(self.player_one, "answer", None):
             await interaction.response.send_message(content="You picked {self.label}!")
             self.pa = self.label
-        elif interaction.user == self.player_two and not getattr(
-            self.player_two, "answer", None
-        ):
+        elif interaction.user == self.player_two and not getattr(self.player_two, "answer", None):
             await interaction.response.send_message(content="You picked {self.label}!")
             self.pt = self.label
         print(f"Player one: {self.pt}\nPlayer two: {self.pa}")

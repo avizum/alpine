@@ -72,9 +72,7 @@ class Cache:
         return f"<Cache size={sum(cache.__sizeof__() for cache in caches)}>"
 
     async def delete_all(self, gid):
-        await self.bot.pool.execute(
-            "DELETE FROM guild_settings WHERE guild_id = $1", gid
-        )
+        await self.bot.pool.execute("DELETE FROM guild_settings WHERE guild_id = $1", gid)
         try:
             self.guild_settings.pop(gid)
         except KeyError:
@@ -105,9 +103,7 @@ class Cache:
 
     async def cache_new_guild(self, guild_id: int):
         try:
-            await self.bot.pool.execute(
-                "INSERT INTO guild_settings VALUES ($1)", guild_id
-            )
+            await self.bot.pool.execute("INSERT INTO guild_settings VALUES ($1)", guild_id)
         except Exception:
             pass
         new = self.guild_settings[guild_id] = deepcopy(

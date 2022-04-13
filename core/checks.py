@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 
 from .core import Command
-from.exceptions import NotGuildOwner
+from .exceptions import NotGuildOwner
 
 
 def check(predicate, member_permissions=None, bot_permissions=None):
@@ -45,9 +45,7 @@ def has_permissions(**perms):
         ch = ctx.channel
         permissions = ch.permissions_for(ctx.author)
 
-        missing = [
-            perm for perm, value in perms.items() if getattr(permissions, perm) != value
-        ]
+        missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
 
         if await ctx.bot.is_owner(ctx.author):
             return True
@@ -69,9 +67,7 @@ def bot_has_permissions(**perms):
         me = guild.me if guild is not None else ctx.bot.user
         permissions = ctx.channel.permissions_for(me)
 
-        missing = [
-            perm for perm, value in perms.items() if getattr(permissions, perm) != value
-        ]
+        missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
 
         if not missing:
             return True
@@ -86,9 +82,7 @@ def cooldown(rate, per, type=commands.BucketType.default):
         if isinstance(func, Command):
             func._buckets = commands.CooldownMapping(commands.Cooldown(rate, per), type)
         else:
-            func.__commands_cooldown__ = commands.CooldownMapping(
-                commands.Cooldown(rate, per), type
-            )
+            func.__commands_cooldown__ = commands.CooldownMapping(commands.Cooldown(rate, per), type)
         return func
 
     return decorator

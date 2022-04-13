@@ -36,7 +36,5 @@ def default_reason(ctx: Context) -> discord.Member:
 
 
 DefaultReason: discord.Member = commands.parameter(
-    default=default_reason,
-    displayed_default="<reason>",
-    converter=ModReason
+    default=default_reason, displayed_default="<reason>", converter=ModReason
 )

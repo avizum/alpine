@@ -32,19 +32,11 @@ class Setup(core.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
-        self.content_cd = CooldownByContent.from_cooldown(
-            5.0, 20.0, commands.BucketType.user
-        )
-        self.user_cd = commands.CooldownMapping.from_cooldown(
-            10.0, 40, commands.BucketType.user
-        )
+        self.content_cd = CooldownByContent.from_cooldown(5.0, 20.0, commands.BucketType.user)
+        self.user_cd = commands.CooldownMapping.from_cooldown(10.0, 40, commands.BucketType.user)
         self.webhooks = self.bot.settings["webhooks"]
-        self.guild_webhook = discord.Webhook.from_url(
-            self.webhooks["join_log"], session=self.bot.session
-        )
-        self.request_wh = discord.Webhook.from_url(
-            self.webhooks["request_log"], session=self.bot.session
-        )
+        self.guild_webhook = discord.Webhook.from_url(self.webhooks["join_log"], session=self.bot.session)
+        self.request_wh = discord.Webhook.from_url(self.webhooks["request_log"], session=self.bot.session)
 
     @core.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -58,9 +50,7 @@ class Setup(core.Cog):
             if cache:
                 dmed = cache.get("dmed")
                 if not dmed:
-                    await message.channel.send(
-                        "Hey, these DMs are logged and sent to the support server."
-                    )
+                    await message.channel.send("Hey, these DMs are logged and sent to the support server.")
                     cache["dmed"] = True
                     query = (
                         "INSERT INTO user_settings (user_id, dmed) "
@@ -69,9 +59,7 @@ class Setup(core.Cog):
                         "UPDATE SET dmed = $2"
                     )
                     await self.bot.pool.execute(query, ctx.author.id, True)
-            embed = discord.Embed(
-                title=f"DM from {message.author}", description=message.content
-            )
+            embed = discord.Embed(title=f"DM from {message.author}", description=message.content)
             embed.set_footer(text=message.author.id)
             ts = message.created_at.timestamp()
             content_bucket = self.content_cd.update_rate_limit(message, ts)
@@ -109,9 +97,7 @@ class Setup(core.Cog):
         if bots > members:
             summary.append("This guild may be a bot farm.")
         summary.append(f"I am now in a total of {len(self.bot.guilds)} guilds.")
-        embed = discord.Embed(
-            title="New guild", description="\n".join(summary), color=guild.owner.color
-        )
+        embed = discord.Embed(title="New guild", description="\n".join(summary), color=guild.owner.color)
         if guild.icon:
             embed.set_thumbnail(url=guild.icon.url)
         await self.guild_webhook.send(embed=embed, username="Joined Guild")
@@ -128,9 +114,7 @@ class Setup(core.Cog):
             value="Adds a prefix to this server. (You can have up to 15 prefixes)",
             inline=False,
         )
-        embed.add_field(
-            name="a.about", value="Show some info about the bot.", inline=False
-        )
+        embed.add_field(name="a.about", value="Show some info about the bot.", inline=False)
         embed.add_field(
             name="a.vote",
             value="You can support Avimetry by voting! Thank you!",
@@ -139,11 +123,7 @@ class Setup(core.Cog):
         embed.set_footer(text="Made by avizum :)")
         channel = discord.utils.get(guild.text_channels, name="general")
         if not channel:
-            channels = [
-                channel
-                for channel in guild.text_channels
-                if channel.permissions_for(guild.me).send_messages
-            ]
+            channels = [channel for channel in guild.text_channels if channel.permissions_for(guild.me).send_messages]
             channel = channels[0]
         await channel.send(embed=embed)
 
