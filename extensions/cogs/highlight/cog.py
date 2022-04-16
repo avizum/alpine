@@ -18,8 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import datetime
 
 import discord
-from discord.ext import commands
-from discord import app_commands
 
 import core
 from core import Context, Bot

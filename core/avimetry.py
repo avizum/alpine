@@ -94,20 +94,21 @@ class Bot(commands.Bot):
         "status_streaming": "<:status_streaming:810683604812169276>",
     }
 
-    primary_extensions: list[str] = [
+    primary_extensions: tuple[str] = (
         "extensions.listeners.events",
         "extensions.cogs.owner",
         "extensions.extras.setup",
         "core.context",
-    ]
+    )
 
-    secondary_extensions: list[str] = [
+    secondary_extensions: tuple[str] = (
         "extensions.cogs.animals",
         "extensions.cogs.botinfo",
         "extensions.listeners.errorhandler",
         "extensions.cogs.fun",
         "extensions.cogs.games",
         "extensions.cogs.help",
+        "extensions.cogs.highlight",
         "extensions.cogs.images",
         "extensions.listeners.joinsandleaves",
         "extensions.cogs.meta",
@@ -118,7 +119,7 @@ class Bot(commands.Bot):
         "extensions.extras.supportserver",
         "extensions.extras.topgg",
         "extensions.cogs.verification",
-    ]
+    )
 
     with open("config.toml") as token:
         settings: dict[str, Any] = toml.loads(token.read())
@@ -127,6 +128,7 @@ class Bot(commands.Bot):
 
     allowed_mentions: discord.AllowedMentions = discord.AllowedMentions.none()
     activity: discord.Game = discord.Game("Loading...")
+
     intents: discord.Intents = discord.Intents(
         bans=True,
         emojis=True,
@@ -141,7 +143,7 @@ class Bot(commands.Bot):
 
     def __init__(self) -> None:
         super().__init__(
-            command_prefix=self.__class__.get_prefix,
+            command_prefix=self.get_prefix,
             case_insensitive=True,
             strip_after_prefix=True,
             allowed_mentions=self.allowed_mentions,
@@ -150,7 +152,6 @@ class Bot(commands.Bot):
             status=discord.Status.idle,
             chunk_guilds_at_startup=True,
             max_messages=5000,
-            slash_commands=False,
             owner_ids=OWNER_IDS,
         )
         self._BotBase__cogs: dict[str, commands.Cog] = commands.core._CaseInsensitiveDict()
@@ -194,7 +195,7 @@ class Bot(commands.Bot):
         command_prefix = "|".join(map(re.escape, prefixes))
         prefix: re.Match = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
         if prefix:
-            prefixes.append(prefix.group(1))
+            prefixes.append(prefix[1])
         return prefixes
 
     async def bot_check(self, ctx: Context) -> bool:
@@ -304,6 +305,9 @@ class Bot(commands.Bot):
                 self.command_cache.pop(message.id)
             except Exception:
                 pass
+
+    async def is_owner(self, user: discord.User, /) -> bool:
+        return user.id in self.owner_ids
 
     def command(self, name=None, cls=None, **kwargs) -> Command:
         if cls is None:
