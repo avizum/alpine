@@ -21,6 +21,9 @@ from .listener import HighlightListener
 
 
 class Highlight(HighlightCommands, HighlightListener):
+    """
+    Highlight commands.
+    """
     pass
 
 

@@ -15,7 +15,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+import datetime
+
 import discord
+from discord.ext import commands
+from discord import app_commands
 
 import core
 from core import Context, Bot
@@ -27,10 +31,12 @@ class HighlightCommands(core.Cog):
     """
 
     def __init__(self, bot: Bot) -> None:
-        self.bot = bot
+        self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.emoji = "\U0001f58b"
+        self.bot = bot
 
-    @core.group()
+
+    @core.group(invoke_without_command=True)
     async def highlight(self, ctx: Context):
         """
         Base command for highlight.
@@ -57,7 +63,7 @@ class HighlightCommands(core.Cog):
             "RETURNING *"
         )
 
-        trigger = highlights["triggers"] or [trigger]
+        trigger = highlights["triggers"] if highlights else [trigger]
         data = await self.bot.pool.fetchrow(query, ctx.author.id, trigger)
 
         if not highlights:
@@ -104,3 +110,22 @@ class HighlightCommands(core.Cog):
         )
 
         return await ctx.send(embed=embed, delete_after=10)
+
+    @highlight.command(name="clear", aliases=["clr"])
+    async def highlight_clear(self, ctx: Context):
+        """
+        Removes all of your highlight triggers and blocked list.
+        """
+        await ctx.message.delete(delay=10)
+        highlights = self.bot.cache.highlights.get(ctx.author.id)
+        if not highlights:
+            return await ctx.send("You don't have any highlights.")
+
+        query = (
+            "DELETE FROM highlights "
+            "WHERE user_id = $1"
+        )
+
+        await self.bot.pool.execute(query, ctx.author.id)
+        del self.bot.cache.highlights[ctx.author.id]
+        await ctx.send("Your highlights have been cleared.", delete_after=10)

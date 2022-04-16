@@ -51,7 +51,7 @@ class HighlightListener(core.Cog):
                 highlight_list.append(word)
             reg = "|".join(rf"\b({h})\b" for h in highlight_list)
 
-            match = re.search(reg, message.content, flags=re.IGNORECASE)
+            match = re.search(reg, message.content.lower(), flags=re.IGNORECASE)
             if not match:
                 continue
 
@@ -98,6 +98,8 @@ class HighlightListener(core.Cog):
                         or await self.bot.fetch_user(user_id)
                     )
                     if not user:
+                        continue
+                    if user and user not in message.guild.members:
                         continue
                     try:
                         await user.send(embed=embed)
