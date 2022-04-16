@@ -17,7 +17,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 from __future__ import annotations
 
-import asyncio
 import datetime
 import re
 from typing import List, Sequence, Union, Optional, TYPE_CHECKING
@@ -25,12 +24,23 @@ from typing import List, Sequence, Union, Optional, TYPE_CHECKING
 import discord
 from asyncgist import File
 from discord.ext import commands, menus
+from discord.utils import MISSING
 
 from utils.view import View
 from utils.paginators import Paginator, WrappedPaginator
 
 if TYPE_CHECKING:
     from .avimetry import Bot
+    from discord import (
+        Embed,
+        GuildSticker,
+        StickerItem,
+        AllowedMentions,
+        Message,
+        MessageReference,
+        PartialMessage,
+    )
+
 
 emoji_regex = "<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>"
 
@@ -100,10 +110,10 @@ class AutoPageSource(menus.ListPageSource):
 
 
 class Context(commands.Context):
-    def __init__(self, *, bot: Bot, **kwargs):
+    def __init__(self, *, bot: Bot, **kwargs) -> None:
         super().__init__(bot=bot, **kwargs)
         self.bot: Bot = bot
-        self.locally_handled: bool = None
+        self.locally_handled: bool = False
         tokens: List = []
         tokens.extend(self.bot.settings["bot_tokens"].values())
         tokens.extend(self.bot.settings["api_tokens"].values())
@@ -140,16 +150,16 @@ class Context(commands.Context):
         return f"`{'` | `'.join(prefix)}`"
 
     @property
-    def reference(self) -> Optional[discord.Message]:
+    def reference(self) -> Message | None:
         ref = self.message.reference
         if isinstance(ref.resolved, discord.Message):
             return ref.resolved
         return None
 
-    async def no_reply(self, *args, **kwargs):
+    async def no_reply(self, *args, **kwargs) -> Message | None:
         return await super().send(*args, **kwargs)
 
-    async def post(self, content, syntax: str = "py", gist: bool = False):
+    async def post(self, content, syntax: str = "py", gist: bool = False) -> Message | None:
         if gist:
             gist_file = [File(filename=f"output.{syntax}", content=content)]
             link = (await self.bot.gist.post_gist(description=str(self.author), files=gist_file, public=True)).html_url
@@ -158,7 +168,7 @@ class Context(commands.Context):
         embed = discord.Embed(description=f"Output for {self.command.qualified_name}: [Here]({link})")
         await self.send(embed=embed)
 
-    async def fetch_color(self, member: discord.Member = None):
+    async def fetch_color(self, member: discord.Member | None = None) -> discord.Color:
         member = member or self.author
         data = self.cache.users.get(member.id)
         color = None if not data else data.get("color")
@@ -170,7 +180,7 @@ class Context(commands.Context):
                 color = discord.Color(0x01B9C0)
         return color
 
-    def get_color(self, member: discord.Member = None):
+    def get_color(self, member: discord.Member | None = None) -> discord.Color:
         member = member or self.author
         data = self.cache.users.get(member.id)
         color = None if not data else data.get("color")
@@ -182,15 +192,15 @@ class Context(commands.Context):
 
     async def paginate(
         self,
-        entry: Union[str, List[discord.Embed]],
-        lang: str = "",
+        entry: str | list[Embed],
+        lang: str | None = None,
         *,
         limit: int = 1000,
         delete_message_after: bool = True,
         remove_view_after: bool = False,
         disable_view_after: bool = False,
-    ):
-
+    ) -> Message | None:
+        lang = lang or ""
         menu = Paginator(
             AutoPageSource(entry, lang, limit=limit),
             ctx=self,
@@ -202,27 +212,27 @@ class Context(commands.Context):
 
     async def send(
         self,
-        content: str = None,
+        content: Optional[str] = None,
         *,
-        tts: bool = None,
-        embed: discord.Embed = None,
-        embeds: list[discord.Embed] = None,
-        file: discord.File = None,
-        files: list[discord.File] = None,
-        stickers: Sequence[Union[discord.GuildSticker, discord.StickerItem]] = None,
-        delete_after: float = None,
-        nonce: Union[str, int] = None,
-        allowed_mentions: discord.AllowedMentions = None,
-        reference: discord.MessageReference = None,
-        mention_author: bool = None,
-        view: discord.ui.View = None,
-        paginate: bool = None,
-        post: bool = None,
-        no_reply: bool = None,
-        no_edit: bool = None,
-        return_message: bool = None,
-        ephemeral: bool = None,
-    ) -> discord.Message:
+        tts: bool = False,
+        embed: Embed | None = None,
+        embeds: Sequence[Embed] | None = None,
+        file: File | None = None,
+        files: Sequence[File] | None = None,
+        stickers: Sequence[GuildSticker | StickerItem] | None = None,
+        delete_after: float | None = None,
+        nonce: str | int | None = None,
+        allowed_mentions: AllowedMentions | None = None,
+        reference: Message | MessageReference | PartialMessage | None = None,
+        mention_author: bool | None = None,
+        view: View | None = None,
+        suppress_embeds: bool = False,
+        paginate: bool = False,
+        post: bool = False,
+        no_edit: bool = False,
+        ephemeral: bool = False,
+    ) -> Message:
+        message: Message | None = None
         if content:
             content = str(content)
             for token in self.tokens:
@@ -242,93 +252,91 @@ class Context(commands.Context):
             if not embed.color:
                 embed.color = await self.fetch_color()
 
+        kwargs = {
+            "content": content,
+            "tts": tts,
+            "embed": embed,
+            "embeds": embeds,
+            "file": file,
+            "files": files,
+            "stickers": stickers,
+            "delete_after": delete_after,
+            "nonce": nonce,
+            "allowed_mentions": allowed_mentions,
+            "reference": reference,
+            "mention_author": mention_author,
+            "view": view,
+            "suppress_embeds": suppress_embeds,
+        }
+
         if self.message.id in self.bot.command_cache and self.message.edited_at and not no_edit:
             try:
-                message = await self.bot.command_cache[self.message.id].edit(
-                    content,
-                    embed=embed,
-                    delete_after=delete_after,
-                    allowed_mentions=allowed_mentions,
-                    view=view,
+                to_pop = (
+                    "tts",
+                    "file",
+                    "files",
+                    "stickers",
+                    "nonce",
+                    "mention_author",
+                    "reference",
+                    "suppress_embeds",
                 )
+                for pop in to_pop:
+                    kwargs.pop(pop, None)
+                kwargs["embed"] = MISSING if embed is None else embed
+                kwargs["embeds"] = MISSING if embeds is None else embeds
+                kwargs["suppress"] = suppress_embeds
+                message = await self.bot.command_cache[self.message.id].edit(**kwargs)
             except discord.HTTPException:
-                message = await super().send(
-                    content,
-                    tts=tts,
-                    embed=embed,
-                    embeds=embeds,
-                    file=file,
-                    files=files,
-                    stickers=stickers,
-                    delete_after=delete_after,
-                    nonce=nonce,
-                    allowed_mentions=allowed_mentions,
-                    reference=reference,
-                    mention_author=mention_author,
-                    view=view,
-                )
-        else:
-            try:
-                if reference:
-                    reference = reference
-                elif no_reply:
-                    reference = None
-                elif self.message in self.bot.cached_messages:
-                    reference = self.message
-                message = await super().send(
-                    content,
-                    tts=tts,
-                    embed=embed,
-                    embeds=embeds,
-                    file=file,
-                    files=files,
-                    stickers=stickers,
-                    delete_after=delete_after,
-                    nonce=nonce,
-                    allowed_mentions=allowed_mentions,
-                    reference=reference,
-                    mention_author=mention_author,
-                    view=view,
-                )
-            except Exception as e:
-                print(e)
-                message = await super().send(
-                    content,
-                    tts=tts,
-                    embed=embed,
-                    embeds=embeds,
-                    file=file,
-                    files=files,
-                    stickers=stickers,
-                    delete_after=delete_after,
-                    nonce=nonce,
-                    allowed_mentions=allowed_mentions,
-                    reference=reference,
-                    mention_author=mention_author,
-                    view=view,
-                )
-        self.bot.command_cache[self.message.id] = message
-        return message
+                kwargs["suppress_embeds"] = suppress_embeds
+                message = await super().send(**kwargs)
 
-    def codeblock(self, content: str, language: str = "py"):
+        elif self.interaction is None or self.interaction.is_expired():
+            kwargs["reference"] = self.message.to_reference(fail_if_not_exists=False) or reference
+            message = await super().send(**kwargs)
+
+        self.bot.command_cache[self.message.id] = message
+        if message:
+            return message
+
+        kwargs = {
+            "content": content,
+            "tts": tts,
+            "embed": MISSING if embed is None else embed,
+            "embeds": MISSING if embeds is None else embeds,
+            "file": MISSING if file is None else file,
+            "files": MISSING if files is None else files,
+            "allowed_mentions": MISSING if allowed_mentions is None else allowed_mentions,
+            "view": MISSING if view is None else view,
+            "suppress_embeds": suppress_embeds,
+            "ephemeral": ephemeral,
+        }
+
+        if self.interaction.response.is_done():
+            return await self.interaction.followup.send(**kwargs, wait=True)
+
+        await self.interaction.response.send_message(**kwargs)
+        return await self.interaction.original_message()
+
+    def codeblock(self, content: str, language: str = "py") -> str:
         return f"```{language}\n{content}\n```"
 
     async def confirm(
         self,
-        message=None,
-        embed: discord.Embed = None,
-        confirm_message=None,
+        message: Message | None = None,
+        embed: Embed | None = None,
+        confirm_message: str | None = None,
         *,
-        timeout=60,
-        delete_after=False,
-        no_reply=False,
-        remove_view_after=True,
-    ):
+        timeout: int = 60,
+        delete_after: bool = False,
+        no_reply: bool = False,
+        remove_view_after: bool = True,
+    ) -> ConfirmResult:
         if delete_after:
             remove_view_after = False
         view = ConfirmView(member=self.author, timeout=timeout)
         check_message = confirm_message or 'Press "yes" to accept, or press "no" to deny.'
-        if no_reply is True:
+        if no_reply:
             send = await self.no_reply(content=message, embed=embed, view=view)
         elif message:
             message = f"{message}\n\n{check_message}"
@@ -344,46 +352,14 @@ class Context(commands.Context):
             await view.message.edit(view=None)
         return ConfirmResult(send, view.value)
 
-    async def prompt(
-        self,
-        message=None,
-        embed: discord.Embed = None,
-        *,
-        timeout=60,
-        delete_after=True,
-        raw=False,
-    ):
-        if raw is True:
-            send = await self.no_reply(content=message, embed=embed)
-        elif message:
-            message = f"{message}"
-            send = await self.send(message)
-        elif embed:
-            embed.description = f"{embed.description}\n\n{message or ''}"
-            send = await self.send(embed=embed)
-
-        def check(message: discord.Message):
-            return self.author == message.author and self.channel == message.channel
-
-        try:
-            msg = await self.bot.wait_for("message", check=check, timeout=timeout)
-        except asyncio.TimeoutError:
-            confirm = False
-            pass
-        else:
-            return msg.content
-        if delete_after:
-            await send.delete()
-        return confirm
-
-    async def can_delete(self, *args, **kwargs):
+    async def can_delete(self, *args, **kwargs) -> Message:
         view = TrashView(member=self.author, ctx=self)
         view.message = await self.send(*args, **kwargs, view=view)
 
 
-async def setup(bot: Bot):
+async def setup(bot: Bot) -> None:
     bot.context = Context
 
 
-async def teardown(bot: Bot):
+async def teardown(bot: Bot) -> None:
     bot.context = commands.Context
