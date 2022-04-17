@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 import asyncio
 import re
 
@@ -65,7 +66,7 @@ class HighlightListener(core.Cog):
                     return msg.author.id == user_id and msg.channel == message.channel
 
                 try:
-                    await self.bot.wait_for_message(check=check, timeout=8)
+                    await self.bot.wait_for_message(check=check, timeout=25)
                 except asyncio.TimeoutError:
                     messages = []
                     async for msg in message.channel.history(limit=9, around=message):
