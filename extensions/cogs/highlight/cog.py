@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 import datetime
 
 import discord
@@ -127,3 +128,55 @@ class HighlightCommands(core.Cog):
         await self.bot.pool.execute(query, ctx.author.id)
         del self.bot.cache.highlights[ctx.author.id]
         await ctx.send("Your highlights have been cleared.", delete_after=10)
+
+    @highlight.command(name="block", aliases=["bl"])
+    async def highlight_block(self, ctx: Context, *, user: discord.User):
+        """
+        Blocks a member from highlighting you.
+        """
+        await ctx.message.delete(delay=10)
+        highlights = self.bot.cache.highlights.get(ctx.author.id)
+        if highlights and user in highlights["blocked"]:
+            return await ctx.send("This user is already blocked.")
+        if highlights:
+            highlights["blocked"].append(user.id)
+
+        query = (
+            "INSERT INTO highlights (user_id, blocked) "
+            "VALUES ($1, $2) "
+            "ON CONFLICT (user_id) DO "
+            "UPDATE SET blocked = $2"
+            "RETURNING *"
+        )
+
+        user = highlights["blocked"] if highlights else [user.id]
+        data = await self.bot.pool.fetchrow(query, ctx.author.id, user)
+
+        if not highlights:
+            new_data = dict(data)
+            new_data.pop("user_id")
+            ctx.bot.cache.highlights[ctx.author.id] = new_data
+
+        return await ctx.send("Block list updated.", delete_after=10)
+
+    @highlight.command(name="unblock", aliases=["unbl"])
+    async def highlight_unblock(self, ctx: Context, *, user: discord.User):
+        """
+        Unblocks a member from highlighting you.
+        """
+        await ctx.message.delete(delay=10)
+        highlights = self.bot.cache.highlights.get(ctx.author.id)
+        if highlights and user not in highlights["blocked"]:
+            return await ctx.send("This user is not blocked.")
+        if highlights:
+            highlights["blocked"].remove(user.id)
+
+        query = (
+            "UPDATE highlights "
+            "SET blocked = $2 "
+            "WHERE user_id = $1 "
+        )
+
+        await self.bot.pool.execute(query, ctx.author.id, highlights["blocked"])
+
+        return await ctx.send("Block list updated.", delete_after=10)
