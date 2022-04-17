@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import datetime
 import json
 import random
-import typing
 
 import aiohttp
 import asyncgist
@@ -27,12 +26,13 @@ import discord
 import pytz
 from doc_search import AsyncScraper
 from discord.ext import commands, menus
+from discord.utils import format_dt
 from jishaku.codeblocks import codeblock_converter
 from pytz import UnknownTimeZoneError
 
 import core
 from core import Bot, Context
-from utils import timestamp, Paginator, PaginatorEmbed
+from utils import Paginator, PaginatorEmbed
 
 
 class TimeZoneError(commands.BadArgument):
@@ -137,7 +137,7 @@ class Meta(core.Cog):
 
     @core.command(aliases=["ui", "uinfo", "whois"])
     @commands.cooldown(1, 15, commands.BucketType.user)
-    async def userinfo(self, ctx: Context, *, member: typing.Union[discord.Member, discord.User] = None):
+    async def userinfo(self, ctx: Context, *, member: discord.Member | discord.User = None):
         """
         Get info about a user.
 
@@ -155,7 +155,7 @@ class Meta(core.Cog):
             ie.add_field(name="User ID", value=member.id)
             ie.add_field(
                 name="Creation Date",
-                value=f"{timestamp(member.created_at)} ({timestamp(member.created_at, 'R')})",
+                value=f"{format_dt(member.created_at)} ({format_dt(member.created_at, 'R')})",
                 inline=False,
             )
         elif member == self.bot.user:
@@ -179,12 +179,12 @@ class Meta(core.Cog):
             pos = f"{sort.index(member) + 1:,}/{len(ctx.guild.members):,}"
             ie.add_field(
                 name="Join Date",
-                value=f"{timestamp(member.joined_at)} ({timestamp(member.joined_at, 'R')})\nJoin Position: {pos}",
+                value=f"{format_dt(member.joined_at)} ({format_dt(member.joined_at, 'R')})\nJoin Position: {pos}",
                 inline=False,
             )
             ie.add_field(
                 name="Account Creation Date",
-                value=f"{timestamp(member.created_at)} ({timestamp(member.created_at, 'R')})",
+                value=f"{format_dt(member.created_at)} ({format_dt(member.created_at, 'R')})",
                 inline=False,
             )
             top_role = member.top_role.mention
@@ -261,11 +261,7 @@ class Meta(core.Cog):
 
     @core.command()
     @core.cooldown(2, 10, commands.BucketType.guild)
-    async def banner(
-        self,
-        ctx: Context,
-        member: typing.Union[discord.Member, discord.User] = None,
-    ):
+    async def banner(self, ctx: Context, member: discord.Member | discord.User = None):
         """
         Send the banner of a member.
 

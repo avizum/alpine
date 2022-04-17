@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -94,14 +95,14 @@ class Bot(commands.Bot):
         "status_streaming": "<:status_streaming:810683604812169276>",
     }
 
-    primary_extensions: tuple[str] = (
+    primary_extensions: list[str] = [
         "extensions.listeners.events",
         "extensions.cogs.owner",
         "extensions.extras.setup",
         "core.context",
-    )
+    ]
 
-    secondary_extensions: tuple[str] = (
+    secondary_extensions: list[str] = [
         "extensions.cogs.animals",
         "extensions.cogs.botinfo",
         "extensions.listeners.errorhandler",
@@ -119,10 +120,10 @@ class Bot(commands.Bot):
         "extensions.extras.supportserver",
         "extensions.extras.topgg",
         "extensions.cogs.verification",
-    )
+    ]
 
     with open("config.toml") as token:
-        settings: dict[str, Any] = toml.loads(token.read())
+        settings = toml.loads(token.read())
     api: dict[str, str] = settings["api_tokens"]
     news: str = settings["news"]["news"]
 
@@ -143,7 +144,7 @@ class Bot(commands.Bot):
 
     def __init__(self) -> None:
         super().__init__(
-            command_prefix=self.get_prefix,
+            command_prefix=self.__class__.get_prefix,
             case_insensitive=True,
             strip_after_prefix=True,
             allowed_mentions=self.allowed_mentions,
@@ -167,8 +168,8 @@ class Bot(commands.Bot):
         self.topgg: DBLClient = DBLClient(self, self.api["TopGG"], autopost_interval=None, session=self.session)
         self.topgg_webhook: WebhookManager = WebhookManager(self).dbl_webhook("/dbl", self.api["TopGGWH"])
         self.gist: asyncgist.Client = asyncgist.Client(self.api["GitHub"], self.session)
-        self.sr: sr_api = sr_api.Client()
-        self.dagpi: asyncgist.Client = asyncdagpi.Client(self.api["DagpiAPI"], session=self.session)
+        self.sr: sr_api.Client = sr_api.Client()
+        self.dagpi: asyncdagpi.Client = asyncdagpi.Client(self.api["DagpiAPI"], session=self.session)
         self.myst: mystbin.Client = mystbin.Client(session=self.session)
         self.loop.create_task(self.cache.populate_cache())
         self.loop.create_task(self.load_extensions())
@@ -193,7 +194,7 @@ class Bot(commands.Bot):
         else:
             prefixes.extend(get_prefix)
         command_prefix = "|".join(map(re.escape, prefixes))
-        prefix: re.Match = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
+        prefix: re.Match[str] | None = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
         if prefix:
             prefixes.append(prefix[1])
         return prefixes
@@ -229,8 +230,8 @@ class Bot(commands.Bot):
         with open("reboot.toml", "r+") as f:
             info = toml.loads(f.read())
             if info:
-                channel: discord.abc.GuildChannel = self.get_channel(info["channel_id"])
-                message: discord.PartialMessage = channel.get_partial_message(info["message_id"])
+                channel = self.get_channel(info["channel_id"])
+                message = channel.get_partial_message(info["message_id"])
                 if message:
                     now: datetime = datetime.now(tz=dt.timezone.utc)
                     await message.edit(content=f"Took {(now - info['restart_time']).seconds} seconds to restart.")
@@ -271,17 +272,18 @@ class Bot(commands.Bot):
     ) -> Any:
         if event == "message":
 
-            def bl_check(*args):
-                if not check:
+            def bl_check(*args: Any) -> bool:
+                if check:
+                    return args[0].author.id not in self.cache.blacklist and check(*args)
+                else:
                     return args[0].author.id not in self.cache.blacklist
-                return args[0].author.id not in self.cache.blacklist and check(*args)
 
         elif event in ("reaction_add", "reaction_remove"):
 
             def bl_check(*args):
-                if not check:
-                    return args[1].id not in self.cache.blacklist
-                return args[1].id not in self.cache.blacklist and check(*args)
+                if check:
+                    return args[1].id not in self.cache.blacklist and check(*args)
+                return args[1].id not in self.cache.blacklist
 
         else:
             bl_check = check

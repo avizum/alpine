@@ -20,8 +20,7 @@ import asyncio
 import contextlib
 import datetime
 import random
-import typing
-from typing import Union
+
 from io import BytesIO
 
 import discord
@@ -49,7 +48,7 @@ class Games(core.Cog):
     @core.group(aliases=["\U0001F36A", "vookir", "kookie"])
     @commands.cooldown(5, 10, commands.BucketType.member)
     @commands.max_concurrency(2, commands.BucketType.channel)
-    async def cookie(self, ctx: Context, member: typing.Optional[discord.Member] = None):
+    async def cookie(self, ctx: Context, member: discord.Member | None = None):
         """
         Grab the cookie!
 
@@ -298,7 +297,7 @@ class Games(core.Cog):
         await ctx.send_help(ctx.command)
 
     @roblox.group()
-    async def user(self, ctx: Context, name_or_id: Union[str, int]):
+    async def user(self, ctx: Context, name_or_id: str | int):
         """
         Gets ROBLOX User Information.
         """
@@ -333,7 +332,7 @@ class Games(core.Cog):
                     value=await user.get_following_count(),
                     inline=True,
                 )
-                past = await user.username_history(max_items=10).flatten()
+                past = [username_history async for username_history in user.username_history(max_items=10)]
                 if past:
                     embed.add_field(name="Past Usernames", value=", ".join(past), inline=True)
                 else:
@@ -368,7 +367,7 @@ class Games(core.Cog):
             return await ctx.send("Could not find any users.")
 
     @user.command()
-    async def search(self, ctx: Context, *query: int | str):
+    async def search(self, ctx: Context, *, query: int | str):
         try:
             a = await self.rclient.get_users(query) or await self.rclient.get_users_by_usernames(query)
             await ctx.send(a)

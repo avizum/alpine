@@ -19,8 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import asyncio
 import collections
 import re
-import typing
-from typing import List, Optional, Union
 
 import async_timeout
 import discord
@@ -62,6 +60,17 @@ class SpotifyTrack(spotify.SpotifyTrack):
         if decoded is None:
             raise commands.BadArgument("URL must be a Spotify URL.")
 
+        # if decoded["type"] in [spotify.SpotifySearchType.album, spotify.SpotifySearchType.playlist]:
+        #     print('play')
+        #     full = []
+        #     print('getting track')
+        #     async for partial in cls.iterator(query=argument, type=decoded["type"], partial_tracks=True):
+
+        #         full.append(partial)
+        #     print('got tracks')
+        #     print(full)
+        #     return full
+
         results = await cls.search(argument, type=decoded["type"])
         if not results:
             raise commands.BadArgument("Could not find any songs matching that query.")
@@ -89,7 +98,7 @@ class Queue(asyncio.Queue):
 
     def __init__(self, *, max_size: int = 0, allow_duplicates: bool = True):
         super().__init__(maxsize=max_size)
-        self._queue: Union[collections.deque, List[Track]] = collections.deque()
+        self._queue: collections.deque | list[Track] = collections.deque()
         self.allow_duplicates = allow_duplicates
 
     def __contains__(self, item):
@@ -179,14 +188,17 @@ class Player(wavelink.Player):
         self.allow_duplicates: bool = allow_duplicates
         self.queue: Queue = Queue()
         self.waiting: bool = False
-        self.loop_song: Optional[Track] = None
+        self.loop_song: Track | None = None
         self.pause_votes: set[discord.Member] = set()
         self.resume_votes: set[discord.Member] = set()
         self.skip_votes: set[discord.Member] = set()
         self.shuffle_votes: set[discord.Member] = set()
         self.stop_votes: set[discord.Member] = set()
 
-    async def get_tracks(self, query: str, *, bulk: bool = False) -> typing.Union[Track, typing.List[Track]]:
+    async def connect(self, *, timeout: float, reconnect: bool, **kwargs) -> None:
+        return await super().connect(timeout=timeout, reconnect=reconnect)
+
+    async def get_tracks(self, query: str, *, bulk: bool = False) -> Track | list[Track]:
         """
         Gets tracks from youtube.
 
@@ -243,7 +255,7 @@ class Player(wavelink.Player):
         if self.announce:
             await self.context.channel.send(embed=await self.build_now_playing())
 
-    async def build_now_playing(self, position: float = None) -> typing.Optional[discord.Embed]:
+    async def build_now_playing(self, position: float = None) -> discord.Embed | None:
         """
         Builds the "now playing" embed
         """
@@ -252,6 +264,16 @@ class Player(wavelink.Player):
             return
 
         embed = discord.Embed(title="Now Playing")
+        if isinstance(track, wavelink.PartialTrack):
+            print('asd')
+            if isinstance(self.queue.up_next, wavelink.PartialTrack):
+                up_next = self.queue.up_next.title
+            embed.description = (
+                f"{track.title}"
+                f"> Requester: {track.requester.mention} (`{track.requester}`)\n\n"
+                f"Up next: {up_next}"
+            )
+            return embed
         if self.context:
             embed.color = await self.context.fetch_color()
         time = f"> Length: {format_seconds(track.length)}\n"
@@ -273,7 +295,7 @@ class Player(wavelink.Player):
             embed.set_thumbnail(url=track.thumb)
         return embed
 
-    async def build_added(self, track: Track) -> typing.Optional[discord.Embed]:
+    async def build_added(self, track: Track) -> discord.Embed | None:
         """
         Builds the "added song to queue" embed.
         """
@@ -315,7 +337,7 @@ class SearchView(View):
 
 
 class SearchSelect(discord.ui.Select):
-    def __init__(self, *, options: List[Track]):
+    def __init__(self, *, options: list[Track]):
         options = [discord.SelectOption(label=f"{number+1}) {track.title}") for number, track in enumerate(options)]
         super().__init__(
             placeholder="Select the songs you want to play",

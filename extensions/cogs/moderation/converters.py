@@ -17,7 +17,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import re
-from typing import Union
 
 import discord
 from discord.ext import commands
@@ -127,7 +126,7 @@ class TargetMember(commands.Converter[discord.Member]):
 
 
 class FindBan(commands.Converter[discord.Member]):
-    async def convert(self, ctx: Context, argument: str) -> Union[discord.Member, discord.User]:
+    async def convert(self, ctx: Context, argument: str) -> discord.Member | discord.User:
         try:
             user = await commands.UserConverter().convert(ctx, argument)
             try:

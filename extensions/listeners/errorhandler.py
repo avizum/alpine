@@ -60,13 +60,15 @@ class UnknownError(View):
         super().__init__(member=member, timeout=3600)
         support = discord.ui.Button(style=discord.ButtonStyle.link, label="Support Server", url=self.bot.support)
         self.add_item(support)
+        self.message = None
         self.cooldown = commands.CooldownMapping.from_cooldown(2, 60, commands.BucketType.user)
 
     async def interaction_check(self, interaction: discord.Interaction):
         return True
 
     async def on_timeout(self) -> None:
-        await self.message.edit(view=None)
+        if self.message:
+            await self.message.edit(view=None)
 
     @discord.ui.button(label="Track Error", style=discord.ButtonStyle.blurple)
     async def track_error(self, interaction: discord.Interaction, button: discord.Button):

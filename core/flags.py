@@ -15,7 +15,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-from typing import Any, List
+
+from typing import Any
 from dataclasses import dataclass, field
 
 from discord.utils import MISSING
@@ -27,7 +28,7 @@ from discord.ext import commands
 class Flag(commands.Flag):
     name: str = MISSING
     description: str = MISSING
-    aliases: List[str] = field(default_factory=list)
+    aliases: list[str] = field(default_factory=list)
     attribute: str = MISSING
     annotation: Any = MISSING
     default: Any = MISSING
@@ -40,7 +41,7 @@ def flag(
     *,
     name: str = MISSING,
     description: str = MISSING,
-    aliases: List[str] = MISSING,
+    aliases: list[str] = MISSING,
     default: Any = MISSING,
     max_args: int = MISSING,
     override: bool = MISSING,

@@ -15,14 +15,33 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 from __future__ import annotations
 
 
 import datetime
+from typing import TYPE_CHECKING, Any, TypeVar, ParamSpec, Concatenate, Callable, overload
 
 import discord
 from discord.ext import commands
 from discord.ext.commands import DisabledCommand, CheckFailure
+from discord.ext.commands._types import CogT
+
+
+if TYPE_CHECKING:
+    from .avimetry import Bot
+    from discord.ext.commands._types import ContextT, Coro
+
+MISSING = discord.utils.MISSING
+
+T = TypeVar('T')
+GroupT = TypeVar('GroupT', bound='Group')
+CommandT = TypeVar('CommandT', bound='Command')
+
+if TYPE_CHECKING:
+    P = ParamSpec('P')
+else:
+    P = TypeVar('P')
 
 
 def to_list(thing) -> list[str]:
@@ -103,12 +122,65 @@ class Group(Command, commands.Group):
 
 
 class Cog(commands.Cog):
-    def __init__(self, bot) -> None:
-        self.bot = bot
-        self.load_time = datetime.datetime.now(tz=datetime.timezone.utc)
+    def __init__(self, bot: Bot) -> None:
+        self.bot: Bot = bot
+        self.load_time: datetime.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
+
+if TYPE_CHECKING:
+    # Using a class to emulate a function allows for overloading the inner function in the decorator.
+
+    class _CommandDecorator:
+        @overload
+        def __call__(self, func: Callable[Concatenate[CogT, ContextT, P], Coro[T]], /) -> Command[CogT, P, T]:
+            ...
+
+        @overload
+        def __call__(self, func: Callable[Concatenate[ContextT, P], Coro[T]], /) -> Command[None, P, T]:
+            ...
+
+        def __call__(self, func: Callable[..., Coro[T]], /) -> Any:
+            ...
+
+    class _GroupDecorator:
+        @overload
+        def __call__(self, func: Callable[Concatenate[CogT, ContextT, P], Coro[T]], /) -> Group[CogT, P, T]:
+            ...
+
+        @overload
+        def __call__(self, func: Callable[Concatenate[ContextT, P], Coro[T]], /) -> Group[None, P, T]:
+            ...
+
+        def __call__(self, func: Callable[..., Coro[T]], /) -> Any:
+            ...
 
 
-def command(name=None, cls=None, **kwargs) -> Command:
+@overload
+def command(
+    name: str = ...,
+    **attrs: Any,
+) -> _CommandDecorator:
+    ...
+
+
+@overload
+def command(
+    name: str = ...,
+    cls: type[CommandT] = ...,
+    **attrs: Any,
+) -> Callable[
+    [
+        Callable[Concatenate[ContextT, P], Coro[Any]] |
+        Callable[Concatenate[CogT, ContextT, P], Coro[Any]]
+    ],
+    CommandT,
+]:
+    ...
+
+def command(
+    name: str = MISSING,
+    cls: type[Command[Any, ..., Any]] = None,
+    **kwargs
+) -> Any:
     if cls is None:
         cls = Command
 
@@ -120,5 +192,32 @@ def command(name=None, cls=None, **kwargs) -> Command:
     return decorator
 
 
-def group(name=None, **kwargs) -> Group:
+@overload
+def group(
+    name: str = ...,
+    **attrs: Any,
+) -> _GroupDecorator:
+    ...
+
+
+@overload
+def group(
+    name: str = ...,
+    cls: type[GroupT] = ...,
+    **attrs: Any,
+) -> Callable[
+    [
+        Callable[Concatenate[CogT, ContextT, P], Coro[Any]] |
+        Callable[Concatenate[ContextT, P], Coro[Any]],
+    ],
+    GroupT,
+]:
+    ...
+
+
+def group(
+    name: str = MISSING,
+    cls: type[Group[Any, ..., Any]] = MISSING,
+    **kwargs: Any,
+) -> Any:
     return command(name=name, cls=Group, **kwargs)

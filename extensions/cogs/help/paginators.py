@@ -1,9 +1,27 @@
+"""
+[Avimetry Bot]
+Copyright (C) 2021 - 2022 avizum
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import discord
-from discord.ext import commands, menus
+from discord.ext import menus
 
 import core
 from core import Context
@@ -12,26 +30,27 @@ from utils import Paginator
 
 if TYPE_CHECKING:
     from .cog import AvimetryHelp
+    from typing_extensions import Self
 
 
 # This help command is inspired by R. Danny, When I am not lazy I might make my own
 class MainHelp(menus.PageSource):
-    def __init__(self, ctx: Context, help: AvimetryHelp):
-        self.ctx = ctx
-        self.help = help
+    def __init__(self, ctx: Context, help: AvimetryHelp) -> None:
+        self.ctx: Context = ctx
+        self.help: AvimetryHelp = help
         super().__init__()
 
-    def is_paginating(self):
+    def is_paginating(self) -> bool:
         return True
 
-    def get_max_pages(self):
+    def get_max_pages(self) -> int:
         return 4
 
-    async def get_page(self, page_number):
+    async def get_page(self, page_number) -> Self:
         self.index = page_number
         return self
 
-    async def format_page(self, menu: menus.Menu, page: str):
+    async def format_page(self, menu: menus.Menu, page: str) -> discord.Embed:
         bot = self.ctx.bot
         commands = list(bot.commands)
         embed = discord.Embed(title="Avimetry Help Menu", color=await self.ctx.fetch_color())
@@ -82,16 +101,16 @@ class CogHelp(menus.ListPageSource):
     def __init__(
         self,
         ctx: Context,
-        commands,
-        cog: commands.Cog,
-        help_command: "AvimetryHelp",
-    ):
+        commands: list[core.Command | core.Group],
+        cog: core.Cog,
+        help_command: AvimetryHelp,
+    ) -> None:
         super().__init__(entries=commands, per_page=5)
-        self.ctx = ctx
-        self.cog = cog
-        self.help_command = help_command
+        self.ctx: Context = ctx
+        self.cog: core.Cog = cog
+        self.help_command: AvimetryHelp = help_command
 
-    async def format_page(self, menu, commands):
+    async def format_page(self, menu: menus.Menu, commands: list[core.Command]) -> discord.Embed:
         embed = discord.Embed(
             title=f"{self.cog.qualified_name.title()} Module",
             description=self.cog.description or "No description provided",
@@ -112,16 +131,16 @@ class GroupHelp(menus.ListPageSource):
     def __init__(
         self,
         ctx: Context,
-        commands,
-        group: commands.Group,
-        help_command: "AvimetryHelp",
-    ):
+        commands: list[core.Command],
+        group: core.Group,
+        help_command: AvimetryHelp,
+    ) -> None:
         super().__init__(entries=commands, per_page=5)
-        self.ctx = ctx
-        self.group = group
-        self.hc = help_command
+        self.ctx: Context = ctx
+        self.group: core.Group = group
+        self.hc: AvimetryHelp = help_command
 
-    async def format_page(self, menu, commands: List[core.Command]):
+    async def format_page(self, menu: menus.Menu, commands: list[core.Command]) -> discord.Embed:
         embed = discord.Embed(
             title=f"Command Group: {self.group.qualified_name.title()}",
             description=self.group.help or "No description provided",
@@ -171,11 +190,11 @@ class GroupHelp(menus.ListPageSource):
 
 
 class HelpSelect(discord.ui.Select["HelpPages"]):
-    def __init__(self, ctx: Context, hc: "AvimetryHelp", cogs: List[core.Cog]):
-        self.ctx = ctx
-        self.hc = hc
-        self.current_module = None
-        options = [
+    def __init__(self, ctx: Context, hc: AvimetryHelp, cogs: list[core.Cog]) -> None:
+        self.ctx: Context = ctx
+        self.hc: AvimetryHelp = hc
+        self.current_module: core.Cog | None = None
+        options: list[discord.SelectOption] = [
             discord.SelectOption(
                 label="Home",
                 description="Home page of the help command",
@@ -192,8 +211,8 @@ class HelpSelect(discord.ui.Select["HelpPages"]):
             )
         super().__init__(placeholder=f"Select a module ({len(cogs)} modules)", options=options)
 
-    async def callback(self, interaction: discord.Interaction):
-        cog = self.ctx.bot.get_cog(self.values[0])
+    async def callback(self, interaction: discord.Interaction) -> None:
+        cog: core.Cog = self.ctx.bot.get_cog(self.values[0])
         if self.current_module == cog:
             return
         if self.values[0] == "Home":
@@ -210,7 +229,7 @@ class HelpSelect(discord.ui.Select["HelpPages"]):
 
 
 class HelpPages(Paginator):
-    def __init__(self, source: menus.PageSource, *, ctx: Context, current_page=0):
+    def __init__(self, source: menus.PageSource, *, ctx: Context, current_page: int = 0) -> None:
         super().__init__(
             source,
             ctx=ctx,
@@ -219,7 +238,7 @@ class HelpPages(Paginator):
             current_page=current_page,
         )
 
-    async def edit_source(self, source: menus.PageSource, interaction: discord.Interaction):
+    async def edit_source(self, source: menus.PageSource, interaction: discord.Interaction) -> None:
         self.source = source
         self.current_page = 0
         select = [i for i in self.children if isinstance(i, discord.ui.Select)][0]

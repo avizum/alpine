@@ -21,7 +21,6 @@ import humanize
 import inspect
 import pathlib
 import os
-from typing import Union
 
 import discord
 import psutil
@@ -249,7 +248,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=invite_embed, view=view)
 
     @core.command()
-    async def invitebot(self, ctx: Context, bot: Union[discord.Member, discord.User], permissions: int = 8):
+    async def invitebot(self, ctx: Context, bot: discord.Member | discord.User, permissions: int = 8):
         """
         Get the invite link for a Bot.
 

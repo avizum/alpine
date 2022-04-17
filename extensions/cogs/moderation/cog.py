@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
 import re
-from typing import List
 
 import discord
 import humanize
@@ -260,7 +259,7 @@ class Moderation(core.Cog):
         else:
             await conf.message.edit("Aborted.")
 
-    async def do_affected(self, messages: List[discord.Message]):
+    async def do_affected(self, messages: list[discord.Message]):
         authors = {}
         for message in messages:
             if message.author not in authors:

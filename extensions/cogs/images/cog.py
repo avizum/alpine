@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import typing
 import datetime
 import re
 
@@ -29,8 +28,7 @@ import core
 from core import Bot, Context
 
 embed = discord.Embed()
-args = typing.Union[discord.Member, discord.PartialEmoji, discord.Emoji, str, None]
-
+args = discord.Member | discord.PartialEmoji | discord.Emoji | str | None
 
 regex_url = re.compile(
     r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+"

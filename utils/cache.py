@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 from __future__ import annotations
 
 from copy import deepcopy
@@ -27,8 +28,8 @@ if TYPE_CHECKING:
 
 
 class Cache:
-    def __init__(self, bot: Bot):
-        self.bot = bot
+    def __init__(self, bot: Bot) -> None:
+        self.bot: Bot = bot
         self.cache_loop.start()
         self.guild_settings: dict = {}
         self.verification: dict = {}
@@ -40,14 +41,14 @@ class Cache:
         self.highlights: dict[int, dict] = {}
 
     @tasks.loop(minutes=5)
-    async def cache_loop(self):
+    async def cache_loop(self) -> None:
         await self.check_for_cache()
 
     @cache_loop.before_loop
-    async def before_cache_loop(self):
+    async def before_cache_loop(self) -> None:
         await self.bot.wait_until_ready()
 
-    async def check_for_cache(self):
+    async def check_for_cache(self) -> None:
         cache_list = [
             self.guild_settings,
             self.verification,
@@ -59,7 +60,7 @@ class Cache:
                 if guild.id not in cache:
                     cache[guild.id] = {}
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         caches = [
             self.guild_settings,
             self.verification,
@@ -71,23 +72,23 @@ class Cache:
         ]
         return f"<Cache size={sum(cache.__sizeof__() for cache in caches)}>"
 
-    async def delete_all(self, gid):
+    async def delete_all(self, gid: int) -> None:
         await self.bot.pool.execute("DELETE FROM guild_settings WHERE guild_id = $1", gid)
         try:
             self.guild_settings.pop(gid)
         except KeyError:
             return
 
-    async def get_guild_settings(self, guild_id: int):
+    async def get_guild_settings(self, guild_id: int) -> dict[str, list]:
         return self.guild_settings.get(guild_id)
 
-    async def get_prefix(self, guild_id: int):
+    async def get_prefix(self, guild_id: int) -> list[str]:
         guild = self.guild_settings.get(guild_id)
         if not guild:
             return None
         return guild.get("prefixes")
 
-    async def new_user(self, user_id: int):
+    async def new_user(self, user_id: int) -> dict:
         try:
             check = self.users[user_id]
             if check:
@@ -101,7 +102,7 @@ class Cache:
             new = self.users[user_id] = {}
         return new
 
-    async def cache_new_guild(self, guild_id: int):
+    async def cache_new_guild(self, guild_id: int) -> dict[str, list]:
         try:
             await self.bot.pool.execute("INSERT INTO guild_settings VALUES ($1)", guild_id)
         except Exception:
@@ -116,7 +117,7 @@ class Cache:
         )
         return new
 
-    async def populate_cache(self):
+    async def populate_cache(self) -> None:
         guild_settings = await self.bot.pool.fetch("SELECT * FROM guild_settings")
         verification = await self.bot.pool.fetch("SELECT * FROM verification")
         logging = await self.bot.pool.fetch("SELECT * FROM logging")

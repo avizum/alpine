@@ -22,7 +22,6 @@ import asyncio
 import base64
 import re
 from io import BytesIO
-from typing import Union, List
 
 from discord.ext import tasks
 from core import Bot
@@ -79,7 +78,7 @@ class BotLogs(core.Cog):
 
     @core.Cog.listener("on_message_delete")
     @core.Cog.listener("on_bulk_message_delete")
-    async def logging_delete(self, message: Union[discord.Message, List[discord.Message]]):
+    async def logging_delete(self, message: discord.Message | list[discord.Message]):
         try:
             data = self.bot.cache.logging.get(message.guild.id)
         except AttributeError:

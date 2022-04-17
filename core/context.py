@@ -15,11 +15,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 from __future__ import annotations
 
 import datetime
 import re
-from typing import List, Sequence, Union, Optional, TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING
 
 import discord
 from asyncgist import File
@@ -94,7 +95,7 @@ class ConfirmResult:
 
 
 class AutoPageSource(menus.ListPageSource):
-    def __init__(self, entry: Union[str, list], language: str = "", *, limit: int = 1000):
+    def __init__(self, entry: str | list, language: str = "", *, limit: int = 1000):
         if isinstance(entry, list):
             entries = entry
         elif isinstance(entry, str):
@@ -114,11 +115,11 @@ class Context(commands.Context):
         super().__init__(bot=bot, **kwargs)
         self.bot: Bot = bot
         self.locally_handled: bool = False
-        tokens: List = []
+        tokens: list[str] = []
         tokens.extend(self.bot.settings["bot_tokens"].values())
         tokens.extend(self.bot.settings["api_tokens"].values())
         tokens.extend(self.bot.settings["webhooks"].values())
-        self.tokens: List = tokens
+        self.tokens: list[str] = tokens
 
     @property
     def cache(self):
@@ -171,7 +172,7 @@ class Context(commands.Context):
     async def fetch_color(self, member: discord.Member | None = None) -> discord.Color:
         member = member or self.author
         data = self.cache.users.get(member.id)
-        color = None if not data else data.get("color")
+        color = data.get("color") if data else None
         if not color:
             color = member.color
         if color == discord.Color(0):
@@ -183,7 +184,7 @@ class Context(commands.Context):
     def get_color(self, member: discord.Member | None = None) -> discord.Color:
         member = member or self.author
         data = self.cache.users.get(member.id)
-        color = None if not data else data.get("color")
+        color = data.get("color") if data else None
         if not color:
             color = member.color
         elif color == discord.Color(0):
@@ -212,7 +213,7 @@ class Context(commands.Context):
 
     async def send(
         self,
-        content: Optional[str] = None,
+        content: str | None = None,
         *,
         tts: bool = False,
         embed: Embed | None = None,

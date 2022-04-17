@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import itertools
 import discord
 import datetime
-from typing import Optional, Mapping, List
+from typing import Mapping
 
 import humanize
 from difflib import get_close_matches
@@ -32,11 +32,12 @@ from .paginators import MainHelp, HelpPages, HelpSelect, CogHelp, GroupHelp
 
 
 class AvimetryHelp(commands.HelpCommand):
-    def get_perms(self, perm_type: str, command: commands.Command):
+    context: Context
+    def get_perms(self, perm_type: str, command: commands.Command) -> str:
         permissions = getattr(command, perm_type, None) or command.extras.get(perm_type, ["send_messages"])
         return ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
 
-    async def can_run(self, command: core.Command, ctx: Context):
+    async def can_run(self, command: core.Command, ctx: Context) -> str:
         try:
             await command.can_run(ctx)
             emoji = ctx.bot.emoji_dictionary["green_tick"]
@@ -44,7 +45,7 @@ class AvimetryHelp(commands.HelpCommand):
             emoji = ctx.bot.emoji_dictionary["red_tick"]
         return emoji
 
-    def get_cooldown(self, command: Command):
+    def get_cooldown(self, command: Command) -> str | None:
         cooldown = command.cooldown
         if cooldown:
             rate = cooldown.rate
@@ -54,11 +55,11 @@ class AvimetryHelp(commands.HelpCommand):
             return f"{per} every {rate} {time} per {_type}"
         return None
 
-    def ending_note(self):
+    def ending_note(self) -> str:
         return f"Use {self.context.clean_prefix}{self.invoked_with} [command|module] for more help."
 
-    def get_flags(self, command: core.Command):
-        flagconverter: commands.FlagConverter = None
+    def get_flags(self, command: core.Command) -> list[str] | None:
+        flagconverter: commands.FlagConverter | None = None
         for _, param in command.params.items():
             if isinstance(param.annotation, commands.flags.FlagsMeta):
                 flagconverter = param.annotation
@@ -80,7 +81,7 @@ class AvimetryHelp(commands.HelpCommand):
             flgs.append(f"`{' | '.join(chained)}` {flag.description} {f_default}")
         return flgs
 
-    async def filter_cogs(self, mapping: Mapping[Optional[core.Cog], List[core.Command]] = None):
+    async def filter_cogs(self, mapping: Mapping[core.Cog | None, list[core.Command]] = None):
         mapping = mapping or self.get_bot_mapping()
         items = []
         for cog in mapping:
@@ -92,7 +93,7 @@ class AvimetryHelp(commands.HelpCommand):
         items.sort(key=lambda c: c.qualified_name)
         return items
 
-    async def send_bot_help(self, mapping: Mapping[Optional[core.Cog], List[core.Command]]):
+    async def send_bot_help(self, mapping: Mapping[core.Cog | None, list[core.Command]]):
         items = await self.filter_cogs(mapping)
         source = MainHelp(self.context, self)
         menu = HelpPages(source, ctx=self.context)
@@ -186,16 +187,16 @@ class AvimetryHelp(commands.HelpCommand):
             return await conf.message.delete()
         return "Command not found"
 
-    async def subcommand_not_found(self, command, string):
+    async def subcommand_not_found(self, command, string) -> discord.Message:
         return await self.context.send(f'"{string}" is not a subcommand of "{command}".')
 
 
 class AllCommandsPageSource(menus.ListPageSource):
-    def __init__(self, commands: List[commands.Command], ctx: Context):
+    def __init__(self, commands: list[core.Command], ctx: Context):
         self.ctx = ctx
         super().__init__(commands, per_page=4)
 
-    async def format_page(self, menu: menus.Menu, page: core.Command):
+    async def format_page(self, menu: menus.Menu, page: list[core.Command]):
         embed = discord.Embed(title="Commands", color=await self.ctx.fetch_color())
         for i in page:
             embed.add_field(name=i.qualified_name, value=i.help, inline=False)

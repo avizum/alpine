@@ -20,11 +20,11 @@ import discord
 
 
 class View(discord.ui.View):
-    def __init__(self, *, member: discord.Member, timeout: int = 180):
+    def __init__(self, *, member: discord.Member, timeout: int = 180) -> None:
         self.member = member
         super().__init__(timeout=timeout)
 
-    async def interaction_check(self, interaction: discord.Interaction):
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user != self.member:
             embed = discord.Embed(description=f"This can only be used by {self.member}.")
             await interaction.response.send_message(embed=embed, ephemeral=True)

@@ -25,31 +25,28 @@ import inspect
 import math
 import re
 import sys
-from typing import List
 from difflib import get_close_matches
+from importlib.metadata import distribution, packages_distributions
 
 import discord
 import psutil
 import toml
-from discord.utils import format_dt
 from asyncpg import Record
 from discord.ext import commands, menus
+from discord.utils import format_dt
 from jishaku import Feature
-from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.codeblocks import codeblock_converter
+from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
+from jishaku.exception_handling import ReplResponseReactor
 from jishaku.flags import Flags
+from jishaku.functools import AsyncSender
 from jishaku.models import copy_context_with
 from jishaku.modules import package_version
-from jishaku.paginators import PaginatorInterface
+from jishaku.paginators import PaginatorInterface, WrappedPaginator
 from jishaku.repl import AsyncCodeExecutor, get_var_dict_from_ctx
-from jishaku.exception_handling import ReplResponseReactor
-from jishaku.functools import AsyncSender
-from jishaku.paginators import WrappedPaginator
-from importlib.metadata import distribution, packages_distributions
 
 import core
 from core import Bot, Context
-from utils.helpers import timestamp
 from utils.converters import ModReason
 from utils.paginators import Paginator, PaginatorEmbed
 from utils.view import View
@@ -84,12 +81,12 @@ class CogConverter(commands.Converter):
 
 
 class ErrorSource(menus.ListPageSource):
-    def __init__(self, ctx: Context, errors: List[Record], *, title: str = "Errors", per_page: int = 1) -> None:
+    def __init__(self, ctx: Context, errors: list[Record], *, title: str = "Errors", per_page: int = 1) -> None:
         super().__init__(entries=errors, per_page=per_page)
         self.ctx = ctx
         self.title = title
 
-    async def format_page(self, menu: menus.Menu, page: List[Record]) -> discord.Embed:
+    async def format_page(self, menu: menus.Menu, page: list[Record]) -> discord.Embed:
         embed = discord.Embed(title=self.title, color=await self.ctx.fetch_color())
         for error in page:
             embed.add_field(
@@ -101,11 +98,11 @@ class ErrorSource(menus.ListPageSource):
 
 
 class GuildPageSource(menus.ListPageSource):
-    def __init__(self, ctx: Context, guilds: List[discord.Guild]) -> None:
+    def __init__(self, ctx: Context, guilds: list[discord.Guild]) -> None:
         self.ctx = ctx
         super().__init__(guilds, per_page=2)
 
-    async def format_page(self, menu: menus.Menu, page: List[discord.Guild]) -> discord.Embed:
+    async def format_page(self, menu: menus.Menu, page: list[discord.Guild]) -> discord.Embed:
         embed = PaginatorEmbed(ctx=self.ctx)
         for guild in page:
             embed.add_field(
@@ -122,11 +119,11 @@ class GuildPageSource(menus.ListPageSource):
 
 
 class BlacklistedPageSource(menus.ListPageSource):
-    def __init__(self, ctx: Context, blacklisted: List[int]) -> None:
+    def __init__(self, ctx: Context, blacklisted: list[int]) -> None:
         self.ctx = ctx
         super().__init__(blacklisted, per_page=2)
 
-    async def format_page(self, menu: menus.Menu, page: List[int]) -> discord.Embed:
+    async def format_page(self, menu: menus.Menu, page: list[int]) -> discord.Embed:
         embed = PaginatorEmbed(ctx=self.ctx, title="Blacklisted Users")
         for entry in page:
             user = self.ctx.bot.get_user(entry)
@@ -221,8 +218,8 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         summary = [
             f"Jishaku `v{package_version('jishaku')}`, {dist_version}, "
             f"Python `{sys.version}` on `{sys.platform}`, ".replace("\n", ""),
-            f"Jishaku was loaded {timestamp(self.load_time, 'R')} "
-            f"and cog was loaded {timestamp(self.start_time, 'R')}.",
+            f"Jishaku was loaded {format_dt(self.load_time, 'R')} "
+            f"and cog was loaded {format_dt(self.start_time, 'R')}.",
             "",
         ]
         if psutil:
@@ -520,7 +517,6 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         Sync global or guild application commands to Discord.
         """
-
         paginator = WrappedPaginator(prefix="", suffix="")
 
         if not guild_ids:

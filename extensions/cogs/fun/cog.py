@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import asyncio
 import datetime
 import random
-import typing
 from io import BytesIO
 
 import discord
@@ -46,7 +45,7 @@ class Fun(core.Cog):
 
     @core.command(aliases=["8ball", "8b"])
     @commands.cooldown(5, 15, commands.BucketType.member)
-    async def eightball(self, ctx: Context, *, question):
+    async def eightball(self, ctx: Context, *, question: str):
         """
         Ask the magic 8 ball a question.
 
@@ -140,13 +139,7 @@ class Fun(core.Cog):
     @core.command()
     @core.bot_has_permissions(manage_webhooks=True)
     @commands.cooldown(1, 120, commands.BucketType.user)
-    async def copy(
-        self,
-        ctx: Context,
-        member: typing.Union[discord.User, discord.Member],
-        *,
-        text: str,
-    ):
+    async def copy(self, ctx: Context, member: discord.User | discord.Member, *, text: str):
         """
         Makes it look like a person said something.
 
@@ -347,8 +340,8 @@ class Fun(core.Cog):
 
         Example: 👏 do 👏 not 👏 do 👏 that 👏
         """
-        input = words.split(" ")
-        output = f"👏 {' 👏 '.join(input)} 👏"
+        inp = words.split(" ")
+        output = f"👏 {' 👏 '.join(inp)} 👏"
         await ctx.send(output)
 
     @core.command()
