@@ -17,13 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import asyncio
-
 import datetime
 import math
 import random
-
-
-from typing import Union
 
 import discord
 import wavelink
@@ -38,37 +34,7 @@ from .exceptions import NotInVoice, BotNotInVoice
 from .music import Player, Track, SpotifyTrack, YouTubePlaylist, SearchView, SearchSelect, PaginatorSource
 
 
-def in_voice():
-    def predicate(ctx):
-        if ctx.author.voice:
-            return True
-        raise NotInVoice
-
-    return commands.check(predicate)
-
-
-def bot_in_voice():
-    def predicate(ctx: Context):
-        if ctx.voice_client:
-            return True
-        raise BotNotInVoice
-
-    return commands.check(predicate)
-
-
-def in_correct_channel():
-    def predicate(ctx: Context):
-        vc: Player = ctx.voice_client
-        if not vc:
-            raise NotInVoice
-        if ctx.channel == vc.channel:
-            return True
-        raise NotInVoice
-
-    return commands.check(predicate)
-
-
-def convert_time(time: Union[int, str]):
+def convert_time(time: int | str) -> int:
     try:
         time = int(time)
     except ValueError:
@@ -93,6 +59,37 @@ class Music(core.Cog):
         self.bot = bot
         self.emoji = "\U0001f3b5"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
+
+    @staticmethod
+    def in_voice():
+        def predicate(ctx):
+            if ctx.author.voice:
+                return True
+            raise NotInVoice
+
+        return commands.check(predicate)
+
+    @staticmethod
+    def bot_in_voice():
+        def predicate(ctx: Context):
+            if ctx.voice_client:
+                return True
+            raise BotNotInVoice
+
+        return commands.check(predicate)
+
+    @staticmethod
+    def in_correct_channel():
+        def predicate(ctx: Context):
+            vc: Player = ctx.voice_client
+            if not vc:
+                raise NotInVoice
+            if ctx.channel == vc.channel:
+                return True
+            raise NotInVoice
+
+        return commands.check(predicate)
+
 
     @core.Cog.listener("on_wavelink_track_exception")
     async def track_exception(self, player: Player, track: Track, error):
@@ -137,7 +134,7 @@ class Music(core.Cog):
             except asyncio.TimeoutError:
                 if player.context:
                     await player.context.send("Disconnecting since everyone left the channel.")
-                return await player.teardown()
+                return await player.disconnect()
 
         if member == player.dj and after.channel is None:
             for m in channel.members:
@@ -224,7 +221,7 @@ class Music(core.Cog):
 
     @core.command(aliases=["enqueue", "p"])
     @in_voice()
-    async def play(self, ctx: Context, *, query: Union[YouTubeTrack, YouTubePlaylist, SpotifyTrack]):
+    async def play(self, ctx: Context, *, query: YouTubeTrack | YouTubePlaylist | SpotifyTrack):
         """Play or queue a song with the given query."""
         player: Player = ctx.voice_client
 
@@ -253,17 +250,14 @@ class Music(core.Cog):
                 embed.set_thumbnail(url=query.tracks[0].thumb)
             await ctx.send(embed=embed)
 
-        elif isinstance(query, list) and isinstance(query[0], spotify.SpotifyTrack):
+        elif isinstance(query, list) and isinstance(query[0], wavelink.PartialTrack):
             for track in query:
-                track = Track(track.id, track.info, requester=ctx.author, thumb=track.thumb)
-
+                track.requester = ctx.author
                 await player.queue.put(track)
             embed = discord.Embed(
                 title="Enqueued Spotify playlist",
                 description=(f"Spotify playlist with {len(query)} tracks added to the queue."),
             )
-            if query[0].thumb:
-                embed.set_thumbnail(url=query[0].thumb)
             await ctx.send(embed=embed)
 
         elif isinstance(query, spotify.SpotifyTrack):
@@ -659,7 +653,13 @@ class Music(core.Cog):
         if player.queue.size == 0:
             return await ctx.send(f"The queue is empty. Use {ctx.prefix}play to add some songs!")
 
-        entries = [f"`{index+1})` [{track.title}]({track.uri})" for index, track in enumerate(player.queue._queue)]
+        entries = []
+        for index, track in enumerate(player.queue._queue):
+            if isinstance(track, wavelink.PartialTrack):
+                entries.append(f"`{index + 1})` {track.title}")
+            else:
+                entries.append(f"`{index + 1})` [{track.title}]({track.url})")
+
         pages = PaginatorSource(entries=entries, ctx=ctx)
         paginator = Paginator(source=pages, timeout=120, ctx=ctx, disable_view_after=True)
         await paginator.start()
