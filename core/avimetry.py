@@ -84,17 +84,6 @@ class Bot(commands.Bot):
     source: str = "https://github.com/avimetry/avimetry"
     context: Context | None = None
 
-    emoji_dictionary: dict[str, str] = {
-        "red_tick": "<:redtick:777096756865269760>",
-        "green_tick": "<:greentick:777096731438874634>",
-        "gray_tick": "<:graytick:791040199798030336>",
-        "status_online": "<:status_online:810683593193029642>",
-        "status_idle": "<:status_idle:810683571269664798>",
-        "status_dnd": "<:status_dnd:810683560863989805>",
-        "status_offline": "<:status_offline:810683581541515335",
-        "status_streaming": "<:status_streaming:810683604812169276>",
-    }
-
     primary_extensions: list[str] = [
         "extensions.listeners.events",
         "extensions.cogs.owner",
@@ -292,8 +281,8 @@ class Bot(commands.Bot):
     async def wait_for_message(self, *, check=None, timeout=None) -> Any:
         return await self.wait_for("message", check=check, timeout=timeout)
 
-    async def get_context(self, message: discord.Message, *, cls=None) -> Context:
-        return await super().get_context(message, cls=cls or self.context)
+    async def get_context(self, origin: discord.Message, *, cls=None) -> Context:
+        return await super().get_context(origin, cls=cls or self.context)
 
     async def on_message_edit(self, before: discord.Message, after: discord.Message) -> None:
         if before.content == after.content or after.attachments:

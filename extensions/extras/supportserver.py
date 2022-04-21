@@ -23,6 +23,7 @@ import core
 
 from discord.ext import commands, tasks
 from core import Bot, Context
+from utils import Emojis
 
 
 URL_REGEX = re.compile(
@@ -140,7 +141,7 @@ class Servers(core.Cog):
         if role in ctx.author.roles:
             return await ctx.author.remove_roles(role)
         await ctx.author.add_roles(role, reason="Public testing")
-        await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
+        await ctx.message.add_reaction(Emojis.GREEN_TICK)
 
     @testing.error
     async def testing_error(self, ctx: Context, error):

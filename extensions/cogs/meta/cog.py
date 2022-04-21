@@ -32,7 +32,7 @@ from pytz import UnknownTimeZoneError
 
 import core
 from core import Bot, Context
-from utils import Paginator, PaginatorEmbed
+from utils import Paginator, PaginatorEmbed, Emojis
 
 
 class TimeZoneError(commands.BadArgument):
@@ -88,14 +88,14 @@ class Meta(core.Cog):
             raise commands.BadArgument("You can only have ten options in a poll")
         if len(options) == 3 and options[0] == "yes" and options[1] == "maybe" and options[2] == "no":
             reactions = [
-                self.bot.emoji_dictionary["green_tick"],
-                self.bot.emoji_dictionary["gray_tick"],
-                self.bot.emoji_dictionary["red_tick"],
+                Emojis.GREEN_TICK,
+                Emojis.GRAY_TICK,
+                Emojis.RED_TICK,
             ]
         elif len(options) == 2 and options[0].lower() == "yes" and options[1].lower() == "no":
             reactions = [
-                self.bot.emoji_dictionary["green_tick"],
-                self.bot.emoji_dictionary["red_tick"],
+                Emojis.GREEN_TICK,
+                Emojis.RED_TICK,
             ]
         else:
             reactions = [
@@ -135,7 +135,7 @@ class Meta(core.Cog):
 
         return await ctx.send(random.choice(opt))
 
-    @core.command(aliases=["ui", "uinfo", "whois"])
+    @commands.hybrid_command(aliases=["ui", "uinfo", "whois"])
     @commands.cooldown(1, 15, commands.BucketType.user)
     async def userinfo(self, ctx: Context, *, member: discord.Member | discord.User = None):
         """
@@ -200,8 +200,15 @@ class Meta(core.Cog):
                 inline=False,
             )
             if member.public_flags.value > 0:
-                flags = [key.replace("_", " ").title() for key, val in member.public_flags if val is True]
-                ie.add_field(name="Public Flags", value=", ".join(flags))
+                flags = []
+                for flag, value in member.public_flags:
+                    new = flag.replace(flag, Emojis.BADGES.get(flag, flag))
+                    if value is True:
+                        if new == flag:
+                            flags.append(flag.replace('_', ' ').title())
+                            continue
+                        flags.append(f"{new} | {flag.replace('_', ' ').title()}")
+                ie.add_field(name=f"Badges [{len(flags)}]", value=", ".join(flags))
         ie.set_thumbnail(url=member.display_avatar.url)
         await ctx.send(embed=ie)
 

@@ -28,6 +28,7 @@ from discord.ext import commands, menus
 from discord.utils import MISSING
 
 from utils.view import View
+from utils.emojis import Emojis
 from utils.paginators import Paginator, WrappedPaginator
 
 if TYPE_CHECKING:
@@ -66,7 +67,7 @@ class TrashView(View):
     @discord.ui.button(emoji="\U0001f5d1", style=discord.ButtonStyle.danger)
     async def trash(self, interaction: discord.Interaction, button: discord.Button):
         await self.message.delete()
-        await self.ctx.message.add_reaction(self.ctx.bot.emoji_dictionary["green_tick"])
+        await self.ctx.message.add_reaction(Emojis.GREEN_TICK)
 
 
 class ConfirmView(View):
@@ -115,6 +116,8 @@ class Context(commands.Context):
         super().__init__(bot=bot, **kwargs)
         self.bot: Bot = bot
         self.locally_handled: bool = False
+        if self.interaction:
+            self.message.content = f"/{self.invoked_with}"
         tokens: list[str] = []
         tokens.extend(self.bot.settings["bot_tokens"].values())
         tokens.extend(self.bot.settings["api_tokens"].values())
@@ -314,10 +317,15 @@ class Context(commands.Context):
         }
 
         if self.interaction.response.is_done():
-            return await self.interaction.followup.send(**kwargs, wait=True)
+            msg = await self.interaction.followup.send(**kwargs, wait=True)
 
         await self.interaction.response.send_message(**kwargs)
-        return await self.interaction.original_message()
+        msg = await self.interaction.original_message()
+
+        if delete_after is not None:
+            await msg.delete(delay=delete_after)
+
+        return msg
 
     def codeblock(self, content: str, language: str = "py") -> str:
         return f"```{language}\n{content}\n```"

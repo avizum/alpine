@@ -30,7 +30,7 @@ from akinator.async_aki import Akinator
 
 import core
 from core import Bot, Context
-from utils import Timer
+from utils import Timer, Emojis
 from .components import CookieView, AkinatorFlags, AkinatorGameView, RockPaperScissorGame
 
 
@@ -220,7 +220,7 @@ class Games(core.Cog):
         try:
             wait = await self.bot.wait_for("message", check=check, timeout=60)
         except asyncio.TimeoutError:
-            embed.title = f"{self.bot.emoji_dictionary['red_tick']} | Time's Up!"
+            embed.title = f"{Emojis.RED_TICK} | Time's Up!"
             embed.description = f"You took too long. The correct answer is {logo.brand}"
             try:
                 embed.set_image(url=logo.answer)
@@ -236,7 +236,7 @@ class Games(core.Cog):
                 except discord.HTTPException:
                     pass
                 return await message.edit(embed=embed)
-            embed.title = f"{self.bot.emoji_dictionary['red_tick']} | Wrong"
+            embed.title = f"{Emojis.RED_TICK} | Wrong"
             embed.description = f"Your answer was {wait.content}.\nThe correct answer is actually {logo.brand}"
             try:
                 embed.set_image(url=logo.answer)

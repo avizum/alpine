@@ -47,9 +47,7 @@ from jishaku.repl import AsyncCodeExecutor, get_var_dict_from_ctx
 
 import core
 from core import Bot, Context
-from utils.converters import ModReason
-from utils.paginators import Paginator, PaginatorEmbed
-from utils.view import View
+from utils import ModReason, Paginator, PaginatorEmbed, View, Emojis
 
 
 def naturalsize(size_in_bytes: int) -> str:
@@ -150,9 +148,9 @@ class ReloadView(View):
         for cog in self.to_reload:
             try:
                 await self.bot.reload_extension(cog)
-                reload_list.append(f"{self.bot.emoji_dictionary['green_tick']} | {cog}")
+                reload_list.append(f"{Emojis.GREEN_TICK} | {cog}")
             except commands.ExtensionError as e:
-                reload_list.append(f"{self.bot.emoji_dictionary['red_tick']} | {cog}\n```{e}```")
+                reload_list.append(f"{Emojis.RED_TICK} | {cog}\n```{e}```")
             else:
                 if not reload_list:
                     self.embed.add_field(name="Reloaded Modules", value="No modules were reloaded")
@@ -444,9 +442,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         for cog in module:
             try:
                 await self.bot.load_extension(cog)
-                load_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
+                load_list.append(f'{Emojis.GREEN_TICK} | {cog}')
             except (commands.ExtensionError, ModuleNotFoundError) as e:
-                load_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
+                load_list.append(f'{Emojis.RED_TICK} | {cog}```{e}```')
         embed = discord.Embed(title="Loaded cogs", description="\n".join(load_list))
         await ctx.send(embed=embed)
 
@@ -459,9 +457,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         for cog in module:
             try:
                 await self.bot.unload_extension(cog)
-                unload_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
+                unload_list.append(f'{Emojis.GREEN_TICK} | {cog}')
             except (commands.ExtensionError, ModuleNotFoundError) as e:
-                unload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
+                unload_list.append(f'{Emojis.RED_TICK} | {cog}```{e}```')
         embed = discord.Embed(title="Unloaded cogs", description="\n".join(unload_list))
         await ctx.send(embed=embed)
 
@@ -474,9 +472,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         for cog in module:
             try:
                 await self.bot.reload_extension(cog)
-                reload_list.append(f'{self.bot.emoji_dictionary["green_tick"]} | {cog}')
+                reload_list.append(f'{Emojis.GREEN_TICK} | {cog}')
             except (commands.ExtensionError, ModuleNotFoundError) as e:
-                reload_list.append(f'{self.bot.emoji_dictionary["red_tick"]} | {cog}```{e}```')
+                reload_list.append(f'{Emojis.RED_TICK} | {cog}```{e}```')
         description = "\n".join(reload_list)
         embed = discord.Embed(title="Reloaded Extensions", description=description)
         await ctx.send(embed=embed)
@@ -542,7 +540,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         conf = await ctx.confirm(f"Are you sure you want me to leave {guild.name} ({guild.id})?")
         if conf.result:
             await guild.leave()
-            return await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
+            return await ctx.message.add_reaction(Emojis.GREEN_TICK)
         await conf.message.edit(content="Okay, Aborted.")
 
     @Feature.Command(parent="jsk", aliases=["bl"], invoke_without_command=True)
@@ -734,7 +732,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             if ctx.reference.author == ctx.me:
                 await ctx.reference.delete()
             else:
-                return await ctx.message.add_reaction(self.bot.emoji_dictionary["red_tick"])
+                return await ctx.message.add_reaction(Emojis.RED_TICK)
         if message and message.author == ctx.me:
             await message.delete()
-        return await ctx.message.add_reaction(self.bot.emoji_dictionary["green_tick"])
+        return await ctx.message.add_reaction(Emojis.GREEN_TICK)

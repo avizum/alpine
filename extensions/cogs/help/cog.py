@@ -27,12 +27,13 @@ from discord.ext import commands, menus
 
 import core
 from core import Bot, Context, Command
-from utils import Paginator
+from utils import Paginator, Emojis
 from .paginators import MainHelp, HelpPages, HelpSelect, CogHelp, GroupHelp
 
 
 class AvimetryHelp(commands.HelpCommand):
     context: Context
+
     def get_perms(self, perm_type: str, command: commands.Command) -> str:
         permissions = getattr(command, perm_type, None) or command.extras.get(perm_type, ["send_messages"])
         return ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
@@ -40,9 +41,9 @@ class AvimetryHelp(commands.HelpCommand):
     async def can_run(self, command: core.Command, ctx: Context) -> str:
         try:
             await command.can_run(ctx)
-            emoji = ctx.bot.emoji_dictionary["green_tick"]
+            emoji = Emojis.GREEN_TICK
         except commands.CommandError:
-            emoji = ctx.bot.emoji_dictionary["red_tick"]
+            emoji = Emojis.RED_TICK
         return emoji
 
     def get_cooldown(self, command: Command) -> str | None:
