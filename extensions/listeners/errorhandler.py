@@ -25,9 +25,6 @@ import discord
 import humanize
 
 import core
-
-
-from prettify_exceptions import DefaultFormatter
 from core import Bot, Context
 from core.exceptions import (
     Blacklisted,
@@ -332,9 +329,9 @@ class ErrorHandler(core.Cog):
 
         else:
             self.reset(ctx)
-            DefaultFormatter().theme["_ansi_enabled"] = False
-            traceback = f"```{''.join(DefaultFormatter().format_exception(type(error), error, error.__traceback__))}```"
-            if len(traceback) > 4096:
+            exc = tb.format_exception(type(error), error, error.__traceback__)
+            traceback = f"```{''.join(exc)}```"
+            if len(traceback) > 1995:
                 traceback = f"Error was too long: {await self.bot.myst.post(traceback, 'bash')}"
 
             query = "SELECT * FROM command_errors WHERE command=$1 and error=$2"
@@ -361,23 +358,17 @@ class ErrorHandler(core.Cog):
                         f"Error Information:```py\n{error}```"
                     ),
                 )
-            webhook_error_embed = Embed(
-                title="A new error" if not in_db else "Old error, Fix soon",
-                description=traceback,
-            )
+            webhook_error_embed = Embed(title="A new error" if not in_db else "Old error")
             error_info = in_db or inserted_error
-            webhook_error_embed.add_field(
-                name="Error Info",
-                value=(
-                    f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
-                    f"Channel: {ctx.channel} ({ctx.channel.id})\n"
-                    f"Command: {ctx.command.qualified_name}\n"
-                    f"Message: {ctx.message.content}\n"
-                    f"Invoker: {ctx.author}\n"
-                    f"Error ID: {error_info['id']}"
-                ),
+            webhook_error_embed.description = (
+                f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
+                f"Channel: {ctx.channel} ({ctx.channel.id})\n"
+                f"Command: {ctx.command.qualified_name}\n"
+                f"Message: {ctx.message.content}\n"
+                f"Invoker: {ctx.author}\n"
+                f"Error ID: {error_info['id']}"
             )
-            await self.error_webhook.send(embed=webhook_error_embed, username="Command Error")
+            await self.error_webhook.send(traceback, embed=webhook_error_embed, username="Command Error")
             print(f"Ignoring exception in command {ctx.command}:", file=sys.stderr)
             tb.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
             view = UnknownError(member=ctx.author, bot=self.bot, error_id=error_info["id"])
