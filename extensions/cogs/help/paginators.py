@@ -214,7 +214,7 @@ class HelpSelect(discord.ui.Select["HelpPages"]):
     async def callback(self, interaction: discord.Interaction) -> None:
         cog: core.Cog = self.ctx.bot.get_cog(self.values[0])
         if self.current_module == cog:
-            return
+            return await interaction.response.defer()
         if self.values[0] == "Home":
             await self.view.edit_source(MainHelp(self.ctx, self.hc), interaction)
         else:

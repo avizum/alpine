@@ -185,6 +185,7 @@ class Paginator(BasePaginator):
     def _update(self, page: int) -> None:
         self.go_forward_one.disabled = False
         self.go_back_one.disabled = False
+        self.show_page_number.disabled = False
         self.skip_to_last.disabled = False
         self.skip_to_first.disabled = False
 
