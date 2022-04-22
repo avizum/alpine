@@ -98,7 +98,6 @@ class Bot(commands.Bot):
         "extensions.cogs.fun",
         "extensions.cogs.games",
         "extensions.cogs.help",
-        "extensions.cogs.highlight",
         "extensions.cogs.images",
         "extensions.listeners.joinsandleaves",
         "extensions.cogs.meta",
