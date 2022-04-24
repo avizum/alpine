@@ -23,14 +23,13 @@ import asyncio
 from typing import TYPE_CHECKING
 
 import discord
-from discord.ext.menus import button, Position, PageSource
-from discord.ext.menus.views import ViewMenuPages
+from discord.ext.menus import PageSource
 from jishaku.paginators import WrappedPaginator
 
 from utils.view import View
 
 if TYPE_CHECKING:
-    from .context import Context
+    from core.context import Context
 
 
 class PaginatorEmbed(discord.Embed):
@@ -54,7 +53,7 @@ class BasePaginator(View):
         delete_message_after: bool = False,
         remove_view_after: bool = False,
         disable_view_after: bool = False,
-        message: discord.Message = None,
+        message: discord.Message | None = None,
     ):
         self.source = source
         self.ctx = ctx
@@ -83,7 +82,6 @@ class BasePaginator(View):
     async def show_page(self, interaction: discord.Interaction, page_num: int):
         page = await self.source.get_page(page_num)
         self.current_page = page_num
-        self._update(page_num)
         kwargs = await self.get_page_kwargs(page)
 
         if interaction.response.is_done():
@@ -181,6 +179,19 @@ class Paginator(BasePaginator):
                 self.add_item(self.show_page_number)
                 self.add_item(self.go_forward_one)
         self.add_item(self.stop_view)
+
+    async def show_page(self, interaction: discord.Interaction, page_num: int):
+        page = await self.source.get_page(page_num)
+        self.current_page = page_num
+        self._update(page_num)
+        kwargs = await self.get_page_kwargs(page)
+
+        if interaction.response.is_done():
+            if self.message:
+                await self.message.edit(**kwargs, view=self)
+        else:
+            await interaction.response.edit_message(**kwargs, view=self)
+
 
     def _update(self, page: int) -> None:
         self.go_forward_one.disabled = False
@@ -284,96 +295,15 @@ class Paginator(BasePaginator):
         """
         if self.disable_view_after:
             for item in self.children:
-                item.disabled = True
+                if isinstance(item, discord.ui.Button):
+                    item.disabled = True
             button.label = "Stopped"
             await interaction.response.edit_message(view=self)
         elif self.remove_view_after:
             await interaction.response.edit_message(view=None)
         elif self.delete_message_after:
-            await interaction.message.delete()
+            await interaction.delete_original_message()
         await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")
         self.stop()
-
-
-class OldAvimetryPages(ViewMenuPages):
-    def __init__(self, source, **kwargs):
-        super().__init__(source=source, clear_reactions_after=True, **kwargs)
-
-    async def send_initial_message(self, ctx, channel, interaction=None):
-        page = await self._source.get_page(0)
-        kwargs = await self._get_kwargs_from_page(page)
-        if interaction:
-            return await interaction.response.edit_message(**kwargs, view=self.build_view())
-        return await self.send_with_view(ctx, **kwargs)
-
-    def _skip_double_triangle_buttons(self):
-        max_pages = self._source.get_max_pages()
-        if max_pages is None:
-            return True
-        return max_pages <= 2
-
-    @button(
-        "\N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f",
-        position=Position(0),
-        skip_if=_skip_double_triangle_buttons,
-    )
-    async def go_to_first_page(self, payload):
-        """go to the first page"""
-        await self.show_page(0)
-
-    @button("\N{BLACK LEFT-POINTING TRIANGLE}\ufe0f", position=Position(1))
-    async def go_to_previous_page(self, payload):
-        """go to the previous page"""
-        await self.show_checked_page(self.current_page - 1)
-
-    @button("\N{BLACK SQUARE FOR STOP}\ufe0f", position=Position(2))
-    async def stop_pages(self, payload):
-        """stops the pagination session."""
-        self.stop()
-
-    @button("\N{BLACK RIGHT-POINTING TRIANGLE}\ufe0f", position=Position(3))
-    async def go_to_next_page(self, payload):
-        """go to the next page"""
-        await self.show_checked_page(self.current_page + 1)
-
-    @button(
-        "\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}\ufe0f",
-        position=Position(4),
-        skip_if=_skip_double_triangle_buttons,
-    )
-    async def go_to_last_page(self, payload):
-        """go to the last page"""
-        # The call here is safe because it's guarded by skip_if
-        await self.show_page(self._source.get_max_pages() - 1)
-
-    async def _internal_loop(self):
-        try:
-            self.__timed_out = await self.view.wait()
-        except Exception as e:
-            print(e)
-        finally:
-            self._event.set()
-
-            try:
-                await self.finalize(self.__timed_out)
-            except Exception:
-                pass
-            finally:
-                self.__timed_out = False
-
-            if self.bot.is_closed():
-                return
-
-            try:
-                if self.delete_message_after:
-                    return await self.message.delete()
-
-                if self.clear_reactions_after:
-                    for i in self.view.children:
-                        i.disabled = True
-                    return await self.message.edit(view=self.view)
-            except Exception:
-                pass
-
 
 WrappedPaginator = WrappedPaginator
