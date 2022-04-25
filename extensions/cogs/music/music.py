@@ -184,6 +184,7 @@ class Player(wavelink.Player):
         super().__init__(*args, **kwargs)
         if self.context:
             self.dj: discord.Member = self.context.author
+            self.bound: discord.TextChannel = self.context.channel
         self.announce: bool = announce
         self.allow_duplicates: bool = allow_duplicates
         self.queue: Queue = Queue()

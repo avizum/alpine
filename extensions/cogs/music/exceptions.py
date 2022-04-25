@@ -29,13 +29,13 @@ class NoChannelProvided(commands.CommandError):
 
 class IncorrectChannelError(commands.CommandError):
     """
-    Error raised when commands are issued outside of the players session channel.
+    Error raised when commands are used outside of the players session channel.
     """
 
     pass
 
 
-class NotInVoice(commands.CheckFailure):
+class NotInVoice(commands.CommandError):
     """
     Error raised when someone tries do to something when they are not in the voice channel.
     """
@@ -43,7 +43,7 @@ class NotInVoice(commands.CheckFailure):
     pass
 
 
-class BotNotInVoice(commands.CheckFailure):
+class BotNotInVoice(commands.CommandError):
     """
     Error raised when the bot is not in the voice channel.
     """

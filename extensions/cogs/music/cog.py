@@ -30,7 +30,7 @@ from wavelink.ext import spotify
 import core
 from core import Bot, Context
 from utils import Paginator, format_seconds
-from .exceptions import NotInVoice, BotNotInVoice
+from .exceptions import NotInVoice, BotNotInVoice, IncorrectChannelError
 from .music import Player, Track, SpotifyTrack, YouTubePlaylist, SearchView, SearchSelect, PaginatorSource
 
 
@@ -62,31 +62,38 @@ class Music(core.Cog):
 
     @staticmethod
     def in_voice():
-        def predicate(ctx):
+        def predicate(ctx: Context):
+            player: Player = ctx.voice_client
             if ctx.author.voice:
-                return True
-            raise NotInVoice
+                can_use = True
+            else:
+                raise NotInVoice("You are not in a voice channel.")
+            if player and ctx.author.voice.channel == player.channel:
+                can_use = True
+            else:
+                IncorrectChannelError("You are not in the same voice channel as me.")
+            return can_use
 
         return commands.check(predicate)
 
     @staticmethod
     def bot_in_voice():
         def predicate(ctx: Context):
-            if ctx.voice_client:
+            player: Player = ctx.voice_client
+            if player:
                 return True
-            raise BotNotInVoice
+            raise BotNotInVoice("I am not in a voice channel.")
 
         return commands.check(predicate)
 
     @staticmethod
-    def in_correct_channel():
+    def in_bound_channel(bot: bool = False):
         def predicate(ctx: Context):
-            vc: Player = ctx.voice_client
-            if not vc:
-                raise NotInVoice
-            if ctx.channel == vc.channel:
+            if bot and ctx.voice_client is None:
                 return True
-            raise NotInVoice
+            if ctx.voice_client and ctx.channel == ctx.voice_client.bound:
+                return True
+            raise IncorrectChannelError(f"Music commands are bound to {ctx.voice_client.bound.mention}.")
 
         return commands.check(predicate)
 
@@ -158,10 +165,8 @@ class Music(core.Cog):
 
     async def cog_command_error(self, ctx: Context, error: commands.CommandError):
         ctx.locally_handled = True
-        if isinstance(error, NotInVoice):
-            return await ctx.send("You must be in a voice channel to use this command.")
-        elif isinstance(error, BotNotInVoice):
-            return await ctx.send("I'm not in a voice channel.")
+        if isinstance(error, (NotInVoice, BotNotInVoice, IncorrectChannelError)):
+            return await ctx.send(str(error))
         else:
             ctx.locally_handled = False
 
@@ -176,21 +181,26 @@ class Music(core.Cog):
 
         return required
 
+    async def do_connect(self, ctx: Context) -> Player | None:
+        player: Player = ctx.voice_client
+        channel = ctx.author.voice.channel
+        if not channel.permissions_for(ctx.me).connect:
+            return await ctx.send("I do not have permission to connect to your channel.")
+        if player:
+            if player.channel == channel:
+                return await ctx.send("Already in a voice channel.")
+            return await player.move_to(channel)
+
+        player = await channel.connect(cls=Player(context=ctx))
+        await ctx.send(f"Joined {player.channel.mention}, bound to {ctx.channel.mention}.")
+        return player
+
+
     @core.command(aliases=["join"])
     @in_voice()
     async def connect(self, ctx: Context):
         """Connect to a voice channel."""
-        player: Player = ctx.voice_client
-        channel = ctx.author.voice.channel
-        if player:
-            if player.channel == channel:
-                return await ctx.send("Already in channel.")
-            return await player.move_to(channel)
-
-        player = Player(context=ctx)
-        voice_client = await channel.connect(cls=player)
-        await ctx.send(f"Joined {voice_client.channel.mention}, anouncing songs in {ctx.channel.mention}.")
-        return voice_client
+        await self.do_connect(ctx)
 
     @core.command(aliases=["leave", "fuckoff"])
     @in_voice()
@@ -221,14 +231,14 @@ class Music(core.Cog):
 
     @core.command(aliases=["enqueue", "p"])
     @in_voice()
-    async def play(self, ctx: Context, *, query: YouTubeTrack | YouTubePlaylist | SpotifyTrack):
+    @in_bound_channel(bot=True)
+    async def play(self, ctx: Context, *, query: YouTubeTrack | YouTubePlaylist | SpotifyTrack | None = None):
         """Play or queue a song with the given query."""
         player: Player = ctx.voice_client
-
         if not player:
-            player = await ctx.invoke(self.connect)
-        if player.is_paused():
-            await ctx.invoke(self.resume)
+            player = await self.do_connect(ctx)
+        if not query and player.is_paused():
+            return await ctx.invoke(self.resume)
         if not player.channel:
             return
 
@@ -271,6 +281,7 @@ class Music(core.Cog):
     @core.group(name="loop")
     @in_voice()
     @bot_in_voice()
+    @in_bound_channel()
     async def track_loop(self, ctx: Context):
         """
         Loops the currently playing song.
@@ -288,7 +299,10 @@ class Music(core.Cog):
         await ctx.send(f"Now looping: {player.track.title}")
 
     @track_loop.command(name="queue")
+    @core.is_owner()
     @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def loop_queue(self, ctx: Context):
         """
         Loops the whole queue.
@@ -320,6 +334,8 @@ class Music(core.Cog):
 
     @core.command(aliases=["ptop"])
     @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def playtop(self, ctx: Context, *, query: wavelink.YouTubeTrack):
         """
         Adds a song to the top of the queue.
@@ -327,7 +343,7 @@ class Music(core.Cog):
         player: Player = ctx.voice_client
 
         if not player:
-            player = await ctx.invoke(self.connect)
+            player = self.do_connect(ctx)
         if player.is_paused():
             await ctx.invoke(self.resume)
         if not player.channel:
@@ -380,6 +396,8 @@ class Music(core.Cog):
 
     @core.command(aliases=["stop"])
     @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def pause(self, ctx: Context):
         """
         Pause the currently playing song.
@@ -411,6 +429,8 @@ class Music(core.Cog):
 
     @core.command(aliases=["unpause"])
     @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def resume(self, ctx: Context):
         """
         Resume the currently playing song.
@@ -443,6 +463,8 @@ class Music(core.Cog):
 
     @core.command()
     @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def skip(self, ctx: Context):
         """
         Skip the current playing song.
@@ -479,6 +501,8 @@ class Music(core.Cog):
 
     @core.command(aliases=["ff", "fastf", "fforward"])
     @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def fastforward(self, ctx: Context, seconds: convert_time):
         """
         Fast forward an amount of seconds in the current song.
@@ -496,6 +520,8 @@ class Music(core.Cog):
 
     @core.command(aliases=["rw"])
     @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def rewind(self, ctx: Context, seconds: convert_time):
         """
         Rewind a certain amount of seconds in the current song.
@@ -513,6 +539,8 @@ class Music(core.Cog):
 
     @core.command(aliases=["sk"])
     @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def seek(self, ctx: Context, seconds: convert_time):
         """
         Seek in the cuuent song.
@@ -531,6 +559,8 @@ class Music(core.Cog):
 
     @core.command(aliases=["v", "vol"])
     @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def volume(self, ctx: Context, *, vol: int):
         """
         Change the player's volume.
@@ -545,7 +575,7 @@ class Music(core.Cog):
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admins may change the volume.")
 
-        if not 0 < vol < 101:
+        if not 0 < vol < 201:
             return await ctx.send("Please enter a value between 1 and 100.")
 
         await player.set_volume(vol)
@@ -553,6 +583,8 @@ class Music(core.Cog):
 
     @core.command(aliases=["mix"])
     @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def shuffle(self, ctx: Context):
         """
         Shuffles the queue.
@@ -587,6 +619,8 @@ class Music(core.Cog):
 
     @core.command()
     @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def announce(self, ctx: Context, toggle: bool):
         """
         Whether to announce the song.
@@ -594,6 +628,10 @@ class Music(core.Cog):
         This will reset every time the bot joins a voice channel.
         """
         player: Player = ctx.voice_client
+
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admins may change whether the songs will be announced.")
+
         player.announce = toggle
         if toggle:
             return await ctx.send("Songs will be announced.")
@@ -601,6 +639,8 @@ class Music(core.Cog):
 
     @core.command()
     @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def duplicated(self, ctx: Context, toggle: bool):
         """
         Whether to allow duplicated in the queue.
@@ -608,6 +648,10 @@ class Music(core.Cog):
         This will reset every time the bot joins a voice channel.
         """
         player: Player = ctx.voice_client
+
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admins may change whether duplicated songs are allowed.")
+
         player.allow_duplicates = toggle
         if toggle:
             return await ctx.send("Duplicate songs are now allowed.")
@@ -615,6 +659,8 @@ class Music(core.Cog):
 
     @core.command(aliases=["eq"], enabled=False)
     @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def equalizer(self, ctx: Context, *, equalizer: str):
         """Change the players equalizer."""
         player: Player = ctx.voice_client
@@ -642,7 +688,8 @@ class Music(core.Cog):
         await player.set_eq(eq)
 
     @core.command(aliases=["q", "upnext"])
-    @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def queue(self, ctx: Context):
         """Display the players queued songs."""
         player: Player = ctx.voice_client
@@ -666,6 +713,8 @@ class Music(core.Cog):
 
     @core.command(aliases=["clq", "clqueue", "cqueue"])
     @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def clearqueue(self, ctx: Context):
         """
         Clears the player's queue.
@@ -684,6 +733,8 @@ class Music(core.Cog):
         await ctx.send("Only the DJ can clear the queue.")
 
     @core.command(aliases=["np", "now_playing", "current"])
+    @bot_in_voice()
+    @in_bound_channel()
     async def nowplaying(self, ctx: Context):
         """
         Show the currenly playing song.
@@ -697,6 +748,8 @@ class Music(core.Cog):
 
     @core.command(aliases=["swap", "new_dj"])
     @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
     async def swap_dj(self, ctx: Context, *, member: discord.Member = None):
         """Swap the current DJ to another member in the voice channel."""
         player: Player = ctx.voice_client
