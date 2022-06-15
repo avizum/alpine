@@ -47,7 +47,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
 
     @core.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message) -> None:
         ctx = await self.bot.get_context(message, cls=Context)
         if message.author == self.bot.user:
             return
@@ -55,6 +55,8 @@ class BotInfo(commands.Cog, name="Bot Info"):
             f"<@{self.bot.user.id}>",
             f"<@!{self.bot.user.id}>",
         ]:
+            if not message.channel.permissions_for(ctx.author).send_messages:
+                return
             command = self.bot.get_command("prefix")
             ctx.command = command
             await command(ctx)
@@ -93,7 +95,8 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         embed.set_thumbnail(url=ctx.me.display_avatar.url)
         owner = self.bot.get_user(750135653638865017)
-        embed.set_footer(text=f"Made by {owner} :)", icon_url=owner.display_avatar.url)
+        if owner is not None:
+            embed.set_footer(text=f"Made by {owner} :)", icon_url=owner.display_avatar.url)
         await ctx.send(embed=embed)
 
     @core.command(name="credits")
@@ -108,7 +111,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             (547280209284562944, "Bot Testing", "https://github.com/LereUwU",),
             (672122220566413312, "Original Avatar Design", "https://discord.com/users/672122220566413312",),
             (80088516616269824, "discord.py Developer", "https://github.com/Rapptz",),
-            (171539705043615744, "enhanced-discord.py Developer, Error Tracking ", "https://github.com/iDutchy",),
+            (171539705043615744, "Error Tracking Idea", "https://github.com/iDutchy",),
             (733370212199694467, "Contributor", "https://github.com/MrArkon/",),
         ]
 
@@ -162,7 +165,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         Database: how long it takes to query the database.
         """
         async with Timer() as api:
-            await ctx.trigger_typing()
+            await ctx.typing()
         async with Timer() as db:
             await self.bot.pool.execute("SELECT 1")
         ping_embed = discord.Embed(title="Pong!")

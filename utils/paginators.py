@@ -136,6 +136,27 @@ class BasePaginator(View):
         self.message = await self.ctx.send(**kwargs, view=self)
 
 
+class SkipToPageModal(discord.ui.Modal, title="Go to page"):
+    to_page = discord.ui.TextInput(label="Page Number", style=discord.TextStyle.short, min_length=1, max_length=6)
+
+    def __init__(self, timeout: int, view: Paginator):
+        super().__init__(timeout=timeout)
+        self.view = view
+
+    async def send_error(self, interaction: discord.Interaction, error: str):
+        return await interaction.response.send_message(error, ephemeral=True)
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        try:
+            page_num = int(self.to_page.value)
+            max_pages = self.view.source.get_max_pages()
+            await self.view.show_checked_page(interaction, int(self.to_page.value) - 1)
+            if max_pages and page_num > max_pages or page_num <= 0:
+                await self.send_error(interaction, f"Please enter a page number between 1 and {max_pages}.")
+        except ValueError:
+            return await self.send_error(interaction, "Please enter a number.")
+
+
 class Paginator(BasePaginator):
     def __init__(
         self,
@@ -149,7 +170,6 @@ class Paginator(BasePaginator):
         disable_view_after: bool = False,
         message: discord.Message | None = None,
     ) -> None:
-        self.lock = asyncio.Lock()
         super().__init__(
             source,
             ctx=ctx,
@@ -251,28 +271,7 @@ class Paginator(BasePaginator):
         Shows the current page number.
         This button also is used for skipping to pages.
         """
-        if self.lock.locked():
-            return await interaction.response.send_message("You already clicked it, now send a number.", ephemeral=True)
-        async with self.lock:
-            await interaction.response.send_message(
-                f"Which page would you like to go to? (1-{self.source.get_max_pages()})",
-                ephemeral=True,
-            )
-
-            def check(m: discord.Message):
-                return m.author == self.ctx.author and m.channel == self.ctx.channel and m.content.isdigit()
-
-            try:
-                message = await self.ctx.bot.wait_for("message", check=check, timeout=10)
-            except asyncio.TimeoutError:
-                await interaction.followup.send("You took too long to respond.", ephemeral=True)
-            else:
-                page = int(message.content)
-                await self.show_checked_page(interaction, page_num=page - 1)
-                try:
-                    await message.delete()
-                except (discord.Forbidden, discord.NotFound):
-                    pass
+        await interaction.response.send_modal(SkipToPageModal(self.timeout, self))
 
     @discord.ui.button(emoji="\U000025b6\U0000fe0f")
     async def go_forward_one(self, interaction: discord.Interaction, button: discord.Button) -> None:
@@ -302,7 +301,7 @@ class Paginator(BasePaginator):
         elif self.remove_view_after:
             await interaction.response.edit_message(view=None)
         elif self.delete_message_after:
-            await interaction.delete_original_message()
+            await self.message.delete()
         await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")
         self.stop()
 

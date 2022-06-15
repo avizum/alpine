@@ -16,14 +16,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
 import datetime
 from io import BytesIO
 
 import discord
 
 import core
-from core import Bot, Context
 from utils import Timer
+from core import Bot, Context
 
 
 class Animals(core.Cog):

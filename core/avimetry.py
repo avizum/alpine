@@ -24,28 +24,28 @@ import re
 from datetime import datetime
 from typing import TYPE_CHECKING, Callable, Any
 
-import asyncdagpi
 import asyncpg
-import asyncgist
 import discord
 import jishaku
 import mystbin
-import sr_api
 import toml
 import wavelink
+from asyncgist.client import Client as GistClient
+from sr_api.client import Client as SRClient
+from asyncdagpi.client import Client as DagpiClient
 from aiohttp import ClientSession
-
 from discord.ext import commands
+from discord.client import _ColourFormatter
 from wavelink.ext import spotify
-from topgg import DBLClient
+from topgg.client import DBLClient
 from topgg.webhook import WebhookManager
 
 from core import Command, Group
 from utils.cache import Cache
-from .exceptions import Blacklisted, CommandDisabledChannel, CommandDisabledGuild, Maintenance
 
 if TYPE_CHECKING:
     from .context import Context
+    from extensions.listeners.errorhandler import ErrorHandler
 
 
 jishaku.Flags.HIDE = True
@@ -55,7 +55,7 @@ jishaku.Flags.NO_DM_TRACEBACK = True
 
 DEFAULT_PREFIXES: list[str] = ["a.", "avimetry"]
 BETA_PREFIXES: list[str] = ["ab.", "ba."]
-OWNER_IDS: set[str] = {
+OWNER_IDS: set[int] = {
     750135653638865017,
     547280209284562944,
     765098549099626507,
@@ -65,14 +65,17 @@ PUBLIC_BOT_ID: int = 756257170521063444
 BETA_BOT_ID: int = 787046145884291072
 
 
-logger = logging.getLogger("discord")
-logger.setLevel(logging.INFO)
-handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
-handler.setFormatter(logging.Formatter("%(levelname)s:%(name)s: %(message)s"))
-logger.addHandler(handler)
+
+_log = logging.getLogger("avimetry")
+handler = logging.StreamHandler()
+handler.setFormatter(_ColourFormatter())
+_log.setLevel(logging.INFO)
+_log.addHandler(handler)
 
 
 class Bot(commands.Bot):
+    user: discord.ClientUser
+    owner_ids: set[int]
     bot_id: int = PUBLIC_BOT_ID
     launch_time: datetime = datetime.now(dt.timezone.utc)
     maintenance: bool = False
@@ -84,14 +87,14 @@ class Bot(commands.Bot):
     source: str = "https://github.com/avimetry/avimetry"
     context: Context | None = None
 
-    primary_extensions: list[str] = [
+    primary_extensions: tuple[str, ...] = (
         "extensions.listeners.events",
         "extensions.cogs.owner",
         "extensions.extras.setup",
         "core.context",
-    ]
+    )
 
-    secondary_extensions: list[str] = [
+    secondary_extensions: tuple[str, ...] = (
         "extensions.cogs.animals",
         "extensions.cogs.botinfo",
         "extensions.listeners.errorhandler",
@@ -108,7 +111,7 @@ class Bot(commands.Bot):
         "extensions.extras.supportserver",
         "extensions.extras.topgg",
         "extensions.cogs.verification",
-    ]
+    )
 
     with open("config.toml") as token:
         settings = toml.loads(token.read())
@@ -144,7 +147,6 @@ class Bot(commands.Bot):
             owner_ids=OWNER_IDS,
         )
         self._BotBase__cogs: dict[str, commands.Cog] = commands.core._CaseInsensitiveDict()
-        self.add_check(self.bot_check)
 
     def __repr__(self) -> str:
         return f"<Bot id={self.user.id}>"
@@ -155,9 +157,9 @@ class Bot(commands.Bot):
         self.pool: asyncpg.Pool = await asyncpg.create_pool(**self.settings["postgresql"])
         self.topgg: DBLClient = DBLClient(self, self.api["TopGG"], autopost_interval=None, session=self.session)
         self.topgg_webhook: WebhookManager = WebhookManager(self).dbl_webhook("/dbl", self.api["TopGGWH"])
-        self.gist: asyncgist.Client = asyncgist.Client(self.api["GitHub"], self.session)
-        self.sr: sr_api.Client = sr_api.Client()
-        self.dagpi: asyncdagpi.Client = asyncdagpi.Client(self.api["DagpiAPI"], session=self.session)
+        self.gist: GistClient = GistClient(self.api["GitHub"], self.session)
+        self.sr: SRClient = SRClient()
+        self.dagpi: DagpiClient = DagpiClient(self.api["DagpiAPI"], session=self.session)
         self.myst: mystbin.Client = mystbin.Client(session=self.session)
         self.loop.create_task(self.cache.populate_cache())
         self.loop.create_task(self.load_extensions())
@@ -167,10 +169,10 @@ class Bot(commands.Bot):
 
     async def get_prefix(self, message: discord.Message) -> list[str]:
         prefixes: list[str] = [f"<@{self.user.id}>", f"<@!{self.user.id}>"]
-        commands: tuple[str] = ("dev", "developer", "jsk", "jishaku")
+        commands: tuple[str, ...] = ("dev", "developer", "jsk", "jishaku")
         if await self.is_owner(message.author) and message.content.lower().startswith(commands):
             prefixes.append("")
-        elif not message.guild:
+        if message.guild is None:
             prefixes.extend(DEFAULT_PREFIXES)
             return prefixes
         get_prefix = await self.cache.get_prefix(message.guild.id)
@@ -187,31 +189,18 @@ class Bot(commands.Bot):
             prefixes.append(prefix[1])
         return prefixes
 
-    async def bot_check(self, ctx: Context) -> bool:
-        if ctx.author.id in self.cache.blacklist:
-            raise Blacklisted(reason=self.cache.blacklist[ctx.author.id])
-        if not ctx.guild:
-            return True
-        if str(ctx.command) in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]:
-            raise CommandDisabledGuild()
-        if ctx.channel.id in ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"]:
-            raise CommandDisabledChannel()
-        if ctx.bot.maintenance is True:
-            raise Maintenance()
-        return True
-
     async def load_extensions(self) -> None:
         for ext in self.primary_extensions:
             try:
                 await self.load_extension(ext)
             except commands.ExtensionError as error:
-                print(error)
+                _log.error("Exception in loading extension (primary)", exc_info=error)
         await self.wait_until_ready()
         for ext in self.secondary_extensions:
             try:
                 await self.load_extension(ext)
             except commands.ExtensionError as error:
-                print(error)
+                _log.error("Exception in loading extension (secondary)", exc_info=error)
 
     async def find_restart_message(self) -> None:
         await self.wait_until_ready()
@@ -219,12 +208,13 @@ class Bot(commands.Bot):
             info = toml.loads(f.read())
             if info:
                 channel = self.get_channel(info["channel_id"])
-                message = channel.get_partial_message(info["message_id"])
-                if message:
-                    now: datetime = datetime.now(tz=dt.timezone.utc)
-                    await message.edit(content=f"Took {(now - info['restart_time']).seconds} seconds to restart.")
-                f.truncate(0)
-            f.close()
+                if channel is not None and isinstance(channel, discord.TextChannel):
+                    message = channel.get_partial_message(info["message_id"])
+                    if message:
+                        now: datetime = datetime.now(tz=dt.timezone.utc)
+                        await message.edit(content=f"Took {(now - info['restart_time']).seconds} seconds to restart.")
+                    f.truncate(0)
+                f.close()
 
     async def start_nodes(self) -> None:
         await self.wait_until_ready()
@@ -235,44 +225,39 @@ class Bot(commands.Bot):
                 host="127.0.0.1",
                 port=2333,
                 password="youshallnotpass",
-                identifier="MAIN",
+                identifier="Avimetry",
                 spotify_client=spotify.SpotifyClient(
                     client_id=self.api["SpotifyClientID"], client_secret=self.api["SpotifySecret"]
                 ),
             )
         except Exception as e:
-            cog: commands.Cog = self.get_cog("errorhandler")
+            cog: ErrorHandler | None = self.get_cog("errorhandler")  # type: ignore
             if cog:
                 await cog.error_webhook.send(str(e))
-            self.unload_extension("extensions.cogs.music")
+            await self.unload_extension("extensions.cogs.music")
 
     async def on_ready(self) -> None:
-        timenow: str = datetime.now().strftime("%m/%d/%Y at %I:%M %p")
-        print(
-            "Successfully logged in:\n"
-            f"Username: {self.user.name}\n"
-            f"Bot ID: {self.user.id}\n"
-            f"Login Time: {timenow}\n"
-        )
+        _log.info(f"Running: {self.user.name} ({self.user.id})")
 
     async def wait_for(
         self, event: str, *, check: Callable[..., bool] | None = None, timeout: float | None = None
     ) -> Any:
         if event == "message":
 
-            def bl_check(*args: Any) -> bool:
+            def bl_message_check(*args: Any) -> bool:
                 if check:
                     return args[0].author.id not in self.cache.blacklist and check(*args)
                 else:
                     return args[0].author.id not in self.cache.blacklist
+            return await super().wait_for(event, check=bl_message_check, timeout=timeout)
 
         elif event in ("reaction_add", "reaction_remove"):
 
-            def bl_check(*args):
+            def bl_reaction_check(*args) -> bool:
                 if check:
                     return args[1].id not in self.cache.blacklist and check(*args)
                 return args[1].id not in self.cache.blacklist
-
+            return await super().wait_for(event, check=bl_reaction_check, timeout=timeout)
         else:
             bl_check = check
         return await super().wait_for(event, check=bl_check, timeout=timeout)
@@ -280,8 +265,13 @@ class Bot(commands.Bot):
     async def wait_for_message(self, *, check=None, timeout=None) -> Any:
         return await self.wait_for("message", check=check, timeout=timeout)
 
-    async def get_context(self, origin: discord.Message, *, cls=None) -> Context:
-        return await super().get_context(origin, cls=cls or self.context)
+    async def get_context(
+        self,
+        origin: discord.Message | discord.Interaction,
+        *,
+        cls: Context | None = None,
+    ) -> Context:
+        return await super().get_context(origin, cls=cls or self.context) # type: ignore
 
     async def on_message_edit(self, before: discord.Message, after: discord.Message) -> None:
         if before.content == after.content or after.attachments:
@@ -296,10 +286,11 @@ class Bot(commands.Bot):
             except Exception:
                 pass
 
-    async def is_owner(self, user: discord.User, /) -> bool:
-        return user.id in self.owner_ids
+    async def is_owner(self, user: discord.User | discord.Member, /) -> bool:
+        if user is not None:
+            return user.id in self.owner_ids
 
-    def command(self, name=None, cls=None, **kwargs) -> Command:
+    def command(self, name=None, cls=None, **kwargs):
         if cls is None:
             cls = Command
 
@@ -312,20 +303,16 @@ class Bot(commands.Bot):
 
         return decorator
 
-    def group(self, name=None, **kwargs) -> Group:
+    def group(self, name=None, **kwargs):
         return self.command(name=name, cls=Group, **kwargs)
 
-    def run(self, *args: Any, **kwargs: Any) -> None:
+    def run(self, token: str | None = None, *args: Any, **kwargs: Any) -> None:
         tokens = self.settings["bot_tokens"]
-        token = tokens["Avimetry"]
+        token = tokens["Avimetry"] if token is None else token
         super().run(token, reconnect=True, *args, **kwargs)
 
     async def close(self) -> None:
         await self.session.close()
         await self.sr.close()
+        _log.info(f"Stopped: {self.user.name} ({self.user.id})")
         await super().close()
-        timenow: str = datetime.now().strftime("%m/%d/%Y at %I:%M %p")
-        print(
-            f"\n{self.user.name} logged out:\n" f"Logged out time: {timenow}",
-            end="\n\n",
-        )

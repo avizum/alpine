@@ -20,8 +20,8 @@ import discord
 
 
 class View(discord.ui.View):
-    def __init__(self, *, member: discord.Member, timeout: int = 180) -> None:
-        self.member = member
+    def __init__(self, *, member: discord.Member | discord.User, timeout: int = 180) -> None:
+        self.member: discord.Member | discord.User = member
         super().__init__(timeout=timeout)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:

@@ -16,8 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
 import inspect
 import functools
+from typing import TYPE_CHECKING
 
 import discord
 from discord.ext import commands
@@ -25,8 +28,10 @@ from discord.ext import commands
 from .core import Command
 from .exceptions import NotGuildOwner
 
+if TYPE_CHECKING:
+    from .context import Context
 
-def check(predicate, member_permissions=None, bot_permissions=None):
+def check(predicate: any, member_permissions: bool = None, bot_permissions: bool = None):
     def decorator(func):
         if member_permissions:
             func.member_permissions = member_permissions
@@ -54,12 +59,12 @@ def check(predicate, member_permissions=None, bot_permissions=None):
     return decorator
 
 
-def has_permissions(**perms):
+def has_permissions(**perms: bool):
     invalid = set(perms) - set(discord.Permissions.VALID_FLAGS)
     if invalid:
         raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
-    async def predicate(ctx):
+    async def predicate(ctx: Context):
         ch = ctx.channel
         permissions = ch.permissions_for(ctx.author)
 
@@ -75,12 +80,12 @@ def has_permissions(**perms):
     return check(predicate, member_permissions=perms)
 
 
-def bot_has_permissions(**perms):
+def bot_has_permissions(**perms: bool):
     invalid = set(perms) - set(discord.Permissions.VALID_FLAGS)
     if invalid:
         raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
-    async def predicate(ctx):
+    async def predicate(ctx: Context):
         guild = ctx.guild
         me = guild.me if guild is not None else ctx.bot.user
         permissions = ctx.channel.permissions_for(me)
@@ -95,7 +100,7 @@ def bot_has_permissions(**perms):
     return check(predicate, bot_permissions=perms)
 
 
-def cooldown(rate, per, type=commands.BucketType.default):
+def cooldown(rate: int, per: float, type=commands.BucketType.default):
     def decorator(func):
         if isinstance(func, Command):
             func._buckets = commands.CooldownMapping(commands.Cooldown(rate, per), type)
@@ -107,7 +112,7 @@ def cooldown(rate, per, type=commands.BucketType.default):
 
 
 def is_owner():
-    async def predicate(ctx):
+    async def predicate(ctx: Context):
         if not await ctx.bot.is_owner(ctx.author):
             raise commands.NotOwner("You do not own this bot.")
         return True
@@ -116,7 +121,7 @@ def is_owner():
 
 
 def is_guild_owner():
-    async def predicate(ctx):
+    async def predicate(ctx: Context):
         if ctx.author != ctx.guild.owner:
             raise NotGuildOwner
         return True

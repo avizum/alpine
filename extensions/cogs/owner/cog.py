@@ -42,7 +42,7 @@ from jishaku.flags import Flags
 from jishaku.functools import AsyncSender
 from jishaku.models import copy_context_with
 from jishaku.modules import package_version
-from jishaku.paginators import PaginatorInterface, WrappedPaginator
+from jishaku.paginators import PaginatorInterface
 from jishaku.repl import AsyncCodeExecutor, get_var_dict_from_ctx
 
 import core
@@ -50,7 +50,7 @@ from core import Bot, Context
 from utils import ModReason, Paginator, PaginatorEmbed, View, Emojis
 
 
-def naturalsize(size_in_bytes: int) -> str:
+def natural_size(size_in_bytes: int) -> str:
     """
     Converts a number of bytes to an appropriately-scaled unit
     E.g.:
@@ -190,107 +190,121 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     @Feature.Command(
         name="jishaku",
         aliases=["jsk", "dev", "developer"],
-        hidden=Flags.HIDE,
         invoke_without_command=True,
         ignore_extra=False,
-        extras={"member_permissions": ["bot_owner"]},
+        command_extras={"member_permissions": ["bot_owner"]}
     )
     async def jsk(self, ctx: Context):
         """
         The Jishaku debug and diagnostic commands.
-
         This command on its own gives a status brief.
         All other functionality is within its subcommands.
         """
-        distributions = [
-            dist
-            for dist in packages_distributions()["discord"]
-            if any(file.parts == ("discord", "__init__.py") for file in distribution(dist).files)
+
+        # Try to locate what vends the `discord` package
+        distributions: list[str] = [
+            dist for dist in packages_distributions()['discord']
+            if any(
+                file.parts == ('discord', '__init__.py')
+                for file in distribution(dist).files
+            )
         ]
 
         if distributions:
-            dist_version = f"{distributions[0]} `{package_version(distributions[0])}`"
+            dist_version = f'{distributions[0]} `{package_version(distributions[0])}`'
         else:
-            dist_version = f"unknown `{discord.__version__}`"
+            dist_version = f'unknown `{discord.__version__}`'
 
         summary = [
-            f"Jishaku `v{package_version('jishaku')}`, {dist_version}, "
-            f"Python `{sys.version}` on `{sys.platform}`, ".replace("\n", ""),
-            f"Jishaku was loaded {format_dt(self.load_time, 'R')} "
-            f"and cog was loaded {format_dt(self.start_time, 'R')}.",
-            "",
+            f"Jishaku v{package_version('jishaku')}, {dist_version}, "
+            f"`Python {sys.version}` on `{sys.platform}`".replace("\n", ""),
+            f"Module was loaded <t:{self.load_time.timestamp():.0f}:R>, "
+            f"cog was loaded <t:{self.start_time.timestamp():.0f}:R>.",
+            ""
         ]
-        if psutil:
-            try:
-                proc = psutil.Process()
-                with proc.oneshot():
-                    try:
-                        mem = proc.memory_full_info()
-                        summary.append(
-                            f"This process is using {naturalsize(mem.rss)} physical memory and "
-                            f"{naturalsize(mem.vms)} virtual memory, "
-                            f"{naturalsize(mem.uss)} of which is unique to this process."
-                        )
-                    except psutil.AccessDenied:
-                        pass
 
-                    try:
-                        name = proc.name()
-                        pid = proc.pid
-                        tc = proc.num_threads()
+        try:
+            proc = psutil.Process()
 
-                        summary.append(f"This process is running on  PID `{pid}` (`{name}`) with {tc} threads.")
-                    except psutil.AccessDenied:
-                        pass
-                    summary.append("")
+            with proc.oneshot():
+                try:
+                    mem = proc.memory_full_info()
+                    summary.append(
+                        f"Using {natural_size(mem.rss)} physical memory and "
+                        f"{natural_size(mem.vms)} virtual memory, "
+                        f"{natural_size(mem.uss)} of which unique to this process."
+                    )
+                except psutil.AccessDenied:
+                    pass
 
-            except psutil.AccessDenied:
-                summary.append("psutil is installed but this process does not have access to display this information")
-                summary.append("")
+                try:
+                    name = proc.name()
+                    pid = proc.pid
+                    thread_count = proc.num_threads()
+
+                    summary.append(f"Running on PID {pid} (`{name}`) with {thread_count} thread(s).")
+                except psutil.AccessDenied:
+                    pass
+
+                summary.append("")  # blank line
+        except psutil.AccessDenied:
+            summary.append(
+                "psutil is installed, but this process does not have high enough access rights "
+                "to query process information."
+            )
+            summary.append("")  # blank line
 
         guilds = f"{len(self.bot.guilds):,} guilds"
         humans = f"{sum(not m.bot for m in self.bot.users):,} humans"
         bots = f"{sum(m.bot for m in self.bot.users):,} bots"
         users = f"{len(self.bot.users):,} users"
+        cache_summary = f"{guilds} and can see {humans}, and {bots}, totalling to {users}"
 
-        cache_summary = f"can see {guilds}, {humans}, and {bots}, totaling to {users}."
-
+        # Show shard settings to summary
         if isinstance(self.bot, discord.AutoShardedClient):
             if len(self.bot.shards) > 20:
                 summary.append(
-                    f"This bot is automatically sharded ({len(self.bot.shards)} shards of {self.bot.shard_count}) "
-                    f"and {cache_summary}"
+                    f"This bot is automatically sharded ({len(self.bot.shards)} shards of {self.bot.shard_count})"
+                    f" and can see {cache_summary}."
                 )
             else:
-                shard_ids = ", ".join(str(i) for i in self.bot.shards.keys())
+                shard_ids = ', '.join(str(i) for i in self.bot.shards.keys())
                 summary.append(
                     f"This bot is automatically sharded (Shards {shard_ids} of {self.bot.shard_count})"
-                    f"and {cache_summary}"
+                    f" and can see {cache_summary}."
                 )
         elif self.bot.shard_count:
             summary.append(
                 f"This bot is manually sharded (Shard {self.bot.shard_id} of {self.bot.shard_count})"
-                f"and {cache_summary}"
+                f" and can see {cache_summary}."
             )
         else:
-            summary.append(f"This bot is not sharded and {cache_summary}")
+            summary.append(f"This bot is not sharded and can see {cache_summary}.")
 
         if self.bot._connection.max_messages:
-            message_cache = f"Message cache is capped at {self.bot._connection.max_messages}."
+            message_cache = f"Message cache capped at {self.bot._connection.max_messages}"
         else:
-            message_cache = "Message cache is not enabled."
-        summary.append(message_cache)
+            message_cache = "Message cache is disabled"
 
-        presence_intent = f"Presences intent `{'enabled' if self.bot.intents.presences else 'disabled'}`"
-        members_intent = f"Members intent `{'enabled' if self.bot.intents.members else 'disabled'}`"
-        message_intent = f"Message intent `{'enabled' if self.bot.intents.message_content else 'disabled'}`"
-        summary.append(f"{presence_intent}, {members_intent} and {message_intent}.")
-        summary.append("")
+        remarks = {
+            True: '`enabled`',
+            False: '`disabled`',
+            None: '`unknown`'
+        }
 
-        summary.append(f"Average websocket latency: `{round(self.bot.latency * 1000)}ms`")
+        *group, last = (
+            f"{intent.replace('_', ' ')} intent is {remarks.get(getattr(self.bot.intents, intent, None))}"
+            for intent in
+            ('presences', 'members', 'message_content')
+        )
 
-        jishaku_embed = discord.Embed(description="\n".join(summary))
-        await ctx.send(embed=jishaku_embed)
+        summary.append(f"{message_cache}, {', '.join(group)}, and {last}.")
+
+        # Show websocket latency in milliseconds
+        summary.append(f"Average websocket latency: `{round(self.bot.latency * 1000, 2)}ms`")
+
+        embed = discord.Embed(description="\n".join(summary))
+        await ctx.send(embed=embed)
 
     @Feature.Command(parent="jsk", name="py", aliases=["python"])
     async def jsk_python(self, ctx: Context, *, argument: codeblock_converter):
@@ -479,8 +493,8 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         embed = discord.Embed(title="Reloaded Extensions", description=description)
         await ctx.send(embed=embed)
 
-    @Feature.Command(parent="jsk", name="sync", aliases=["s"])
-    async def jsk_sync(self, ctx: Context):
+    @Feature.Command(parent="jsk", name="gitsync", aliases=["git_sync", "gsync"])
+    async def jsk_git_sync(self, ctx: Context):
         """
         Pulls from GitHub then reloads all modules.
 
@@ -509,28 +523,6 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             sync_embed.set_footer(text="Reload Changed Files?")
             view = ReloadView(ctx, self.bot, to_reload, sync_embed)
         await edit_sync.edit(view=view, embed=sync_embed)
-
-    @Feature.Command(parent="jsk", name="treesync", aliases=["ts", "synctree", "tsync", "stree"])
-    async def jsk_tree_sync(self, ctx: commands.Context, *guild_ids: int):
-        """
-        Sync global or guild application commands to Discord.
-        """
-        paginator = WrappedPaginator(prefix="", suffix="")
-
-        if not guild_ids:
-            synced = await self.bot.tree.sync()
-            paginator.add_line(f"\N{SATELLITE ANTENNA} Synced {len(synced)} global commands")
-        else:
-            for guild_id in guild_ids:
-                try:
-                    synced = await self.bot.tree.sync(guild=discord.Object(guild_id))
-                except discord.HTTPException as exc:
-                    paginator.add_line(f"\N{WARNING SIGN} `{guild_id}`: {exc.text}")
-                else:
-                    paginator.add_line(f"\N{SATELLITE ANTENNA} `{guild_id}` Synced {len(synced)} guild commands")
-
-        for page in paginator.pages:
-            await ctx.send(page)
 
     @Feature.Command(parent="jsk")
     async def leave(self, ctx: Context, guild: discord.Guild):

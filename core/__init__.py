@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 # flake8: noqa
-from .core import Command, Group, Cog, command, group
+from .core import Command, Group, Cog, command, group, describe
 from .checks import (
     check,
     has_permissions,
@@ -26,6 +26,5 @@ from .checks import (
     cooldown,
     is_guild_owner,
 )
-from .flags import Flag, flag
 from .avimetry import Bot
 from .context import Context

@@ -98,14 +98,14 @@ class ConfirmResult:
 class AutoPageSource(menus.ListPageSource):
     def __init__(self, entry: str | list, language: str = "", *, limit: int = 1000):
         if isinstance(entry, list):
-            entries = entry
+            entry = entry
         elif isinstance(entry, str):
             pag = WrappedPaginator(prefix=f"```{language}", suffix="```", max_size=limit, force_wrap=True)
             pag.add_line(entry)
-            entries = pag.pages
+            entry = pag.pages
         elif isinstance(entry, commands.Paginator):
-            entries = entry.pages
-        super().__init__(entries, per_page=1)
+            entry = entry.pages
+        super().__init__(entry, per_page=1)
 
     async def format_page(self, menu, page):
         return page
@@ -256,7 +256,7 @@ class Context(commands.Context):
             if not embed.color:
                 embed.color = await self.fetch_color()
 
-        kwargs = {
+        kwargs: dict[str, any] = {
             "content": content,
             "tts": tts,
             "embed": embed,
@@ -287,7 +287,7 @@ class Context(commands.Context):
                 )
                 for pop in to_pop:
                     kwargs.pop(pop, None)
-                kwargs["embed"] = MISSING if embed is None else embed
+                kwargs["embed"] = embed
                 kwargs["embeds"] = MISSING if embeds is None else embeds
                 kwargs["suppress"] = suppress_embeds
                 message = await self.bot.command_cache[self.message.id].edit(**kwargs)
@@ -322,7 +322,7 @@ class Context(commands.Context):
         await self.interaction.response.send_message(**kwargs)
         msg = await self.interaction.original_message()
 
-        if delete_after is not None:
+        if delete_after is not None and not (ephemeral and self.interaction is not None):
             await msg.delete(delay=delete_after)
 
         return msg

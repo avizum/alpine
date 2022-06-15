@@ -93,7 +93,7 @@ class Music(core.Cog):
                 return True
             if ctx.voice_client and ctx.channel == ctx.voice_client.bound:
                 return True
-            raise IncorrectChannelError(f"Music commands are bound to {ctx.voice_client.bound.mention}.")
+            raise IncorrectChannelError("This music sesion does not allow commands to be used in this channel.")
 
         return commands.check(predicate)
 

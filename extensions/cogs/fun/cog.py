@@ -163,26 +163,6 @@ class Fun(core.Cog):
             allowed_mentions=discord.AllowedMentions.none(),
         )
 
-    @core.command(aliases=["fp", "facep", "fpalm"])
-    async def facepalm(self, ctx: Context, member: discord.Member = None):
-        """
-        Sends a message saying you hit your head.
-        """
-        if member is None:
-            return await ctx.send(f"{ctx.author.mention} facepalmed.")
-        return await ctx.send(f"{ctx.author.mention} facepalmed because {member.mention} was being stupid.")
-
-    @core.command(aliases=["sd"])
-    async def selfdestruct(self, ctx: Context):
-        """
-        Self desctruct?!?!! Who put that there?!!?
-        """
-        if await self.bot.is_owner(ctx.author):
-            command = self.bot.get_command("dev reboot")
-            return await command(ctx)
-        a = discord.Embed(description=f"{ctx.author.mention} self destructed due to overloaded fuel canisters")
-        await ctx.send(embed=a)
-
     @core.command()
     async def dropkick(self, ctx: Context, *, mention: discord.Member):
         """

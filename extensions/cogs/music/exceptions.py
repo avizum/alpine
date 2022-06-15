@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from discord.ext import commands
 
 
-class NoChannelProvided(commands.CommandError):
+class NoChannelProvided(commands.CheckFailure):
     """
     Error raised when no suitable voice channel was supplied.
     """
@@ -27,7 +27,7 @@ class NoChannelProvided(commands.CommandError):
     pass
 
 
-class IncorrectChannelError(commands.CommandError):
+class IncorrectChannelError(commands.CheckFailure):
     """
     Error raised when commands are used outside of the players session channel.
     """
@@ -35,7 +35,7 @@ class IncorrectChannelError(commands.CommandError):
     pass
 
 
-class NotInVoice(commands.CommandError):
+class NotInVoice(commands.CheckFailure):
     """
     Error raised when someone tries do to something when they are not in the voice channel.
     """
@@ -43,7 +43,7 @@ class NotInVoice(commands.CommandError):
     pass
 
 
-class BotNotInVoice(commands.CommandError):
+class BotNotInVoice(commands.CheckFailure):
     """
     Error raised when the bot is not in the voice channel.
     """

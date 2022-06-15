@@ -20,28 +20,20 @@ from __future__ import annotations
 
 
 import datetime
-from typing import TYPE_CHECKING, Any, TypeVar, ParamSpec, Concatenate, Callable, overload
+from typing import TYPE_CHECKING, TypeVar, Callable
 
 import discord
 from discord.ext import commands
 from discord.ext.commands import DisabledCommand, CheckFailure
-from discord.ext.commands._types import CogT
+from discord.utils import MISSING
 
 
 if TYPE_CHECKING:
     from .avimetry import Bot
-    from discord.ext.commands._types import ContextT, Coro
 
-MISSING = discord.utils.MISSING
-
-T = TypeVar('T')
-GroupT = TypeVar('GroupT', bound='Group')
-CommandT = TypeVar('CommandT', bound='Command')
-
-if TYPE_CHECKING:
-    P = ParamSpec('P')
-else:
-    P = TypeVar('P')
+T = TypeVar("T")
+GroupT = TypeVar("GroupT", bound="Group")
+CommandT = TypeVar("CommandT", bound="Command")
 
 
 def to_list(thing) -> list[str]:
@@ -52,12 +44,12 @@ class Command(commands.Command):
     def __init__(self, func, **kwargs) -> None:
         self.member_permissions = to_list(
             kwargs.get("member_permissions")
-            or getattr(func, "member_permissions", ["send_messages"])
+            or getattr(func, "member_permissions", ["none_needed"])
             or kwargs.get("extras", {}).get("member_permissions")
         )
         self.bot_permissions = to_list(
             kwargs.get("bot_permissions")
-            or getattr(func, "bot_permissions", ["send_messages"])
+            or getattr(func, "bot_permissions", ["none_needed"])
             or kwargs.get("extras", {}).get("bot_permissions")
         )
         super().__init__(func, **kwargs)
@@ -97,28 +89,46 @@ class Command(commands.Command):
             ctx.command = original
 
 
-class Group(Command, commands.Group):
+class Group(commands.Group, Command):
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
         self.invoke_without_command = kwargs.get("invoke_without_command", True)
+        super().__init__(*args, **kwargs)
 
-    def command(self, *args, **kwargs) -> Command:
+    def command(
+        self,
+        name: str = MISSING,
+        hybrid: bool = False,
+        **attrs: any,
+    ) -> Callable[..., Command | HybridCommand]:
         def decorator(func):
-            kwargs.setdefault("parent", self)
-            result = command(*args, **kwargs)(func)
+            attrs.setdefault("parent", self)
+            result = command(name=name, hybrid=hybrid, **attrs)(func)
             self.add_command(result)
             return result
 
         return decorator
 
-    def group(self, *args, **kwargs) -> Group:
+    def group(
+        self,
+        name: str = MISSING,
+        hybrid: bool = False,
+        **kwargs: Callable[..., Group | HybridGroup],
+    ) -> Callable[..., Group | HybridCommand]:
         def decorator(func):
             kwargs.setdefault("parent", self)
-            result = group(*args, **kwargs)(func)
+            result = group(name=name, hybrid=hybrid, **kwargs)(func)
             self.add_command(result)
             return result
 
         return decorator
+
+
+class HybridCommand(commands.HybridCommand, Command):
+    pass
+
+
+class HybridGroup(commands.HybridGroup, Group):
+    pass
 
 
 class Cog(commands.Cog):
@@ -126,98 +136,34 @@ class Cog(commands.Cog):
         self.bot: Bot = bot
         self.load_time: datetime.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
 
-if TYPE_CHECKING:
-    # Using a class to emulate a function allows for overloading the inner function in the decorator.
-
-    class _CommandDecorator:
-        @overload
-        def __call__(self, func: Callable[Concatenate[CogT, ContextT, P], Coro[T]], /) -> Command[CogT, P, T]:
-            ...
-
-        @overload
-        def __call__(self, func: Callable[Concatenate[ContextT, P], Coro[T]], /) -> Command[None, P, T]:
-            ...
-
-        def __call__(self, func: Callable[..., Coro[T]], /) -> Any:
-            ...
-
-    class _GroupDecorator:
-        @overload
-        def __call__(self, func: Callable[Concatenate[CogT, ContextT, P], Coro[T]], /) -> Group[CogT, P, T]:
-            ...
-
-        @overload
-        def __call__(self, func: Callable[Concatenate[ContextT, P], Coro[T]], /) -> Group[None, P, T]:
-            ...
-
-        def __call__(self, func: Callable[..., Coro[T]], /) -> Any:
-            ...
-
-
-@overload
-def command(
-    name: str = ...,
-    **attrs: Any,
-) -> _CommandDecorator:
-    ...
-
-
-@overload
-def command(
-    name: str = ...,
-    cls: type[CommandT] = ...,
-    **attrs: Any,
-) -> Callable[
-    [
-        Callable[Concatenate[ContextT, P], Coro[Any]] |
-        Callable[Concatenate[CogT, ContextT, P], Coro[Any]]
-    ],
-    CommandT,
-]:
-    ...
 
 def command(
     name: str = MISSING,
-    cls: type[Command[Any, ..., Any]] = None,
-    **kwargs
-) -> Any:
-    if cls is None:
-        cls = Command
+    hybrid: bool = False,
+    **kwargs: any
+) -> Callable[..., Command | HybridCommand]:
+    cls = HybridCommand if hybrid else Command
 
     def decorator(func):
         if isinstance(func, Command):
-            raise TypeError("Callback is already a command")
+            raise TypeError("Callback is already a command.")
         return cls(func, name=name, **kwargs)
 
     return decorator
 
 
-@overload
-def group(
-    name: str = ...,
-    **attrs: Any,
-) -> _GroupDecorator:
-    ...
-
-
-@overload
-def group(
-    name: str = ...,
-    cls: type[GroupT] = ...,
-    **attrs: Any,
-) -> Callable[
-    [
-        Callable[Concatenate[CogT, ContextT, P], Coro[Any]] |
-        Callable[Concatenate[ContextT, P], Coro[Any]],
-    ],
-    GroupT,
-]:
-    ...
-
-
 def group(
     name: str = MISSING,
-    cls: type[Group[Any, ..., Any]] = MISSING,
-    **kwargs: Any,
-) -> Any:
-    return command(name=name, cls=Group, **kwargs)
+    hybrid: bool = False,
+    **kwargs: any
+) -> Callable[..., Group | HybridGroup]:
+    cls = HybridGroup if hybrid else Group
+
+    def decorator(func: any) -> Group | HybridGroup:
+        if isinstance(func, Group):
+            raise TypeError("Callback is already a group.")
+        return cls(func, name=name, **kwargs)
+
+    return decorator
+
+describe = discord.app_commands.describe

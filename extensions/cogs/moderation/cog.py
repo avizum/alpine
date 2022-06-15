@@ -41,9 +41,10 @@ class Moderation(core.Cog):
         self.emoji = "\U0001f6e1"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
-    @core.command()
+    @core.command(hybrid=True)
     @core.has_permissions(kick_members=True)
     @core.bot_has_permissions(kick_members=True)
+    @core.describe(member="The member to kick.")
     async def kick(self, ctx: Context, member: TargetMember, *, flags: ModActionFlag):
         """
         Kicks someone from the server.
@@ -92,7 +93,7 @@ class Moderation(core.Cog):
                     fail += 1
             await m.edit(content=f"Sucessfully kicked {len(targets)-fail}/{len(targets)} members.")
 
-    @core.command()
+    @core.command(hybrid=True)
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
     async def softban(self, ctx: Context, member: TargetMember, *, flags: ModActionFlag):
@@ -120,7 +121,7 @@ class Moderation(core.Cog):
                 kick_embed.description = f"**{member}** has been soft-banned, However, I could not DM them."
         await ctx.send(embed=kick_embed)
 
-    @core.command()
+    @core.command(hybrid=True)
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
     async def ban(self, ctx: Context, member: TargetMember, *, flags: BanFlag):
@@ -173,7 +174,7 @@ class Moderation(core.Cog):
                     fail += 1
             await m.edit(content=f"Sucessfully banned {len(targets)-fail}/{len(targets)} members.")
 
-    @core.command()
+    @core.command(hybrid=True)
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
     async def unban(self, ctx: Context, member: FindBan, *, reason: ModReason = DefaultReason):
@@ -192,7 +193,7 @@ class Moderation(core.Cog):
 
         await ctx.send(embed=unban_embed)
 
-    @core.command(aliases=["timeout", "tempmute"])
+    @core.command(hybrid=True, aliases=["timeout", "tempmute"])
     @core.has_permissions(moderate_members=True)
     @core.bot_has_permissions(moderate_members=True)
     async def mute(
@@ -223,7 +224,7 @@ class Moderation(core.Cog):
         )
         await ctx.send(embed=embed)
 
-    @core.command(aliases=["untimeout", "untempmute"])
+    @core.command(hybrid=True, aliases=["untimeout", "untempmute"])
     @core.has_permissions(moderate_members=True)
     @core.bot_has_permissions(moderate_members=True)
     async def unmute(self, ctx: Context, member: TargetMember, *, reason: ModReason = DefaultReason):
@@ -269,7 +270,7 @@ class Moderation(core.Cog):
         message = "\n".join(f"{author.mention}: {amount} messages" for author, amount in authors.items())
         return discord.Embed(title="Affected Messages", description=message)
 
-    @core.group(invoke_without_command=True)
+    @core.group(hybrid=True, fallback="messages", invoke_without_command=True)
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
     @commands.cooldown(5, 30, commands.BucketType.member)
@@ -334,7 +335,7 @@ class Moderation(core.Cog):
     @purge.command(aliases=["in"])
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
-    async def contains(self, ctx: Context, *, text):
+    async def contains(self, ctx: Context, *, text: str):
         """
         Purge messages containing text.
 
@@ -346,7 +347,7 @@ class Moderation(core.Cog):
     @purge.command(aliases=["sw", "starts"])
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
-    async def startswith(self, ctx: Context, *, text):
+    async def startswith(self, ctx: Context, *, text: str):
         """
         Purge messages starting with text.
 
@@ -358,7 +359,7 @@ class Moderation(core.Cog):
     @purge.command(aliases=["ew", "ends"])
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
-    async def endswith(self, ctx: Context, *, text):
+    async def endswith(self, ctx: Context, *, text: str):
         """
         Purge messages ending with with text.
 
@@ -486,7 +487,7 @@ class Moderation(core.Cog):
 
     @core.command()
     @core.has_permissions(kick_members=True)
-    async def nick(self, ctx: Context, member: TargetMember, *, nick=None):
+    async def nick(self, ctx: Context, member: TargetMember, *, nick: str = None):
         """
         Gives or chanes a person's nick name.
 

@@ -18,14 +18,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
+import logging
+
 from copy import deepcopy
 from typing import TYPE_CHECKING
 
 from discord.ext import tasks
 
 if TYPE_CHECKING:
-    from .avimetry import Bot
+    from core.avimetry import Bot
 
+
+_log = logging.getLogger("avimetry")
 
 class Cache:
     def __init__(self, bot: Bot) -> None:
@@ -126,7 +130,7 @@ class Cache:
         blacklist = await self.bot.pool.fetch("SELECT * FROM blacklist")
         highlight = await self.bot.pool.fetch("SELECT * FROM highlights")
 
-        print("Populating Cache...")
+        _log.info("Populating Cache...")
         for entry in guild_settings:
             settings = dict(entry)
             settings.pop("guild_id")
@@ -159,4 +163,4 @@ class Cache:
             item = dict(entry)
             item.pop("user_id")
             self.highlights[entry["user_id"]] = item
-        print("Cache Populated.")
+        _log.info("Cache Populated.")

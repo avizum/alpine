@@ -20,8 +20,9 @@ import re
 
 import discord
 from discord.ext import commands
+from discord.ext.commands import flag
 
-from core import Context, flag
+from core import Context
 from utils import ModReason
 
 

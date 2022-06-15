@@ -28,6 +28,8 @@ from core import Bot
 from asyncgist import File
 
 import core
+from core.exceptions import Blacklisted, CommandDisabledGuild, CommandDisabledChannel, Maintenance
+from core import Context
 
 TOKEN_REGEX = r"([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}|mfa\.[a-zA-Z0-9_\-]{84})"
 
@@ -221,6 +223,19 @@ class BotLogs(core.Cog):
     @core.Cog.listener("on_guild_update")
     async def logging_guild(self, before: discord.Guild, after: discord.Guild):
         pass
+
+    async def bot_check(self, ctx: Context) -> bool:
+        if ctx.author.id in self.bot.cache.blacklist:
+            raise Blacklisted(reason=self.bot.cache.blacklist[ctx.author.id])
+        if not ctx.guild:
+            return True
+        if str(ctx.command) in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]:
+            raise CommandDisabledGuild()
+        if ctx.channel.id in ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"]:
+            raise CommandDisabledChannel()
+        if ctx.bot.maintenance is True:
+            raise Maintenance()
+        return True
 
     @tasks.loop(minutes=30)
     async def clear_cache(self):

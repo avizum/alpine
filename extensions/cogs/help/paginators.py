@@ -212,7 +212,7 @@ class HelpSelect(discord.ui.Select["HelpPages"]):
         super().__init__(placeholder=f"Select a module ({len(cogs)} modules)", options=options)
 
     async def callback(self, interaction: discord.Interaction) -> None:
-        cog: core.Cog = self.ctx.bot.get_cog(self.values[0])
+        cog: core.Cog | None = self.ctx.bot.get_cog(self.values[0])
         if self.current_module == cog:
             return await interaction.response.defer()
         if self.values[0] == "Home":

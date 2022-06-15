@@ -21,10 +21,11 @@ from typing import Literal
 
 import discord
 from discord.ext import commands
+from discord.ext.commands import flag
 from akinator import CantGoBackAnyFurther
 from akinator.async_aki import Akinator
 
-from core import Context, flag
+from core import Context
 from utils import View
 
 

@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
 import copy
-import sys
+import logging
 import traceback as tb
 
 import discord
@@ -36,6 +36,9 @@ from core.exceptions import (
 from utils import View, format_list
 from discord.ext import commands
 from difflib import get_close_matches
+
+
+_log = logging.getLogger("avimetry")
 
 
 class Embed(discord.Embed):
@@ -333,7 +336,6 @@ class ErrorHandler(core.Cog):
             traceback = f"```{''.join(exc)}```"
             if len(traceback) > 1995:
                 traceback = f"Error was too long: {await self.bot.myst.post(traceback, 'bash')}"
-
             query = "SELECT * FROM command_errors WHERE command=$1 and error=$2"
             in_db = await self.bot.pool.fetchrow(query, ctx.command.qualified_name, str(error))
             if not in_db:
@@ -369,8 +371,7 @@ class ErrorHandler(core.Cog):
                 f"Error ID: {error_info['id']}"
             )
             await self.error_webhook.send(traceback, embed=webhook_error_embed, username="Command Error")
-            print(f"Ignoring exception in command {ctx.command}:", file=sys.stderr)
-            tb.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+            _log.error(f"Ignoring exception in command {ctx.command}:", exc_info=error)
             view = UnknownError(member=ctx.author, bot=self.bot, error_id=error_info["id"])
             view.message = await ctx.send(embed=embed, view=view)
 

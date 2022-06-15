@@ -93,8 +93,6 @@ class TopGG(core.Cog):
         user = self.bot.get_user(int(user_id))
         if not user:
             await self.bot.fetch_user(int(user_id))
-        embed = discord.Embed(title="Vote recieved", description=f"{user} has just voted on {vote_type}!")
-        await self.webhook.send(embed=embed, username=user.name)
         user_embed = discord.Embed(title="Vote Recieved", description=f"Thank you for voting on {vote_type}!")
         await user.send(embed=user_embed)
 

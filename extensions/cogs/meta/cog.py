@@ -135,8 +135,8 @@ class Meta(core.Cog):
 
         return await ctx.send(random.choice(opt))
 
-    @commands.hybrid_command(aliases=["ui", "uinfo", "whois"])
-    @commands.cooldown(1, 15, commands.BucketType.user)
+    @core.command(hybrid=True, aliases=["ui", "uinfo", "whois"])
+    @core.cooldown(1, 15, commands.BucketType.user)
     async def userinfo(self, ctx: Context, *, member: discord.Member | discord.User = None):
         """
         Get info about a user.
