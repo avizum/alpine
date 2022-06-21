@@ -42,7 +42,6 @@ class Cache:
         self.blacklist: dict[int, str] = {}
         self.disabled_commmand: dict = {}
         self.users: dict[int, dict] = {}
-        self.highlights: dict[int, dict] = {}
 
     @tasks.loop(minutes=5)
     async def cache_loop(self) -> None:
@@ -128,7 +127,6 @@ class Cache:
         join_leave = await self.bot.pool.fetch("SELECT * FROM join_leave")
         users = await self.bot.pool.fetch("SELECT * FROM user_settings")
         blacklist = await self.bot.pool.fetch("SELECT * FROM blacklist")
-        highlight = await self.bot.pool.fetch("SELECT * FROM highlights")
 
         _log.info("Populating Cache...")
         for entry in guild_settings:
@@ -159,8 +157,4 @@ class Cache:
             item.pop("guild_id")
             self.join_leave[entry["guild_id"]] = item
 
-        for entry in highlight:
-            item = dict(entry)
-            item.pop("user_id")
-            self.highlights[entry["user_id"]] = item
         _log.info("Cache Populated.")
