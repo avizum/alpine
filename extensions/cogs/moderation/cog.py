@@ -273,7 +273,7 @@ class Moderation(core.Cog):
     @core.group(hybrid=True, fallback="messages", invoke_without_command=True)
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
-    @commands.cooldown(5, 30, commands.BucketType.member)
+    @core.cooldown(5, 30, commands.BucketType.member)
     async def purge(self, ctx: Context, amount: PurgeAmount):
         """
         Mass delete messages in the current channel.

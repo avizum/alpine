@@ -74,7 +74,7 @@ class Meta(core.Cog):
         self.scraper = AsyncScraper(self.bot.loop, self.bot.session)
 
     @core.command()
-    @commands.cooldown(1, 300, commands.BucketType.user)
+    @core.cooldown(1, 300, commands.BucketType.user)
     async def poll(self, ctx: Context, question, *options: str):
         """
         Send a poll for people to vote to.
@@ -122,7 +122,7 @@ class Meta(core.Cog):
         await react_message.edit(embed=embed)
 
     @core.command()
-    @commands.cooldown(1, 1, commands.BucketType.member)
+    @core.cooldown(1, 1, commands.BucketType.member)
     async def pick(self, ctx: Context, *, options):
         """
         Pick one of your options you provided.
@@ -358,7 +358,7 @@ class Meta(core.Cog):
         await ctx.send(f"Set timezone to {timezones}")
 
     @core.command()
-    @commands.cooldown(1, 15, commands.BucketType.guild)
+    @core.cooldown(1, 15, commands.BucketType.guild)
     async def firstmessage(self, ctx: Context, *, channel: discord.TextChannel = None):
         """
         Get the first message of the channel.
@@ -442,7 +442,7 @@ class Meta(core.Cog):
         await menu.start()
 
     @core.command()
-    @commands.cooldown(1, 300, commands.BucketType.member)
+    @core.cooldown(1, 300, commands.BucketType.member)
     async def embed(self, ctx: Context, *, thing: str):
         """
         Make embeds with JSON.
@@ -482,7 +482,7 @@ class Meta(core.Cog):
         raise error
 
     @core.group(name="gist")
-    @commands.cooldown(1, 60, commands.BucketType.user)
+    @core.cooldown(1, 60, commands.BucketType.user)
     async def gist(self, ctx: Context, *, code: codeblock_converter):
         """
         Posts a gist.

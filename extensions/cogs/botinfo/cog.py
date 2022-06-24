@@ -348,7 +348,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=embed, view=view)
 
     @core.command()
-    @commands.cooldown(1, 300, commands.BucketType.user)
+    @core.cooldown(1, 300, commands.BucketType.user)
     async def request(self, ctx: Context, *, request):
         """
         Request a feature to be added to Avimetry.

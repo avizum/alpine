@@ -46,7 +46,7 @@ class Games(core.Cog):
         self.rclient = roblox.Client(self.bot.settings["api_tokens"]["Roblox"])
 
     @core.group(aliases=["\U0001F36A", "vookir", "kookie"])
-    @commands.cooldown(5, 10, commands.BucketType.member)
+    @core.cooldown(5, 10, commands.BucketType.member)
     @commands.max_concurrency(2, commands.BucketType.channel)
     async def cookie(self, ctx: Context, member: discord.Member | None = None):
         """
@@ -104,7 +104,7 @@ class Games(core.Cog):
                 return await cd_cookie.edit(embed=cookie_embed)
 
     @cookie.command()
-    @commands.cooldown(5, 10, commands.BucketType.member)
+    @core.cooldown(5, 10, commands.BucketType.member)
     @commands.max_concurrency(2, commands.BucketType.channel)
     async def button(self, ctx):
         """
@@ -132,7 +132,7 @@ class Games(core.Cog):
         return await cookie_message.edit(embed=cookie_embed, view=None)
 
     @core.command(name="akinator", aliases=["aki"])
-    @commands.cooldown(1, 60, commands.BucketType.member)
+    @core.cooldown(1, 60, commands.BucketType.member)
     @commands.max_concurrency(1, commands.BucketType.channel)
     async def akinator(self, ctx: Context, *, flags: AkinatorFlags):
         """
@@ -153,7 +153,7 @@ class Games(core.Cog):
 
     @core.command(aliases=["rps"])
     @commands.max_concurrency(1, commands.BucketType.channel)
-    @commands.cooldown(2, 5, commands.BucketType.member)
+    @core.cooldown(2, 5, commands.BucketType.member)
     async def rockpaperscissors(self, ctx: Context):
         """
         Play a game of rock paper scissors.
@@ -198,7 +198,7 @@ class Games(core.Cog):
                 await react_message.edit(embed=embed_10s)
 
     @core.command(name="guessthatlogo", aliases=["gtl"])
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_guess_that_logo(self, ctx: Context):
         """
         Try to guess the logo given to you.
@@ -245,7 +245,7 @@ class Games(core.Cog):
             await message.edit(embed=embed)
 
     @core.command()
-    @commands.cooldown(1, 10, commands.BucketType.channel)
+    @core.cooldown(1, 10, commands.BucketType.channel)
     @core.bot_has_permissions(add_reactions=True)
     async def reaction(self, ctx: Context):
         """

@@ -105,7 +105,7 @@ class Images(core.Cog):
         await ctx.send(file=file, embed=embed)
 
     @core.command(name="pixel")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_pixel(self, ctx: Context, *, item=None):
         """
         Adds a pixel effect to an image.
@@ -114,7 +114,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="mirror")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_mirror(self, ctx: Context, *, item=None):
         """
         Flips your image along the y axis.
@@ -123,7 +123,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="flip")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_flip(self, ctx: Context, item=None):
         """
         Flips an image.
@@ -132,7 +132,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="colors")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_colors(self, ctx: Context, *, item=None):
         """
         Get the colors of an image.
@@ -141,7 +141,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="america")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_america(self, ctx: Context, *, item=None):
         """
         Adds an American flag over the image
@@ -150,7 +150,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="communism")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_communism(self, ctx: Context, *, item=None):
         """
         Adds a communism flag over an image.
@@ -159,7 +159,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="triggered")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_triggered(self, ctx: Context, *, item=None):
         """
         Adds a triggered filter over your image.
@@ -168,7 +168,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="expand")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_expand(self, ctx: Context, *, item=None):
         """
         Animation that stretches your image.
@@ -177,7 +177,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="wasted")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_wasted(self, ctx: Context, *, item=None):
         """
         Adds a wasted filter over your image.
@@ -186,7 +186,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="sketch")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_sketch(self, ctx: Context, *, item=None):
         """
         "Sketches" an image.
@@ -195,7 +195,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="spin")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_spin(self, ctx: Context, *, item=None):
         """
         Adds a spinning effect to your image.
@@ -204,7 +204,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="petpet")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_petpet(self, ctx: Context, *, item=None):
         """
         Yes. Petpet.
@@ -213,7 +213,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="bonk")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_bonk(self, ctx: Context, *, item=None):
         """
         Get bonked.
@@ -222,7 +222,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="bomb")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_bomb(self, ctx: Context, *, item=None):
         """
         Boom. Explosion. On your image.
@@ -231,7 +231,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="dissolve")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_dissolve(self, ctx: Context, *, item=None):
         """
         Dissolve effect from PowerPoint.
@@ -240,7 +240,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="shake", enabled=False)
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_shake(self, ctx: Context, *, item=None):
         """
         Shakes an image.
@@ -249,7 +249,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="invert")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_invert(self, ctx: Context, *, item=None):
         """
         Inverts an image.
@@ -258,7 +258,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="sobel")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_sobel(self, ctx: Context, *, item=None):
         """
         Adds a sobel filter over an image.
@@ -267,7 +267,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="hog")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_hog(self, ctx: Context, *, item=None):
         """
         Histogram of Oriented Gradients for an image.
@@ -276,7 +276,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="triangle")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_triangle(self, ctx: Context, *, item=None):
         """
         Cool effect on your image.
@@ -285,7 +285,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="blur")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_blur(self, ctx: Context, *, item=None):
         """
         Adds a blury effect to your image.
@@ -294,7 +294,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="rgb")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_rgb(self, ctx: Context, *, item=None):
         """
         Get a graph of colors.
@@ -303,7 +303,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="angel")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_angel(self, ctx: Context, *, item=None):
         """
         Puts your image on an angel. How nice.
@@ -312,7 +312,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="satan")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_satan(self, ctx: Context, *, item=None):
         """
         Puts your image on a demon. How bad.
@@ -321,7 +321,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="delete")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_delete(self, ctx: Context, *, item=None):
         """
         Puts your image on a delete dialog.
@@ -330,7 +330,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="fedora")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_fedora(self, ctx: Context, *, item=None):
         """
         Perry the platypus!
@@ -339,7 +339,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="hitler")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_hitler(self, ctx: Context, *, item=None):
         """
         Hmm, What's this?
@@ -348,7 +348,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="lego", disabled=True)
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_lego(self, ctx: Context, *, item=None):
         """
         Adds lego filter on your image.
@@ -357,7 +357,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="wanted")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_wanted(self, ctx: Context, *, item=None):
         """
         Overlay your image on a wanted poster.
@@ -366,7 +366,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="stringify")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_stringify(self, ctx: Context, *, item=None):
         """
         Turn your image to a ball of yarn.
@@ -375,7 +375,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="burn")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_burn(self, ctx: Context, *, item=None):
         """
         Burn an image.
@@ -384,7 +384,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="freeze")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_freeze(self, ctx: Context, *, item=None):
         """
         Ice on your image. Cold.
@@ -393,7 +393,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="earth")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_earth(self, ctx: Context, *, item=None):
         """
         The green and blue of the earth.
@@ -402,7 +402,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="mosaic")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_mosaic(self, ctx: Context, *, item=None):
         """
         Adds a mosaic effect to your image
@@ -411,7 +411,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="sithlord")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_sithlord(self, ctx: Context, *, item=None):
         """
         Are you a sith lord?
@@ -420,7 +420,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="shatter")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_shatter(self, ctx: Context, *, item=None):
         """
         Adds a glass break overlay to your image.
@@ -429,7 +429,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="jail")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_jail(self, ctx: Context, *, item=None):
         """
         Overlays prison bars on your image.
@@ -438,7 +438,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="pride")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_pride(self, ctx: Context, item: GetAvatar, flag: str):
         """
         Overlays a flag of choice on your image
@@ -463,7 +463,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command(name="dgay", enabled=False)
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_gay(self, ctx: Context, *, item=None):
         """
         Does something
@@ -472,7 +472,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="trash")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_trash(self, ctx: Context, *, item=None):
         """
         Throwing your image away.
@@ -481,7 +481,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="deepfry")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_deepfry(self, ctx: Context, *, item=None):
         """
         Deepfries your image.
@@ -490,7 +490,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="ascii")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_ascii(self, ctx: Context, *, item=None):
         """
         Adds an ascii effect to your image.
@@ -499,7 +499,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="charcoal")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_charcoal(self, ctx: Context, *, item=None):
         """
         Adds a charcoal effect you your image.
@@ -508,7 +508,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="posterize")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_posterize(self, ctx: Context, *, item=None):
         """
         Posterize your image
@@ -517,7 +517,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="sepia")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_sepia(self, ctx: Context, *, item=None):
         """
         Adds a sepia filter on to your photo.
@@ -526,7 +526,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="swirl")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_swirl(self, ctx: Context, *, item=None):
         """
         Swirls your image.
@@ -535,7 +535,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="paint")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_paint(self, ctx: Context, *, item=None):
         """
         Makes your image look like it was painted.
@@ -544,7 +544,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="night")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_night(self, ctx: Context, *, item=None):
         """
         Makes your photo darker so that it looks like it was taken at night.
@@ -553,7 +553,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="rainbow")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_rainbow(self, ctx: Context, *, item=None):
         """
         Adds a rainbow filter to your image.
@@ -562,7 +562,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="magic", aliases=["magick", "magik"])
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_magic(self, ctx: Context, *, item=None):
         """
         Distorts your image in a funny way.
@@ -571,7 +571,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="5g1g")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_5g1g(self, ctx, item1: GetAvatar, item2: GetAvatar):
         """
         Ya know, the five guys and one girl thing...
@@ -581,7 +581,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command(name="whyareyougay", aliases=["wayg"])
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_wayg(self, ctx, item1: GetAvatar, item2: GetAvatar):
         """
         Well why are you??
@@ -591,7 +591,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command(name="obama")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_obama(self, ctx: Context, *, item=None):
         """
         You deseve an award. Here award yourself.
@@ -600,7 +600,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="bad")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_bad(self, ctx: Context, *, item=None):
         """
         Bad image.
@@ -673,7 +673,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="tweet")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_tweet(self, ctx, user: GetAvatar, username: str, *, text: str):
         """
         Makes it look like you or someone else tweeted something.
@@ -683,7 +683,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command(name="youtube")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_youtube(self, ctx, user: discord.Member = None, *, text: str = None):
         """
         Generate a youtube comment.
@@ -705,7 +705,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command(name="discord")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_discord(self, ctx, user: discord.User = None, *, text: str = None):
         """
         Makes it look like someone said something.
@@ -727,7 +727,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command(name="captcha")
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_captcha(self, ctx: Context, text, *, item: GetAvatar):
         """
         Overlays your image on a captcha grid.
@@ -737,7 +737,7 @@ class Images(core.Cog):
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command(name="thoughtimage", aliases=["thinking"])
-    @commands.cooldown(2, 10, commands.BucketType.member)
+    @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_thought_image(self, ctx: Context, text, *, item: GetAvatar):
         """
         Overlays your image on a captcha grid.

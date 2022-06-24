@@ -719,7 +719,7 @@ class Settings(core.Cog):
         await ctx.send(f"{thread} will no longer be unarchived automatically.")
 
     @core.group(invoke_without_command=True, case_insensitive=True)
-    @commands.cooldown(1, 60, commands.BucketType.user)
+    @core.cooldown(1, 60, commands.BucketType.user)
     async def theme(self, ctx: Context, *, color: discord.Color):
         """
         Set the theme.
