@@ -53,9 +53,6 @@ class Command(commands.Command):
             or kwargs.get("extras", {}).get("bot_permissions")
         )
         super().__init__(func, **kwargs)
-        if not self._buckets._cooldown:
-            self._buckets = commands.CooldownMapping(commands.Cooldown(1, 3), commands.BucketType.user)
-            self._buckets._cooldown = commands.Cooldown(1, 3)
 
     def __repr__(self) -> str:
         return f"<core.Command name={self.qualified_name}>"

@@ -26,6 +26,7 @@ import discord
 from discord.ext import commands
 
 from .core import Command
+from .avimetry import OWNER_IDS
 from .exceptions import NotGuildOwner
 
 if TYPE_CHECKING:
@@ -100,12 +101,14 @@ def bot_has_permissions(**perms: bool):
     return check(predicate, bot_permissions=perms)
 
 
-def cooldown(rate: int, per: float, type=commands.BucketType.default):
+def cooldown(rate: int, per: float, type=commands.BucketType.user):
     def decorator(func):
+        def cd(message: discord.Message):
+            return None if message.author.id in OWNER_IDS else commands.Cooldown(rate, per)
         if isinstance(func, Command):
-            func._buckets = commands.CooldownMapping(commands.Cooldown(rate, per), type)
+            func._buckets = commands.DynamicCooldownMapping(cd, type)
         else:
-            func.__commands_cooldown__ = commands.CooldownMapping(commands.Cooldown(rate, per), type)
+            func.__commands_cooldown__ = commands.DynamicCooldownMapping(cd, type)
         return func
 
     return decorator

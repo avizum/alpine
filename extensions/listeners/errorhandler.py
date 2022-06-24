@@ -145,7 +145,7 @@ class ErrorHandler(core.Cog):
 
         if await self.bot.is_owner(ctx.author) and isinstance(error, reinvoke):
             try:
-                return await ctx.reinvoke()
+                return await ctx.reinvoke(restart=True)
             except Exception:
                 pass
         elif await self.bot.is_owner(ctx.author) and ctx.prefix == "" and isinstance(error, commands.CommandNotFound):
