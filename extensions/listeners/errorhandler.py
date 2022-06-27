@@ -80,10 +80,10 @@ class UnknownError(View):
         check = await self.bot.pool.fetchrow("SELECT trackers FROM command_errors WHERE id = $1", self.error_id)
         if self.member.id in check["trackers"]:
             remove_tracker = "UPDATE command_errors SET trackers = ARRAY_REMOVE(trackers, $2) WHERE id = $1"
-            await self.bot.pool.execute(remove_tracker, self.error_id, self.member)
+            await self.bot.pool.execute(remove_tracker, self.error_id, self.member.id)
             return await interaction.response.send_message(f"No longer tracking Error #{self.error_id}", ephemeral=True)
         add_tracker = "UPDATE command_errors SET trackers = ARRAY_APPEND(trackers, $2) WHERE id = $1"
-        await self.bot.pool.execute(add_tracker, self.error_id, self.member)
+        await self.bot.pool.execute(add_tracker, self.error_id, self.member.id)
         return await interaction.response.send_message(f"Now tracking Error #{self.error_id}.", ephemeral=True)
 
 
