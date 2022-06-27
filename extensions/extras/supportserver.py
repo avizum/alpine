@@ -17,23 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import discord
-import re
+
 import datetime
 import core
 
-from discord.ext import commands, tasks
-from core import Bot, Context
-from utils import Emojis
-
-
-URL_REGEX = re.compile(
-    r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.\
-        [^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
-)
-
-
-class PrivateServer(commands.CheckFailure):
-    pass
+from core import Bot
 
 
 class ButtonRole(discord.ui.View):
@@ -89,65 +77,11 @@ class Servers(core.Cog):
     """
     Commands for bot's servers only.
     """
-
     def __init__(self, bot: Bot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
-        self.update_count.start()
-        self.guild_id = [751490725555994716, 814206001451761664]
-        self.joins_and_leaves = 751967006701387827
-        self.member_channel = 783960970472456232
-        self.bot_channel = 783961050814611476
-        self.total_channel = 783961111060938782
         if ButtonRole() not in self.bot.persistent_views:
             bot.add_view(ButtonRole())
-
-    def cog_check(self, ctx: Context):
-        if ctx.guild.id not in self.guild_id:
-            raise PrivateServer("This command only works in a private server.")
-        return True
-
-    def get(self, channel_id: int):
-        return self.bot.get_channel(channel_id)
-
-    @tasks.loop(minutes=5)
-    async def update_count(self):
-        guild: discord.Guild = self.bot.get_guild(self.guild_id[0])
-        if guild is None:
-            return
-        role = guild.get_role(813535792655892481)
-
-        not_bot = [mem for mem in guild.members if not mem.bot]
-        for i in not_bot:
-            try:
-                await i.add_roles(role)
-            except Exception:
-                pass
-
-    @update_count.before_loop
-    async def before_update_count(self):
-        await self.bot.wait_until_ready()
-
-    @core.command(hidden=True, aliases=["tester"])
-    async def testing(self, ctx: Context):
-        """
-        Gives testing role.
-
-        This will give you access to the testing channel where you can test some features.
-        """
-        if ctx.guild.id != 814206001451761664:
-            return
-        role = ctx.guild.get_role(836105548457574410)
-        if role in ctx.author.roles:
-            return await ctx.author.remove_roles(role)
-        await ctx.author.add_roles(role, reason="Public testing")
-        await ctx.message.add_reaction(Emojis.GREEN_TICK)
-
-    @testing.error
-    async def testing_error(self, ctx: Context, error):
-        if isinstance(error, PrivateServer):
-            return
-        raise error
 
 
 async def setup(bot):
