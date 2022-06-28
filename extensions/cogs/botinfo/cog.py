@@ -155,7 +155,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         await ctx.send(embed=ue)
 
-    @core.command()
+    @core.command(hybrid=True)
     async def ping(self, ctx: Context):
         """
         Check the bot's latencies.
@@ -165,7 +165,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         Database: how long it takes to query the database.
         """
         async with Timer() as api:
-            await ctx.typing()
+            await ctx.channel.typing()
         async with Timer() as db:
             await self.bot.pool.execute("SELECT 1")
         ping_embed = discord.Embed(title="Pong!")
@@ -379,7 +379,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         """
         await ctx.send(self.bot.support)
 
-    @core.command()
+    @core.command(hybrid=True)
     async def vote(self, ctx: Context):
         """
         Support Avimetry by voting!
@@ -400,7 +400,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     # If you run an instance of this bot, Please do not remove this command.
     # - avizum
-    @core.command()
+    @core.command(hybrid=True)
     async def source(self, ctx: Context, *, command: str = None):
         """
         Send the bot's source or a source of a command.
@@ -459,6 +459,14 @@ class BotInfo(commands.Cog, name="Bot Info"):
         view.add_item(button(style=discord.ButtonStyle.link, label=f"Source for {command}", url=link))
         view.add_item(button(style=discord.ButtonStyle.link, label="License", url=license_link))
         await ctx.send(embed=source_embed, view=view)
+
+    @source.autocomplete('command')
+    async def source_autocomplete(self, interaction: discord.Interaction, current: str):
+        commands = [
+            c.qualified_name for c in list(self.bot.walk_commands()) if current in c.qualified_name and len(current) > 2
+        ]
+        to_return = [discord.app_commands.Choice(name=cmd, value=cmd) for cmd in commands]
+        return to_return[:25]
 
     @core.command(
         aliases=[

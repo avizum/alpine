@@ -114,7 +114,7 @@ class Meta(core.Cog):
         for x, option in enumerate(options):
             description += "\n\n{} {}".format(reactions[x], option)
         embed = discord.Embed(title=question, description="".join(description))
-        react_message = await ctx.no_reply(embed=embed)
+        react_message = await ctx.channel.send(embed=embed)
         for reaction in reactions[: len(options)]:
             await react_message.add_reaction(reaction)
         embed.set_footer(text=f"Poll from: {ctx.author}\nMessage ID: {react_message.id}")
@@ -299,7 +299,7 @@ class Meta(core.Cog):
         qr_embed.set_image(url=f"https://api.qrserver.com/v1/create-qr-code/?data={content}&size=250x250")
         await ctx.send(embed=qr_embed)
 
-    @core.group(case_insensitive=True, invoke_without_command=True)
+    @core.group(hybrid=True, fallback="get", case_insensitive=True, invoke_without_command=True)
     async def time(self, ctx: Context, *, member: discord.Member = None):
         """
         Get the time for a user.
