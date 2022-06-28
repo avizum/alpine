@@ -22,6 +22,8 @@ from .checks import (
     check,
     has_permissions,
     bot_has_permissions,
+    both_has_permissions,
+    default_permissions,
     is_owner,
     cooldown,
     is_guild_owner,

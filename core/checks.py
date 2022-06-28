@@ -100,6 +100,30 @@ def bot_has_permissions(**perms: bool):
 
     return check(predicate, bot_permissions=perms)
 
+def both_has_permissions(**perms: bool):
+    invalid = set(perms) - set(discord.Permissions.VALID_FLAGS)
+    if invalid:
+        raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
+
+    async def predicate(ctx: Context):
+        channel = ctx.channel
+
+        bot_permissions = channel.permissions_for(ctx.guild.me)
+        missing_bot = [perm for perm, value in perms.items() if getattr(bot_permissions, perm) != value]
+
+        member_permissions = channel.permissions_for(ctx.author)
+        missing_member = [perm for perm, value in perms.items() if getattr(member_permissions, perm) != value]
+
+        if missing_bot:
+            raise commands.BotMissingPermissions(missing_bot)
+        elif missing_member:
+            if await ctx.bot.is_owner(ctx.author):
+                return True
+            raise commands.MissingPermissions(missing_member)
+        return True
+
+    return check(predicate, member_permissions=perms, bot_permissions=perms)
+
 
 def cooldown(rate: int, per: float, type=commands.BucketType.user):
     def decorator(func):
@@ -130,3 +154,5 @@ def is_guild_owner():
         return True
 
     return check(predicate, member_permissions=["guild_owner"])
+
+default_permissions = discord.app_commands.default_permissions
