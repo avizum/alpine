@@ -26,7 +26,7 @@ from discord.ext import commands
 import core
 import utils
 from core import Bot, Context
-from .converters import ModActionFlag, BanFlag, PurgeAmount, TimeConverter, TargetMember, FindBan
+from .converters import ModActionFlag, BanFlag, PurgeAmount, TimeConverter, Target, TargetMember, FindBan
 from utils import ModReason, DefaultReason
 
 
@@ -42,19 +42,19 @@ class Moderation(core.Cog):
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
     @core.command(hybrid=True)
-    @core.has_permissions(kick_members=True)
-    @core.bot_has_permissions(kick_members=True)
-    @core.describe(member="The member to kick.")
-    async def kick(self, ctx: Context, member: TargetMember, *, flags: ModActionFlag):
+    @core.both_has_permissions(kick_members=True)
+    @core.default_permissions(kick_members=True)
+    @core.describe(target="The person to kick.")
+    async def kick(self, ctx: Context, target: discord.Member = Target, *, flags: ModActionFlag):
         """
         Kicks someone from the server.
 
         You can not kick people with higher permissions than you.
         """
         reason = flags.reason or f"{ctx.author}: No reason provided"
-        await member.kick(reason=reason)
+        await target.kick(reason=reason)
         kick_embed = discord.Embed(title="Kicked Member", color=discord.Color.green())
-        kick_embed.description = f"**{member}** has been kicked from the server."
+        kick_embed.description = f"**{target}** has been kicked from the server."
         if flags.dm:
             try:
                 embed = discord.Embed(
@@ -62,9 +62,9 @@ class Moderation(core.Cog):
                     description=f"Reason:\n> {reason}",
                     color=self.color,
                 )
-                await member.send(embed=embed)
+                await target.send(embed=embed)
             except discord.Forbidden:
-                kick_embed.description = f"**{member}** has been kicked from the server, However, I could not DM them."
+                kick_embed.description = f"**{target}** has been kicked from the server, However, I could not DM them."
         await ctx.send(embed=kick_embed)
 
     @core.command()
@@ -94,9 +94,10 @@ class Moderation(core.Cog):
             await m.edit(content=f"Sucessfully kicked {len(targets)-fail}/{len(targets)} members.")
 
     @core.command(hybrid=True)
-    @core.has_permissions(ban_members=True)
-    @core.bot_has_permissions(ban_members=True)
-    async def softban(self, ctx: Context, member: TargetMember, *, flags: ModActionFlag):
+    @core.both_has_permissions(ban_members=True)
+    @core.default_permissions(ban_members=True)
+    @core.describe(target="The person to softban.")
+    async def softban(self, ctx: Context, target: discord.Member = TargetMember, *, flags: ModActionFlag):
         """
         Softban someone from the server.
 
@@ -105,10 +106,10 @@ class Moderation(core.Cog):
         You can not softban people with higher permissions than you.
         """
         reason = flags.reason or f"{ctx.author}: No reason provided"
-        await member.ban(reason=reason)
+        await target.ban(reason=reason)
         await ctx.guild.unban(reason="Soft-ban")
         kick_embed = discord.Embed(title="Soft-banned Member", color=discord.Color.green())
-        kick_embed.description = f"**{member}** has been soft-banned from the server."
+        kick_embed.description = f"**{target}** has been soft-banned from the server."
         if flags.dm:
             try:
                 embed = discord.Embed(
@@ -116,28 +117,28 @@ class Moderation(core.Cog):
                     description=f"Reason:\n> {reason}",
                     color=self.color,
                 )
-                await member.send(embed=embed)
+                await target.send(embed=embed)
             except discord.Forbidden:
-                kick_embed.description = f"**{member}** has been soft-banned, However, I could not DM them."
+                kick_embed.description = f"**{target}** has been soft-banned, However, I could not DM them."
         await ctx.send(embed=kick_embed)
 
     @core.command(hybrid=True)
-    @core.has_permissions(ban_members=True)
-    @core.bot_has_permissions(ban_members=True)
-    async def ban(self, ctx: Context, member: TargetMember, *, flags: BanFlag):
+    @core.both_has_permissions(ban_members=True)
+    @core.default_permissions(ban_members=True)
+    @core.describe(target="The person to ban.")
+    async def ban(self, ctx: Context, target: discord.Member = TargetMember, *, flags: BanFlag):
         """
         Ban someone from the server.
 
         You can ban people whether they are in the server or not.
         You can not ban people with higher permissions than you.
         """
-        member: discord.Member = member
         reason = flags.reason or f"{ctx.author}: No reason provided"
         if flags.delete_days > 7:
             raise commands.BadArgument("Delete days must be between 0 and 7 days.")
-        await ctx.guild.ban(member, reason=reason, delete_message_days=flags.delete_days)
+        await ctx.guild.ban(target, reason=reason, delete_message_days=flags.delete_days)
         kick_embed = discord.Embed(title="Banned Member", color=discord.Color.green())
-        kick_embed.description = f"**{member}** has been banned from the server."
+        kick_embed.description = f"**{target}** has been banned from the server."
         if flags.dm:
             try:
                 embed = discord.Embed(
@@ -145,9 +146,9 @@ class Moderation(core.Cog):
                     description=f"Reason:\n> {reason}",
                     color=self.color,
                 )
-                await member.send(embed=embed)
+                await target.send(embed=embed)
             except discord.Forbidden:
-                kick_embed.description = f"**{member}** has been kicked from the server, However, I could not DM them."
+                kick_embed.description = f"**{target}** has been kicked from the server, However, I could not DM them."
         await ctx.send(embed=kick_embed)
 
     @core.command()
@@ -175,29 +176,30 @@ class Moderation(core.Cog):
             await m.edit(content=f"Sucessfully banned {len(targets)-fail}/{len(targets)} members.")
 
     @core.command(hybrid=True)
-    @core.has_permissions(ban_members=True)
-    @core.bot_has_permissions(ban_members=True)
-    async def unban(self, ctx: Context, member: FindBan, *, reason: ModReason = DefaultReason):
+    @core.both_has_permissions(ban_members=True)
+    @core.default_permissions(ban_members=True)
+    async def unban(self, ctx: Context, target: discord.User = FindBan, *, reason: ModReason = DefaultReason):
         """
         Unbans/Removes a ban from someone from the server.
 
         Anyone with permission to ban members can unban anyone.
         """
         reason = reason or f"{ctx.author}: No reason provided"
-        await ctx.guild.unban(member, reason=reason)
+        await ctx.guild.unban(target, reason=reason)
         unban_embed = discord.Embed(
             title="Unbanned Member",
-            description=f"**{member}** has been unbanned from the server.",
+            description=f"**{target}** has been unbanned from the server.",
             color=discord.Color.green(),
         )
 
         await ctx.send(embed=unban_embed)
 
     @core.command(hybrid=True, aliases=["timeout", "tempmute"])
-    @core.has_permissions(moderate_members=True)
-    @core.bot_has_permissions(moderate_members=True)
+    @core.both_has_permissions(moderate_members=True)
+    @core.default_permissions(moderate_members=True)
+    @core.describe(target="The person to mute.")
     async def mute(
-        self, ctx: Context, member: TargetMember, duration: TimeConverter, *, reason: ModReason = DefaultReason
+        self, ctx: Context, target: TargetMember, duration: TimeConverter, *, reason: ModReason = DefaultReason
     ):
         """
         Temporarily mutes a member in the server.
@@ -208,26 +210,27 @@ class Moderation(core.Cog):
         """
         if duration > 2419200 or duration < 60:
             return await ctx.send("Mute time must be over 1 minute and under 28 days.")
-        if member.is_timed_out():
+        if target.is_timed_out():
             conf = await ctx.confirm(
-                f"{member.mention} is already muted. Do you want to overwrite their mute?",
+                f"{target.mention} is already muted. Do you want to overwrite their mute?",
                 delete_after=True,
             )
             if not conf.result:
                 return await ctx.send("Okay, I won't replace their mute.", delete_after=10)
         reason = reason or f"{ctx.author}: No reason provided."
         dur = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=duration)
-        await member.edit(timed_out_until=dur, reason=reason)
+        await target.edit(timed_out_until=dur, reason=reason)
         embed = discord.Embed(
             title="Muted Member",
-            description=f"{member.mention} will be muted until {discord.utils.format_dt(dur)}.\nReason: {reason}",
+            description=f"{target.mention} will be muted until {discord.utils.format_dt(dur)}.\nReason: {reason}",
         )
         await ctx.send(embed=embed)
 
     @core.command(hybrid=True, aliases=["untimeout", "untempmute"])
-    @core.has_permissions(moderate_members=True)
-    @core.bot_has_permissions(moderate_members=True)
-    async def unmute(self, ctx: Context, member: TargetMember, *, reason: ModReason = DefaultReason):
+    @core.both_has_permissions(moderate_members=True)
+    @core.default_permissions(moderate_members=True)
+    @core.describe(target="The person to unmute.")
+    async def unmute(self, ctx: Context, target: TargetMember, *, reason: ModReason = DefaultReason):
         """
         Unmutes a member in the server.
 
@@ -235,8 +238,8 @@ class Moderation(core.Cog):
         You can not unmute people that are higher than you in the role hierarchy.
         """
         reason = reason or f"{ctx.author}: No reason provided."
-        await member.edit(timed_out_until=None, reason=reason)
-        await ctx.send(f"Unmuted {member}.")
+        await target.edit(timed_out_until=None, reason=reason)
+        await ctx.send(f"Unmuted {target}.")
 
     @core.command()
     @core.bot_has_permissions(moderate_members=True)
@@ -271,8 +274,8 @@ class Moderation(core.Cog):
         return discord.Embed(title="Affected Messages", description=message)
 
     @core.group(hybrid=True, fallback="messages", invoke_without_command=True)
-    @core.has_permissions(manage_messages=True)
-    @core.bot_has_permissions(manage_messages=True)
+    @core.both_has_permissions(manage_messages=True)
+    @core.default_permissions(manage_messages=True)
     @core.cooldown(5, 30, commands.BucketType.member)
     async def purge(self, ctx: Context, amount: PurgeAmount):
         """

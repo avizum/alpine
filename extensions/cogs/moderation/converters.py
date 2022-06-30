@@ -125,8 +125,9 @@ class TargetMember(commands.Converter[discord.Member]):
 
         return member
 
+Target: discord.Member = commands.parameter(converter=TargetMember)
 
-class FindBan(commands.Converter[discord.Member]):
+class FindBanConverter(commands.Converter[discord.Member]):
     async def convert(self, ctx: Context, argument: str) -> discord.Member | discord.User:
         try:
             user = await commands.UserConverter().convert(ctx, argument)
@@ -142,3 +143,5 @@ class FindBan(commands.Converter[discord.Member]):
                     return ban[1]
 
         raise commands.BadArgument("That user isn't banned")
+
+FindBan: discord.Member | discord.User = commands.parameter(converter=FindBanConverter)
