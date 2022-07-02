@@ -292,6 +292,7 @@ class Context(commands.Context):
                 kwargs["suppress"] = suppress_embeds
                 message = await self.bot.command_cache[self.message.id].edit(**kwargs)
             except discord.HTTPException:
+                kwargs.pop("suppress", None)
                 kwargs["suppress_embeds"] = suppress_embeds
                 message = await super().send(**kwargs)
 
