@@ -61,6 +61,9 @@ class BotInfo(commands.Cog, name="Bot Info"):
             ctx.command = command
             await command(ctx)
 
+        if not message.guild.chunked:
+            await message.guild.chunk()
+
     @core.command()
     async def news(self, ctx: Context):
         """
