@@ -8,7 +8,7 @@ akinator.py
 async_timeout
 asyncdagpi
 asyncgist
-asyncpg=
+asyncpg
 doc_search
 humanize
 psutil
