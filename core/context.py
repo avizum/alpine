@@ -319,9 +319,9 @@ class Context(commands.Context):
 
         if self.interaction.response.is_done():
             msg = await self.interaction.followup.send(**kwargs, wait=True)
-
-        await self.interaction.response.send_message(**kwargs)
-        msg = await self.interaction.original_message()
+        else:
+            await self.interaction.response.send_message(**kwargs)
+            msg = await self.interaction.original_message()
 
         if delete_after is not None and not (ephemeral and self.interaction is not None):
             await msg.delete(delay=delete_after)
