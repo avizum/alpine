@@ -370,7 +370,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.send(f"System battery is at {percent}% and {'Plugged in' if plugged else 'Unplugged'}")
 
     @Feature.Command(parent="jsk", name="su")
-    async def jsk_su(self, ctx: Context, member: discord.Member, *, command_string):
+    async def jsk_su(self, ctx: Context, member: discord.Member, *, command_string: str):
         """
         Run a command as someone else.
         """
@@ -380,7 +380,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         return await alt_ctx.command.invoke(alt_ctx)
 
     @Feature.Command(parent="jsk", name="sudo", aliases=["admin", "bypass"])
-    async def jsk_sudo(self, ctx: Context, *, command_string):
+    async def jsk_sudo(self, ctx: Context, *, command_string: str):
         """
         Run a command, bypassing all checks.
         """
@@ -390,7 +390,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         return await alt_ctx.command.reinvoke(alt_ctx)
 
     @Feature.Command(parent="jsk", name="in", aliases=["channel", "inside"])
-    async def jsk_in(self, ctx: Context, channel: discord.TextChannel, *, command_string):
+    async def jsk_in(self, ctx: Context, channel: discord.TextChannel, *, command_string: str):
         """
         Run a command in another channel.
         """
