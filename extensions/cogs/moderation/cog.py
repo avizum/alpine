@@ -273,6 +273,10 @@ class Moderation(core.Cog):
         message = "\n".join(f"{author.mention}: {amount} messages" for author, amount in authors.items())
         return discord.Embed(title="Affected Messages", description=message)
 
+    async def do_purge(self, /, ctx: Context, *args, **kwargs) -> list[discord.Message]:
+        await ctx.defer()
+        return await ctx.channel.purge(*args, **kwargs)
+
     @core.group(hybrid=True, fallback="messages", invoke_without_command=True)
     @core.both_has_permissions(manage_messages=True)
     @core.default_permissions(manage_messages=True)
@@ -284,7 +288,7 @@ class Moderation(core.Cog):
         This always avoids pinned messages.
         You can only purge up to 1000 messages at a time.
         """
-        purged = await ctx.channel.purge(limit=amount, check=lambda m: not m.pinned, before=ctx.message)
+        purged = await self.do_purge(ctx, limit=amount, check=lambda m: not m.pinned, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command(aliases=["user", "person"])
@@ -296,7 +300,7 @@ class Moderation(core.Cog):
 
         You can purge up to 1000 messages from a member.
         """
-        purged = await ctx.channel.purge(limit=amount, check=lambda m: m.author == member, before=ctx.message)
+        purged = await self.do_purge(ctx, limit=amount, check=lambda m: m.author == member, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command()
@@ -306,7 +310,7 @@ class Moderation(core.Cog):
         """
         Purge any message sent from a bot, including me.
         """
-        purged = await ctx.channel.purge(limit=amount, check=lambda m: m.author.bot, before=ctx.message)
+        purged = await self.do_purge(ctx, limit=amount, check=lambda m: m.author.bot, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command()
@@ -322,7 +326,7 @@ class Moderation(core.Cog):
                 re.match(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", m.content)
             )
 
-        purged = await ctx.channel.purge(limit=amount, check=check, before=ctx.message)
+        purged = await self.do_purge(ctx, limit=amount, check=check, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command(aliases=["images", "pictures"])
@@ -332,7 +336,7 @@ class Moderation(core.Cog):
         """
         Purge any message that contains files.
         """
-        purged = await ctx.channel.purge(limit=amount, check=lambda m: m.attachments, before=ctx.message)
+        purged = await self.do_purge(ctx, limit=amount, check=lambda m: m.attachments, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command(aliases=["in"])
@@ -344,7 +348,7 @@ class Moderation(core.Cog):
 
         This removes up to 100 messages.
         """
-        purged = await ctx.channel.purge(limit=100, check=lambda m: text in m.content, before=ctx.message)
+        purged = await self.do_purge(ctx, limit=100, check=lambda m: text in m.content, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command(aliases=["sw", "starts"])
@@ -356,7 +360,7 @@ class Moderation(core.Cog):
 
         This removes up to 100 messages.
         """
-        purged = await ctx.channel.purge(limit=100, check=lambda m: m.content.startswith(text))
+        purged = await self.do_purge(ctx, limit=100, check=lambda m: m.content.startswith(text))
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @purge.command(aliases=["ew", "ends"])
@@ -368,7 +372,7 @@ class Moderation(core.Cog):
 
         This removes up to 100 messages.
         """
-        purged = await ctx.channel.purge(limit=100, check=lambda m: m.content.endswith(text))
+        purged = await self.do_purge(ctx, limit=100, check=lambda m: m.content.endswith(text))
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @core.command(usage="[amount]")
