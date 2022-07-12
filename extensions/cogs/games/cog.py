@@ -131,24 +131,31 @@ class Games(core.Cog):
         cookie_embed.description = f"{view.winner.mention} got the cookie in **{total_second}**"
         return await cookie_message.edit(embed=cookie_embed, view=None)
 
-    @core.command(name="akinator", aliases=["aki"])
+    @core.command(hybrid=True, name="akinator", aliases=["aki"])
     @core.cooldown(1, 60, commands.BucketType.member)
     @commands.max_concurrency(1, commands.BucketType.channel)
     async def akinator(self, ctx: Context, *, flags: AkinatorFlags):
         """
         Play a game of akinator.
         """
-        fm = await ctx.send("Starting game, please wait...")
+        # Since you can edit your message to invoke commands,
+        # the bot also edits messages and cause interaction errors.
+        # This is a lazy workaround to prevent that.
+        message = None
+        if ctx.message and ctx.message.edited_at:
+            message = await ctx.send("Starting game...")
         akiclient = Akinator()
         mode_map = {"default": "en", "animals": "en_animals", "objects": "en_objects"}
-        async with ctx.channel.typing():
+        async with ctx.typing():
             game = await akiclient.start_game(language=mode_map[flags.mode], child_mode=flags.child)
             if akiclient.child_mode is False and ctx.channel.nsfw is False:
                 return await ctx.send("Child mode can only be disabled in NSFW channels.")
             embed = discord.Embed(title="Akinator", description=f"{akiclient.step+1}. {game}")
+
+        if message is not None:
+            await message.delete()
+
         view = AkinatorGameView(member=ctx.author, ctx=ctx, client=akiclient, embed=embed)
-        if not fm.edited_at:
-            await fm.delete()
         view.message = await ctx.send(embed=embed, view=view)
 
     @core.command(aliases=["rps"])

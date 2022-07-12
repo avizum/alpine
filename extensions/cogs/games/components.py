@@ -44,13 +44,22 @@ class AkinatorConfirmView(View):
 
     @discord.ui.button(label="Yes", style=discord.ButtonStyle.success)
     async def yes(self, interaction: discord.Interaction, button: discord.Button):
-        self.embed.description = f"{self.embed.description}\n---\nNice!"
+        self.embed.description = f"{self.embed.description}\n**---**\n\nNice!"
         await self.message.edit(embed=self.embed, view=None)
 
     @discord.ui.button(label="No", style=discord.ButtonStyle.danger)
     async def no(self, interaction: discord.Interaction, button: discord.Button):
-        self.embed.description = f"{self.embed.description}\n---\nAww, Maybe next time!"
+        self.embed.description = f"{self.embed.description}\n**---**\n\nAww, Maybe next time!"
         await self.message.edit(embed=self.embed, view=None)
+
+
+class AkinatorButton(discord.ui.Button['AkinatorGameView']):
+    def __init__(self, label: str,  answer: str, style: discord.ButtonStyle, row: int):
+        self.answer = answer
+        super().__init__(label=label, style=style, row=row)
+
+    async def callback(self, interaction: discord.Interaction) -> any:
+        await self.view.answer(interaction, self.answer)
 
 
 class AkinatorGameView(View):
@@ -68,9 +77,25 @@ class AkinatorGameView(View):
         self.member = member
         self.embed = embed
         self.ended = False
+        self.cooldown = commands.CooldownMapping.from_cooldown(2, 2.5, commands.BucketType.user)
 
-    async def on_error(self, error, item, interaction):
+        stop = AkinatorButton(label="End Game", answer="end", style=discord.ButtonStyle.primary, row=3)
+        stop.callback = self.game_stop
+        buttons = [
+            AkinatorButton(label="Yes", answer="0", style=discord.ButtonStyle.green, row=1),
+            AkinatorButton(label="No", answer="1", style=discord.ButtonStyle.red, row=1),
+            AkinatorButton(label="Unsure", answer="2", style=discord.ButtonStyle.gray, row=1),
+            AkinatorButton(label="Likely", answer="3", style=discord.ButtonStyle.blurple, row=2),
+            AkinatorButton(label="Unlikely", answer="4", style=discord.ButtonStyle.gray, row=2),
+            AkinatorButton(label="Go Back", answer="back", style=discord.ButtonStyle.gray, row=3),
+            stop,
+        ]
+        for button in buttons:
+            self.add_item(button)
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception, item: discord.ui.Item):
         await self.ctx.send(error)
+        await super().on_error(interaction, error, item)
 
     async def stop(self, *args, **kwargs):
         await self.client.close()
@@ -81,7 +106,10 @@ class AkinatorGameView(View):
         self.embed.description = "Game ended due to timeout."
         await self.stop(embed=self.embed)
 
-    async def answer(self, interaction, answer):
+    async def answer(self, interaction: discord.Interaction, answer: str) -> None:
+        retry = self.cooldown.update_rate_limit(self.ctx.message)
+        if retry:
+            return await interaction.response.send_message(content="You are clicking too fast.", ephemeral=True)
         if answer == "back":
             try:
                 nxt = await self.client.back()
@@ -95,42 +123,19 @@ class AkinatorGameView(View):
             self.embed.description = f"{self.client.step+1}. {nxt}"
             await self.message.edit(embed=self.embed)
         else:
+            await interaction.response.defer()
             await self.client.win()
             client = self.client
+            await client.close()
             self.embed.description = (
                 f"Are you thinking of {client.first_guess['name']} ({client.first_guess['description']})?\n"
             )
             self.embed.set_image(url=client.first_guess["absolute_picture_path"])
-            new_view = AkinatorConfirmView(member=self.member, message=self.message, embed=self.embed)
             await self.stop()
+            new_view = AkinatorConfirmView(member=self.member, message=self.message, embed=self.embed)
             await self.message.edit(view=new_view, embed=self.embed)
 
-    @discord.ui.button(label="Yes", style=discord.ButtonStyle.success, row=1)
-    async def game_yes(self, interaction: discord.Interaction, button: discord.Button):
-        await self.answer(interaction, "yes")
-
-    @discord.ui.button(label="No", style=discord.ButtonStyle.danger, row=1)
-    async def game_no(self, interaction: discord.Interaction, button: discord.Button):
-        await self.answer(interaction, "no")
-
-    @discord.ui.button(label="I don't know", style=discord.ButtonStyle.primary, row=1)
-    async def game_idk(self, interaction: discord.Interaction, button: discord.Button):
-        await self.answer(interaction, "i dont know")
-
-    @discord.ui.button(label="Probably", style=discord.ButtonStyle.secondary, row=2)
-    async def game_probably(self, interaction: discord.Interaction, button: discord.Button):
-        await self.answer(interaction, "probably")
-
-    @discord.ui.button(label="Probably Not", style=discord.ButtonStyle.secondary, row=2)
-    async def game_probably_not(self, interaction: discord.Interaction, button: discord.Button):
-        await self.answer(interaction, "probably not")
-
-    @discord.ui.button(label="Back", style=discord.ButtonStyle.secondary, row=3)
-    async def game_back(self, interaction: discord.Interaction, button: discord.Button):
-        await self.answer(interaction, "back")
-
-    @discord.ui.button(label="Stop", style=discord.ButtonStyle.danger, row=3)
-    async def game_stop(self, interaction: discord.Interaction, button: discord.Button):
+    async def game_stop(self, interaction: discord.Interaction):
         await self.client.win()
         self.embed.description = "Game stopped."
         await interaction.response.edit_message(embed=self.embed, view=None)
