@@ -186,10 +186,10 @@ class AvimetryHelp(commands.HelpCommand):
                 elif isinstance(command, core.Command):
                     return await self.send_command_help(command)
             return await conf.message.delete()
-        return "Command not found"
+        return f'"{string}" was not found. Check your spelling or try a different command.'
 
     async def subcommand_not_found(self, command, string) -> discord.Message:
-        return await self.context.send(f'"{string}" is not a subcommand of "{command}".')
+        return f'"{string}" is not a subcommand of "{command}".'
 
 
 class AllCommandsPageSource(menus.ListPageSource):
