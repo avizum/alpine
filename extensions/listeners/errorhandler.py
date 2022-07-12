@@ -75,7 +75,8 @@ class UnknownError(View):
         retry = self.cooldown.update_rate_limit(self.message)
         if retry:
             return await interaction.response.send_message(
-                f"You are doing that too fast. Please try again in {retry:,.2f} seconds.", ephemeral=True
+                f"You are doing that too fast. Please try again in {retry:,.2f} seconds.",
+                ephemeral=True,
             )
         check = await self.bot.pool.fetchrow("SELECT trackers FROM command_errors WHERE id = $1", self.error_id)
         if self.member.id in check["trackers"]:
@@ -314,7 +315,8 @@ class ErrorHandler(core.Cog):
         elif isinstance(error, commands.BadLiteralArgument):
             self.reset(ctx)
             bad_literal_arg = Embed(
-                title="Bad Argument", description=f"This argument must be:\n {format_list(error.literals, last='or')}."
+                title="Bad Argument",
+                description=f"This argument must be:\n {format_list(error.literals, last='or')}.",
             )
             return await ctx.send(embed=bad_literal_arg)
 

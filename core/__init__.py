@@ -17,7 +17,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 # flake8: noqa
-from .core import Command, Group, HybridCommand, HybridGroup, Cog, command, group, describe
+from .core import (
+    Command,
+    Group,
+    HybridCommand,
+    HybridGroup,
+    Cog,
+    command,
+    group,
+    describe,
+)
 from .checks import (
     check,
     has_permissions,

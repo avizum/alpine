@@ -32,6 +32,7 @@ from .exceptions import NotGuildOwner
 if TYPE_CHECKING:
     from .context import Context
 
+
 def check(predicate: any, member_permissions: bool = None, bot_permissions: bool = None):
     def decorator(func):
         if member_permissions:
@@ -100,6 +101,7 @@ def bot_has_permissions(**perms: bool):
 
     return check(predicate, bot_permissions=perms)
 
+
 def both_has_permissions(**perms: bool):
     invalid = set(perms) - set(discord.Permissions.VALID_FLAGS)
     if invalid:
@@ -129,6 +131,7 @@ def cooldown(rate: int, per: float, type=commands.BucketType.user):
     def decorator(func):
         def cd(message: discord.Message):
             return None if message.author.id in OWNER_IDS else commands.Cooldown(rate, per)
+
         if isinstance(func, Command):
             func._buckets = commands.DynamicCooldownMapping(cd, type)
         else:
@@ -154,5 +157,6 @@ def is_guild_owner():
         return True
 
     return check(predicate, member_permissions=["guild_owner"])
+
 
 default_permissions = discord.app_commands.default_permissions

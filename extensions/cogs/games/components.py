@@ -53,8 +53,8 @@ class AkinatorConfirmView(View):
         await self.message.edit(embed=self.embed, view=None)
 
 
-class AkinatorButton(discord.ui.Button['AkinatorGameView']):
-    def __init__(self, label: str,  answer: str, style: discord.ButtonStyle, row: int):
+class AkinatorButton(discord.ui.Button["AkinatorGameView"]):
+    def __init__(self, label: str, answer: str, style: discord.ButtonStyle, row: int):
         self.answer = answer
         super().__init__(label=label, style=style, row=row)
 

@@ -79,7 +79,14 @@ class CogConverter(commands.Converter):
 
 
 class ErrorSource(menus.ListPageSource):
-    def __init__(self, ctx: Context, errors: list[Record], *, title: str = "Errors", per_page: int = 1) -> None:
+    def __init__(
+        self,
+        ctx: Context,
+        errors: list[Record],
+        *,
+        title: str = "Errors",
+        per_page: int = 1,
+    ) -> None:
         super().__init__(entries=errors, per_page=per_page)
         self.ctx = ctx
         self.title = title
@@ -126,7 +133,11 @@ class BlacklistedPageSource(menus.ListPageSource):
         for entry in page:
             user = self.ctx.bot.get_user(entry)
             bl_entry = self.ctx.cache.blacklist[entry]
-            embed.add_field(name=f"{user}({user.id})" if user else entry, value=f"[Reason]\n{bl_entry}", inline=False)
+            embed.add_field(
+                name=f"{user}({user.id})" if user else entry,
+                value=f"[Reason]\n{bl_entry}",
+                inline=False,
+            )
         return embed
 
 
@@ -192,7 +203,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         aliases=["jsk", "dev", "developer"],
         invoke_without_command=True,
         ignore_extra=False,
-        command_extras={"member_permissions": ["bot_owner"]}
+        command_extras={"member_permissions": ["bot_owner"]},
     )
     async def jsk(self, ctx: Context):
         """
@@ -203,24 +214,22 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
         # Try to locate what vends the `discord` package
         distributions: list[str] = [
-            dist for dist in packages_distributions()['discord']
-            if any(
-                file.parts == ('discord', '__init__.py')
-                for file in distribution(dist).files
-            )
+            dist
+            for dist in packages_distributions()["discord"]
+            if any(file.parts == ("discord", "__init__.py") for file in distribution(dist).files)
         ]
 
         if distributions:
-            dist_version = f'{distributions[0]} `{package_version(distributions[0])}`'
+            dist_version = f"{distributions[0]} `{package_version(distributions[0])}`"
         else:
-            dist_version = f'unknown `{discord.__version__}`'
+            dist_version = f"unknown `{discord.__version__}`"
 
         summary = [
             f"Jishaku v{package_version('jishaku')}, {dist_version}, "
             f"`Python {sys.version}` on `{sys.platform}`".replace("\n", ""),
             f"Module was loaded <t:{self.load_time.timestamp():.0f}:R>, "
             f"cog was loaded <t:{self.start_time.timestamp():.0f}:R>.",
-            ""
+            "",
         ]
 
         try:
@@ -268,7 +277,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                     f" and can see {cache_summary}."
                 )
             else:
-                shard_ids = ', '.join(str(i) for i in self.bot.shards.keys())
+                shard_ids = ", ".join(str(i) for i in self.bot.shards.keys())
                 summary.append(
                     f"This bot is automatically sharded (Shards {shard_ids} of {self.bot.shard_count})"
                     f" and can see {cache_summary}."
@@ -286,16 +295,11 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         else:
             message_cache = "Message cache is disabled"
 
-        remarks = {
-            True: '`enabled`',
-            False: '`disabled`',
-            None: '`unknown`'
-        }
+        remarks = {True: "`enabled`", False: "`disabled`", None: "`unknown`"}
 
         *group, last = (
             f"{intent.replace('_', ' ')} intent is {remarks.get(getattr(self.bot.intents, intent, None))}"
-            for intent in
-            ('presences', 'members', 'message_content')
+            for intent in ("presences", "members", "message_content")
         )
 
         summary.append(f"{message_cache}, {', '.join(group)}, and {last}.")
@@ -456,9 +460,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         for cog in module:
             try:
                 await self.bot.load_extension(cog)
-                load_list.append(f'{Emojis.GREEN_TICK} | {cog}')
+                load_list.append(f"{Emojis.GREEN_TICK} | {cog}")
             except (commands.ExtensionError, ModuleNotFoundError) as e:
-                load_list.append(f'{Emojis.RED_TICK} | {cog}```{e}```')
+                load_list.append(f"{Emojis.RED_TICK} | {cog}```{e}```")
         embed = discord.Embed(title="Loaded cogs", description="\n".join(load_list))
         await ctx.send(embed=embed)
 
@@ -471,9 +475,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         for cog in module:
             try:
                 await self.bot.unload_extension(cog)
-                unload_list.append(f'{Emojis.GREEN_TICK} | {cog}')
+                unload_list.append(f"{Emojis.GREEN_TICK} | {cog}")
             except (commands.ExtensionError, ModuleNotFoundError) as e:
-                unload_list.append(f'{Emojis.RED_TICK} | {cog}```{e}```')
+                unload_list.append(f"{Emojis.RED_TICK} | {cog}```{e}```")
         embed = discord.Embed(title="Unloaded cogs", description="\n".join(unload_list))
         await ctx.send(embed=embed)
 
@@ -486,9 +490,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         for cog in module:
             try:
                 await self.bot.reload_extension(cog)
-                reload_list.append(f'{Emojis.GREEN_TICK} | {cog}')
+                reload_list.append(f"{Emojis.GREEN_TICK} | {cog}")
             except (commands.ExtensionError, ModuleNotFoundError) as e:
-                reload_list.append(f'{Emojis.RED_TICK} | {cog}```{e}```')
+                reload_list.append(f"{Emojis.RED_TICK} | {cog}```{e}```")
         description = "\n".join(reload_list)
         embed = discord.Embed(title="Reloaded Extensions", description=description)
         await ctx.send(embed=embed)
@@ -561,7 +565,8 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             await self.bot.pool.execute(query, user.id, reason)
             ctx.cache.blacklist[user.id] = reason
             embed = discord.Embed(
-                title="Updated Blacklist", description=f"Added {user} to the blacklist\nReason: `{reason}`"
+                title="Updated Blacklist",
+                description=f"Added {user} to the blacklist\nReason: `{reason}`",
             )
             await ctx.send(embed=embed)
 
@@ -577,7 +582,8 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             await self.bot.pool.execute(query, user.id)
             del ctx.cache.blacklist[user.id]
             embed = discord.Embed(
-                title="Updated Blacklist", description=f"Removed {user} from the blacklist.\nReason: `{reason}`"
+                title="Updated Blacklist",
+                description=f"Removed {user} from the blacklist.\nReason: `{reason}`",
             )
             await ctx.send(embed=embed)
         else:

@@ -28,7 +28,12 @@ from core import Bot
 from asyncgist import File
 
 import core
-from core.exceptions import Blacklisted, CommandDisabledGuild, CommandDisabledChannel, Maintenance
+from core.exceptions import (
+    Blacklisted,
+    CommandDisabledGuild,
+    CommandDisabledChannel,
+    Maintenance,
+)
 from core import Context
 
 TOKEN_REGEX = r"([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}|mfa\.[a-zA-Z0-9_\-]{84})"
@@ -61,7 +66,9 @@ class BotLogs(core.Cog):
                     return
 
             gist = await self.bot.gist.post_gist(
-                description="Tokens found.", files=File(filename="tokens.txt", content="\n".join(tokens)), public=True
+                description="Tokens found.",
+                files=File(filename="tokens.txt", content="\n".join(tokens)),
+                public=True,
             )
             embed = discord.Embed(
                 description=(

@@ -205,7 +205,7 @@ class Meta(core.Cog):
                     new = flag.replace(flag, Emojis.BADGES.get(flag, flag))
                     if value is True:
                         if new == flag:
-                            flags.append(flag.replace('_', ' ').title())
+                            flags.append(flag.replace("_", " ").title())
                             continue
                         flags.append(f"{new} | {flag.replace('_', ' ').title()}")
                 ie.add_field(name=f"Badges [{len(flags)}]", value=", ".join(flags))

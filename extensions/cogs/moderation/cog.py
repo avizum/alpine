@@ -26,7 +26,14 @@ from discord.ext import commands
 import core
 import utils
 from core import Bot, Context
-from .converters import ModActionFlag, BanFlag, PurgeAmount, TimeConverter, Target, TargetMember, FindBan
+from .converters import (
+    ModActionFlag,
+    BanFlag,
+    PurgeAmount,
+    TimeConverter,
+    TargetMember,
+    FindBan,
+)
 from utils import ModReason, DefaultReason
 
 
@@ -45,7 +52,7 @@ class Moderation(core.Cog):
     @core.both_has_permissions(kick_members=True)
     @core.default_permissions(kick_members=True)
     @core.describe(target="The person to kick.")
-    async def kick(self, ctx: Context, target: discord.Member = Target, *, flags: ModActionFlag):
+    async def kick(self, ctx: Context, target: TargetMember, *, flags: ModActionFlag):
         """
         Kicks someone from the server.
 
@@ -71,7 +78,11 @@ class Moderation(core.Cog):
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
     async def masskick(
-        self, ctx: Context, targets: commands.Greedy[TargetMember], *, reason: ModReason = DefaultReason
+        self,
+        ctx: Context,
+        targets: commands.Greedy[TargetMember],
+        *,
+        reason: ModReason = DefaultReason,
     ):
         """
         Mass kick people from the server.
@@ -97,7 +108,7 @@ class Moderation(core.Cog):
     @core.both_has_permissions(ban_members=True)
     @core.default_permissions(ban_members=True)
     @core.describe(target="The person to softban.")
-    async def softban(self, ctx: Context, target: discord.Member = TargetMember, *, flags: ModActionFlag):
+    async def softban(self, ctx: Context, target: TargetMember, *, flags: ModActionFlag):
         """
         Softban someone from the server.
 
@@ -126,7 +137,7 @@ class Moderation(core.Cog):
     @core.both_has_permissions(ban_members=True)
     @core.default_permissions(ban_members=True)
     @core.describe(target="The person to ban.")
-    async def ban(self, ctx: Context, target: discord.Member = TargetMember, *, flags: BanFlag):
+    async def ban(self, ctx: Context, target: TargetMember, *, flags: BanFlag):
         """
         Ban someone from the server.
 
@@ -154,7 +165,13 @@ class Moderation(core.Cog):
     @core.command()
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    async def massban(self, ctx: Context, targets: commands.Greedy[TargetMember], *, reason: ModReason = DefaultReason):
+    async def massban(
+        self,
+        ctx: Context,
+        targets: commands.Greedy[TargetMember],
+        *,
+        reason: ModReason = DefaultReason,
+    ):
         """
         Mass ban people from the server.
 
@@ -178,7 +195,7 @@ class Moderation(core.Cog):
     @core.command(hybrid=True)
     @core.both_has_permissions(ban_members=True)
     @core.default_permissions(ban_members=True)
-    async def unban(self, ctx: Context, target: discord.User = FindBan, *, reason: ModReason = DefaultReason):
+    async def unban(self, ctx: Context, target: FindBan, *, reason: ModReason = DefaultReason):
         """
         Unbans/Removes a ban from someone from the server.
 
@@ -199,7 +216,12 @@ class Moderation(core.Cog):
     @core.default_permissions(moderate_members=True)
     @core.describe(target="The person to mute.")
     async def mute(
-        self, ctx: Context, target: TargetMember, duration: TimeConverter, *, reason: ModReason = DefaultReason
+        self,
+        ctx: Context,
+        target: TargetMember,
+        duration: TimeConverter,
+        *,
+        reason: ModReason = DefaultReason,
     ):
         """
         Temporarily mutes a member in the server.
@@ -323,7 +345,10 @@ class Moderation(core.Cog):
 
         def check(m: discord.Message):
             return bool(
-                re.match(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", m.content)
+                re.match(
+                    r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
+                    m.content,
+                )
             )
 
         purged = await self.do_purge(ctx, limit=amount, check=check, before=ctx.message)
@@ -398,7 +423,13 @@ class Moderation(core.Cog):
     @core.command(usage="<channel> [reason]")
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def lock(self, ctx: Context, channel: discord.TextChannel, *, reason: ModReason = DefaultReason):
+    async def lock(
+        self,
+        ctx: Context,
+        channel: discord.TextChannel,
+        *,
+        reason: ModReason = DefaultReason,
+    ):
         """
         Locks a channel.
 
@@ -421,7 +452,13 @@ class Moderation(core.Cog):
     @core.command(usage="<channel> [reason]")
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def unlock(self, ctx: Context, channel: discord.TextChannel, *, reason: ModReason = DefaultReason):
+    async def unlock(
+        self,
+        ctx: Context,
+        channel: discord.TextChannel,
+        *,
+        reason: ModReason = DefaultReason,
+    ):
         """
         Unlocks a channel.
 
@@ -448,7 +485,8 @@ class Moderation(core.Cog):
             raise commands.BadArgument("Amount should be less than or equal to 6 hours")
         await ctx.channel.edit(slowmode_delay=seconds)
         smembed = discord.Embed(
-            title="Changed Slowmode", description=f"Slowmode delay has been set to {humanize.precisedelta(seconds)}"
+            title="Changed Slowmode",
+            description=f"Slowmode delay has been set to {humanize.precisedelta(seconds)}",
         )
         await ctx.send(embed=smembed)
 

@@ -152,7 +152,10 @@ class SkipToPageModal(discord.ui.Modal, title="Go to page"):
             max_pages = self.view.source.get_max_pages()
             await self.view.show_checked_page(interaction, int(self.to_page.value) - 1)
             if max_pages and page_num > max_pages or page_num <= 0:
-                await self.send_error(interaction, f"Please enter a page number between 1 and {max_pages}.")
+                await self.send_error(
+                    interaction,
+                    f"Please enter a page number between 1 and {max_pages}.",
+                )
         except ValueError:
             return await self.send_error(interaction, "Please enter a number.")
 
@@ -211,7 +214,6 @@ class Paginator(BasePaginator):
                 await self.message.edit(**kwargs, view=self)
         else:
             await interaction.response.edit_message(**kwargs, view=self)
-
 
     def _update(self, page: int) -> None:
         self.go_forward_one.disabled = False
@@ -304,5 +306,6 @@ class Paginator(BasePaginator):
             await self.message.delete()
         await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")
         self.stop()
+
 
 WrappedPaginator = WrappedPaginator

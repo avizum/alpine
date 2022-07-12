@@ -72,7 +72,10 @@ class Settings(core.Cog):
         prefixes = ctx.cache.guild_settings[ctx.guild.id]["prefixes"]
         prefixes.append(prefix)
         await self.bot.pool.execute(query, ctx.guild.id, prefixes)
-        embed = discord.Embed(title="Current Prefixes", description=f"Added `{prefix}` to the list of prefixes.")
+        embed = discord.Embed(
+            title="Current Prefixes",
+            description=f"Added `{prefix}` to the list of prefixes.",
+        )
         embed.add_field(name="Updated List of Prefixes", value=f"`{'` | `'.join(prefixes)}`")
         await ctx.send(embed=embed)
 
@@ -101,7 +104,10 @@ class Settings(core.Cog):
 
         prefixes = self.bot.cache.guild_settings[ctx.guild.id]["prefixes"]
         prefixes.remove(prefix)
-        embed = discord.Embed(title="Removed Prefix", description=f"Removed `{prefix}` from the list of prefixes.")
+        embed = discord.Embed(
+            title="Removed Prefix",
+            description=f"Removed `{prefix}` from the list of prefixes.",
+        )
         embed.add_field(name="Updated List of Prefixes", value=f"`{'` | `'.join(prefixes)}`")
         await ctx.send(embed=embed)
 
@@ -238,7 +244,7 @@ class Settings(core.Cog):
 
     @core.group(name="join-message", invoke_without_command=True)
     @core.has_permissions(manage_guild=True)
-    async def join_message(self, ctx: Context, toggle: bool = None):
+    async def join_message(self, ctx: Context, toggle: bool | None = None):
         """
         Configure the join message.
 
@@ -251,10 +257,9 @@ class Settings(core.Cog):
                 embed = discord.Embed(
                     title="Join Message Configuration",
                     description=(
-                        "```py\n"
                         f"Toggle: {self.map[config['join_enabled']]}\n"
                         f"Join Message: {join_message if len(join_message) < 10 else 'Too Long.'}\n"
-                        f"Join Channel ID: {config['join_channel']}```"
+                        f"Join Channel: <#{config['join_channel']}>"
                     ),
                 )
                 return await ctx.send(embed=embed)

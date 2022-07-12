@@ -77,6 +77,7 @@ class Servers(core.Cog):
     """
     Commands for bot's servers only.
     """
+
     def __init__(self, bot: Bot):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)

@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 
 _log = logging.getLogger("avimetry")
 
+
 class Cache:
     def __init__(self, bot: Bot) -> None:
         self.bot: Bot = bot

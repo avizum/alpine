@@ -50,7 +50,9 @@ class TopGG(core.Cog):
             "guilds": len(self.bot.guilds),
         }
         await self.bot.session.post(
-            "https://discordbotlist.com/api/v1/bots/756257170521063444/stats", headers=headers, data=data
+            "https://discordbotlist.com/api/v1/bots/756257170521063444/stats",
+            headers=headers,
+            data=data,
         )
 
     @post.before_loop

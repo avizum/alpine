@@ -65,7 +65,6 @@ PUBLIC_BOT_ID: int = 756257170521063444
 BETA_BOT_ID: int = 787046145884291072
 
 
-
 _log = logging.getLogger("avimetry")
 handler = logging.StreamHandler()
 handler.setFormatter(_ColourFormatter())
@@ -217,7 +216,8 @@ class Bot(commands.Bot):
                 password="youshallnotpass",
                 identifier="Avimetry",
                 spotify_client=spotify.SpotifyClient(
-                    client_id=self.api["SpotifyClientID"], client_secret=self.api["SpotifySecret"]
+                    client_id=self.api["SpotifyClientID"],
+                    client_secret=self.api["SpotifySecret"],
                 ),
             )
         except Exception as e:
@@ -230,7 +230,11 @@ class Bot(commands.Bot):
         _log.info(f"Running: {self.user.name} ({self.user.id})")
 
     async def wait_for(
-        self, event: str, *, check: Callable[..., bool] | None = None, timeout: float | None = None
+        self,
+        event: str,
+        *,
+        check: Callable[..., bool] | None = None,
+        timeout: float | None = None,
     ) -> Any:
         if event == "message":
 
@@ -239,6 +243,7 @@ class Bot(commands.Bot):
                     return args[0].author.id not in self.cache.blacklist and check(*args)
                 else:
                     return args[0].author.id not in self.cache.blacklist
+
             return await super().wait_for(event, check=bl_message_check, timeout=timeout)
 
         elif event in ("reaction_add", "reaction_remove"):
@@ -247,6 +252,7 @@ class Bot(commands.Bot):
                 if check:
                     return args[1].id not in self.cache.blacklist and check(*args)
                 return args[1].id not in self.cache.blacklist
+
             return await super().wait_for(event, check=bl_reaction_check, timeout=timeout)
         else:
             bl_check = check
@@ -261,7 +267,7 @@ class Bot(commands.Bot):
         *,
         cls: Context | None = None,
     ) -> Context:
-        return await super().get_context(origin, cls=cls or self.context) # type: ignore
+        return await super().get_context(origin, cls=cls or self.context)  # type: ignore
 
     async def on_message_edit(self, before: discord.Message, after: discord.Message) -> None:
         if before.content == after.content or after.attachments:

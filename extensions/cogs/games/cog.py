@@ -31,7 +31,12 @@ from akinator.async_aki import Akinator
 import core
 from core import Bot, Context
 from utils import Timer, Emojis
-from .components import CookieView, AkinatorFlags, AkinatorGameView, RockPaperScissorGame
+from .components import (
+    CookieView,
+    AkinatorFlags,
+    AkinatorGameView,
+    RockPaperScissorGame,
+)
 
 
 class Games(core.Cog):
