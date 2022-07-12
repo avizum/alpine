@@ -136,7 +136,7 @@ class Context(commands.Context):
     def clean_prefix(self) -> str:
         match = re.match(emoji_regex, self.prefix)
         if match:
-            return re.sub(emoji_regex, match.group(2), self.prefix)
+            return re.sub(emoji_regex, match[2], self.prefix)
 
         return re.sub(f"<@!?{self.bot.user.id}>", f"@{self.me.display_name} ", self.prefix)
 

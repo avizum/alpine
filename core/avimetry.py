@@ -87,14 +87,11 @@ class Bot(commands.Bot):
     source: str = "https://github.com/avimetry/avimetry"
     context: Context | None = None
 
-    primary_extensions: tuple[str, ...] = (
+    to_load: tuple[str, ...] = (
         "extensions.listeners.events",
         "extensions.cogs.owner",
         "extensions.extras.setup",
         "core.context",
-    )
-
-    secondary_extensions: tuple[str, ...] = (
         "extensions.cogs.animals",
         "extensions.cogs.botinfo",
         "extensions.listeners.errorhandler",
@@ -149,7 +146,7 @@ class Bot(commands.Bot):
         self._BotBase__cogs: dict[str, commands.Cog] = commands.core._CaseInsensitiveDict()
 
     def __repr__(self) -> str:
-        return f"<Bot id={self.user.id}>"
+        return f"<Bot id={self.user.id}, name={self.user.discriminator}, discriminator={self.user.discriminator}>"
 
     async def setup_hook(self) -> None:
         self.session: ClientSession = ClientSession()
@@ -190,17 +187,11 @@ class Bot(commands.Bot):
         return prefixes
 
     async def load_extensions(self) -> None:
-        for ext in self.primary_extensions:
+        for ext in self.to_load:
             try:
                 await self.load_extension(ext)
             except commands.ExtensionError as error:
                 _log.error("Exception in loading extension (primary)", exc_info=error)
-        await self.wait_until_ready()
-        for ext in self.secondary_extensions:
-            try:
-                await self.load_extension(ext)
-            except commands.ExtensionError as error:
-                _log.error("Exception in loading extension (secondary)", exc_info=error)
 
     async def find_restart_message(self) -> None:
         await self.wait_until_ready()
@@ -218,7 +209,6 @@ class Bot(commands.Bot):
 
     async def start_nodes(self) -> None:
         await self.wait_until_ready()
-
         try:
             await wavelink.NodePool.create_node(
                 bot=self,
