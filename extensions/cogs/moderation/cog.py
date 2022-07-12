@@ -375,10 +375,10 @@ class Moderation(core.Cog):
         purged = await self.do_purge(ctx, limit=100, check=lambda m: m.content.endswith(text))
         await ctx.can_delete(embed=await self.do_affected(purged))
 
-    @core.command(usage="[amount]")
+    @core.command(hybrid=True)
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
-    async def cleanup(self, ctx: Context, amount=15):
+    async def cleanup(self, ctx: Context, amount: int = 15):
         """
         Delete the last 15 commands.
 
@@ -392,7 +392,7 @@ class Moderation(core.Cog):
         def check(message: discord.Message):
             return message.content.startswith(prefixes) or message.author == self.bot.user
 
-        purged = await ctx.channel.purge(limit=amount, check=check, before=ctx.message)
+        purged = await self.do_purge(ctx, limit=amount, check=check, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged))
 
     @core.command(usage="<channel> [reason]")
