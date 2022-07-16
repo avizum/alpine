@@ -23,7 +23,7 @@ import random
 
 import discord
 import wavelink
-from wavelink import YouTubeTrack
+from wavelink import YouTubeTrack, YouTubePlaylist
 from discord.ext import commands
 from wavelink.ext import spotify
 
@@ -31,7 +31,14 @@ import core
 from core import Bot, Context
 from utils import Paginator, format_seconds
 from .exceptions import NotInVoice, BotNotInVoice, IncorrectChannelError
-from .music import Player, Track, SpotifyTrack, YouTubePlaylist, SearchView, SearchSelect, PaginatorSource
+from .music import (
+    Player,
+    Track,
+    SpotifyTrack,
+    SearchView,
+    SearchSelect,
+    PaginatorSource,
+)
 
 
 def convert_time(time: int | str) -> int:
@@ -59,6 +66,13 @@ class Music(core.Cog):
         self.bot = bot
         self.emoji = "\U0001f3b5"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
+
+    async def cog_check(self, ctx: Context) -> bool:
+        try:
+            wavelink.NodePool.get_node()
+        except wavelink.ZeroConnectedNodes as e:
+            raise NotInVoice("No nodes are connected. Try again later.") from e
+        return True
 
     @staticmethod
     def in_voice():
@@ -97,11 +111,10 @@ class Music(core.Cog):
 
         return commands.check(predicate)
 
-
     @core.Cog.listener("on_wavelink_track_exception")
     async def track_exception(self, player: Player, track: Track, error):
         player: Player = player
-        await player.context.send(f"Error on {track.title}: {error}")
+        await player.context.channel.send(f"Error on {track.title}: {error}")
 
     @core.Cog.listener("on_wavelink_track_end")
     async def track_end(self, player: Player, track: Track, reason):
@@ -109,7 +122,7 @@ class Music(core.Cog):
 
     @core.Cog.listener("on_wavelink_track_stuck")
     async def track_stuck(self, player: Player, track: Track, threshold):
-        await player.context.send(f"Track {track.name} got stuck. Skipping.")
+        await player.context.channel.send(f"Track {track.name} got stuck. Skipping.")
         await player.do_next()
 
     @core.Cog.listener("on_voice_state_update")
@@ -195,7 +208,6 @@ class Music(core.Cog):
         await ctx.send(f"Joined {player.channel.mention}, bound to {ctx.channel.mention}.")
         return player
 
-
     @core.command(aliases=["join"])
     @in_voice()
     async def connect(self, ctx: Context):
@@ -232,7 +244,12 @@ class Music(core.Cog):
     @core.command(aliases=["enqueue", "p"])
     @in_voice()
     @in_bound_channel(bot=True)
-    async def play(self, ctx: Context, *, query: YouTubeTrack | YouTubePlaylist | SpotifyTrack | None = None):
+    async def play(
+        self,
+        ctx: Context,
+        *,
+        query: YouTubeTrack | YouTubePlaylist | SpotifyTrack | None = None,
+    ):
         """Play or queue a song with the given query."""
         player: Player = ctx.voice_client
         if not player:
@@ -263,6 +280,7 @@ class Music(core.Cog):
         elif isinstance(query, list) and isinstance(query[0], wavelink.PartialTrack):
             for track in query:
                 track.requester = ctx.author
+                track.hyperlinked_title = track.title
                 await player.queue.put(track)
             embed = discord.Embed(
                 title="Enqueued Spotify playlist",
@@ -702,10 +720,10 @@ class Music(core.Cog):
 
         entries = []
         for index, track in enumerate(player.queue._queue):
-            if isinstance(track, wavelink.PartialTrack):
+            if isinstance(track, Track):
+                entries.append(f"`{index + 1})` {track.hyperlinked_title}")
+            elif isinstance(track, wavelink.PartialTrack):
                 entries.append(f"`{index + 1})` {track.title}")
-            else:
-                entries.append(f"`{index + 1})` [{track.title}]({track.url})")
 
         pages = PaginatorSource(entries=entries, ctx=ctx)
         paginator = Paginator(source=pages, timeout=120, ctx=ctx, disable_view_after=True)

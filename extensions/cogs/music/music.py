@@ -60,16 +60,14 @@ class SpotifyTrack(spotify.SpotifyTrack):
         if decoded is None:
             raise commands.BadArgument("URL must be a Spotify URL.")
 
-        # if decoded["type"] in [spotify.SpotifySearchType.album, spotify.SpotifySearchType.playlist]:
-        #     print('play')
-        #     full = []
-        #     print('getting track')
-        #     async for partial in cls.iterator(query=argument, type=decoded["type"], partial_tracks=True):
-
-        #         full.append(partial)
-        #     print('got tracks')
-        #     print(full)
-        #     return full
+        if decoded["type"] in [
+            spotify.SpotifySearchType.album,
+            spotify.SpotifySearchType.playlist,
+        ]:
+            full = []
+            async for partial in cls.iterator(query=argument, type=decoded["type"], partial_tracks=True):
+                full.append(partial)
+            return full
 
         results = await cls.search(argument, type=decoded["type"])
         if not results:
@@ -169,13 +167,23 @@ class Track(wavelink.Track):
         self.thumb = kwargs.get("thumb")
         self.requester = kwargs.get("requester")
 
+        hyperlinked_title = f"[{self.title}]({self.uri})" if self.uri is not None else self.title
+        self.hyperlinked_title = hyperlinked_title
+
 
 class Player(wavelink.Player):
     """
     Custom wavelink Player class.
     """
 
-    def __init__(self, *args, context: Context = None, announce: bool = True, allow_duplicates: bool = True, **kwargs):
+    def __init__(
+        self,
+        *args,
+        context: Context = None,
+        announce: bool = True,
+        allow_duplicates: bool = True,
+        **kwargs,
+    ):
         self.context: Context = context
         self.youtube_reg = re.compile(
             r"https?://((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$"
@@ -265,29 +273,29 @@ class Player(wavelink.Player):
             return
 
         embed = discord.Embed(title="Now Playing")
-        if isinstance(track, wavelink.PartialTrack):
-            print('asd')
-            if isinstance(self.queue.up_next, wavelink.PartialTrack):
-                up_next = self.queue.up_next.title
-            embed.description = (
-                f"{track.title}"
-                f"> Requester: {track.requester.mention} (`{track.requester}`)\n\n"
-                f"Up next: {up_next}"
-            )
-            return embed
         if self.context:
             embed.color = await self.context.fetch_color()
         time = f"> Length: {format_seconds(track.length)}\n"
         if position:
             time = f"> Position {format_seconds(position)}/{format_seconds(track.length)}\n"
-        if self.loop_song:
-            next_song = f"[{self.loop_song.title}]({self.loop_song.uri})"
+        if isinstance(self.queue.up_next, wavelink.PartialTrack):
+            next_song = self.queue.up_next.title
+        elif self.loop_song:
+            next_song = self.loop_song.hyperlinked_title
         elif self.queue.up_next:
-            next_song = f"[{self.queue.up_next.title}]({self.queue.up_next.uri})"
+            next_song = self.queue.up_next.hyperlinked_title
         else:
             next_song = "Add more songs to the queue!"
+
+        # Happens when Spotify playlist is added to the queue
+        # Partial tracks become Youtube tracks when played
+        if isinstance(track, wavelink.YouTubeTrack):
+            embed.description = f"[{track.title}]({track.uri})\n" f"{time}\n" f"Up next: {next_song}"
+            if track.thumb:
+                embed.set_thumbnail(url=track.thumb)
+            return embed
         embed.description = (
-            f"[{track.title}]({track.uri})\n"
+            f"{track.hyperlinked_title}\n"
             f"{time}"
             f"> Requester: {track.requester.mention} (`{track.requester}`)\n\n"
             f"Up next: {next_song}"
