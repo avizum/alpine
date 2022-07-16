@@ -25,6 +25,7 @@ import os
 import discord
 import psutil
 from discord.ext import commands
+from discord import app_commands
 from topgg import NotFound, ServerError
 
 import core
@@ -463,12 +464,16 @@ class BotInfo(commands.Cog, name="Bot Info"):
         view.add_item(button(style=discord.ButtonStyle.link, label="License", url=license_link))
         await ctx.send(embed=source_embed, view=view)
 
-    @source.autocomplete('command')
-    async def source_autocomplete(self, interaction: discord.Interaction, current: str):
+    @source.autocomplete("command")
+    async def source_autocomplete(
+        self,
+        interaction: discord.Interaction,
+        current: str | None,
+    ) -> list[app_commands.Choice[str]]:
         commands = [
             c.qualified_name for c in list(self.bot.walk_commands()) if current in c.qualified_name and len(current) > 2
         ]
-        to_return = [discord.app_commands.Choice(name=cmd, value=cmd) for cmd in commands]
+        to_return = [app_commands.Choice(name=cmd, value=cmd) for cmd in commands]
         return to_return[:25]
 
     @core.command(
@@ -539,7 +544,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         hidden=True,
     )
     @core.is_owner()
-    async def paginator(self, ctx):
+    async def paginator(self, ctx: Context):
         """
         **How to use paginators**
         ⏮: Goes to the first page of the paginator
