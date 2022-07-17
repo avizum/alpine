@@ -126,16 +126,21 @@ def both_has_permissions(**perms: bool):
 
     return check(predicate, member_permissions=perms, bot_permissions=perms)
 
-
 def cooldown(rate: int, per: float, type=commands.BucketType.user):
+
+    default_cooldown = commands.Cooldown(rate, per)
+
     def decorator(func):
-        def cd(message: discord.Message):
-            return None if message.author.id in OWNER_IDS else commands.Cooldown(rate, per)
+        def owner_cd(message: discord.Message):
+            return None if message.author.id in OWNER_IDS else default_cooldown
+
+        mapping = commands.DynamicCooldownMapping(owner_cd, type)
+        mapping._cooldown = default_cooldown
 
         if isinstance(func, Command):
-            func._buckets = commands.DynamicCooldownMapping(cd, type)
+            func._buckets = mapping
         else:
-            func.__commands_cooldown__ = commands.DynamicCooldownMapping(cd, type)
+            func.__commands_cooldown__ = mapping
         return func
 
     return decorator

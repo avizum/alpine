@@ -31,6 +31,7 @@ from discord.utils import MISSING
 if TYPE_CHECKING:
     from .avimetry import Bot
 
+
 T = TypeVar("T")
 GroupT = TypeVar("GroupT", bound="Group")
 CommandT = TypeVar("CommandT", bound="Command")
@@ -40,19 +41,33 @@ def to_list(thing) -> list[str]:
     return [thing] if isinstance(thing, str) else list(thing)
 
 
+default_cooldown = commands.Cooldown(3, 15)
+def owner_cd(message: discord.Message):
+    bot: Bot = message._state._get_client()
+    return None if message.author.id in bot.owner_ids else default_cooldown
+
+
+mapping = commands.DynamicCooldownMapping(owner_cd, commands.BucketType.user)
+mapping._cooldown = default_cooldown
+
+
 class Command(commands.Command):
     def __init__(self, func, **kwargs) -> None:
-        self.member_permissions = to_list(
+        self.member_permissions: list[str] = to_list(
             kwargs.get("member_permissions")
             or getattr(func, "member_permissions", ["none_needed"])
             or kwargs.get("extras", {}).get("member_permissions")
         )
-        self.bot_permissions = to_list(
+        self.bot_permissions: list[str] = to_list(
             kwargs.get("bot_permissions")
             or getattr(func, "bot_permissions", ["none_needed"])
             or kwargs.get("extras", {}).get("bot_permissions")
         )
         super().__init__(func, **kwargs)
+        if not self._buckets._cooldown:
+            cd = commands.Cooldown(3, 15)
+            self._buckets = commands.DynamicCooldownMapping(owner_cd, commands.BucketType.user)
+            self._buckets._cooldown = cd
 
     def __repr__(self) -> str:
         return f"<core.Command name={self.qualified_name}>"
