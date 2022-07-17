@@ -48,15 +48,17 @@ emoji_regex = "<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22
 
 
 class TrashView(View):
+    message: discord.Message
+
     def __init__(self, *, member: discord.Member, timeout: int = 60, ctx: Context) -> None:
-        self.ctx = ctx
+        self.ctx: Context = ctx
         super().__init__(member=member, timeout=timeout)
 
     async def stop(self) -> None:
         for button in self.children:
             button.disabled = True
         try:
-            await self.message.edit(view=self)
+            await self.message.edit(view=None)
         except discord.NotFound:
             pass
         super().stop()
@@ -67,6 +69,8 @@ class TrashView(View):
     @discord.ui.button(emoji="\U0001f5d1", style=discord.ButtonStyle.danger)
     async def trash(self, interaction: discord.Interaction, button: discord.Button):
         await self.message.delete()
+        if self.ctx.interaction:
+            return
         await self.ctx.message.add_reaction(Emojis.GREEN_TICK)
 
 
