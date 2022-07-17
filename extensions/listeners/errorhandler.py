@@ -93,6 +93,8 @@ class ErrorHandler(core.Cog):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.blacklist_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
+        self.on_cooldown_cooldown = commands.CooldownMapping.from_cooldown(1, 30, commands.BucketType.user)
+        self.max_concurrency_cooldown = commands.CooldownMapping.from_cooldown(1, 30, commands.BucketType.user)
         self.maintenance_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.channel)
         self.no_dm_command_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
         self.not_found_cooldown_content = CooldownByContent.from_cooldown(1, 15, commands.BucketType.user)
@@ -110,15 +112,15 @@ class ErrorHandler(core.Cog):
         except Exception:
             pass
 
-    def get_cooldown(self, command):
-        try:
-            rate = command._buckets._cooldown.rate
-            cd_type = command._buckets.type.name
-            per = humanize.precisedelta(command._buckets._cooldown.per)
+    def get_cooldown(self, command: core.Command):
+        cooldown = command.cooldown
+        if cooldown:
+            rate = cooldown.rate
+            _type = command._buckets.type.name
+            per = humanize.precisedelta(cooldown.per)
             time = "times" if rate > 1 else "time"
-            return f"{per} every {rate} {time} per {cd_type}"
-        except AttributeError:
-            return None
+            return f"{per} every {rate} {time} per {_type}"
+        return None
 
     @core.Cog.listener()
     async def on_command_error(self, ctx: Context, error: commands.CommandError):
@@ -158,26 +160,26 @@ class ErrorHandler(core.Cog):
                 description=(f"Reason: `{error.reason}`\n" f"If you want to appeal, please join the support server."),
             )
             retry_after = self.blacklist_cooldown.update_rate_limit(ctx.message)
-            if not retry_after:
+            if not retry_after or ctx.interaction is not None:
                 view = discord.ui.View()
                 view.add_item(discord.ui.Button(label="Support Server", url=self.bot.support))
-                return await ctx.send(embed=blacklisted, delete_after=30, view=view)
+                return await ctx.send(embed=blacklisted, delete_after=30, view=view, ephemeral=True)
             return
 
         elif isinstance(error, Maintenance):
             retry_after = self.maintenance_cooldown.update_rate_limit(ctx.message)
-            if not retry_after:
-                return await ctx.send("Maintenance mode is enabled. Try again later.")
+            if not retry_after or ctx.interaction is not None:
+                return await ctx.send("Maintenance mode is enabled. Try again later.", ephemeral=True)
             return
 
         elif isinstance(error, commands.NoPrivateMessage):
             embed = Embed(
                 title="No DM commands",
-                description="Commands do not work in DMs because I work best in servers.",
+                description="Commands do not work in DMs.",
             )
             retry_after = self.no_dm_command_cooldown.update_rate_limit()
-            if not retry_after:
-                return await ctx.send(embed=embed)
+            if not retry_after or ctx.interaction is not None:
+                return await ctx.send(embed=embed, ephemeral=True)
             return
 
         elif isinstance(error, commands.CommandNotFound):
@@ -220,7 +222,10 @@ class ErrorHandler(core.Cog):
                     f"Command cooldown: {self.get_cooldown(ctx.command)}"
                 ),
             )
-            return await ctx.send(embed=cd)
+            retry_after = self.on_cooldown_cooldown.update_rate_limit(ctx.message)
+            if not retry_after or ctx.interaction is not None:
+                return await ctx.send(embed=cd, ephemeral=True)
+            return
 
         elif isinstance(error, commands.MaxConcurrencyReached):
             max_uses = Embed(
@@ -230,7 +235,7 @@ class ErrorHandler(core.Cog):
                     f"{'time' if error.number == 1 else 'times'} {error.per.name}."
                 ),
             )
-            return await ctx.send(embed=max_uses)
+            return await ctx.send(embed=max_uses, ephemeral=True)
 
         elif isinstance(error, commands.BotMissingPermissions):
             missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_permissions]
@@ -245,7 +250,7 @@ class ErrorHandler(core.Cog):
                 description=f"I need the following permissions to run this command:\n{fmt}",
             )
             try:
-                await ctx.send(embed=bnp)
+                await ctx.send(embed=bnp, ephemeral=True)
             except discord.HTTPException:
                 return
 
@@ -261,7 +266,7 @@ class ErrorHandler(core.Cog):
                 title="Missing Permissions",
                 description=f"You need the following permissions to run this command:\n{fmt}",
             )
-            return await ctx.send(embed=np)
+            return await ctx.send(embed=np, ephemeral=True)
 
         elif isinstance(error, commands.NotOwner):
             no = Embed(title="Missing Permissions", description="You do not own this bot.")
@@ -289,12 +294,12 @@ class ErrorHandler(core.Cog):
         elif isinstance(error, CommandDisabledGuild):
             retry_after = self.disabled_command.update_rate_limit(ctx.message)
             if not retry_after:
-                return await ctx.send("You can not use this command, It is disabled in this server.")
+                return await ctx.send("You can not use this command, It is disabled in this server.", ephemeral=True)
 
         elif isinstance(error, CommandDisabledChannel):
             retry_after = self.disabled_channel.update_rate_limit(ctx.message)
-            if not retry_after:
-                return await ctx.send("Commands have been disabled in this channel.")
+            if not retry_after and ctx.interaction is not None:
+                return await ctx.send("Commands have been disabled in this channel.", ephemeral=True)
 
         elif isinstance(error, commands.DisabledCommand):
             return await ctx.send("This command is not enabled at the moment.")
@@ -362,7 +367,7 @@ class ErrorHandler(core.Cog):
                         f"Error Information:```py\n{error}```"
                     ),
                 )
-            webhook_error_embed = Embed(title="A new error" if not in_db else "Old error")
+            webhook_error_embed = Embed(title="Old error" if in_db else "A new error")
             error_info = in_db or inserted_error
             webhook_error_embed.description = (
                 f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
