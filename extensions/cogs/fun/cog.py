@@ -19,7 +19,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import asyncio
 import datetime
 import random
+from base64 import b64decode
 from io import BytesIO
+from typing import Literal
 
 import discord
 from aiogtts import aiogTTS
@@ -27,6 +29,61 @@ from discord.ext import commands
 
 import core
 from core import Bot, Context
+
+
+TikTokTTSOptions = Literal[
+    "Ghost Face",
+    "Chewbacca",
+    "C3PO",
+    "Stitch",
+    "Stormtrooper",
+    "Rocket",
+    "English F AU",
+    "English M AU",
+    "English M UK",
+    "English F US",
+    "English M 1 US",
+    "English M 2 US",
+    "English M 3 US",
+    "English M 4 US",
+    "French M",
+    "German F",
+    "Spanish M",
+    "Portuguese BR F",
+    "Indonesian F",
+    "Japanese F",
+    "Korean F",
+    "Narrator",
+    "Singing F Alto",
+    "Singing M Tenor",
+]
+
+tiktok_tts_mapping: dict[str, str] = {
+    "Ghost Face": "en_us_ghostface",
+    "Chewbacca": "en_us_chewbacca",
+    "C3PO": "en_us_c3po",
+    "Stitch": "en_us_stitch",
+    "Stormtrooper": "en_us_stormtrooper",
+    "Rocket": "en_us_rocket",
+    "English F AU": "en_au_001",
+    "English M AU": "en_au_002",
+    "English M 1 UK": "en_uk_001",
+    "English F US": "en_us_001",
+    "English M 1 US": "en_us_006",
+    "English M 2 US": "en_us_007",
+    "English M 3 US": "en_us_009",
+    "English M 4 US": "en_us_010",
+    "French M": "fr_001",
+    "German F": "de_001",
+    "Spanish M": "es_002",
+    "Portuguese BR F": "br_001",
+    "Indonesian F": "id_001",
+    "Japanese F": "jp_001",
+    "Korean F": "kr_003",
+    "Narrator": "en_male_nattation",
+    "Singing F Alto": "en_female_f08_salut_damour",
+    "Singing M Tenor": "en_male_m03_lobby",
+}
 
 
 class Fun(core.Cog):
@@ -324,21 +381,59 @@ class Fun(core.Cog):
         output = f"👏 {' 👏 '.join(inp)} 👏"
         await ctx.send(output)
 
-    @core.command()
+    @core.group(invoke_without_command=True, hybrid=True)
+    async def tts(self, ctx: Context):
+        """
+        Text to speech commands.
+
+        All functionality is found within its subcommands.
+        """
+        await ctx.send_help(ctx.command)
+
+    @tts.command()
     @core.cooldown(1, 60, commands.BucketType.user)
     @commands.max_concurrency(1, commands.BucketType.user)
-    async def tts(self, ctx: Context, *, text):
+    async def google(self, ctx: Context, *, text: str):
         """
         Text to speech!
 
         Takes your text and converts to audio and sends it to the channel
         """
-        async with ctx.channel.typing():
+        async with ctx.typing():
             aiogtts = aiogTTS()
             buffer = BytesIO()
             await aiogtts.write_to_fp(text, buffer, lang="en")
             buffer.seek(0)
-            file = discord.File(buffer, f"{ctx.author.name}-tts.mp3")
+            file = discord.File(buffer, f"{ctx.author.name}-google-tts.mp3")
+        await ctx.send(file=file)
+
+    @tts.command()
+    @core.cooldown(1, 60, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.user)
+    async def tiktok(
+        self,
+        ctx: Context,
+        voice: TikTokTTSOptions | None = "English F US",
+        *,
+        text: str,
+    ):
+        """
+        Takes your text and converts to audio from TikTok.
+        """
+        voice = tiktok_tts_mapping[voice]
+        async with ctx.typing():
+            info = await self.bot.session.post(
+                "https://api16-normal-useast5.us.tiktokv.com/media/api/text/speech/invoke/",
+                data={
+                    "text_speaker": voice,
+                    "req_text": text,
+                    "speaker_map_type": 0,
+                },
+            )
+            buffer = BytesIO(b64decode([(await info.json())["data"]["v_str"]][0]))
+            buffer.seek(0)
+
+            file = discord.File(buffer, f"{ctx.author.name}-tiktok-tts.mp3")
         await ctx.send(file=file)
 
 
