@@ -60,8 +60,9 @@ time_dict = {
 }
 
 
-class TimeConverter(commands.Converter):
-    async def convert(self, ctx: Context, argument):
+class TimeConverter(str):
+    @classmethod
+    async def convert(cls, ctx: Context, argument) -> int:
         args = argument.lower()
         matches = re.findall(time_regex, args)
         time = 0
@@ -77,8 +78,9 @@ class TimeConverter(commands.Converter):
         return time
 
 
-class PurgeAmount(commands.Converter):
-    async def convert(self, ctx, argument):
+class PurgeAmount(int):
+    @classmethod
+    async def convert(cls, ctx: Context, argument: str) -> int:
         try:
             number = int(argument)
         except Exception as e:
@@ -88,13 +90,10 @@ class PurgeAmount(commands.Converter):
         return number
 
 
-class TargetMember(commands.Converter[discord.Member]):
-    async def convert(self, ctx: Context, argument: discord.Member) -> discord.Member:
-        try:
-            member = await commands.MemberConverter().convert(ctx, argument)
-        except Exception:
-            member = await commands.UserConverter().convert(ctx, argument)
-            return member
+class TargetMember(discord.Member):
+    @classmethod
+    async def convert(cls, ctx: Context, argument: discord.Member) -> discord.Member:
+        member = await commands.MemberConverter().convert(ctx, argument)
         action = ctx.invoked_with
 
         if member == ctx.guild.owner:
@@ -125,10 +124,10 @@ class TargetMember(commands.Converter[discord.Member]):
 
         return member
 
-Target: discord.Member = commands.parameter(converter=TargetMember)
 
-class FindBanConverter(commands.Converter[discord.Member]):
-    async def convert(self, ctx: Context, argument: str) -> discord.Member | discord.User:
+class FindBan(discord.Member):
+    @classmethod
+    async def convert(cls, ctx: Context, argument: str) -> discord.Member | discord.User:
         try:
             user = await commands.UserConverter().convert(ctx, argument)
             try:
@@ -143,5 +142,3 @@ class FindBanConverter(commands.Converter[discord.Member]):
                     return ban[1]
 
         raise commands.BadArgument("That user isn't banned")
-
-FindBan: discord.Member | discord.User = commands.parameter(converter=FindBanConverter)
