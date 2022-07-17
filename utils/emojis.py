@@ -14,13 +14,13 @@ class Emojis:
     }
 
     STATUSES: dict[str, str] = {
-        "status_online": "<:status_online:810683593193029642>",
-        "status_idle": "<:status_idle:810683571269664798>",
-        "status_dnd": "<:status_dnd:810683560863989805>",
-        "status_offline": "<:status_offline:810683581541515335",
-        "status_streaming": "<:status_streaming:810683604812169276>",
+        "online": "<:status_online:810683593193029642>",
+        "idle": "<:status_idle:810683571269664798>",
+        "dnd": "<:status_dnd:810683560863989805>",
+        "offline": "<:status_offline:810683581541515335>",
+        "streaming": "<:status_streaming:810683604812169276>",
     }
 
     RED_TICK: str = "<:redtick:777096756865269760>"
     GREEN_TICK: str = "<:greentick:777096731438874634>"
-    GRAY_TICK: str = ("<:graytick:791040199798030336>",)
+    GRAY_TICK: str = "<:graytick:791040199798030336>"

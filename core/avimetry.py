@@ -123,6 +123,7 @@ class Bot(commands.Bot):
         guilds=True,
         messages=True,
         members=True,
+        presences=True,
         reactions=True,
         webhooks=True,
         voice_states=True,

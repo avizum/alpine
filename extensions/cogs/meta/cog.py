@@ -135,15 +135,14 @@ class Meta(core.Cog):
 
         return await ctx.send(random.choice(opt))
 
-    @core.command(hybrid=True, aliases=["ui", "uinfo", "whois"])
+    @core.command(hybrid=True, aliases=["ui", "uinfo", "whois", "memberinfo", "mi", "minfo", "user", "member"])
     @core.cooldown(1, 15, commands.BucketType.user)
-    async def userinfo(self, ctx: Context, *, member: discord.Member | discord.User = None):
+    async def userinfo(self, ctx: Context, *, member: discord.Member | discord.User = commands.Author):
         """
         Get info about a user.
 
         This works with any user on Discord.
         """
-        member = member or ctx.author
         if isinstance(member, discord.User):
             ie = discord.Embed(
                 title="User Information",
@@ -166,7 +165,7 @@ class Meta(core.Cog):
             userroles.extend(roles.mention for roles in member.roles)
             userroles.remove(ctx.guild.default_role.mention)
             ie = discord.Embed(
-                title="User Information",
+                title="Member Information",
                 timestamp=datetime.datetime.now(datetime.timezone.utc),
                 color=member.color,
             )
@@ -188,12 +187,11 @@ class Meta(core.Cog):
                 inline=False,
             )
             top_role = member.top_role.mention
-            if top_role == ctx.guild.default_role.mention:
-                top_role = "@everyone"
+            if top_role != ctx.guild.default_role.mention:
+                ie.add_field(name="Top Role", value=top_role, inline=False)
             userroles = ", ".join(userroles)
             if len(userroles) > 1024:
                 userroles = f"{member.display_name} has too many roles to show here."
-            ie.add_field(name="Top Role", value=top_role, inline=False)
             ie.add_field(
                 name=f"Roles [{len(member.roles)}]",
                 value=userroles,
@@ -209,6 +207,20 @@ class Meta(core.Cog):
                             continue
                         flags.append(f"{new} | {flag.replace('_', ' ').title()}")
                 ie.add_field(name=f"Badges [{len(flags)}]", value=", ".join(flags))
+            if member.status:
+                desktop = member.desktop_status.name
+                mobile = member.mobile_status.name
+                web = member.web_status.name
+                ie.add_field(
+                    name="Status",
+                    value=(
+                        f"Desktop: {Emojis.STATUSES.get(desktop)} | {desktop.title()}\n"
+                        f"Mobile: {Emojis.STATUSES.get(mobile)} | {mobile.title()}\n"
+                        f"Web: {Emojis.STATUSES.get(web)} | {web.title()}"
+                    ),
+                    inline=False
+                )
+
         ie.set_thumbnail(url=member.display_avatar.url)
         await ctx.send(embed=ie)
 
