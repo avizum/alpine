@@ -197,7 +197,7 @@ class Music(core.Cog):
     async def do_connect(self, ctx: Context) -> Player | None:
         player: Player = ctx.voice_client
         channel = ctx.author.voice.channel
-        if not channel.permissions_for(ctx.me).connect:
+        if not ctx.bot_permissions.connect:
             return await ctx.send("I do not have permission to connect to your channel.")
         if player:
             if player.channel == channel:

@@ -67,8 +67,7 @@ def has_permissions(**perms: bool):
         raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
     async def predicate(ctx: Context):
-        ch = ctx.channel
-        permissions = ch.permissions_for(ctx.author)
+        permissions = ctx.permissions
 
         missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
 
@@ -88,9 +87,7 @@ def bot_has_permissions(**perms: bool):
         raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
     async def predicate(ctx: Context):
-        guild = ctx.guild
-        me = guild.me if guild is not None else ctx.bot.user
-        permissions = ctx.channel.permissions_for(me)
+        permissions = ctx.bot_permissions
 
         missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
 
@@ -108,12 +105,10 @@ def both_has_permissions(**perms: bool):
         raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
     async def predicate(ctx: Context):
-        channel = ctx.channel
-
-        bot_permissions = channel.permissions_for(ctx.guild.me)
+        bot_permissions = ctx.bot_permissions
         missing_bot = [perm for perm, value in perms.items() if getattr(bot_permissions, perm) != value]
 
-        member_permissions = channel.permissions_for(ctx.author)
+        member_permissions = ctx.permissions
         missing_member = [perm for perm, value in perms.items() if getattr(member_permissions, perm) != value]
 
         if missing_bot:

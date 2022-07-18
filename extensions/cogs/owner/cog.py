@@ -615,7 +615,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         def check(m: discord.Message):
             return m.author == self.bot.user
 
-        perms = ctx.channel.permissions_for(ctx.me).manage_messages
+        perms = ctx.bot_permissions.manage_messages
         purged = await ctx.channel.purge(limit=amount, check=check, bulk=perms)
         cog = self.bot.get_cog("moderation")
         await ctx.can_delete(embed=await cog.do_affected(purged))

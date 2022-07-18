@@ -56,7 +56,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             f"<@{self.bot.user.id}>",
             f"<@!{self.bot.user.id}>",
         ]:
-            if not message.channel.permissions_for(ctx.author).send_messages:
+            if not ctx.bot_permissions.send_messages:
                 return
             command = self.bot.get_command("prefix")
             ctx.command = command

@@ -143,7 +143,7 @@ class ErrorHandler(core.Cog):
         if (command_has_handler or cog_has_handler) and ctx.locally_handled is True:
             return
 
-        if not ctx.channel.permissions_for(ctx.me).send_messages:
+        if not ctx.bot_permissions.send_messages:
             return
 
         if await self.bot.is_owner(ctx.author) and isinstance(error, reinvoke):

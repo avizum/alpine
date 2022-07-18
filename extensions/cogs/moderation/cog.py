@@ -403,12 +403,15 @@ class Moderation(core.Cog):
     @core.command(hybrid=True)
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
+    @core.describe(amount="The amount of messages to remove.")
     async def cleanup(self, ctx: Context, amount: int = 15):
         """
         Delete the last 15 commands.
 
         Delete messages sent by the bot and users if the message begins with a prefix.
         """
+        if not ctx.permissions.manage_messages and amount > 15:
+            amount = 15
         base = await self.bot.get_prefix(ctx.message)
         if "" in base:
             base.remove("")
