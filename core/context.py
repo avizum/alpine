@@ -44,7 +44,7 @@ if TYPE_CHECKING:
     )
 
 
-emoji_regex = "<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>"
+emoji_regex: re.Pattern = re.compile(r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>")
 
 
 class TrashView(View):
@@ -56,7 +56,8 @@ class TrashView(View):
 
     async def stop(self) -> None:
         for button in self.children:
-            button.disabled = True
+            if isinstance(button, discord.ui.Button):
+                button.disabled = True
         try:
             await self.message.edit(view=None)
         except discord.NotFound:
@@ -67,7 +68,7 @@ class TrashView(View):
         await self.stop()
 
     @discord.ui.button(emoji="\U0001f5d1", style=discord.ButtonStyle.danger)
-    async def trash(self, interaction: discord.Interaction, button: discord.Button):
+    async def trash(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.message.delete()
         if self.ctx.interaction:
             return
@@ -80,12 +81,12 @@ class ConfirmView(View):
         self.value = None
 
     @discord.ui.button(label="Yes", style=discord.ButtonStyle.green)
-    async def yes(self, interaction: discord.Interaction, button: discord.Button):
+    async def yes(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.value = True
         self.stop()
 
     @discord.ui.button(label="No", style=discord.ButtonStyle.red)
-    async def no(self, interaction: discord.Interaction, button: discord.Button):
+    async def no(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.value = False
         self.stop()
 
@@ -138,7 +139,7 @@ class Context(commands.Context):
 
     @property
     def clean_prefix(self) -> str:
-        match = re.match(emoji_regex, self.prefix)
+        match = emoji_regex.match(self.prefix)
         if match:
             return re.sub(emoji_regex, match[2], self.prefix)
 
@@ -151,8 +152,7 @@ class Context(commands.Context):
     @property
     async def get_prefix(self) -> str:
         get_prefix = await self.cache.get_guild_settings(self.guild.id)
-        if get_prefix:
-            prefix = get_prefix["prefixes"]
+        prefix = get_prefix["prefixes"] if get_prefix else None
         if not prefix:
             return "`a.`"
         return f"`{'` | `'.join(prefix)}`"
@@ -167,16 +167,16 @@ class Context(commands.Context):
     async def no_reply(self, *args, **kwargs) -> Message | None:
         return await super().send(*args, **kwargs)
 
-    async def post(self, content, syntax: str = "py", gist: bool = False) -> Message | None:
+    async def post(self, content: str, syntax: str = "py", gist: bool = False) -> Message:
         if gist:
             gist_file = [File(filename=f"output.{syntax}", content=content)]
             link = (await self.bot.gist.post_gist(description=str(self.author), files=gist_file, public=True)).html_url
         else:
             link = await self.bot.myst.post(content, syntax=syntax)
         embed = discord.Embed(description=f"Output for {self.command.qualified_name}: [Here]({link})")
-        await self.send(embed=embed)
+        return await self.send(embed=embed)
 
-    async def fetch_color(self, member: discord.Member | None = None) -> discord.Color:
+    async def fetch_color(self, member: discord.Member | discord.User | None = None) -> discord.Color:
         member = member or self.author
         data = self.cache.users.get(member.id)
         color = data.get("color") if data else None
@@ -188,7 +188,7 @@ class Context(commands.Context):
                 color = discord.Color(0x01B9C0)
         return color
 
-    def get_color(self, member: discord.Member | None = None) -> discord.Color:
+    def get_color(self, member: discord.Member | discord.User | None = None) -> discord.Color | int:
         member = member or self.author
         data = self.cache.users.get(member.id)
         color = data.get("color") if data else None
@@ -207,7 +207,7 @@ class Context(commands.Context):
         delete_message_after: bool = True,
         remove_view_after: bool = False,
         disable_view_after: bool = False,
-    ) -> Message | None:
+    ) -> Message:
         lang = lang or ""
         menu = Paginator(
             AutoPageSource(entry, lang, limit=limit),
@@ -216,7 +216,7 @@ class Context(commands.Context):
             delete_message_after=delete_message_after,
             disable_view_after=disable_view_after,
         )
-        await menu.start()
+        return await menu.start()
 
     async def send(
         self,
@@ -304,8 +304,8 @@ class Context(commands.Context):
             kwargs["reference"] = self.message.to_reference(fail_if_not_exists=False) or reference
             message = await super().send(**kwargs)
 
-        self.bot.command_cache[self.message.id] = message
         if message:
+            self.bot.command_cache[self.message.id] = message
             return message
 
         kwargs = {

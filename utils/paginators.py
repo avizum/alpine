@@ -128,11 +128,12 @@ class BasePaginator(View):
                 pass
         await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")
 
-    async def start(self) -> None:
+    async def start(self) -> discord.Message:
         await self.source._prepare_once()
         page = await self.source.get_page(self.current_page)
         kwargs = await self.get_page_kwargs(page)
         self.message = await self.ctx.send(**kwargs, view=self)
+        return self.message
 
 
 class SkipToPageModal(discord.ui.Modal, title="Go to page"):
@@ -244,9 +245,9 @@ class Paginator(BasePaginator):
             self.go_back_one.disabled = True
             self.skip_to_first.disabled = True
 
-    async def start(self) -> None:
+    async def start(self) -> discord.Message:
         self._update(self.current_page)
-        await super().start()
+        return await super().start()
 
     @discord.ui.button(emoji="\U000023ee\U0000fe0f")
     async def skip_to_first(self, interaction: discord.Interaction, button: discord.Button) -> None:

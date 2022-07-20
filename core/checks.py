@@ -33,7 +33,7 @@ if TYPE_CHECKING:
     from .context import Context
 
 
-def check(predicate: any, member_permissions: bool = None, bot_permissions: bool = None):
+def check(predicate, member_permissions: bool | None = None, bot_permissions: bool | None = None):
     def decorator(func):
         if member_permissions:
             func.member_permissions = member_permissions

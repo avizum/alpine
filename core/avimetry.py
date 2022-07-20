@@ -151,7 +151,7 @@ class Bot(commands.Bot):
     async def setup_hook(self) -> None:
         self.session: ClientSession = ClientSession()
         self.cache: Cache = Cache(self)
-        self.pool: asyncpg.Pool = await asyncpg.create_pool(**self.settings["postgresql"])
+        self.pool: asyncpg.Pool | None = await asyncpg.create_pool(**self.settings["postgresql"])
         self.topgg: DBLClient = DBLClient(self, self.api["TopGG"], autopost_interval=None, session=self.session)
         self.topgg_webhook: WebhookManager = WebhookManager(self).dbl_webhook("/dbl", self.api["TopGGWH"])
         self.gist: GistClient = GistClient(self.api["GitHub"], self.session)
@@ -303,9 +303,8 @@ class Bot(commands.Bot):
     def group(self, name=None, **kwargs):
         return self.command(name=name, cls=Group, **kwargs)
 
-    def run(self, token: str | None = None, *args: Any, **kwargs: Any) -> None:
-        tokens = self.settings["bot_tokens"]
-        token = tokens["Avimetry"] if token is None else token
+    def run(self, *args: Any, **kwargs: Any) -> None:
+        token = self.settings["bot_tokens"]["Avimetry"]
         super().run(token, reconnect=True, *args, **kwargs)
 
     async def close(self) -> None:
