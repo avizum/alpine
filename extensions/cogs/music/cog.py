@@ -20,10 +20,10 @@ import asyncio
 import datetime
 import math
 import random
+import typing
 
 import discord
 import wavelink
-from wavelink import YouTubeTrack, YouTubePlaylist
 from discord.ext import commands
 from wavelink.ext import spotify
 
@@ -34,7 +34,6 @@ from .exceptions import NotInVoice, BotNotInVoice, IncorrectChannelError
 from .music import (
     Player,
     Track,
-    SpotifyTrack,
     SearchView,
     SearchSelect,
     PaginatorSource,
@@ -77,16 +76,14 @@ class Music(core.Cog):
     @staticmethod
     def in_voice():
         def predicate(ctx: Context):
-            player: Player = ctx.voice_client
-            if ctx.author.voice:
-                can_use = True
-            else:
+            player = ctx.voice_client
+            if not ctx.author.voice:
                 raise NotInVoice("You are not in a voice channel.")
-            if player and ctx.author.voice.channel == player.channel:
-                can_use = True
-            else:
-                IncorrectChannelError("You are not in the same voice channel as me.")
-            return can_use
+            if not player:
+                return True
+            elif player.channel != ctx.author.voice.channel:
+                raise IncorrectChannelError(f"This command can only be used in {player.channel.mention}.")
+            return True
 
         return commands.check(predicate)
 
@@ -107,7 +104,7 @@ class Music(core.Cog):
                 return True
             if ctx.voice_client and ctx.channel == ctx.voice_client.bound:
                 return True
-            raise IncorrectChannelError("This music sesion does not allow commands to be used in this channel.")
+            raise IncorrectChannelError(f"This command can only be used in {ctx.voice_client.bound.mention}.")
 
         return commands.check(predicate)
 
@@ -197,7 +194,9 @@ class Music(core.Cog):
     async def do_connect(self, ctx: Context) -> Player | None:
         player: Player = ctx.voice_client
         channel = ctx.author.voice.channel
-        if not ctx.bot_permissions.connect:
+        if not channel:
+            return await ctx.send("You are not in a voice channel.")
+        if not channel.permissions_for(ctx.me).connect:
             return await ctx.send("I do not have permission to connect to your channel.")
         if player:
             if player.channel == channel:
@@ -208,14 +207,15 @@ class Music(core.Cog):
         await ctx.send(f"Joined {player.channel.mention}, bound to {ctx.channel.mention}.")
         return player
 
-    @core.command(aliases=["join"])
+    @core.command(hybrid=True, aliases=["join"])
     @in_voice()
     async def connect(self, ctx: Context):
         """Connect to a voice channel."""
         await self.do_connect(ctx)
 
-    @core.command(aliases=["leave", "fuckoff"])
+    @core.command(hybrid=True, aliases=["leave", "fuckoff"])
     @in_voice()
+    @in_bound_channel()
     async def disconnect(self, ctx: Context):
         """
         Stop the player and leave the channel.
@@ -241,23 +241,27 @@ class Music(core.Cog):
         else:
             await ctx.send(f"Voted to stop the player. ({len(player.stop_votes)}/{required}).")
 
-    @core.command(aliases=["enqueue", "p"])
+    @core.command(hybrid=True, aliases=["enqueue", "p"])
     @in_voice()
     @in_bound_channel(bot=True)
-    async def play(
-        self,
-        ctx: Context,
-        *,
-        query: YouTubeTrack | YouTubePlaylist | SpotifyTrack | None = None,
-    ):
-        """Play or queue a song with the given query."""
+    @core.describe(query="What to search for.")
+    async def play(self, ctx: Context, *, query: str | None = None):
+        """
+        Play or queue a song with the given query.
+
+        This command can also resume a paused player.
+        """
         player: Player = ctx.voice_client
         if not player:
             player = await self.do_connect(ctx)
+            if not isinstance(player, Player):
+                return
         if not query and player.is_paused():
             return await ctx.invoke(self.resume)
         if not player.channel:
             return
+
+        query = await player.get_tracks(query)
 
         if isinstance(query, wavelink.YouTubeTrack):
             track = Track(query.id, query.info, requester=ctx.author, thumb=query.thumb)
@@ -296,7 +300,7 @@ class Music(core.Cog):
         if not player.is_playing():
             await player.do_next()
 
-    @core.group(name="loop")
+    @core.group(hybrid=True, name="loop", fallback="track")
     @in_voice()
     @bot_in_voice()
     @in_bound_channel()
@@ -308,6 +312,9 @@ class Music(core.Cog):
         """
         player: Player = ctx.voice_client
 
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admin can use this command.")
+
         if not player.track:
             return await ctx.send("There is no song playing to loop.")
         if player.loop_song:
@@ -316,7 +323,7 @@ class Music(core.Cog):
         player.loop_song = player.track
         await ctx.send(f"Now looping: {player.track.title}")
 
-    @track_loop.command(name="queue")
+    @track_loop.command(name="queue", enabled=False)
     @core.is_owner()
     @in_voice()
     @bot_in_voice()
@@ -385,16 +392,17 @@ class Music(core.Cog):
             else:
                 track = Track(tracks.id, tracks.info, requester=ctx.author, thumb=tracks.thumb)
                 await ctx.send(embed=await player.build_added(track))
-                await player.queue.put(track)
+                await player.queue.put(track, left=True)
 
             if not player.is_playing():
                 await player.do_next()
         else:
             await ctx.send("Only the DJ can add songs to the top of the playlist.")
 
-    @core.command()
+    @core.command(hybrid=True)
     @in_voice()
     @core.is_owner()
+    @core.describe(index="Song position in the queue to remove.")
     async def remove(self, ctx: Context, index: int):
         """
         Removes a song from the queue.
@@ -412,7 +420,7 @@ class Music(core.Cog):
             return await ctx.send("That is not a valid index.")
         await ctx.send("Removed song from queue.")
 
-    @core.command(aliases=["stop"])
+    @core.command(hybrid=True, aliases=["stop"])
     @in_voice()
     @bot_in_voice()
     @in_bound_channel()
@@ -445,7 +453,7 @@ class Music(core.Cog):
         else:
             await ctx.send(f"Voted to pause the player. ({len(player.skip_votes)}/{required})")
 
-    @core.command(aliases=["unpause"])
+    @core.command(hybrid=True, aliases=["unpause"])
     @in_voice()
     @bot_in_voice()
     @in_bound_channel()
@@ -479,7 +487,7 @@ class Music(core.Cog):
         else:
             await ctx.send(f"Voted to resume the player. ({len(player.skip_votes)}/{required})")
 
-    @core.command()
+    @core.command(hybrid=True)
     @in_voice()
     @bot_in_voice()
     @in_bound_channel()
@@ -517,10 +525,11 @@ class Music(core.Cog):
         else:
             await ctx.send(f"Voted to skip. ({len(player.skip_votes)}/{required})")
 
-    @core.command(aliases=["ff", "fastf", "fforward"])
+    @core.command(hybrid=True, aliases=["ff", "fastf", "fforward"])
     @in_voice()
     @bot_in_voice()
     @in_bound_channel()
+    @core.describe(seconds="How many seconds to skip forward.")
     async def fastforward(self, ctx: Context, seconds: convert_time):
         """
         Fast forward an amount of seconds in the current song.
@@ -536,10 +545,11 @@ class Music(core.Cog):
             return await ctx.send(f":fast_forward: Fast forwarded {seconds} seconds. ({pos})")
         await ctx.send("Only the DJ can fast forward.")
 
-    @core.command(aliases=["rw"])
+    @core.command(hybrid=True, aliases=["rw"])
     @in_voice()
     @bot_in_voice()
     @in_bound_channel()
+    @core.describe(seconds="How many seconds to skip back.")
     async def rewind(self, ctx: Context, seconds: convert_time):
         """
         Rewind a certain amount of seconds in the current song.
@@ -555,10 +565,11 @@ class Music(core.Cog):
             return await ctx.send(f":rewind: Rewinded {seconds} seconds. ({pos})")
         await ctx.send("Only the DJ can rewind.")
 
-    @core.command(aliases=["sk"])
+    @core.command(hybrid=True, aliases=["sk"])
     @in_voice()
     @bot_in_voice()
     @in_bound_channel()
+    @core.describe(seconds="What time in the song to seek to.")
     async def seek(self, ctx: Context, seconds: convert_time):
         """
         Seek in the cuuent song.
@@ -575,11 +586,12 @@ class Music(core.Cog):
             return await player.seek(seconds * 1000)
         await ctx.send("Only the DJ can seek.")
 
-    @core.command(aliases=["v", "vol"])
+    @core.command(hybrid=True, aliases=["v", "vol"])
     @in_voice()
     @bot_in_voice()
     @in_bound_channel()
-    async def volume(self, ctx: Context, *, vol: int):
+    @core.describe(volume="What volume to set the player to.")
+    async def volume(self, ctx: Context, *, volume: int):
         """
         Change the player's volume.
 
@@ -593,13 +605,13 @@ class Music(core.Cog):
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admins may change the volume.")
 
-        if not 0 < vol < 201:
+        if not 0 < volume < 201:
             return await ctx.send("Please enter a value between 1 and 100.")
 
-        await player.set_volume(vol)
-        await ctx.send(f":sound: Set the volume to {vol}%")
+        await player.set_volume(volume)
+        await ctx.send(f":sound: Set the volume to {volume}%")
 
-    @core.command(aliases=["mix"])
+    @core.command(hybrid=True, aliases=["mix"])
     @in_voice()
     @bot_in_voice()
     @in_bound_channel()
@@ -675,35 +687,266 @@ class Music(core.Cog):
             return await ctx.send("Duplicate songs are now allowed.")
         return await ctx.send("Duplicate songs are no longer allowed in the queue.")
 
-    @core.command(aliases=["eq"], enabled=False)
+    @core.group(hybrid=True, name="filter", invoke_without_command=True)
     @in_voice()
     @bot_in_voice()
     @in_bound_channel()
-    async def equalizer(self, ctx: Context, *, equalizer: str):
-        """Change the players equalizer."""
+    async def filter_base(self, ctx: Context):
+        await ctx.send_help(ctx.command)
+
+    @filter_base.command(name="clear", aliases=["reset"])
+    @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
+    async def filter_clear(self, ctx: Context):
+        """
+        Clears all filters from the player.
+        """
         player: Player = ctx.voice_client
 
-        if not player:
-            return
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admins may clear filters.")
+
+        await player.set_filter(wavelink.Filter(), seek=True)
+        return await ctx.send("Cleared all filters.")
+
+    @filter_base.command(name="equalizer", aliases=["eq"], invoke_without_command=True)
+    @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
+    @core.describe(equalizer="The equalizer to set.")
+    async def filter_equalizer(self, ctx: Context, *, equalizer: typing.Literal["boost", "flat", "metal", "piano"]):
+        """
+        An equalizer for the player.
+
+        There are four equalizers:
+        Boost, Flat, Metal and Piano.
+        """
+        player: Player = ctx.voice_client
 
         if not self.is_privileged(ctx):
-            return await ctx.send("Only the DJ or admins may change the equalizer.")
+            return await ctx.send("Only the DJ or admins may set the equalizer.")
 
-        eqs = {
-            "flat": wavelink.Equalizer.flat(),
-            "boost": wavelink.Equalizer.boost(),
-            "metal": wavelink.Equalizer.metal(),
-            "piano": wavelink.Equalizer.piano(),
+        eq_map = {
+            "boost": wavelink.Equalizer.boost,
+            "flat": wavelink.Equalizer.flat,
+            "metal": wavelink.Equalizer.metal,
+            "piano": wavelink.Equalizer.piano,
         }
 
-        eq = eqs.get(equalizer.lower())
+        if equalizer.lower() not in eq_map:
+            return await ctx.send("Please enter a valid equalizer.\nValid equalizers: boost, flat, metal, piano")
 
-        if not eq:
-            joined = "\n".join(eqs.keys())
-            return await ctx.send(f"Invalid EQ provided. Valid EQs:\n{joined}")
+        await player.set_filter(wavelink.Filter(equalizer=eq_map[equalizer.lower()]()), seek=True)
+        await ctx.send(f"Set the equalizer to {equalizer}.")
 
-        await ctx.send(f"Successfully changed equalizer to {equalizer}")
-        await player.set_eq(eq)
+    @filter_base.command(name="karaoke")
+    @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
+    @core.describe(level="How much of an effect the filter should have.")
+    async def filter_karaoke(self, ctx: Context, level: int = 1):
+        """
+        Karaoke filter tries to dampen the vocals and make the back track louder.
+
+        This does not work well with all songs.
+        """
+        player: Player = ctx.voice_client
+
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admins may change the karaoke filter.")
+
+        await player.set_filter(wavelink.Filter(karaoke=wavelink.Karaoke(level=level, mono_level=level)), seek=True)
+        await ctx.send(f"Set the karaoke filter to level {level}.")
+
+    @filter_base.command(name="speed")
+    @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
+    @core.describe(speed="How fast the song will be played.")
+    async def filter_speed(self, ctx: Context, speed: commands.Range[float, 0.25, 3.0]):
+        """
+        Sets the speed filter.
+        """
+        player: Player = ctx.voice_client
+
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admins may change the speed.")
+
+
+        await player.set_filter(wavelink.Filter(timescale=wavelink.Timescale(speed=speed)), seek=True)
+        await ctx.send(f"Set the speed to {speed}x.")
+
+    @filter_base.command(name="pitch")
+    @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
+    @core.describe(pitch="How high or low the song will be played.")
+    async def filter_pitch(self, ctx: Context, pitch: commands.Range[float, 0.1, 5.0]):
+        """
+        Sets the pitch.
+        """
+        player: Player = ctx.voice_client
+
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admins may change the pitch.")
+
+        await player.set_filter(wavelink.Filter(timescale=wavelink.Timescale(pitch=pitch)), seek=True)
+        await ctx.send(f"Set the pitch to {pitch}.")
+
+    @filter_base.command(name="tremolo")
+    @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
+    @core.describe(frequency="How fast the volume should change.", depth="How much the volume should change.")
+    async def filter_tremolo(
+        self,
+        ctx: Context,
+        frequency: commands.Range[int, 1, 14],
+        depth: commands.Range[int, 1, 100]
+    ):
+        """
+        Creates a shuddering effect by quickly changing the volume.
+        """
+        player: Player = ctx.voice_client
+
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admins may change the tremolo filter.")
+
+        depth /= 100
+        await player.set_filter(wavelink.Filter(tremolo=wavelink.Tremolo(frequency=frequency, depth=depth)), seek=True)
+        await ctx.send(f"Set the tremolo filter to {frequency} frequency and {depth}% depth.")
+
+    @filter_base.command(name="vibrato")
+    @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
+    @core.describe(frequency="How fast the pitch should change.", depth="How much the pitch should change.")
+    async def filter_vibrato(
+        self,
+        ctx: Context,
+        frequency: commands.Range[int, 1, 14],
+        depth: commands.Range[int, 1, 100]
+    ):
+        """
+        Creates a vibrating effect by quickly changing the pitch.
+        """
+        player: Player = ctx.voice_client
+
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admins may change the vibrato filter.")
+
+        depth /= 100
+        await player.set_filter(wavelink.Filter(vibrato=wavelink.Vibrato(frequency=frequency, depth=depth)), seek=True)
+        await ctx.send(f"Set the vibrato filter to {frequency:,} frequency and {depth*100}% depth.")
+
+    @filter_base.command(name="rotation")
+    @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
+    @core.describe(speed="The speed the audio should rotate.")
+    async def filter_rotation(self, ctx: Context, speed: float):
+        """
+        Creates a 3D effect by rotating the stereo channels.
+        """
+        player: Player = ctx.voice_client
+
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admins may change the rotation filter.")
+
+        await player.set_filter(wavelink.Filter(rotation=wavelink.Rotation(speed=speed)), seek=True)
+        await ctx.send(f"Set the rotation filter speed to {speed}.")
+
+    @filter_base.group(name="mix", invoke_without_command=True)
+    @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
+    async def filter_mix(self, ctx: Context):
+        """
+        Allows you to control what channel audio from the track is actually played on.
+        """
+        await ctx.send_help(ctx.command)
+
+    @filter_mix.command(name="only-left")
+    @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
+    async def filter_mix_only_left(self, ctx: Context):
+        """
+        Plays only the left channel
+        """
+        player: Player = ctx.voice_client
+
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admins may change the mix filter.")
+
+        await player.set_filter(wavelink.Filter(channel_mix=wavelink.ChannelMix.only_left()), seek=True)
+        await ctx.send("Set the mix filter to full left.")
+
+    @filter_mix.command(name="only-right")
+    @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
+    async def filter_mix_only_right(self, ctx: Context):
+        """
+        Plays only the right channel.
+        """
+        player: Player = ctx.voice_client
+
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admins may change the mix filter.")
+
+        await player.set_filter(wavelink.Filter(channel_mix=wavelink.ChannelMix.only_right()), seek=True)
+        await ctx.send("Set the mix filter to full right.")
+
+    @filter_mix.command(name="mono")
+    @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
+    async def filter_mix_mono(self, ctx: Context):
+        """
+        Makes the audio channels mono.
+        """
+        player: Player = ctx.voice_client
+
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admins may change the mix filter.")
+
+        await player.set_filter(wavelink.Filter(channel_mix=wavelink.ChannelMix.mono()), seek=True)
+        await ctx.send("Set the mix filter to mono.")
+
+    @filter_mix.command(name="switch")
+    @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
+    async def filter_mix_switch(self, ctx: Context):
+        """
+        Switches the audio channels from left to right and right to left.
+        """
+        player: Player = ctx.voice_client
+
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admins may change the mix filter.")
+
+        await player.set_filter(wavelink.Filter(channel_mix=wavelink.ChannelMix.switch()), seek=True)
+        await ctx.send("Set the mix filter switch.")
+
+    @filter_base.command(name="lowpass")
+    @in_voice()
+    @bot_in_voice()
+    @in_bound_channel()
+    @core.describe(smoothing="The factor by which the filter will block higher frequencies.")
+    async def filter_lowpasss(self, ctx: Context, smoothing: float):
+        """
+        Suppresses higher frequencies while allowing lower frequencies to pass through.
+        """
+        player: Player = ctx.voice_client
+
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admins may change change the lowpass filter.")
+
+        await player.set_filter(wavelink.Filter(low_pass=wavelink.LowPass(smoothing=smoothing)), seek=True)
+        await ctx.send(f"Set lowpass smoothing to {smoothing}")
 
     @core.command(aliases=["q", "upnext"])
     @bot_in_voice()
@@ -726,7 +969,7 @@ class Music(core.Cog):
                 entries.append(f"`{index + 1})` {track.title}")
 
         pages = PaginatorSource(entries=entries, ctx=ctx)
-        paginator = Paginator(source=pages, timeout=120, ctx=ctx, disable_view_after=True)
+        paginator = Paginator(source=pages, timeout=120, ctx=ctx, delete_message_after=True)
         await paginator.start()
 
     @core.command(aliases=["clq", "clqueue", "cqueue"])

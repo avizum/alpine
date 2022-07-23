@@ -23,7 +23,8 @@ import re
 import async_timeout
 import discord
 import wavelink
-from discord.ext import commands, menus
+from wavelink import Track as WLTrack, PartialTrack as WLPTrack
+from discord.ext import menus
 from wavelink.ext import spotify
 
 from core import Bot, Context
@@ -51,42 +52,6 @@ class IsResponding:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self.task:
             self.task.cancel()
-
-
-class SpotifyTrack(spotify.SpotifyTrack):
-    @classmethod
-    async def convert(cls, ctx: Context, argument: str):
-        decoded = spotify.decode_url(argument)
-        if decoded is None:
-            raise commands.BadArgument("URL must be a Spotify URL.")
-
-        if decoded["type"] in [
-            spotify.SpotifySearchType.album,
-            spotify.SpotifySearchType.playlist,
-        ]:
-            full = []
-            async for partial in cls.iterator(query=argument, type=decoded["type"], partial_tracks=True):
-                full.append(partial)
-            return full
-
-        results = await cls.search(argument, type=decoded["type"])
-        if not results:
-            raise commands.BadArgument("Could not find any songs matching that query.")
-        if decoded["type"] == spotify.SpotifySearchType.track:
-            return results[0]
-        else:
-            return results
-
-
-class YouTubePlaylist(wavelink.YouTubePlaylist):
-    @classmethod
-    async def convert(cls, ctx: Context, argument: str):
-        results = await cls.search(argument)
-
-        if not results:
-            raise commands.BadArgument("Could not find any songs matching that query.")
-
-        return results
 
 
 class Queue(asyncio.Queue):
@@ -171,6 +136,10 @@ class Track(wavelink.Track):
         self.hyperlinked_title = hyperlinked_title
 
 
+YOUTUBE_REGEX = re.compile(
+    r"https?://((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$"
+)
+
 class Player(wavelink.Player):
     """
     Custom wavelink Player class.
@@ -185,10 +154,6 @@ class Player(wavelink.Player):
         **kwargs,
     ):
         self.context: Context = context
-        self.youtube_reg = re.compile(
-            r"https?://((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$"
-        )
-        self.spotify_reg = re.compile(r"https?://open.spotify.com/(?:album|playlist|track)/[a-zA-Z0-9]+")
         super().__init__(*args, **kwargs)
         if self.context:
             self.dj: discord.Member = self.context.author
@@ -207,35 +172,30 @@ class Player(wavelink.Player):
     async def connect(self, *, timeout: float, reconnect: bool, **kwargs) -> None:
         return await super().connect(timeout=timeout, reconnect=reconnect)
 
-    async def get_tracks(self, query: str, *, bulk: bool = False) -> Track | list[Track]:
-        """
-        Gets tracks from youtube.
+    async def get_tracks(self, query: str) -> WLTrack | WLPTrack | list[WLTrack | WLPTrack]:
+        search_type = spotify.decode_url(query)
 
-        Arguments
-        ---------
-        query: :class:`str`
-            What to search for on youtube or spotify.
-        bulk: :class:`bool`
-            Whether to return a singular track or all tracks found.
-
-        Returns
-        -------
-        Track: Union[:class:`Track`, List[:class:`Track`]]
-            The track or tracks that were found.
-        """
-        if self.youtube_reg.match(query):
+        if YOUTUBE_REGEX.match(query):
             try:
                 tracks = await self.node.get_tracks(wavelink.YouTubeTrack, query)
             except Exception:
                 return await self.node.get_playlist(wavelink.YouTubePlaylist, query)
-        elif self.spotify_reg.match(query):
-            search_type = spotify.decode_url(query)
-            if search_type:
-                return await spotify.SpotifyTrack.search(query, type=search_type["type"])
+        elif search_type:
+            if search_type["type"] in [
+                spotify.SpotifySearchType.album,
+                spotify.SpotifySearchType.playlist,
+            ]:
+                full = []
+                async for partial in spotify.SpotifyTrack.iterator(
+                    query=query, type=search_type["type"], partial_tracks=True
+                ):
+                    full.append(partial)
+                return full
+            return await spotify.SpotifyTrack.search(query, type=search_type["type"], return_first=True)
         else:
             tracks = await self.node.get_tracks(wavelink.YouTubeTrack, f"ytsearch:{query}")
         if tracks:
-            return tracks if bulk else tracks[0]
+            return tracks[0]
 
     async def do_next(self) -> None:
         if self.waiting:
@@ -321,11 +281,11 @@ class Player(wavelink.Player):
 
 
 class PaginatorSource(menus.ListPageSource):
-    def __init__(self, entries, ctx, *, per_page=8):
+    def __init__(self, entries: list[str], ctx: Context, *, per_page=8):
         super().__init__(entries, per_page=per_page)
         self.ctx = ctx
 
-    async def format_page(self, menu: menus.Menu, page):
+    async def format_page(self, menu: menus.Menu, page: list[str]):
         embed = discord.Embed(title=f"Queue for {self.ctx.guild}", color=await self.ctx.fetch_color())
         embed.description = "\n".join(page)
         if self.ctx.guild.icon.url:
