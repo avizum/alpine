@@ -21,6 +21,6 @@ from .cache import Cache
 from .converters import ModReason, DefaultReason
 from .emojis import Emojis
 from .helpers import Timer, format_string, format_list, format_seconds
-from .parser import preview_message
+from .parse import preview_message
 from .paginators import Paginator, PaginatorEmbed, WrappedPaginator
 from .view import View
