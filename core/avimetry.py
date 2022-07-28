@@ -191,7 +191,7 @@ class Bot(commands.Bot):
             try:
                 await self.load_extension(ext)
             except commands.ExtensionError as error:
-                _log.error("Exception in loading extension (primary)", exc_info=error)
+                _log.error("Exception in loading extension {ext}", exc_info=error)
 
     async def find_restart_message(self) -> None:
         await self.wait_until_ready()
@@ -210,7 +210,7 @@ class Bot(commands.Bot):
     async def start_nodes(self) -> None:
         await self.wait_until_ready()
         try:
-            await wavelink.NodePool.create_node(
+            node = await wavelink.NodePool.create_node(
                 bot=self,
                 host="127.0.0.1",
                 port=2333,
@@ -221,11 +221,13 @@ class Bot(commands.Bot):
                     client_secret=self.api["SpotifySecret"],
                 ),
             )
+            _log.info(f"Wavelink node started: Identifier: {node.identifier}")
         except Exception as e:
             cog: ErrorHandler | None = self.get_cog("errorhandler")  # type: ignore
             if cog:
                 await cog.error_webhook.send(str(e))
             await self.unload_extension("extensions.cogs.music")
+            _log.error("Exception in starting Wavelink node", exc_info=e)
 
     async def on_ready(self) -> None:
         _log.info(f"Running: {self.user.name} ({self.user.id})")
@@ -277,11 +279,8 @@ class Bot(commands.Bot):
 
     async def on_message_delete(self, message: discord.Message) -> None:
         if message.id in self.command_cache:
-            try:
-                await self.command_cache[message.id].delete()
-                self.command_cache.pop(message.id)
-            except Exception:
-                pass
+            await self.command_cache[message.id].delete()
+            self.command_cache.pop(message.id, None)
 
     async def is_owner(self, user: discord.User | discord.Member, /) -> bool:
         if user is not None:
