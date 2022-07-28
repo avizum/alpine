@@ -157,10 +157,9 @@ class Meta(core.Cog):
                 value=f"{format_dt(member.created_at)} ({format_dt(member.created_at, 'R')})",
                 inline=False,
             )
-        elif member == self.bot.user:
-            about = self.bot.get_command("about")
-            return await about(ctx)
         else:
+            if ctx.interaction:
+                member = ctx.guild.get_member(member.id)
             userroles = ["@everyone"]
             userroles.extend(roles.mention for roles in member.roles)
             userroles.remove(ctx.guild.default_role.mention)
@@ -493,7 +492,7 @@ class Meta(core.Cog):
         await ctx.send("An error occured while checking the link, Please try another link or try again later.")
         raise error
 
-    @core.group(name="gist")
+    @core.group(name="gist", invoke_without_command=True)
     @core.cooldown(1, 60, commands.BucketType.user)
     async def gist(self, ctx: Context, *, code: codeblock_converter):
         """
@@ -538,20 +537,20 @@ class Meta(core.Cog):
         pages = Paginator(source, ctx=ctx, delete_message_after=True)
         await pages.start()
 
-    @core.command(aliases=["rawmessage", "rmessage", "rmsg"])
+    @core.command(aliases=["rawmsg", "rmessage", "rmsg"])
     @core.cooldown(1, 15, commands.BucketType.user)
     @commands.max_concurrency(1, commands.BucketType.user)
-    async def rawmsg(self, ctx: Context, message_id: int = None):
+    async def rawmessage(self, ctx: Context, message_id: int = None):
         """
         Get the raw content of a message.
 
         If the message is too long, it will be posted on a gist.
         """
         ref = ctx.message.reference
+        if not ref:
+            return await ctx.send("Provide a message id or reply to a message using this command.")
         if message_id is None and isinstance(ref.resolved, discord.Message):
             message_id = ref.resolved.id
-        elif not ref:
-            return await ctx.send("Give you a message you filthy noob")
         mess = await self.bot.http.get_message(ctx.channel.id, message_id)
         info = ctx.codeblock(json.dumps(mess, indent=4), language="json")
         if len(info) > 2000:
