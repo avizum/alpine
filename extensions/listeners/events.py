@@ -23,7 +23,7 @@ import base64
 import re
 from io import BytesIO
 
-from discord.ext import tasks
+from discord.ext import commands, tasks
 from core import Bot
 from asyncgist import File
 
@@ -242,6 +242,8 @@ class BotLogs(core.Cog):
             raise CommandDisabledChannel()
         if ctx.bot.maintenance is True:
             raise Maintenance()
+        if ctx.guild is None:
+            raise commands.NoPrivateMessage()
         return True
 
     @tasks.loop(minutes=30)
