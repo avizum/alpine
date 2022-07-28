@@ -62,7 +62,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             ctx.command = command
             await command(ctx)
 
-        if not message.guild.chunked:
+        if message.guild and not message.guild.chunked:
             await message.guild.chunk()
 
     @core.command()
