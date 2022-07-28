@@ -23,9 +23,15 @@ import re
 import async_timeout
 import discord
 import wavelink
-from wavelink import Track as WLTrack, PartialTrack as WLPTrack
+from wavelink import (
+    Track as WLTrack,
+    PartialTrack as WLPTrack,
+    YouTubeTrack,
+    YouTubePlaylist,
+)
 from discord.ext import menus
 from wavelink.ext import spotify
+from wavelink.ext.spotify import SpotifyTrack
 
 from core import Bot, Context
 from utils import View, format_seconds
@@ -124,7 +130,7 @@ class Queue(asyncio.Queue):
 class Track(wavelink.Track):
     """Wavelink Track object with a requester attribute."""
 
-    __slots__ = ("requester",)
+    __slots__ = ("requester", "thumb", "hyperlinked_title")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args)
@@ -139,6 +145,8 @@ class Track(wavelink.Track):
 YOUTUBE_REGEX = re.compile(
     r"https?://((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$"
 )
+URL_REGEX = re.compile(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
+
 
 class Player(wavelink.Player):
     """
@@ -148,12 +156,12 @@ class Player(wavelink.Player):
     def __init__(
         self,
         *args,
-        context: Context = None,
+        context: Context | None = None,
         announce: bool = True,
         allow_duplicates: bool = True,
         **kwargs,
     ):
-        self.context: Context = context
+        self.context: Context | None = context
         super().__init__(*args, **kwargs)
         if self.context:
             self.dj: discord.Member = self.context.author
@@ -172,30 +180,37 @@ class Player(wavelink.Player):
     async def connect(self, *, timeout: float, reconnect: bool, **kwargs) -> None:
         return await super().connect(timeout=timeout, reconnect=reconnect)
 
-    async def get_tracks(self, query: str) -> WLTrack | WLPTrack | list[WLTrack | WLPTrack]:
+    async def get_tracks(self, query: str) -> WLTrack | WLPTrack | list[WLTrack | WLPTrack] | None:
         search_type = spotify.decode_url(query)
 
         if YOUTUBE_REGEX.match(query):
             try:
-                tracks = await self.node.get_tracks(wavelink.YouTubeTrack, query)
-            except Exception:
-                return await self.node.get_playlist(wavelink.YouTubePlaylist, query)
+                tracks = await YouTubeTrack.search(query)
+                if isinstance(tracks, YouTubePlaylist):
+                    return tracks
+                return tracks[0] if tracks else None
+            except wavelink.LoadTrackError:
+                return None
         elif search_type:
-            if search_type["type"] in [
-                spotify.SpotifySearchType.album,
-                spotify.SpotifySearchType.playlist,
-            ]:
-                full = []
-                async for partial in spotify.SpotifyTrack.iterator(
-                    query=query, type=search_type["type"], partial_tracks=True
-                ):
-                    full.append(partial)
-                return full
-            return await spotify.SpotifyTrack.search(query, type=search_type["type"], return_first=True)
-        else:
-            tracks = await self.node.get_tracks(wavelink.YouTubeTrack, f"ytsearch:{query}")
-        if tracks:
-            return tracks[0]
+            try:
+                if search_type["type"] in [
+                    spotify.SpotifySearchType.album,
+                    spotify.SpotifySearchType.playlist,
+                ]:
+                    return [
+                        partial
+                        async for partial in SpotifyTrack.iterator(
+                            query=query, type=search_type["type"], partial_tracks=True
+                        )
+                    ]
+                return await SpotifyTrack.search(query, type=search_type["type"], return_first=True)
+            except spotify.SpotifyRequestError:
+                return None
+        try:
+            tracks = await YouTubeTrack.search(query)
+            return tracks[0] if tracks else None
+        except wavelink.LoadTrackError:
+            return None
 
     async def do_next(self) -> None:
         if self.waiting:

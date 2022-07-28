@@ -76,7 +76,7 @@ class Music(core.Cog):
     @staticmethod
     def in_voice():
         def predicate(ctx: Context):
-            player = ctx.voice_client
+            player: Player = ctx.voice_client
             if not ctx.author.voice:
                 raise NotInVoice("You are not in a voice channel.")
             if not player:
@@ -98,9 +98,9 @@ class Music(core.Cog):
         return commands.check(predicate)
 
     @staticmethod
-    def in_bound_channel(bot: bool = False):
+    def in_bound_channel():
         def predicate(ctx: Context):
-            if bot and ctx.voice_client is None:
+            if ctx.voice_client is None:
                 return True
             if ctx.voice_client and ctx.channel == ctx.voice_client.bound:
                 return True
@@ -195,13 +195,17 @@ class Music(core.Cog):
         player: Player = ctx.voice_client
         channel = ctx.author.voice.channel
         if not channel:
-            return await ctx.send("You are not in a voice channel.")
+            await ctx.send("You are not in a voice channel.")
+            return
         if not channel.permissions_for(ctx.me).connect:
-            return await ctx.send("I do not have permission to connect to your channel.")
+            await ctx.send("I do not have permission to connect to your channel.")
+            return
         if player:
             if player.channel == channel:
-                return await ctx.send("Already in a voice channel.")
-            return await player.move_to(channel)
+                await ctx.send("Already in a voice channel.")
+                return
+            await player.move_to(channel)
+            return
 
         player = await channel.connect(cls=Player(context=ctx))
         await ctx.send(f"Joined {player.channel.mention}, bound to {ctx.channel.mention}.")
@@ -243,9 +247,9 @@ class Music(core.Cog):
 
     @core.command(hybrid=True, aliases=["enqueue", "p"])
     @in_voice()
-    @in_bound_channel(bot=True)
+    @in_bound_channel()
     @core.describe(query="What to search for.")
-    async def play(self, ctx: Context, *, query: str | None = None):
+    async def play(self, ctx: Context, *, query: str, shuffle: bool = False):
         """
         Play or queue a song with the given query.
 
@@ -256,12 +260,12 @@ class Music(core.Cog):
             player = await self.do_connect(ctx)
             if not isinstance(player, Player):
                 return
-        if not query and player.is_paused():
-            return await ctx.invoke(self.resume)
         if not player.channel:
             return
 
         query = await player.get_tracks(query)
+        if not query:
+            return await ctx.send("No results found matching your query.")
 
         if isinstance(query, wavelink.YouTubeTrack):
             track = Track(query.id, query.info, requester=ctx.author, thumb=query.thumb)
@@ -269,6 +273,7 @@ class Music(core.Cog):
             await ctx.send(embed=await player.build_added(track))
 
         if isinstance(query, wavelink.YouTubePlaylist):
+
             for track in query.tracks:
                 track = Track(track.id, track.info, requester=ctx.author, thumb=track.thumb)
                 await player.queue.put(track)
@@ -381,7 +386,6 @@ class Music(core.Cog):
                 for track in tracks.tracks:
                     track = Track(track.id, track.info, requester=ctx.author, thumb=track.thumb)
                     await player.queue.put(track, left=True)
-
                 embed = discord.Embed(
                     title="Enqueued playlist",
                     description=(f"Playlist {tracks.name} with {len(tracks.tracks)} tracks added to the queue."),
@@ -469,7 +473,7 @@ class Music(core.Cog):
         if not player:
             return
         if not player.is_playing():
-            return
+            return await ctx.send("Player is not playing anything.")
 
         if self.is_privileged(ctx):
             await ctx.send(f":arrow_forward: {ctx.author.display_name} has resumed the player.")
@@ -572,7 +576,7 @@ class Music(core.Cog):
     @core.describe(seconds="What time in the song to seek to.")
     async def seek(self, ctx: Context, seconds: convert_time):
         """
-        Seek in the cuuent song.
+        Seek in the current song.
 
         Entering an amount lower than 0 will restart the song.
         """
@@ -948,7 +952,7 @@ class Music(core.Cog):
         await player.set_filter(wavelink.Filter(low_pass=wavelink.LowPass(smoothing=smoothing)), seek=True)
         await ctx.send(f"Set lowpass smoothing to {smoothing}")
 
-    @core.command(aliases=["q", "upnext"])
+    @core.command(hybrid=True, aliases=["q", "upnext"])
     @bot_in_voice()
     @in_bound_channel()
     async def queue(self, ctx: Context):
