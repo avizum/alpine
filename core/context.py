@@ -42,6 +42,7 @@ if TYPE_CHECKING:
         MessageReference,
         PartialMessage,
     )
+    from extensions.cogs.music.cog import Player
 
 
 emoji_regex: re.Pattern = re.compile(r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>")
@@ -82,11 +83,13 @@ class ConfirmView(View):
 
     @discord.ui.button(label="Yes", style=discord.ButtonStyle.green)
     async def yes(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
         self.value = True
         self.stop()
 
     @discord.ui.button(label="No", style=discord.ButtonStyle.red)
     async def no(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
         self.value = False
         self.stop()
 
@@ -117,9 +120,11 @@ class AutoPageSource(menus.ListPageSource):
 
 
 class Context(commands.Context):
-    def __init__(self, *, bot: Bot, **kwargs) -> None:
-        super().__init__(bot=bot, **kwargs)
-        self.bot: Bot = bot
+    bot: Bot
+    voice_client: Player
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.locally_handled: bool = False
         if self.interaction:
             self.message.content = f"/{self.invoked_with}"
@@ -163,9 +168,6 @@ class Context(commands.Context):
         if isinstance(ref.resolved, discord.Message):
             return ref.resolved
         return None
-
-    async def no_reply(self, *args, **kwargs) -> Message | None:
-        return await super().send(*args, **kwargs)
 
     async def post(self, content: str, syntax: str = "py", gist: bool = False) -> Message:
         if gist:
@@ -238,6 +240,7 @@ class Context(commands.Context):
         paginate: bool = False,
         post: bool = False,
         no_edit: bool = False,
+        no_reply: bool = False,
         ephemeral: bool = False,
     ) -> Message:
         message: Message | None = None
@@ -260,6 +263,9 @@ class Context(commands.Context):
             if not embed.color:
                 embed.color = await self.fetch_color()
 
+        if ephemeral:
+            no_reply = True
+
         kwargs: dict[str, any] = {
             "content": content,
             "tts": tts,
@@ -278,6 +284,7 @@ class Context(commands.Context):
         }
 
         if self.message.id in self.bot.command_cache and self.message.edited_at and not no_edit:
+            edit_kwargs = kwargs.copy()
             try:
                 to_pop = (
                     "tts",
@@ -290,18 +297,18 @@ class Context(commands.Context):
                     "suppress_embeds",
                 )
                 for pop in to_pop:
-                    kwargs.pop(pop, None)
-                kwargs["embed"] = embed
-                kwargs["embeds"] = MISSING if embeds is None else embeds
-                kwargs["suppress"] = suppress_embeds
-                message = await self.bot.command_cache[self.message.id].edit(**kwargs)
+                    edit_kwargs.pop(pop, None)
+                edit_kwargs["embed"] = embed
+                edit_kwargs["embeds"] = MISSING if embeds is None else embeds
+                edit_kwargs["suppress"] = suppress_embeds
+                message = await self.bot.command_cache[self.message.id].edit(**edit_kwargs)
             except discord.HTTPException:
-                kwargs.pop("suppress", None)
-                kwargs["suppress_embeds"] = suppress_embeds
                 message = await super().send(**kwargs)
 
         elif self.interaction is None or self.interaction.is_expired():
             kwargs["reference"] = self.message.to_reference(fail_if_not_exists=False) or reference
+            if no_reply:
+                kwargs["reference"] = None
             message = await super().send(**kwargs)
 
         if message:
@@ -344,20 +351,32 @@ class Context(commands.Context):
         timeout: int = 60,
         delete_after: bool = False,
         no_reply: bool = False,
-        remove_view_after: bool = True,
+        remove_view_after: bool = False,
+        ephemeral: bool = False,
+        **kwargs,
     ) -> ConfirmResult:
-        if delete_after:
+        if delete_after and remove_view_after:
             remove_view_after = False
+        if self.interaction and ephemeral and delete_after:
+            delete_after = False
+            remove_view_after = True
         view = ConfirmView(member=self.author, timeout=timeout)
         check_message = confirm_message or 'Press "yes" to accept, or press "no" to deny.'
         if no_reply:
-            send = await self.no_reply(content=message, embed=embed, view=view)
+            send = await self.send(
+                content=message,
+                embed=embed,
+                view=view,
+                no_reply=True,
+                ephemeral=ephemeral,
+                **kwargs
+            )
         elif message:
             message = f"{message}\n\n{check_message}"
-            send = await self.send(message, view=view)
+            send = await self.send(message, view=view, ephemeral=ephemeral, **kwargs)
         elif embed:
             embed.description = f"{embed.description}\n\n{check_message}"
-            send = await self.send(embed=embed, view=view)
+            send = await self.send(embed=embed, view=view, ephemeral=ephemeral, **kwargs)
         view.message = send
         await view.wait()
         if delete_after:
@@ -367,6 +386,8 @@ class Context(commands.Context):
         return ConfirmResult(send, view.value)
 
     async def can_delete(self, *args, **kwargs) -> Message:
+        if kwargs.get("ephemeral") and self.interaction:
+            return await self.send(*args, **kwargs)
         view = TrashView(member=self.author, ctx=self)
         view.message = await self.send(*args, **kwargs, view=view)
 
