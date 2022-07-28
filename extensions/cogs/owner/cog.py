@@ -203,7 +203,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         aliases=["jsk", "dev", "developer"],
         invoke_without_command=True,
         ignore_extra=False,
-        command_extras={"member_permissions": ["bot_owner"]},
+        extras={"member_permissions": ["bot_owner"]},
     )
     async def jsk(self, ctx: Context):
         """
@@ -318,10 +318,13 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
         arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
         message_reference = getattr(ctx.message.reference, "resolved", None)
+        voice_client = ctx.voice_client
         arg_dict["reference"] = message_reference
         arg_dict["ref"] = message_reference
         arg_dict["core"] = core
         arg_dict["source"] = inspect.getsource
+        arg_dict["vc"] = voice_client
+        arg_dict["player"] = voice_client
         arg_dict["_"] = self.last_result
 
         scope = self.scope
