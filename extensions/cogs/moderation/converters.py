@@ -15,7 +15,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-
 import re
 
 import discord
@@ -32,7 +31,9 @@ class ModActionFlag(commands.FlagConverter):
 
 
 class BanFlag(ModActionFlag):
-    delete_days: int = flag(default=0, description="How many days of messages to delete.")
+    delete_days: int = flag(
+        default=0, description="How many days of messages to delete.", converter=commands.Range[int, 0, 7]
+    )
 
 
 time_regex = re.compile(r"(?:(\d{1,5})\s?(h|s|m|d|w|y))+?")
@@ -62,7 +63,7 @@ time_dict = {
 
 class TimeConverter(str):
     @classmethod
-    async def convert(cls, ctx: Context, argument) -> int:
+    async def convert(cls, ctx: Context, argument) -> float:
         args = argument.lower()
         matches = re.findall(time_regex, args)
         time = 0

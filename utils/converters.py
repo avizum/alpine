@@ -15,8 +15,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-
-import discord
 from discord.ext import commands
 
 from core.context import Context
@@ -31,10 +29,10 @@ class ModReason(commands.Converter):
         return reason
 
 
-def default_reason(ctx: Context) -> discord.Member:
+def default_reason(ctx: Context) -> str:
     return f"{ctx.author}: No reason was provided."
 
 
-DefaultReason: discord.Member = commands.parameter(
+DefaultReason: str = commands.parameter(
     default=default_reason, displayed_default="<reason>", converter=ModReason
 )

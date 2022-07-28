@@ -99,7 +99,7 @@ def format_seconds(seconds: float, *, friendly: bool = False) -> str:
 
     if friendly:
         day = f"{days}d " if days != 0 else ""
-        hour = f"{hours}h " if hours != 0 or not days == 0 else ""
+        hour = f"{hours}h " if hours != 0 or days != 0 else ""
         minsec = f"{minutes}m {seconds}s"
         return f"{day}{hour}{minsec}"
     day = f"{days:02d}:" if days != 0 else ""
