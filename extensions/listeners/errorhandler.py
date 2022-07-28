@@ -175,7 +175,7 @@ class ErrorHandler(core.Cog):
         elif isinstance(error, commands.NoPrivateMessage):
             embed = Embed(
                 title="No DM commands",
-                description="Commands do not work in DMs.",
+                description="This command can only be used in a server.",
             )
             retry_after = self.no_dm_command_cooldown.update_rate_limit()
             if not retry_after or ctx.interaction is not None:
@@ -380,7 +380,7 @@ class ErrorHandler(core.Cog):
             await self.error_webhook.send(traceback, embed=webhook_error_embed, username="Command Error")
             _log.error(f"Ignoring exception in command {ctx.command}:", exc_info=error)
             view = UnknownError(member=ctx.author, bot=self.bot, error_id=error_info["id"])
-            view.message = await ctx.send(embed=embed, view=view)
+            view.message = await ctx.send(embed=embed, view=view, ephemeral=True)
 
 
 async def setup(bot):
