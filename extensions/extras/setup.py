@@ -15,12 +15,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+import datetime
 
 import discord
-import datetime
-import core
-
 from discord.ext import commands
+
+import core
 from core import Bot, Context
 
 
@@ -74,9 +74,13 @@ class Setup(core.Cog):
                 if resolved.footer.text.isdigit():
                     user = self.bot.get_user(int(resolved.footer.text))
                     if user:
-                        send_embed = discord.Embed(
-                            title=f"Message from {message.author}",
-                            description=f"> {resolved.description}\n{message.content}",
+                        send_embed = discord.Embed(timestamp=datetime.datetime.now(datetime.timezone.utc))
+                        send_embed.add_field(name=f"From {message.author}:", value=message.content, inline=False)
+                        send_embed.add_field(name="You said:", value=resolved.description, inline=False)
+                        send_embed.set_author(name=str(message.author), icon_url=message.author.avatar.url)
+                        send_embed.set_footer(
+                            text="Avimetry Development",
+                            icon_url=self.bot.user.avatar.url
                         )
                         await user.send(embed=send_embed)
         except AttributeError:
