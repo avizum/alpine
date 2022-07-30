@@ -1,0 +1,10 @@
+[tool.black]
+line-length = 125
+
+[tool.isort]
+profile = "black"
+line_length = 125
+force_alphabetical_sort_within_sections = true
+
+[tool.pyright]
+typeCheckingMode = "basic"

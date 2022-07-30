@@ -1,7 +1,7 @@
 
 git+https://github.com/Rapptz/discord.py
 git+https://github.com/Gorialis/jishaku
-pip install -U git+https://github.com/ShineyDev/prettify.py
+git+https://github.com/ShineyDev/prettify.py
 aiogTTS
 aiohttp
 akinator.py
