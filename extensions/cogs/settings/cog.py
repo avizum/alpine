@@ -294,9 +294,9 @@ class Settings(core.Cog):
         conf_message = "Does this look good to you?"
         thing = await preview_message(message, ctx)
         if type(thing) is discord.Embed:
-            conf = await ctx.confirm(conf_message, embed=thing, no_reply=True)
+            conf = await ctx.confirm(message=conf_message, embed=thing, no_reply=True)
         else:
-            conf = await ctx.confirm(f"{conf_message}\n\n{thing}", no_reply=True)
+            conf = await ctx.confirm(message=f"{conf_message}\n\n{thing}", no_reply=True)
         if conf.result:
             query = """
                 INSERT INTO join_leave (guild_id, join_message)
@@ -378,9 +378,9 @@ class Settings(core.Cog):
             conf_message = "Does this look good to you?"
             preview = await preview_message(message, ctx)
             if type(preview) is discord.Embed:
-                conf = await ctx.confirm(conf_message, embed=preview, no_reply=True)
+                conf = await ctx.confirm(message=conf_message, embed=preview, no_reply=True)
             else:
-                conf = await ctx.confirm(f"{conf_message}\n=====\n{preview}", no_reply=True)
+                conf = await ctx.confirm(message=f"{conf_message}\n=====\n{preview}", no_reply=True)
             if conf.result:
                 query = """
                     INSERT INTO join_leave (guild_id, join_enabled, join_message, join_channel)
@@ -450,9 +450,9 @@ class Settings(core.Cog):
         conf_message = "Does this look good to you?"
         thing = await preview_message(message, ctx)
         if type(thing) is discord.Embed:
-            conf = await ctx.confirm(conf_message, embed=thing, no_reply=True)
+            conf = await ctx.confirm(message=conf_message, embed=thing, no_reply=True)
         else:
-            conf = await ctx.confirm(f"{conf_message}\n\n{thing}", no_reply=True)
+            conf = await ctx.confirm(message=f"{conf_message}\n\n{thing}", no_reply=True)
         if conf.result:
             query = """
                 INSERT INTO join_leave (guild_id, leave_message)
@@ -534,9 +534,9 @@ class Settings(core.Cog):
             conf_message = "Does this look good to you?"
             preview = await preview_message(message, ctx)
             if type(preview) is discord.Embed:
-                conf = await ctx.confirm(conf_message, embed=preview, no_reply=True)
+                conf = await ctx.confirm(message=conf_message, embed=preview, no_reply=True)
             else:
-                conf = await ctx.confirm(f"{conf_message}\n=====\n{preview}", no_reply=True)
+                conf = await ctx.confirm(message=f"{conf_message}\n=====\n{preview}", no_reply=True)
             if conf.result:
                 query = (
                     "INSERT INTO join_leave (guild_id, leave_enabled, leave_message, leave_channel) "
@@ -618,7 +618,7 @@ class Settings(core.Cog):
         ctx.cache.verification[ctx.guild.id]["channel_id"] = channel.id
         return await ctx.send(f"Set verification channel to {channel.mention}")
 
-    @core.group()
+    @core.group(invoke_without_command=True)
     @core.has_permissions(manage_guild=True)
     async def disable(self, ctx: Context, command: GetCommand):
         """
@@ -626,7 +626,7 @@ class Settings(core.Cog):
 
         Disabling core commands is not allowed.
         """
-        if str(command) in [
+        if str(command) in {
             "help",
             "ping",
             "disable",
@@ -636,12 +636,12 @@ class Settings(core.Cog):
             "source",
             "credits",
             "about",
-        ]:
+        }:
             return await ctx.send("This command can not be disabled.")
         if str(command) in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]:
             return await ctx.send("This command is already disabled.")
         query = "UPDATE guild_settings SET disabled_commands = ARRAY_APPEND(disabled_commands, $2) WHERE guild_id = $1"
-        ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"].append(str(command))
+        ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"].append(str(command))
         await self.bot.pool.execute(query, ctx.guild.id, str(command))
         await ctx.send(f"{command} is now disabled in this server.")
 
@@ -688,7 +688,7 @@ class Settings(core.Cog):
 
     @core.group(alias="au")
     @core.has_permissions(manage_guild=True)
-    async def autounarchive(self, ctx):
+    async def autounarchive(self, ctx: Context):
         """
         Auto Unarchive threads.
 
@@ -756,7 +756,7 @@ class Settings(core.Cog):
 
         This will remove the color used for embeds and will use your top role color instead.
         """
-        conf = await ctx.confirm("Are you sure you want to remove your theme?")
+        conf = await ctx.confirm(message="Are you sure you want to remove your theme?")
         if conf.result:
             query = (
                 "INSERT INTO user_settings (user_id, color) "

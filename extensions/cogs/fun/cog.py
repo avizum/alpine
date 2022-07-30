@@ -164,22 +164,22 @@ class Fun(core.Cog):
             await ctx.send("You're funny.")
         else:
             author = ctx.author.mention
-            member = member.mention
+            target = member.mention
             kill_response = [
-                f"{author} killed {member}.",
-                f"{author} murdered {member} with a machine gun.",
+                f"{author} killed {target}.",
+                f"{author} murdered {target} with a machine gun.",
                 f"{author} accidentally shot themselves in the face while trying to load the gun.",
-                f"{author} died while summoning a demon to kill {member}",
-                f"{member} summoned a demon to kill {author}.",
-                f"{author} was caught by the police because they posted his plans to kill {member}",
-                f"{author} hired a hitman to kill {member}.",
-                f"{author} shot {member}. While reloading the gun, {author} shot themselves on the head.",
-                f"{author} kidnapped {member} and chopped their head off with a guillotine",
-                f"{author} sniped {member} at the store.",
-                f"{author} tried to poison {member} but {author} put the poison in their drink.",
-                f"{author} died whilst fighting {member}.",
-                f"{member} was stoned to death by {author}.",
-                f"{member} was almost killed by {author} but {member} took the gun and shot {author}",
+                f"{author} died while summoning a demon to kill {target}",
+                f"{target} summoned a demon to kill {author}.",
+                f"{author} was caught by the police because they posted his plans to kill {target}",
+                f"{author} hired a hitman to kill {target}.",
+                f"{author} shot {target}. While reloading the gun, {author} shot themselves on the head.",
+                f"{author} kidnapped {target} and chopped their head off with a guillotine",
+                f"{author} sniped {target} at the store.",
+                f"{author} tried to poison {target} but {author} put the poison in their drink.",
+                f"{author} died whilst fighting {target}.",
+                f"{target} was stoned to death by {author}.",
+                f"{target} was almost killed by {author} but {target} took the gun and shot {author}",
             ]
             await ctx.send(f"{random.choice(kill_response)}")
 
@@ -192,33 +192,6 @@ class Fun(core.Cog):
         This command has a high cooldown to prevent abuse.
         """
         await ctx.send(message)
-
-    @core.command()
-    @core.bot_has_permissions(manage_webhooks=True)
-    @core.cooldown(1, 120, commands.BucketType.user)
-    async def copy(self, ctx: Context, member: discord.User | discord.Member, *, text: str):
-        """
-        Makes it look like a person said something.
-
-        This makes use of a webhook, That's why a "BOT" tag shows next to their name.
-        This is a Discord limitation.
-        """
-        if member == self.bot.user:
-            return await self.say(ctx, message=text)
-        webhooks = await ctx.channel.webhooks()
-        avimetry_webhook = discord.utils.get(webhooks, name="Avimetry")
-        if not avimetry_webhook:
-            avimetry_webhook = await ctx.channel.create_webhook(
-                name="Avimetry",
-                reason="For Avimetry copy command.",
-                avatar=await self.bot.user.display_avatar.read(),
-            )
-        await avimetry_webhook.send(
-            text,
-            username=member.display_name,
-            avatar_url=member.avatar.replace(format="png"),
-            allowed_mentions=discord.AllowedMentions.none(),
-        )
 
     @core.command()
     async def dropkick(self, ctx: Context, *, mention: discord.Member):
@@ -246,7 +219,7 @@ class Fun(core.Cog):
         await ctx.send(f"{person1.mention} and {person2.mention} are {percent}% compatible with each other")
 
     @core.command(aliases=["pp", "penis", "penissize"])
-    async def ppsize(self, ctx: Context, member: discord.Member = None):
+    async def ppsize(self, ctx: Context, member: discord.Member | None = None):
         """
         Get the person's pp size. Why not?
         """
@@ -259,7 +232,7 @@ class Fun(core.Cog):
 
     @core.command()
     @core.cooldown(1, 15, commands.BucketType.member)
-    async def reddit(self, ctx: Context, subreddit):
+    async def reddit(self, ctx: Context, subreddit: str):
         """
         Gets a random post from a subreddit you provide.
 
@@ -337,14 +310,13 @@ class Fun(core.Cog):
         await ctx.send(fact)
 
     @core.command(aliases=["gaymeter"])
-    async def gayrate(self, ctx: Context, member: discord.Member = None):
+    async def gayrate(self, ctx: Context, member: discord.Member | None = None):
         """
         Check how gay a person is.
 
         This command picks a random number from 1-100.
         """
-        if member is None:
-            member = ctx.author
+        member = member or ctx.author
         if await self.bot.is_owner(member):
             return await ctx.send(f"{member.mention} is **{random.randint(0, 10)}%** gay :rainbow:")
         return await ctx.send(f"{member.mention} is **{random.randint(10, 100)}%** gay :rainbow:")
@@ -413,19 +385,19 @@ class Fun(core.Cog):
     async def tiktok(
         self,
         ctx: Context,
-        voice: TikTokTTSOptions | None = "English F US",
+        voice: TikTokTTSOptions = "English F US",
         *,
         text: str,
     ):
         """
         Takes your text and converts to audio from TikTok.
         """
-        voice = tiktok_tts_mapping[voice]
+        voice_type = tiktok_tts_mapping[voice]
         async with ctx.typing():
             info = await self.bot.session.post(
                 "https://api16-normal-useast5.us.tiktokv.com/media/api/text/speech/invoke/",
                 data={
-                    "text_speaker": voice,
+                    "text_speaker": voice_type,
                     "req_text": text,
                     "speaker_map_type": 0,
                 },

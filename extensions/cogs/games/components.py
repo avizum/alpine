@@ -43,12 +43,12 @@ class AkinatorConfirmView(View):
         self.embed = embed
 
     @discord.ui.button(label="Yes", style=discord.ButtonStyle.success)
-    async def yes(self, interaction: discord.Interaction, button: discord.Button):
+    async def yes(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.embed.description = f"{self.embed.description}\n**---**\n\nNice!"
         await self.message.edit(embed=self.embed, view=None)
 
     @discord.ui.button(label="No", style=discord.ButtonStyle.danger)
-    async def no(self, interaction: discord.Interaction, button: discord.Button):
+    async def no(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.embed.description = f"{self.embed.description}\n**---**\n\nAww, Maybe next time!"
         await self.message.edit(embed=self.embed, view=None)
 
@@ -58,7 +58,8 @@ class AkinatorButton(discord.ui.Button["AkinatorGameView"]):
         self.answer = answer
         super().__init__(label=label, style=style, row=row)
 
-    async def callback(self, interaction: discord.Interaction) -> any:
+    async def callback(self, interaction: discord.Interaction) -> None:
+        assert self.view is not None
         await self.view.answer(interaction, self.answer)
 
 
@@ -72,12 +73,14 @@ class AkinatorGameView(View):
         embed: discord.Embed,
     ):
         super().__init__(member=member)
-        self.ctx = ctx
-        self.client = client
-        self.member = member
-        self.embed = embed
-        self.ended = False
-        self.cooldown = commands.CooldownMapping.from_cooldown(2, 2.5, commands.BucketType.user)
+        self.ctx: Context = ctx
+        self.client: Akinator = client
+        self.member: discord.Member = member
+        self.message: discord.Message | None = None
+        self.embed: discord.Embed = embed
+        self.ended: bool = False
+        self.cooldown: commands.CooldownMapping = commands.CooldownMapping.from_cooldown(2, 2.5, commands.BucketType.user)
+
 
         stop = AkinatorButton(label="End Game", answer="end", style=discord.ButtonStyle.primary, row=3)
         stop.callback = self.game_stop
@@ -94,12 +97,13 @@ class AkinatorGameView(View):
             self.add_item(button)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception, item: discord.ui.Item):
-        await self.ctx.send(error)
+        await self.ctx.send(str(error))
         await super().on_error(interaction, error, item)
 
     async def stop(self, *args, **kwargs):
         await self.client.close()
-        await self.message.edit(*args, **kwargs, view=None)
+        if self.message is not None:
+            await self.message.edit(*args, **kwargs, view=None)
         super().stop()
 
     async def on_timeout(self):
@@ -107,6 +111,8 @@ class AkinatorGameView(View):
         await self.stop(embed=self.embed)
 
     async def answer(self, interaction: discord.Interaction, answer: str) -> None:
+        if self.message is None:
+            return
         retry = self.cooldown.update_rate_limit(self.ctx.message)
         if retry:
             return await interaction.response.send_message(content="You are clicking too fast.", ephemeral=True)
@@ -148,20 +154,21 @@ class AkinatorFlags(commands.FlagConverter):
 
 
 class RockPaperScissorGame(View):
-    def __init__(self, timeout=8, *, ctx, member, embed):
+    def __init__(self, timeout=8, *, ctx: Context, member: discord.Member, embed: discord.Embed) -> None:
         super().__init__(timeout=timeout, member=member)
-        self.ctx = ctx
-        self.embed = embed
+        self.ctx: Context = ctx
+        self.embed: discord.Embed = embed
+        self.message: discord.Message | None = None
 
-    async def stop(self):
-        for i in self.children:
-            i.disabled = True
-        await self.message.edit(view=self)
+    async def stop(self) -> None:
+        self.disable_all()
+        if self.message is not None:
+            await self.message.edit(view=self)
 
-    async def on_timeout(self):
+    async def on_timeout(self) -> None:
         await self.stop()
 
-    async def answer(self, button, interaction, answer):
+    async def answer(self, button: discord.ui.Button, interaction: discord.Interaction, answer: int):
         game = {0: "**Rock**", 1: "**Paper**", 2: "**Scissors**"}
         key = [[0, 1, -1], [-1, 0, 1], [1, -1, 0]]
         repsonses = {0: "**It's a tie!**", 1: "**You win!**", -1: "**I win!**"}
@@ -174,19 +181,18 @@ class RockPaperScissorGame(View):
         elif message == repsonses[-1]:
             button.style = discord.ButtonStyle.danger
             self.embed.color = discord.Color.red()
-        for i in self.children:
-            i.disabled = True
+        self.disable_all()
         self.embed.description = thing
         await interaction.response.edit_message(embed=self.embed, view=self)
         await self.stop()
 
     @discord.ui.button(label="Rock", emoji="\U0001faa8", style=discord.ButtonStyle.secondary, row=1)
-    async def game_rock(self, interaction: discord.Interaction, button: discord.Button):
+    async def game_rock(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.answer(button, interaction, 0)
         button.style = discord.ButtonStyle.success
 
     @discord.ui.button(label="Paper", emoji="\U0001f4f0", style=discord.ButtonStyle.secondary, row=1)
-    async def game_paper(self, interaction: discord.Interaction, button: discord.Button):
+    async def game_paper(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.answer(button, interaction, 1)
         button.style = discord.ButtonStyle.success
 
@@ -196,22 +202,24 @@ class RockPaperScissorGame(View):
         style=discord.ButtonStyle.secondary,
         row=1,
     )
-    async def game_scissors(self, interaction: discord.Interaction, button: discord.Button):
+    async def game_scissors(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.answer(button, interaction, 2)
         button.style = discord.ButtonStyle.success
 
 
 class CookieView(discord.ui.View):
-    def __init__(self, timeout, ctx):
+    def __init__(self, timeout: int, ctx: Context) -> None:
         super().__init__(timeout=timeout)
-        self.ctx = ctx
-        self.winner = None
+        self.ctx: Context = ctx
+        self.winner: discord.Member | discord.User | None = None
+        self.message: discord.Message | None = None
 
-    async def on_timeout(self):
-        await self.message.edit(embed=None, content="Nobody got the cookie", view=None)
+    async def on_timeout(self) -> None:
+        if self.message is not None:
+            await self.message.edit(embed=None, content="Nobody got the cookie", view=None)
 
     @discord.ui.button(emoji="🍪")
-    async def cookie(self, interaction: discord.Interaction, button: discord.Button):
+    async def cookie(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.winner = interaction.user
         button.disabled = True
         self.stop()

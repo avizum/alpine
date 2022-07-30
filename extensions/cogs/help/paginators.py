@@ -29,6 +29,7 @@ from utils import Paginator
 
 
 if TYPE_CHECKING:
+    from discord.ext.commands import Command
     from .cog import AvimetryHelp
     from typing_extensions import Self
 
@@ -92,7 +93,7 @@ class MainHelp(menus.PageSource):
                 f"You can support Avimetry by voting. Here are some links.\n{info}\n"
                 f"If you need help using paginators, use `{self.ctx.prefix}help paginator`"
             )
-        embed.set_thumbnail(url=bot.user.avatar.url)
+        embed.set_thumbnail(url=bot.user.display_avatar.url)
         embed.set_footer(text=self.help.ending_note())
         return embed
 
@@ -101,7 +102,7 @@ class CogHelp(menus.ListPageSource):
     def __init__(
         self,
         ctx: Context,
-        commands: list[core.Command | core.Group],
+        commands: list[Command],
         cog: core.Cog,
         help_command: AvimetryHelp,
     ) -> None:
@@ -212,7 +213,10 @@ class HelpSelect(discord.ui.Select["HelpPages"]):
         super().__init__(placeholder=f"Select a module ({len(cogs)} modules)", options=options)
 
     async def callback(self, interaction: discord.Interaction) -> None:
-        cog: core.Cog | None = self.ctx.bot.get_cog(self.values[0])
+        assert self.view is not None
+        cog: core.Cog | None = self.ctx.bot.get_cog(self.values[0]) # type: ignore
+        if cog is None:
+            return await interaction.response.send_message("This module doesn't exist??")
         if self.current_module == cog:
             return await interaction.response.defer()
         if self.values[0] == "Home":

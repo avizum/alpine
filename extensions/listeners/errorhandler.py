@@ -124,6 +124,9 @@ class ErrorHandler(core.Cog):
 
     @core.Cog.listener()
     async def on_command_error(self, ctx: Context, error: commands.CommandError):
+        if not ctx.command:
+            return
+
         error = getattr(error, "original", error)
 
         cog_has_handler = ctx.cog.has_error_handler() if ctx.cog else None
@@ -293,12 +296,12 @@ class ErrorHandler(core.Cog):
 
         elif isinstance(error, CommandDisabledGuild):
             retry_after = self.disabled_command.update_rate_limit(ctx.message)
-            if not retry_after:
+            if not retry_after or ctx.interaction is not None:
                 return await ctx.send("You can not use this command, It is disabled in this server.", ephemeral=True)
 
         elif isinstance(error, CommandDisabledChannel):
             retry_after = self.disabled_channel.update_rate_limit(ctx.message)
-            if not retry_after and ctx.interaction is not None:
+            if not retry_after or ctx.interaction is not None:
                 return await ctx.send("Commands have been disabled in this channel.", ephemeral=True)
 
         elif isinstance(error, commands.DisabledCommand):

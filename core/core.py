@@ -20,11 +20,10 @@ from __future__ import annotations
 
 
 import datetime
-from typing import TYPE_CHECKING, TypeVar, Callable
+from typing import TYPE_CHECKING, TypeVar, Callable, Any, overload
 
 import discord
 from discord.ext import commands
-from discord.ext.commands import DisabledCommand, CheckFailure
 from discord.utils import MISSING
 
 
@@ -43,7 +42,8 @@ def to_list(thing) -> list[str]:
 
 default_cooldown = commands.Cooldown(3, 15)
 def owner_cd(message: discord.Message):
-    bot: Bot = message._state._get_client()
+    bot = message._state._get_client()
+    assert isinstance(bot, Bot)
     return None if message.author.id in bot.owner_ids else default_cooldown
 
 
@@ -72,34 +72,6 @@ class Command(commands.Command):
     def __repr__(self) -> str:
         return f"<core.Command name={self.qualified_name}>"
 
-    async def can_run(self, ctx: commands.Context) -> bool:
-        if not self.enabled:
-            raise DisabledCommand(f"{self.name} command is disabled")
-
-        original = ctx.command
-        ctx.command = self
-
-        try:
-            if not await ctx.bot.can_run(ctx):
-                raise CheckFailure(f"The global check functions for command {self.qualified_name} failed.")
-
-            cog = self.cog
-            if cog is not None:
-                local_check = Cog._get_overridden_method(cog.cog_check)
-                if local_check is not None:
-                    ret = await discord.utils.maybe_coroutine(local_check, ctx)
-                    if not ret:
-                        return False
-
-            predicates = self.checks
-            if not predicates:
-                # since we have no checks, then we just return True.
-                return True
-
-            return await discord.utils.async_all(predicate(ctx) for predicate in predicates)  # type: ignore
-        finally:
-            ctx.command = original
-
 
 class Group(commands.Group, Command):
     def __init__(self, *args, **kwargs) -> None:
@@ -110,7 +82,7 @@ class Group(commands.Group, Command):
         self,
         name: str = MISSING,
         hybrid: bool = False,
-        **attrs: any,
+        **attrs: Any,
     ) -> Callable[..., Command | HybridCommand]:
         def decorator(func):
             attrs.setdefault("parent", self)
@@ -124,11 +96,11 @@ class Group(commands.Group, Command):
         self,
         name: str = MISSING,
         hybrid: bool = False,
-        **kwargs: Callable[..., Group | HybridGroup],
-    ) -> Callable[..., Group | HybridCommand]:
+        **attrs: Any,
+    ) -> Callable[..., Group | HybridGroup]:
         def decorator(func):
-            kwargs.setdefault("parent", self)
-            result = group(name=name, hybrid=hybrid, **kwargs)(func)
+            attrs.setdefault("parent", self)
+            result = group(name=name, hybrid=hybrid, **attrs)(func)
             self.add_command(result)
             return result
 
@@ -148,11 +120,26 @@ class Cog(commands.Cog):
         self.bot: Bot = bot
         self.load_time: datetime.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
 
+@overload
+def command(
+    name: str = MISSING,
+    hybrid: bool = True,
+    **kwargs: Any
+) -> Callable[...,  HybridCommand]:
+    ...
+
+@overload
+def command(
+    name: str = MISSING,
+    hybrid: bool = False,
+    **kwargs: Any
+) -> Callable[..., Command]:
+    ...
 
 def command(
     name: str = MISSING,
     hybrid: bool = False,
-    **kwargs: any
+    **kwargs: Any
 ) -> Callable[..., Command | HybridCommand]:
     cls = HybridCommand if hybrid else Command
 
@@ -167,11 +154,11 @@ def command(
 def group(
     name: str = MISSING,
     hybrid: bool = False,
-    **kwargs: any
+    **kwargs: Any
 ) -> Callable[..., Group | HybridGroup]:
     cls = HybridGroup if hybrid else Group
 
-    def decorator(func: any) -> Group | HybridGroup:
+    def decorator(func: Any) -> Group | HybridGroup:
         if isinstance(func, Group):
             raise TypeError("Callback is already a group.")
         return cls(func, name=name, **kwargs)

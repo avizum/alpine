@@ -485,7 +485,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.send(embed=embed)
 
     @Feature.Command(parent="jsk", name="reload", aliases=["r"])
-    async def jsk_reload(self, ctx: Context, module: CogConverter):
+    async def jsk_reload(self, ctx: Context, module: CogConverter | None = None):
         """
         Reload cogs.
         """
@@ -536,7 +536,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         Command to leave a guild that may be abusing the bot.
         """
-        conf = await ctx.confirm(f"Are you sure you want me to leave {guild.name} ({guild.id})?")
+        conf = await ctx.confirm(message=f"Are you sure you want me to leave {guild.name} ({guild.id})?")
         if conf.result:
             await guild.leave()
             return await ctx.message.add_reaction(Emojis.GREEN_TICK)

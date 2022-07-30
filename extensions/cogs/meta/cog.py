@@ -258,7 +258,7 @@ class Meta(core.Cog):
         await ctx.send(embed=mce)
 
     @core.command()
-    async def avatar(self, ctx: Context, member: discord.Member = None):
+    async def avatar(self, ctx: Context, member: discord.Member | discord.User  = commands.Author):
         """
         Sends the avatar of a member.
         """
@@ -311,7 +311,7 @@ class Meta(core.Cog):
         await ctx.send(embed=qr_embed)
 
     @core.group(hybrid=True, fallback="get", case_insensitive=True, invoke_without_command=True)
-    async def time(self, ctx: Context, *, member: discord.Member = None):
+    async def time(self, ctx: Context, *, member: discord.Member | None = None):
         """
         Get the time for a user.
 
@@ -370,7 +370,7 @@ class Meta(core.Cog):
 
     @core.command()
     @core.cooldown(1, 15, commands.BucketType.guild)
-    async def firstmessage(self, ctx: Context, *, channel: discord.TextChannel = None):
+    async def firstmessage(self, ctx: Context, *, channel: discord.TextChannel | discord.VoiceChannel = None):
         """
         Get the first message of the channel.
 
@@ -414,7 +414,7 @@ class Meta(core.Cog):
         await menu.start()
 
     @rtfm.command(aliases=["py"])
-    async def python(self, ctx: Context, query):
+    async def python(self, ctx: Context, query: str):
         """
         Get the docs for the latest Python version
         """
@@ -423,7 +423,7 @@ class Meta(core.Cog):
         await menu.start()
 
     @rtfm.command(aliases=["ob"])
-    async def obsidian(self, ctx: Context, query):
+    async def obsidian(self, ctx: Context, query: str):
         """
         Get the docs for the Obsidian.py library
         """
@@ -432,7 +432,7 @@ class Meta(core.Cog):
         await menu.start()
 
     @rtfm.command(aliases=["wl"])
-    async def wavelink(self, ctx: Context, query):
+    async def wavelink(self, ctx: Context, query: str):
         """
         Get the docs for the Wavelink library
         """
@@ -448,49 +448,9 @@ class Meta(core.Cog):
         try:
             q = await self.scraper.search(query, page=doc_url)
         except Exception as e:
-            return await ctx.send(e)
+            return await ctx.send(str(e))
         menu = Paginator(RTFMPageSource(ctx, q[:79], "Custom Docs"), ctx=ctx, remove_view_after=True)
         await menu.start()
-
-    @core.command()
-    @core.cooldown(1, 300, commands.BucketType.member)
-    async def embed(self, ctx: Context, *, thing: str):
-        """
-        Make embeds with JSON.
-
-        This command has a high cooldown to prevent abuse.
-        """
-        if '"content":' in thing:
-            return await ctx.send('Remove the "content" part from your message and try again.')
-        try:
-            thing = json.loads(thing)
-            return await ctx.no_reply(embed=discord.Embed.from_dict(thing))
-        except Exception as e:
-            embed = discord.Embed(
-                title="Input Error",
-                description=f"The JSON input raised an error:\n```bash\n{e}```",
-            )
-            return await ctx.no_reply(embed=embed)
-
-    @core.command(enabled=False)
-    async def redirectcheck(self, ctx: Context, url: str):
-        """
-        Check what a URL leads to.
-
-        Useful to see if a link is a rickroll or something.
-        """
-        url = url.strip("<>")
-        async with self.bot.session.get(url) as f:
-            await ctx.no_reply(f"This url redirects to:\n\n{f.real_url}")
-
-    @redirectcheck.error
-    async def redirectcheck_error(self, ctx: Context, error):
-        if isinstance(error, aiohttp.InvalidURL):
-            return await ctx.send("This is not a valid url. Make sure you start links with `http://` or `https://`.")
-        if isinstance(error, aiohttp.ClientConnectorError):
-            return await ctx.send("I wasn't able to connect to this website.")
-        await ctx.send("An error occured while checking the link, Please try another link or try again later.")
-        raise error
 
     @core.group(name="gist", invoke_without_command=True)
     @core.cooldown(1, 60, commands.BucketType.user)
@@ -540,21 +500,22 @@ class Meta(core.Cog):
     @core.command(aliases=["rawmsg", "rmessage", "rmsg"])
     @core.cooldown(1, 15, commands.BucketType.user)
     @commands.max_concurrency(1, commands.BucketType.user)
-    async def rawmessage(self, ctx: Context, message_id: int = None):
+    async def rawmessage(self, ctx: Context, message_id: discord.Object | None = None):
         """
         Get the raw content of a message.
 
         If the message is too long, it will be posted on a gist.
         """
-        ref = ctx.message.reference
-        if not ref:
+        ref = ctx.reference
+        if message_id is None and ref is not None:
+            message_id = discord.Object(ref.id)
+        if not ref and message_id is None:
             return await ctx.send("Provide a message id or reply to a message using this command.")
-        if message_id is None and isinstance(ref.resolved, discord.Message):
-            message_id = ref.resolved.id
         mess = await self.bot.http.get_message(ctx.channel.id, message_id)
-        info = ctx.codeblock(json.dumps(mess, indent=4), language="json")
+        dumps = json.dumps(mess, indent=4)
+        info = ctx.codeblock(dumps, language="json")
         if len(info) > 2000:
-            return await ctx.post(info.removeprefix("```json\n").removesuffix("```"), "json", gist=True)
+            info = f"The output was too long, posted to {await ctx.post(content=dumps, filename='raw_message.json')}"
         return await ctx.send(info)
 
     @core.command(hidden=True)

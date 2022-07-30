@@ -72,13 +72,13 @@ class Games(core.Cog):
 
         if member:
 
-            def check(reaction, user):
+            def member_check(reaction, user):
                 return (
                     reaction.message.id == cd_cookie.id
                     and str(reaction.emoji) == "\U0001F36A"
                     and user in [ctx.author, member]
                 )
-
+            check = member_check
         else:
 
             def check(reaction, user):

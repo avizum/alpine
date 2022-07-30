@@ -49,7 +49,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
     @core.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
-        ctx = await self.bot.get_context(message, cls=Context)
+        ctx = await self.bot.get_context(message)
         if message.author == self.bot.user:
             return
         if message.content in [
@@ -59,6 +59,8 @@ class BotInfo(commands.Cog, name="Bot Info"):
             if not ctx.bot_permissions.send_messages:
                 return
             command = self.bot.get_command("prefix")
+            if command is None:
+                return
             ctx.command = command
             await command(ctx)
 
@@ -198,7 +200,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         embed = discord.Embed(
             title="\U0001f44b Hey, I am Avimetry!",
             description=f"Hello {ctx.author.mention}, I am a bot made by [avizum.](https://github.com/avizum)",
-            color=ctx.guild.owner.color,
+            color=0x5e9bbf,
         )
         embed.add_field(name=f"{ctx.clean_prefix}help", value="Sends the help page.", inline=False)
         embed.add_field(
@@ -224,7 +226,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         """
         Invite me to your server.
         """
-        permissions = discord.Permissions(permissions)
+        perm = discord.Permissions(permissions)
         view = discord.ui.View(timeout=None)
         invite_embed = discord.Embed(
             title=f"{self.bot.user.name} Invite",
@@ -234,15 +236,8 @@ class BotInfo(commands.Cog, name="Bot Info"):
         view.add_item(
             discord.ui.Button(
                 style=discord.ButtonStyle.link,
-                url=discord.utils.oauth_url(self.bot.user.id, permissions=permissions),
+                url=discord.utils.oauth_url(self.bot.user.id, permissions=perm),
                 label="Invite with slash-commands",
-            )
-        )
-        view.add_item(
-            discord.ui.Button(
-                style=discord.ButtonStyle.link,
-                url=discord.utils.oauth_url(self.bot.user.id, permissions=permissions, scopes=["bot"]),
-                label="Invite without slash-commands",
             )
         )
         view.add_item(
@@ -262,7 +257,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         If you mention a bot, I will try to find their Top.GG page and send it. If I can't find it, then
         I will generate an invite link and send it.
         """
-        permissions = discord.Permissions(permissions)
+        perm = discord.Permissions(permissions)
         view = discord.ui.View(timeout=None)
         if bot.bot:
             invite_embed = discord.Embed(title=f"{bot.name} Invite")
@@ -287,19 +282,12 @@ class BotInfo(commands.Cog, name="Bot Info"):
                 )
             except (NotFound, ServerError):
                 invite_embed.description = f"Invite {bot.name} to your server! Here is the invite link."
-                link = discord.utils.oauth_url(bot.id, permissions=permissions)
+                link = discord.utils.oauth_url(bot.id, permissions=perm)
                 view.add_item(
                     discord.ui.Button(
                         style=discord.ButtonStyle.link,
-                        label=f"{bot.name} Invite with slash commands",
-                        url=discord.utils.oauth_url(bot.id, permissions=permissions),
-                    )
-                )
-                view.add_item(
-                    discord.ui.Button(
-                        style=discord.ButtonStyle.link,
-                        label=f"{bot.name} Invite without slash commands",
-                        url=discord.utils.oauth_url(bot.id, permissions=permissions, scopes=["bot"]),
+                        label=f"{bot.name} Invite",
+                        url=discord.utils.oauth_url(bot.id, permissions=perm),
                     )
                 )
             await ctx.send(embed=invite_embed, view=view)
@@ -348,7 +336,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             ),
         )
         view = discord.ui.View(timeout=None)
-        view.add_item(discord.ui.Button(style=discord.ui.Button, url=self.bot.source, label="Source"))
+        view.add_item(discord.ui.Button(url=self.bot.source, label="Source"))
         await ctx.send(embed=embed, view=view)
 
     @core.command()
@@ -359,7 +347,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
         Spamming this command or sending spam requests will get you blacklisted from the bot.
         """
-        conf = await ctx.confirm(f"Are sure you want to send this request?\n> {request}")
+        conf = await ctx.confirm(message=f"Are sure you want to send this request?\n> {request}")
         if conf.result:
 
             req_send = discord.Embed(title=f"Request from {ctx.author}", description=f"```{request}```")
@@ -405,7 +393,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
     # If you run an instance of this bot, Please do not remove this command.
     # - avizum
     @core.command(hybrid=True)
-    async def source(self, ctx: Context, *, command: str = None):
+    async def source(self, ctx: Context, *, command: str | None = None):
         """
         Send the bot's source or a source of a command.
 
@@ -438,19 +426,19 @@ class BotInfo(commands.Cog, name="Bot Info"):
             return await ctx.send(embed=source_embed, view=view)
 
         if command == "help":
-            command = self.bot.help_command
+            cmd = self.bot.help_command
         else:
-            command = self.bot.get_command(command)
-        if not command:
+            cmd = self.bot.get_command(command)
+        if cmd is None:
             source_embed.description = "That command could not be found."
             return await ctx.send(embed=source_embed)
 
-        if isinstance(command, commands.HelpCommand):
+        if isinstance(cmd, commands.HelpCommand):
             lines, number_one = inspect.getsourcelines(type(command))
             src = command.__module__
         else:
-            lines, number_one = inspect.getsourcelines(command.callback.__code__)
-            src = command.callback.__module__
+            lines, number_one = inspect.getsourcelines(cmd.callback.__code__)
+            src = cmd.callback.__module__
 
         path = f"{src.replace('.', '/')}.py"
 
@@ -468,7 +456,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
     async def source_autocomplete(
         self,
         interaction: discord.Interaction,
-        current: str | None,
+        current: str,
     ) -> list[app_commands.Choice[str]]:
         commands = [
             c.qualified_name for c in list(self.bot.walk_commands()) if current in c.qualified_name and len(current) > 2
@@ -515,7 +503,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         return await conf.message.edit(content="Aborted.")
 
     @core.command()
-    async def error(self, ctx: Context, error_id: int = None):
+    async def error(self, ctx: Context, error_id: int | None = None):
         """
         Get some error about an error
 

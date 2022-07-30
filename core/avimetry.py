@@ -22,7 +22,7 @@ import datetime as dt
 import logging
 import re
 from datetime import datetime
-from typing import TYPE_CHECKING, Callable, Any
+from typing import TYPE_CHECKING, Callable, Any, Type
 
 import asyncpg
 import discord
@@ -84,7 +84,8 @@ class Bot(commands.Bot):
     invite: str = discord.utils.oauth_url(bot_id, permissions=discord.Permissions(8))
     support: str = "https://discord.gg/muTVFgDvKf"
     source: str = "https://github.com/avimetry/avimetry"
-    context: Context | None = None
+    context: Type[commands.Context] | None = None
+    pool: asyncpg.Pool
 
     to_load: tuple[str, ...] = (
         "extensions.listeners.events",
@@ -151,7 +152,7 @@ class Bot(commands.Bot):
     async def setup_hook(self) -> None:
         self.session: ClientSession = ClientSession()
         self.cache: Cache = Cache(self)
-        self.pool: asyncpg.Pool | None = await asyncpg.create_pool(**self.settings["postgresql"])
+        self.pool: asyncpg.Pool = await asyncpg.create_pool(**self.settings["postgresql"]) # type: ignore
         self.topgg: DBLClient = DBLClient(self, self.api["TopGG"], autopost_interval=None, session=self.session)
         self.topgg_webhook: WebhookManager = WebhookManager(self).dbl_webhook("/dbl", self.api["TopGGWH"])
         self.gist: GistClient = GistClient(self.api["GitHub"], self.session)
@@ -212,14 +213,8 @@ class Bot(commands.Bot):
         try:
             node = await wavelink.NodePool.create_node(
                 bot=self,
-                host="127.0.0.1",
-                port=2333,
-                password="youshallnotpass",
-                identifier="Avimetry",
-                spotify_client=spotify.SpotifyClient(
-                    client_id=self.api["SpotifyClientID"],
-                    client_secret=self.api["SpotifySecret"],
-                ),
+                **self.settings["lavalink"],
+                spotify_client=spotify.SpotifyClient(**self.settings["spotify"]),
             )
             _log.info(f"Wavelink node started: Identifier: {node.identifier}")
         except Exception as e:

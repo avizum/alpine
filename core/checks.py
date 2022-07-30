@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING
 
 import discord
 from discord.ext import commands
+from discord.ext.commands import NoPrivateMessage
 
 from .core import Command
 from .avimetry import OWNER_IDS
@@ -33,7 +34,12 @@ if TYPE_CHECKING:
     from .context import Context
 
 
-def check(predicate, member_permissions: bool | None = None, bot_permissions: bool | None = None):
+
+def check(
+    predicate,
+    member_permissions: list | dict[str, bool] | bool | None = None,
+    bot_permissions: list | dict[str, bool] | bool | None = None
+):
     def decorator(func):
         if member_permissions:
             func.member_permissions = member_permissions
@@ -152,6 +158,8 @@ def is_owner():
 
 def is_guild_owner():
     async def predicate(ctx: Context):
+        if not ctx.guild:
+            raise NoPrivateMessage
         if ctx.author != ctx.guild.owner:
             raise NotGuildOwner
         return True

@@ -47,7 +47,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
     @core.group(invoke_without_command=True)
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def channel(self, ctx):
+    async def channels(self, ctx):
         """
         Manage channels in the server.
 
@@ -57,7 +57,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
         """
         await ctx.send_help(ctx.command)
 
-    @channel.group(invoke_without_command=True)
+    @channels.group(invoke_without_command=True)
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
     async def create(self, ctx: Context):
@@ -99,7 +99,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
         channel = await ctx.guild.create_text_channel(name)
         await ctx.send(f"Created category channel {channel.mention}.")
 
-    @channel.command()
+    @channels.command()
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
     async def clone(self, ctx: Context, channel: discord.abc.GuildChannel):
@@ -117,7 +117,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
         await channel.clone(reason="because")
         await ctx.send(f"Successfully cloned {channel.mention}.")
 
-    @channel.command()
+    @channels.command()
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
     async def delete(self, ctx: Context, channel: discord.abc.GuildChannel):
@@ -126,7 +126,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
 
         This asks for confirmation to prevent abuse.
         """
-        conf = await ctx.confirm(f"Are you sure you want to delete {channel.mention}?")
+        conf = await ctx.confirm(message=f"Are you sure you want to delete {channel.mention}?")
         if conf:
             return await ctx.channel.delete()
         return await conf.message.edit(content="Aborted.")

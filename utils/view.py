@@ -24,6 +24,11 @@ class View(discord.ui.View):
         self.member: discord.Member | discord.User = member
         super().__init__(timeout=timeout)
 
+    def disable_all(self) -> None:
+        for child in self.children:
+            if isinstance(child, (discord.ui.Button, discord.ui.Select)):
+                child.disabled = True
+
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user != self.member:
             embed = discord.Embed(description=f"This can only be used by {self.member}.")

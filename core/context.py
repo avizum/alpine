@@ -20,35 +20,30 @@ from __future__ import annotations
 
 import datetime
 import re
-from typing import Sequence, TYPE_CHECKING
+from typing import Any, Sequence, TYPE_CHECKING
 
 import discord
-from asyncgist import File
+from asyncgist import File as AGFile
 from discord.ext import commands, menus
 from discord.utils import MISSING
 
-from utils.view import View
 from utils.emojis import Emojis
 from utils.paginators import Paginator, WrappedPaginator
+from utils.view import View as AView
 
 if TYPE_CHECKING:
-    from .avimetry import Bot
-    from discord import (
-        Embed,
-        GuildSticker,
-        StickerItem,
-        AllowedMentions,
-        Message,
-        MessageReference,
-        PartialMessage,
-    )
+    from discord import AllowedMentions, Embed, File, GuildSticker, Message, MessageReference, PartialMessage, StickerItem
+    from discord.ui import View
+
     from extensions.cogs.music.cog import Player
+
+    from .avimetry import Bot
 
 
 emoji_regex: re.Pattern = re.compile(r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>")
 
 
-class TrashView(View):
+class TrashView(AView):
     message: discord.Message
 
     def __init__(self, *, member: discord.Member, timeout: int = 60, ctx: Context) -> None:
@@ -76,10 +71,11 @@ class TrashView(View):
         await self.ctx.message.add_reaction(Emojis.GREEN_TICK)
 
 
-class ConfirmView(View):
+class ConfirmView(AView):
     def __init__(self, *, member: discord.Member, timeout=None):
         super().__init__(member=member, timeout=timeout)
-        self.value = None
+        self.value: bool | None = None
+        self.message: Message | None = None
 
     @discord.ui.button(label="Yes", style=discord.ButtonStyle.green)
     async def yes(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -95,9 +91,9 @@ class ConfirmView(View):
 
 
 class ConfirmResult:
-    def __init__(self, message: discord.Message, result: bool):
-        self.message = message
-        self.result = result
+    def __init__(self, message: discord.Message, result: bool | None):
+        self.message: discord.Message = message
+        self.result: bool | None = result
 
     def __repr__(self):
         return f"<ConfirmResult result={self.result}>"
@@ -118,9 +114,14 @@ class AutoPageSource(menus.ListPageSource):
     async def format_page(self, menu, page):
         return page
 
-
 class Context(commands.Context):
+    author: discord.Member
+    guild: discord.Guild
+    channel: discord.TextChannel | discord.VoiceChannel | discord.Thread
     bot: Bot
+    me: discord.Member
+    command: commands.Command
+    prefix: str
     voice_client: Player
 
     def __init__(self, **kwargs) -> None:
@@ -156,6 +157,9 @@ class Context(commands.Context):
 
     @property
     async def get_prefix(self) -> str:
+        if self.guild is None:
+            return "a."
+
         get_prefix = await self.cache.get_guild_settings(self.guild.id)
         prefix = get_prefix["prefixes"] if get_prefix else None
         if not prefix:
@@ -165,18 +169,16 @@ class Context(commands.Context):
     @property
     def reference(self) -> Message | None:
         ref = self.message.reference
-        if isinstance(ref.resolved, discord.Message):
+        if ref and isinstance(ref.resolved, discord.Message):
             return ref.resolved
         return None
 
-    async def post(self, content: str, syntax: str = "py", gist: bool = False) -> Message:
-        if gist:
-            gist_file = [File(filename=f"output.{syntax}", content=content)]
-            link = (await self.bot.gist.post_gist(description=str(self.author), files=gist_file, public=True)).html_url
-        else:
-            link = await self.bot.myst.post(content, syntax=syntax)
-        embed = discord.Embed(description=f"Output for {self.command.qualified_name}: [Here]({link})")
-        return await self.send(embed=embed)
+    async def post(self, *, content: str, filename: str) -> str | None:
+        gist_file = [AGFile(filename=filename, content=content)]
+        posted_gist = await self.bot.gist.post_gist(description=str(self.author), files=gist_file, public=True)
+        if posted_gist.html_url is not None:
+            return f"<{posted_gist.html_url}>"
+        return None
 
     async def fetch_color(self, member: discord.Member | discord.User | None = None) -> discord.Color:
         member = member or self.author
@@ -190,14 +192,14 @@ class Context(commands.Context):
                 color = discord.Color(0x01B9C0)
         return color
 
-    def get_color(self, member: discord.Member | discord.User | None = None) -> discord.Color | int:
+    def get_color(self, member: discord.Member | discord.User | None = None) -> discord.Color:
         member = member or self.author
         data = self.cache.users.get(member.id)
         color = data.get("color") if data else None
         if not color:
             color = member.color
         elif color == discord.Color(0):
-            color = 0x2F3136
+            color = discord.Color(0x2F3136)
         return color
 
     async def paginate(
@@ -219,6 +221,16 @@ class Context(commands.Context):
             disable_view_after=disable_view_after,
         )
         return await menu.start()
+
+    async def send_and_cache(self, *args: Any, **kwargs: Any) -> Message:
+        message = await super().send(*args, **kwargs)
+        self.bot.command_cache[message.id] = message
+        return message
+
+    async def edit_and_recache(self, message: discord.Message, *args: Any, **kwargs: Any) -> Message:
+        message = await message.edit(*args, **kwargs)
+        self.bot.command_cache[message.id] = message
+        return message
 
     async def send(
         self,
@@ -243,7 +255,6 @@ class Context(commands.Context):
         no_reply: bool = False,
         ephemeral: bool = False,
     ) -> Message:
-        message: Message | None = None
         if content:
             content = str(content)
             for token in self.tokens:
@@ -252,7 +263,8 @@ class Context(commands.Context):
                 if paginate:
                     return await self.paginate(content, remove_view_after=True)
                 if post:
-                    return await self.post(content, gist=True)
+                    content = f"Output too long, posted here: {await self.post(filename='output.py', content=content)}"
+
         if embed:
             if not embed.footer:
                 embed.set_footer(
@@ -266,7 +278,7 @@ class Context(commands.Context):
         if ephemeral:
             no_reply = True
 
-        kwargs: dict[str, any] = {
+        kwargs: dict[str, Any] = {
             "content": content,
             "tts": tts,
             "embed": embed,
@@ -301,19 +313,16 @@ class Context(commands.Context):
                 edit_kwargs["embed"] = embed
                 edit_kwargs["embeds"] = MISSING if embeds is None else embeds
                 edit_kwargs["suppress"] = suppress_embeds
-                message = await self.bot.command_cache[self.message.id].edit(**edit_kwargs)
+                message = self.bot.command_cache[self.message.id]
+                return await self.edit_and_recache(message, **edit_kwargs)
             except discord.HTTPException:
-                message = await super().send(**kwargs)
+                return await self.send_and_cache(**kwargs)
 
-        elif self.interaction is None or self.interaction.is_expired():
+        if self.interaction is None or self.interaction.is_expired():
             kwargs["reference"] = self.message.to_reference(fail_if_not_exists=False) or reference
             if no_reply:
                 kwargs["reference"] = None
-            message = await super().send(**kwargs)
-
-        if message:
-            self.bot.command_cache[self.message.id] = message
-            return message
+            return await self.send_and_cache(**kwargs)
 
         kwargs = {
             "content": content,
@@ -344,53 +353,38 @@ class Context(commands.Context):
 
     async def confirm(
         self,
-        message: Message | None = None,
-        embed: Embed | None = None,
-        confirm_message: str | None = None,
         *,
+        message: str | None = None,
+        embed: Embed | None = None,
+        confirm_messsage: str = 'Press "yes" to accept, or press "no" to deny',
         timeout: int = 60,
-        delete_after: bool = False,
-        no_reply: bool = False,
+        delete_message_after: bool = False,
         remove_view_after: bool = False,
+        no_reply: bool = False,
         ephemeral: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> ConfirmResult:
-        if delete_after and remove_view_after:
-            remove_view_after = False
-        if self.interaction and ephemeral and delete_after:
-            delete_after = False
-            remove_view_after = True
-        view = ConfirmView(member=self.author, timeout=timeout)
-        check_message = confirm_message or 'Press "yes" to accept, or press "no" to deny.'
-        if no_reply:
-            send = await self.send(
-                content=message,
-                embed=embed,
-                view=view,
-                no_reply=True,
-                ephemeral=ephemeral,
-                **kwargs
-            )
+        if delete_message_after and remove_view_after:
+            raise ValueError("Cannot have both delete_message_after and remove_view_after keyword arguments.")
+        if self.interaction and ephemeral and delete_message_after:
+            raise ValueError("Cannot have both ephemeral and delete_message_after keyword arguemnts.")
+        if embed and message or embed:
+            embed.description = f"{embed.description}\n\n{confirm_messsage}" if embed.description else confirm_messsage
         elif message:
-            message = f"{message}\n\n{check_message}"
-            send = await self.send(message, view=view, ephemeral=ephemeral, **kwargs)
-        elif embed:
-            embed.description = f"{embed.description}\n\n{check_message}"
-            send = await self.send(embed=embed, view=view, ephemeral=ephemeral, **kwargs)
-        view.message = send
+            message = f"{message}\n\n{confirm_messsage}"
+        view = ConfirmView(member=self.author, timeout=timeout)
+        msg = await self.send(content=message, embed=embed, no_reply=no_reply, ephemeral=ephemeral, view=view, **kwargs)
+        view.message = msg
         await view.wait()
-        if delete_after:
-            await send.delete()
-        if remove_view_after:
-            await view.message.edit(view=None)
-        return ConfirmResult(send, view.value)
+        return ConfirmResult(msg, view.value)
 
     async def can_delete(self, *args, **kwargs) -> Message:
         if kwargs.get("ephemeral") and self.interaction:
             return await self.send(*args, **kwargs)
         view = TrashView(member=self.author, ctx=self)
-        view.message = await self.send(*args, **kwargs, view=view)
-
+        message = await self.send(*args, **kwargs, view=view)
+        view.message = message
+        return message
 
 async def setup(bot: Bot) -> None:
     bot.context = Context

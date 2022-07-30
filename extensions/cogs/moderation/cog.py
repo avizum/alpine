@@ -93,7 +93,7 @@ class Moderation(core.Cog):
         if not targets:
             return await ctx.send("One or more members can not be kick by you. Try again.")
         new_targets = ", ".join(str(i) for i in targets)
-        conf = await ctx.confirm(f"Do you want to kick {new_targets} ({len(targets)} members) with reason {reason}?")
+        conf = await ctx.confirm(message=f"Do you want to kick {new_targets} ({len(targets)} members) with reason {reason}?")
         if conf.result:
             fail = 0
             m = await ctx.send("Kicking...")
@@ -179,7 +179,7 @@ class Moderation(core.Cog):
         if not targets:
             return await ctx.send("One or more members can not be banned by you. Try again.")
         new_targets = ", ".join(str(i) for i in targets)
-        conf = await ctx.confirm(f"Do you want to ban {new_targets} ({len(targets)} members) with reason {reason}?")
+        conf = await ctx.confirm(message=f"Do you want to ban {new_targets} ({len(targets)} members) with reason {reason}?")
         if conf.result:
             fail = 0
             m = await ctx.send("Banning...")
@@ -236,7 +236,7 @@ class Moderation(core.Cog):
             return await ctx.send("Mute time must be over 1 minute and under 28 days.", ephemeral=True)
         if target.is_timed_out():
             conf = await ctx.confirm(
-                f"{target.mention} is already muted. Do you want to overwrite their mute?",
+                message=f"{target.mention} is already muted. Do you want to overwrite their mute?",
                 ephemeral=True, delete_after=True
             )
             if not conf.result:
@@ -281,7 +281,7 @@ class Moderation(core.Cog):
             return await ctx.send("Self mute time must be over 5 minutes and under 1 day.", ephemeral=True)
         dur = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=duration)
         conf = await ctx.confirm(
-            f"Are you sure you want to mute yourself for {utils.format_seconds(duration, friendly=True)}?",
+            message=f"Are you sure you want to mute yourself for {utils.format_seconds(duration, friendly=True)}?",
             delete_after=True, ephemeral=True
         )
         if conf.result:

@@ -38,11 +38,11 @@ emoji_regex = r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,2
 
 
 class GetAvatar(commands.Converter):
-    async def convert(self, ctx: Context, argument: str = None):
+    async def convert(self, ctx: Context, argument: str | None = None):
         try:
             member_converter = commands.MemberConverter()
             member = await member_converter.convert(ctx, argument)
-            image = member.avatar.replace(format="png", static_format="png", size=1024)
+            image = member.display_avatar.replace(format="png", static_format="png", size=1024)
             return str(image)
         except Exception:
             try:
@@ -461,15 +461,6 @@ class Images(core.Cog):
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.pride(), url=item, flag=flag)
         await self.dag_embed(ctx, image, ctx.command.name)
-
-    @core.command(name="dgay", enabled=False)
-    @core.cooldown(2, 10, commands.BucketType.member)
-    async def dag_gay(self, ctx: Context, *, item=None):
-        """
-        Does something
-        """
-        meth = await self.do_dagpi(ctx, ImageFeatures.gay(), item)
-        await self.dag_embed(ctx, meth, ctx.command.name)
 
     @core.command(name="trash")
     @core.cooldown(2, 10, commands.BucketType.member)

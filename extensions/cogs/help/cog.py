@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import itertools
 import discord
 import datetime
-from typing import Mapping
+from typing import Mapping, Any
 
 import humanize
 from difflib import get_close_matches
@@ -63,12 +63,12 @@ class AvimetryHelp(commands.HelpCommand):
         flagconverter: commands.FlagConverter | None = None
         for _, param in command.params.items():
             if isinstance(param.annotation, commands.flags.FlagsMeta):
-                flagconverter = param.annotation
+                flagconverter = param.annotation # type: ignore  # too lazy to fix
         if not flagconverter:
             return None
         flags = flagconverter.get_flags()
-        flag_prefix = flagconverter.__commands_flag_prefix__ or ""
-        flag_delimiter = flagconverter.__commands_flag_delimiter__ or ""
+        flag_prefix = flagconverter.__commands_flag_prefix__ or "" # type: ignore
+        flag_delimiter = flagconverter.__commands_flag_delimiter__ or "" # type: ignore
         flgs = []
         for name, flag in flags.items():
             if type(flag.description) == discord.utils._MissingSentinel:
@@ -82,10 +82,10 @@ class AvimetryHelp(commands.HelpCommand):
             flgs.append(f"`{' | '.join(chained)}` {flag.description} {f_default}")
         return flgs
 
-    async def filter_cogs(self, mapping: Mapping[core.Cog | None, list[core.Command]] = None):
-        mapping = mapping or self.get_bot_mapping()
+    async def filter_cogs(self, mapping: Mapping[core.Cog | None, list[core.Command]] | None = None):
+        cmd_mapping = mapping or self.get_bot_mapping()
         items = []
-        for cog in mapping:
+        for cog in cmd_mapping:
             if not cog:
                 continue
             filtered = await self.filter_commands(cog.get_commands(), sort=True)
@@ -119,7 +119,7 @@ class AvimetryHelp(commands.HelpCommand):
         if not cmds:
             return
         # Lazy way to not show commands on the first page.
-        filtered = ["1", "2", "3", "4", "5"]
+        filtered: list[Any] = ["1", "2", "3", "4", "5"]
         filtered.extend(cmds)
         menu = HelpPages(GroupHelp(self.context, filtered, group, self), ctx=self.context)
         await menu.start()
@@ -188,12 +188,12 @@ class AvimetryHelp(commands.HelpCommand):
             return await conf.message.delete()
         return f'"{string}" was not found. Check your spelling or try a different command.'
 
-    async def subcommand_not_found(self, command, string) -> discord.Message:
+    async def subcommand_not_found(self, command, string) -> str:
         return f'"{string}" is not a subcommand of "{command}".'
 
 
 class AllCommandsPageSource(menus.ListPageSource):
-    def __init__(self, commands: list[core.Command], ctx: Context):
+    def __init__(self, commands: list[commands.Command[None, (...), Any]], ctx: Context):
         self.ctx = ctx
         super().__init__(commands, per_page=4)
 

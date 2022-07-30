@@ -61,7 +61,7 @@ time_dict = {
 }
 
 
-class TimeConverter(str):
+class TimeConverter(float):
     @classmethod
     async def convert(cls, ctx: Context, argument) -> float:
         args = argument.lower()
