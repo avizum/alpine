@@ -43,8 +43,7 @@ def to_list(thing) -> list[str]:
 default_cooldown = commands.Cooldown(3, 15)
 def owner_cd(message: discord.Message):
     bot = message._state._get_client()
-    assert isinstance(bot, Bot)
-    return None if message.author.id in bot.owner_ids else default_cooldown
+    return None if message.author.id in bot.owner_ids else default_cooldown # type: ignore
 
 
 mapping = commands.DynamicCooldownMapping(owner_cd, commands.BucketType.user)

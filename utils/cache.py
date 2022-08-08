@@ -83,10 +83,10 @@ class Cache:
         except KeyError:
             return
 
-    async def get_guild_settings(self, guild_id: int) -> dict[str, list]:
+    async def get_guild_settings(self, guild_id: int) -> dict[str, list] | None:
         return self.guild_settings.get(guild_id)
 
-    async def get_prefix(self, guild_id: int) -> list[str]:
+    async def get_prefix(self, guild_id: int) -> list[str] | None:
         guild = self.guild_settings.get(guild_id)
         if not guild:
             return None
@@ -94,9 +94,7 @@ class Cache:
 
     async def new_user(self, user_id: int) -> dict:
         try:
-            check = self.users[user_id]
-            if check:
-                return check
+            new = self.users[user_id]
         except KeyError:
             try:
                 query = "INSERT INTO user_settings (user_id) VALUES ($1)"

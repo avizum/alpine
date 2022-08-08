@@ -60,7 +60,7 @@ class UnknownError(View):
         super().__init__(member=member, timeout=3600)
         support = discord.ui.Button(style=discord.ButtonStyle.link, label="Support Server", url=self.bot.support)
         self.add_item(support)
-        self.message = None
+        self.message: discord.Message | None = None
         self.cooldown = commands.CooldownMapping.from_cooldown(2, 60, commands.BucketType.user)
 
     async def interaction_check(self, interaction: discord.Interaction):
@@ -71,7 +71,8 @@ class UnknownError(View):
             await self.message.edit(view=None)
 
     @discord.ui.button(label="Track Error", style=discord.ButtonStyle.blurple)
-    async def track_error(self, interaction: discord.Interaction, button: discord.Button):
+    async def track_error(self, interaction: discord.Interaction, button: discord.ui.Button):
+        assert self.message is not None
         retry = self.cooldown.update_rate_limit(self.message)
         if retry:
             return await interaction.response.send_message(
@@ -112,7 +113,7 @@ class ErrorHandler(core.Cog):
         except Exception:
             pass
 
-    def get_cooldown(self, command: core.Command):
+    def get_cooldown(self, command: commands.Command):
         cooldown = command.cooldown
         if cooldown:
             rate = cooldown.rate
@@ -180,13 +181,13 @@ class ErrorHandler(core.Cog):
                 title="No DM commands",
                 description="This command can only be used in a server.",
             )
-            retry_after = self.no_dm_command_cooldown.update_rate_limit()
+            retry_after = self.no_dm_command_cooldown.update_rate_limit(ctx.message)
             if not retry_after or ctx.interaction is not None:
                 return await ctx.send(embed=embed, ephemeral=True)
             return
 
         elif isinstance(error, commands.CommandNotFound):
-            if ctx.author.id in ctx.cache.blacklist:
+            if ctx.author.id in ctx.cache.blacklist or ctx.invoked_with is None:
                 return
             if cog := self.bot.get_cog(ctx.invoked_with):
                 return await ctx.send_help(cog)
@@ -348,41 +349,39 @@ class ErrorHandler(core.Cog):
                 traceback = f"Error was too long: {await self.bot.myst.post(traceback, 'bash')}"
             query = "SELECT * FROM command_errors WHERE command=$1 and error=$2"
             in_db = await self.bot.pool.fetchrow(query, ctx.command.qualified_name, str(error))
+            embed = discord.Embed()
             if not in_db:
                 insert_query = "INSERT INTO command_errors (command, error) " "VALUES ($1, $2) " "RETURNING *"
                 inserted_error = await self.bot.pool.fetchrow(insert_query, ctx.command.qualified_name, str(error))
-                embed = Embed(
-                    title="An unknown error occured",
-                    description=(
-                        "This error has been logged and will be fixed soon.\n"
-                        "You can track this error with the button below, or use "
-                        f"`{ctx.prefix}error {inserted_error['id']}`.\n\n"
-                        f"Error Information:```py\n{error}```"
-                    ),
-                )
+                embed.title = "An unknown error occured"
+                embed.description = (
+                    "This error has been logged and will be fixed soon.\n"
+                    "You can track this error with the button below, or use "
+                    f"`{ctx.prefix}error {inserted_error['id']}`.\n\n"
+                    f"Error Information:```py\n{error}```"
+                    )
+                in_db = inserted_error
             elif in_db["error"] == str(error):
-                embed = Embed(
-                    title="A known error occured",
-                    description=(
-                        "This error was already logged, but has not been fixed.\n"
-                        "You can track this error with the button below, or use "
-                        f"`{ctx.prefix}error {in_db['id']}`.\n\n"
-                        f"Error Information:```py\n{error}```"
-                    ),
+                embed.title = "A known error occured"
+                embed.description = (
+                    "This error was already logged, but has not been fixed.\n"
+                    "You can track this error with the button below, or use "
+                    f"`{ctx.prefix}error {in_db['id']}`.\n\n"
+                    f"Error Information:```py\n{error}```"
                 )
+
             webhook_error_embed = Embed(title="Old error" if in_db else "A new error")
-            error_info = in_db or inserted_error
             webhook_error_embed.description = (
                 f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
                 f"Channel: {ctx.channel} ({ctx.channel.id})\n"
                 f"Command: {ctx.command.qualified_name}\n"
                 f"Message: {ctx.message.content}\n"
                 f"Invoker: {ctx.author}\n"
-                f"Error ID: {error_info['id']}"
+                f"Error ID: {in_db['id']}"
             )
             await self.error_webhook.send(traceback, embed=webhook_error_embed, username="Command Error")
             _log.error(f"Ignoring exception in command {ctx.command}:", exc_info=error)
-            view = UnknownError(member=ctx.author, bot=self.bot, error_id=error_info["id"])
+            view = UnknownError(member=ctx.author, bot=self.bot, error_id=in_db["id"])
             view.message = await ctx.send(embed=embed, view=view, ephemeral=True)
 
 

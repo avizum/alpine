@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 # flake8: noqa
-from .avimetry import Bot
+from .core import Cog, Command, command, describe, Group, group, HybridCommand, HybridGroup
 from .checks import (
     bot_has_permissions,
     both_has_permissions,
@@ -27,5 +27,5 @@ from .checks import (
     is_guild_owner,
     is_owner,
 )
+from .avimetry import Bot
 from .context import Context
-from .core import Cog, Command, command, describe, Group, group, HybridCommand, HybridGroup

@@ -197,11 +197,11 @@ class BotLogs(core.Cog):
             embed.add_field(name="Responsible Moderator:", value=entry.user, inline=False)
             embed.add_field(name="Kick Reason:", value=entry.reason, inline=False)
             embed.set_thumbnail(url=member.display_avatar.url)
-            await channel.send(embed=embed)
+            await channel.send(embed=embed) # type: ignore
 
     @core.Cog.listener("on_guild_channel_create")
-    async def logging_channel_create(self, channel: discord.abc.GuildChannel):
-        thing = self.bot.cache.logging.get(channel.guild.id)
+    async def logging_channel_create(self, deleted_channel: discord.abc.GuildChannel):
+        thing = self.bot.cache.logging.get(deleted_channel.guild.id)
         if not thing:
             return
         if thing.get("enabled") is not True:
@@ -211,11 +211,11 @@ class BotLogs(core.Cog):
         if not thing.get("channel_id"):
             return
         channel = self.bot.get_channel(thing["channel_id"])
-        await channel.send(f"Channel has been created: {channel.mention}")
+        await channel.send(f"Channel has been created: {deleted_channel.mention}")
 
     @core.Cog.listener("on_guild_channel_delete")
-    async def logging_channel_delete(self, channel: discord.abc.GuildChannel):
-        thing = self.bot.cache.logging.get(channel.guild.id)
+    async def logging_channel_delete(self, deleted_channel: discord.abc.GuildChannel):
+        thing = self.bot.cache.logging.get(deleted_channel.guild.id)
         if not thing:
             return
         if thing.get("enabled") is not True:
@@ -225,7 +225,7 @@ class BotLogs(core.Cog):
         if not thing.get("channel_id"):
             return
         channel = self.bot.get_channel(thing["channel_id"])
-        await channel.send(f"Channel has been deleted: {channel.name}")
+        await channel.send(f"Channel has been deleted: {deleted_channel.name}")
 
     @core.Cog.listener("on_guild_update")
     async def logging_guild(self, before: discord.Guild, after: discord.Guild):

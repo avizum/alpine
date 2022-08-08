@@ -17,7 +17,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from discord.ext import commands
+from wavelink.errors import QueueException
 
+
+class QueueDuplicateTrack(QueueException):
+    """
+    Raised when `Queue.allow_duplicates` is `False` and a duplicate track is added to the queue.
+    """
+
+    pass
 
 class NoChannelProvided(commands.CheckFailure):
     """

@@ -26,7 +26,7 @@ def format_string(number, value):
     return f"{number} {value}" if number == 1 else f"{number} {value}s"
 
 
-def format_list(list, *, seperator: str = ", ", last: str = "and"):
+def format_list(list, *, seperator: str = ", ", last: str = "and") -> str:
     """
     Makes a list easier to read
     """
@@ -43,8 +43,8 @@ class Timer:
     __slots__ = ("start_time", "end_time")
 
     def __init__(self):
-        self.start_time = None
-        self.end_time = None
+        self.start_time: float | None = None
+        self.end_time: float | None = None
 
     def __enter__(self):
         self.start()
@@ -77,6 +77,10 @@ class Timer:
 
     @property
     def total_time(self):
+        if self.start_time is None:
+            raise ValueError("Timer has not been started")
+        if self.end_time is None:
+            raise ValueError("Timer has not been stopped")
         return self.end_time - self.start_time
 
 

@@ -544,7 +544,7 @@ class Moderation(core.Cog):
 
     @core.command()
     @core.has_permissions(kick_members=True)
-    async def nick(self, ctx: Context, member: TargetMember, *, nick: str = None):
+    async def nick(self, ctx: Context, member: TargetMember, *, nick: str | None = None):
         """
         Gives or chanes a person's nick name.
 

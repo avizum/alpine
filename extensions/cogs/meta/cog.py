@@ -20,7 +20,6 @@ import datetime
 import json
 import random
 
-import aiohttp
 import asyncgist
 import discord
 import pytz
@@ -159,7 +158,7 @@ class Meta(core.Cog):
             )
         else:
             if ctx.interaction:
-                member = ctx.guild.get_member(member.id)
+                member = ctx.guild.get_member(member.id) or member
             userroles = ["@everyone"]
             userroles.extend(roles.mention for roles in member.roles)
             userroles.remove(ctx.guild.default_role.mention)
@@ -258,7 +257,7 @@ class Meta(core.Cog):
         await ctx.send(embed=mce)
 
     @core.command()
-    async def avatar(self, ctx: Context, member: discord.Member | discord.User  = commands.Author):
+    async def avatar(self, ctx: Context, member: discord.Member | discord.User = commands.Author):
         """
         Sends the avatar of a member.
         """
@@ -271,15 +270,15 @@ class Meta(core.Cog):
                 f"[`webp`]({member.display_avatar.url})"
             ),
         )
-        avatar = member.avatar.url or member.default_avatar.url
+        avatar = member.display_avatar.url
         embed.set_image(url=avatar)
-        if member.guild_avatar:
+        if isinstance(member, discord.Member) and member.guild_avatar:
             embed.set_thumbnail(url=member.guild_avatar.url)
         await ctx.send(embed=embed)
 
     @core.command()
     @core.cooldown(2, 10, commands.BucketType.guild)
-    async def banner(self, ctx: Context, member: discord.Member | discord.User = None):
+    async def banner(self, ctx: Context, member: discord.Member | discord.User | None = None):
         """
         Send the banner of a member.
 
@@ -370,7 +369,12 @@ class Meta(core.Cog):
 
     @core.command()
     @core.cooldown(1, 15, commands.BucketType.guild)
-    async def firstmessage(self, ctx: Context, *, channel: discord.TextChannel | discord.VoiceChannel = None):
+    async def firstmessage(
+        self,
+        ctx: Context,
+        *,
+        channel: discord.TextChannel | discord.VoiceChannel | discord.Thread | None = None
+    ):
         """
         Get the first message of the channel.
 
@@ -500,7 +504,7 @@ class Meta(core.Cog):
     @core.command(aliases=["rawmsg", "rmessage", "rmsg"])
     @core.cooldown(1, 15, commands.BucketType.user)
     @commands.max_concurrency(1, commands.BucketType.user)
-    async def rawmessage(self, ctx: Context, message_id: discord.Object | None = None):
+    async def rawmessage(self, ctx: Context, message_id: int | None = None):
         """
         Get the raw content of a message.
 
@@ -508,9 +512,10 @@ class Meta(core.Cog):
         """
         ref = ctx.reference
         if message_id is None and ref is not None:
-            message_id = discord.Object(ref.id)
+            message_id = ref.id
         if not ref and message_id is None:
             return await ctx.send("Provide a message id or reply to a message using this command.")
+        assert message_id is not None
         mess = await self.bot.http.get_message(ctx.channel.id, message_id)
         dumps = json.dumps(mess, indent=4)
         info = ctx.codeblock(dumps, language="json")
