@@ -215,12 +215,12 @@ class HelpSelect(discord.ui.Select["HelpPages"]):
     async def callback(self, interaction: discord.Interaction) -> None:
         assert self.view is not None
         cog: core.Cog | None = self.ctx.bot.get_cog(self.values[0]) # type: ignore
-        if cog is None:
-            return await interaction.response.send_message("This module doesn't exist??")
         if self.current_module == cog:
             return await interaction.response.defer()
         if self.values[0] == "Home":
             await self.view.edit_source(MainHelp(self.ctx, self.hc), interaction)
+        if cog is None:
+            await interaction.response.send_message("This module doesn't exist??")
         else:
             thing = CogHelp(
                 self.ctx,

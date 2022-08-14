@@ -16,9 +16,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import datetime
+from __future__ import annotations
+
+import datetime as dt
 import json
 import random
+from typing import TYPE_CHECKING
 
 import asyncgist
 import discord
@@ -30,12 +33,15 @@ from jishaku.codeblocks import codeblock_converter
 from pytz import UnknownTimeZoneError
 
 import core
-from core import Bot, Context
 from utils import Paginator, PaginatorEmbed, Emojis
+
+if TYPE_CHECKING:
+    from datetime import datetime
+    from core import Bot, Context
 
 
 class TimeZoneError(commands.BadArgument):
-    def __init__(self, argument):
+    def __init__(self, argument: str) -> None:
         self.argument = argument
         super().__init__(
             f'Timezone "{argument}" was not found. [Here]'
@@ -45,32 +51,32 @@ class TimeZoneError(commands.BadArgument):
 
 
 class RTFMPageSource(menus.ListPageSource):
-    def __init__(self, ctx: Context, items, query):
+    def __init__(self, ctx: Context, items: list[str], query: str) -> None:
         super().__init__(items, per_page=12)
-        self.ctx = ctx
-        self.items = items
-        self.query = query
+        self.ctx: Context = ctx
+        self.items: list[str] = items
+        self.query: str = query
 
-    async def format_page(self, menu, page):
+    async def format_page(self, menu: menus.Menu, page: list[str]) -> discord.Embed:
         embed = PaginatorEmbed(
             ctx=self.ctx,
             description=(
                 "\n".join(f"[`{k.replace('discord.', '').replace('discord.ext.commands.', '')}`]({v})" for k, v in page)
             ),
         )
-        embed.set_footer(text=f"{len(self.items)} results found")
+        embed.set_footer(text=f"Search results for {self.query}")
         return embed
 
 
 class Meta(core.Cog):
     """
-    Extra commands that do not lie in any category.
+    Extra commands that do not lie in any specific category.
     """
 
-    def __init__(self, bot: Bot):
-        self.bot = bot
-        self.load_time = datetime.datetime.now(datetime.timezone.utc)
-        self.scraper = AsyncScraper(self.bot.loop, self.bot.session)
+    def __init__(self, bot: Bot) -> None:
+        self.bot: Bot = bot
+        self.load_time: datetime = dt.datetime.now(dt.timezone.utc)
+        self.scraper: AsyncScraper = AsyncScraper(self.bot.loop, self.bot.session)
 
     @core.command()
     @core.cooldown(1, 300, commands.BucketType.user)
@@ -122,7 +128,7 @@ class Meta(core.Cog):
 
     @core.command()
     @core.cooldown(1, 1, commands.BucketType.member)
-    async def pick(self, ctx: Context, *, options):
+    async def pick(self, ctx: Context, *, options: str):
         """
         Pick one of your options you provided.
 
@@ -146,7 +152,7 @@ class Meta(core.Cog):
             ie = discord.Embed(
                 title="User Information",
                 description="This user in not in this server",
-                timestamp=datetime.datetime.now(datetime.timezone.utc),
+                timestamp=dt.datetime.now(dt.timezone.utc),
                 color=member.color,
             )
             ie.add_field(name="User Name", value=str(member))
@@ -164,7 +170,7 @@ class Meta(core.Cog):
             userroles.remove(ctx.guild.default_role.mention)
             ie = discord.Embed(
                 title="Member Information",
-                timestamp=datetime.datetime.now(datetime.timezone.utc),
+                timestamp=dt.datetime.now(dt.timezone.utc),
                 color=member.color,
             )
             ie.add_field(name="User Name", value=str(member))
@@ -172,8 +178,9 @@ class Meta(core.Cog):
             if member.nick:
                 ie.add_field(name="Nickname", value=member.nick)
 
-            sort = sorted(ctx.guild.members, key=lambda m: m.joined_at)
+            sort = sorted(ctx.guild.members, key=lambda m: getattr(m, "joined_at"))
             pos = f"{sort.index(member) + 1:,}/{len(ctx.guild.members):,}"
+            assert member.joined_at is not None
             ie.add_field(
                 name="Join Date",
                 value=f"{format_dt(member.joined_at)} ({format_dt(member.joined_at, 'R')})\nJoin Position: {pos}",
@@ -327,7 +334,7 @@ class Meta(core.Cog):
                 return await ctx.send(f"You don't have a timezone setup yet. Use {prefix}time set <timezone>.")
             return await ctx.send(f"This user does not have a timezone setup. Use {prefix}time set <timezone>.")
         timezone = pytz.timezone(timezone)
-        time = datetime.datetime.now(timezone)
+        time = dt.datetime.now(timezone)
         format_time = time.strftime("%A, %B %d at %I:%M %p")
         time_embed = discord.Embed(description=format_time)
         time_embed.set_author(name=f"{member.display_name}'s time", icon_url=member.display_avatar.url)
@@ -393,32 +400,23 @@ class Meta(core.Cog):
         await ctx.send(embed=embed_message)
 
     @core.group(
-        aliases=["rtfd", "rtm", "rtd", "docs"],
+        hybrid=True,
+        fallback="discord-py",
+        aliases=["rtfm", "rtfd", "documentation"],
         invoke_without_command=True,
     )
-    async def rtfm(self, ctx: Context, query):
+    @core.describe(query="What to search for.")
+    async def docs(self, ctx: Context, query: str):
         """
         Get the docs for the discord.py library.
         """
-        q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/stable/")
+        q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/latest/")
         menu = Paginator(RTFMPageSource(ctx, q[:79], "Discord.py"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
-    @rtfm.command()
-    async def master(self, ctx: Context, query):
-        """
-        Get the docs for the discord.py master branch library.
-        """
-        q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/master/")
-        menu = Paginator(
-            RTFMPageSource(ctx, q[:79], "Discord.py 2.0"),
-            ctx=ctx,
-            remove_view_after=True,
-        )
-        await menu.start()
-
-    @rtfm.command(aliases=["py"])
-    async def python(self, ctx: Context, query: str):
+    @docs.command(aliases=["py"])
+    @core.describe(query="What to search for.")
+    async def python(self, ctx: Context, *, query: str):
         """
         Get the docs for the latest Python version
         """
@@ -426,16 +424,8 @@ class Meta(core.Cog):
         menu = Paginator(RTFMPageSource(ctx, q[:79], "Python"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
-    @rtfm.command(aliases=["ob"])
-    async def obsidian(self, ctx: Context, query: str):
-        """
-        Get the docs for the Obsidian.py library
-        """
-        q = await self.scraper.search(query, page="https://obsidianpy.readthedocs.io/en/latest/")
-        menu = Paginator(RTFMPageSource(ctx, q[:79], "Obsidian"), ctx=ctx, remove_view_after=True)
-        await menu.start()
-
-    @rtfm.command(aliases=["wl"])
+    @docs.command(aliases=["wl"])
+    @core.describe(query="What to search for.")
     async def wavelink(self, ctx: Context, query: str):
         """
         Get the docs for the Wavelink library
@@ -444,13 +434,14 @@ class Meta(core.Cog):
         menu = Paginator(RTFMPageSource(ctx, q[:79], "Wavelink"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
-    @rtfm.command(aliases=["c"])
-    async def custom(self, ctx: Context, doc_url, query):
+    @docs.command(aliases=["c"])
+    @core.describe(url="The URL to search docs for.", query="What to search for.")
+    async def custom(self, ctx: Context, url: str, *, query: str):
         """
         Search any Sphinx docs.
         """
         try:
-            q = await self.scraper.search(query, page=doc_url)
+            q = await self.scraper.search(query, page=url)
         except Exception as e:
             return await ctx.send(str(e))
         menu = Paginator(RTFMPageSource(ctx, q[:79], "Custom Docs"), ctx=ctx, remove_view_after=True)
@@ -458,7 +449,7 @@ class Meta(core.Cog):
 
     @core.group(name="gist", invoke_without_command=True)
     @core.cooldown(1, 60, commands.BucketType.user)
-    async def gist(self, ctx: Context, *, code: codeblock_converter):
+    async def gist(self, ctx: Context, *, code: codeblock_converter):  # type: ignore
         """
         Posts a gist.
 
@@ -466,7 +457,7 @@ class Meta(core.Cog):
         """
         file_post = asyncgist.File(filename=f"output.{code.language or 'txt'}", content=code.content)
         out = await self.bot.gist.post_gist(
-            description=f"{ctx.author} at {datetime.datetime.now(datetime.timezone.utc).strftime('%x %X')}",
+            description=f"{ctx.author} at {dt.datetime.now(dt.timezone.utc).strftime('%x %X')}",
             files=[file_post],
             public=True,
         )

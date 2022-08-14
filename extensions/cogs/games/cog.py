@@ -16,27 +16,30 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import asyncio
-import contextlib
-import datetime
-import random
+from __future__ import annotations
 
+import asyncio
+import datetime as dt
+import random
 from io import BytesIO
+from typing import TYPE_CHECKING
 
 import discord
-import roblox
 from discord.ext import commands
 from akinator.async_aki import Akinator
 
 import core
-from core import Bot, Context
 from utils import Timer, Emojis
 from .components import (
     CookieView,
     AkinatorFlags,
     AkinatorGameView,
-    RockPaperScissorGame,
+    RPSView
 )
+
+if TYPE_CHECKING:
+    from datetime import datetime
+    from core import Bot, Context
 
 
 class Games(core.Cog):
@@ -45,10 +48,9 @@ class Games(core.Cog):
     """
 
     def __init__(self, bot: Bot):
-        self.bot = bot
-        self.emoji = "\U0001f3ae"
-        self.load_time = datetime.datetime.now(datetime.timezone.utc)
-        self.rclient = roblox.Client(self.bot.settings["api_tokens"]["Roblox"])
+        self.bot: Bot = bot
+        self.emoji: str = "\U0001f3ae"
+        self.load_time: datetime = dt.datetime.now(dt.timezone.utc)
 
     @core.group(aliases=["\U0001F36A", "vookir", "kookie"])
     @core.cooldown(5, 10, commands.BucketType.member)
@@ -127,6 +129,7 @@ class Games(core.Cog):
         await cookie_message.edit(embed=cookie_embed, view=view)
         with Timer() as timer:
             await view.wait()
+        assert view.winner is not None
         thing = timer.total_time * 1000
         total_second = f"**{thing:.2f}ms**"
         if thing > 1000:
@@ -153,7 +156,7 @@ class Games(core.Cog):
         mode_map = {"default": "en", "animals": "en_animals", "objects": "en_objects"}
         async with ctx.typing():
             game = await akiclient.start_game(language=mode_map[flags.mode], child_mode=flags.child)
-            if akiclient.child_mode is False and ctx.channel.nsfw is False:
+            if akiclient.child_mode is False and ctx.channel.is_nsfw() is False:
                 return await ctx.send("Child mode can only be disabled in NSFW channels.")
             embed = discord.Embed(title="Akinator", description=f"{akiclient.step+1}. {game}")
 
@@ -166,12 +169,13 @@ class Games(core.Cog):
     @core.command(aliases=["rps"])
     @commands.max_concurrency(1, commands.BucketType.channel)
     @core.cooldown(2, 5, commands.BucketType.member)
-    async def rockpaperscissors(self, ctx: Context):
-        """
-        Play a game of rock paper scissors.
-        """
-        embed = discord.Embed(title="Rock Paper Scissors", description="Who will win?")
-        view = RockPaperScissorGame(ctx=ctx, member=ctx.author, embed=embed)
+    async def rockpaperscissors(self, ctx: Context, opponent: discord.Member | None = None):
+        opp = opponent or ctx.me
+        embed = discord.Embed(
+            title="Rock Paper Scissors",
+            description=f"Who will win: {ctx.author.mention} or {opp.mention}?"
+        )
+        view = RPSView(embed=embed, context=ctx, opponent=opp)
         view.message = await ctx.send(embed=embed, view=view)
 
     @core.command(name="10s")
@@ -298,90 +302,3 @@ class Games(core.Cog):
                     total_second = f"**{gettime:.2f}s**"
                 embed.description = f"{user.mention} got the {random_emoji} in {total_second}"
                 return await first.edit(embed=embed)
-
-    @core.group()
-    async def roblox(self, ctx: Context):
-        """
-        Base command for all the ROBLOX commands.
-
-        All functionality is found in the subcommands.
-        """
-        await ctx.send_help(ctx.command)
-
-    @roblox.group()
-    async def user(self, ctx: Context, name_or_id: str | int):
-        """
-        Gets ROBLOX User Information.
-        """
-        async with ctx.channel.typing():
-            user = None
-            with contextlib.suppress(roblox.UserNotFound):
-                user = await self.rclient.get_user_by_username(name_or_id)
-            with contextlib.suppress(roblox.UserNotFound):
-                user = await self.rclient.get_user(name_or_id)
-
-            if user:
-                embed = discord.Embed(title=f"Roblox User: {user.name}")
-                embed.add_field(name="Display Name", value=user.display_name, inline=True)
-                embed.add_field(name="User ID", value=user.id, inline=True)
-                embed.add_field(
-                    name="Description",
-                    value=user.description or "No Description",
-                    inline=False,
-                )
-                embed.add_field(
-                    name="Status",
-                    value=await user.get_status() or "No Status",
-                    inline=True,
-                )
-                pres = await user.get_presence()
-                presence = pres.last_location or "Not Found"
-                embed.add_field(name="Last Location", value=presence, inline=True)
-                embed.add_field(name="Friends", value=await user.get_friend_count(), inline=True)
-                embed.add_field(name="Followers", value=await user.get_follower_count(), inline=True)
-                embed.add_field(
-                    name="Following",
-                    value=await user.get_following_count(),
-                    inline=True,
-                )
-                past = [username_history async for username_history in user.username_history(max_items=10)]
-                if past:
-                    embed.add_field(name="Past Usernames", value=", ".join(past), inline=True)
-                else:
-                    embed.add_field(name="\u200b", value="\u200b", inline=True)
-                embed.add_field(
-                    name="Join Date",
-                    value=discord.utils.format_dt(user.created),
-                    inline=True,
-                )
-                embed.add_field(
-                    name="Last Online",
-                    value=discord.utils.format_dt(pres.last_online),
-                    inline=True,
-                )
-                user_thumbnails = await self.rclient.thumbnails.get_user_avatar_thumbnails(
-                    users=[user],
-                    type=roblox.AvatarThumbnailType.headshot,
-                    size=(100, 100),
-                )
-                if len(user_thumbnails) > 0:
-                    user_thumbnail = user_thumbnails[0]
-                    embed.set_thumbnail(url=user_thumbnail.image_url)
-                user_thumbnails = await self.rclient.thumbnails.get_user_avatar_thumbnails(
-                    users=[user],
-                    type=roblox.AvatarThumbnailType.full_body,
-                    size=(250, 250),
-                )
-                if len(user_thumbnails) > 0:
-                    user_thumbnail = user_thumbnails[0]
-                    embed.set_image(url=user_thumbnail.image_url)
-                return await ctx.send(embed=embed)
-            return await ctx.send("Could not find any users.")
-
-    @user.command()
-    async def search(self, ctx: Context, *, query: int | str):
-        try:
-            a = await self.rclient.get_users(query) or await self.rclient.get_users_by_usernames(query)
-            await ctx.send(a)
-        except Exception as e:
-            await ctx.send(e)

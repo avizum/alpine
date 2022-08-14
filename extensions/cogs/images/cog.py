@@ -16,51 +16,51 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import datetime
+import datetime as dt
 import re
+from typing import TYPE_CHECKING
 
 import discord
-from asyncdagpi import ImageFeatures, Image
+from asyncdagpi.image import Image
+from asyncdagpi.image_features import ImageFeatures
 from discord.ext import commands
 from twemoji_parser import emoji_to_url
 
 import core
 from core import Bot, Context
 
+if TYPE_CHECKING:
+    from datetime import datetime
+
+
+
 embed = discord.Embed()
 args = discord.Member | discord.PartialEmoji | discord.Emoji | str | None
 
-regex_url = re.compile(
+URL_REGEX = re.compile(
     r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+"
     r"[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
 )
-emoji_regex = r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>"
+EMOJI_REGEX = re.compile(r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>")
 
 
-class GetAvatar(commands.Converter):
-    async def convert(self, ctx: Context, argument: str | None = None):
+class GetAvatarOrImage(commands.Converter):
+    async def convert(self, ctx: Context, argument: str | None = None) -> str | None:
+        if argument is None:
+            return ctx.author.display_avatar.replace(format="png", static_format="png", size=1024).url
         try:
-            member_converter = commands.MemberConverter()
-            member = await member_converter.convert(ctx, argument)
-            image = member.display_avatar.replace(format="png", static_format="png", size=1024)
-            return str(image)
-        except Exception:
-            try:
-                url = await emoji_to_url(argument)
-                if re.match(regex_url, url):
-                    image = str(url)
-                    return image
-                if re.match(regex_url, argument):
-                    image = argument
-                    return image
-                if re.match(emoji_regex, argument):
-                    emoji_converter = commands.EmojiConverter()
-                    emoji = await emoji_converter.convert(ctx, argument)
-                    image = emoji.url_as(format="png", static_format="png", size=1024)
-                    return image
-            except Exception:
-                return None
-        raise commands.MemberNotFound(argument)
+            member = await commands.MemberConverter().convert(ctx, argument)
+            return member.display_avatar.replace(format="png", static_format="png", size=1024).url
+        except commands.MemberNotFound:
+            url = await emoji_to_url(argument)
+            if URL_REGEX.match(url):
+                return url
+            if URL_REGEX.match(argument):
+                return argument
+            if EMOJI_REGEX.match(argument):
+                emoji = await commands.EmojiConverter().convert(ctx, argument)
+                return emoji.url
+            return None
 
 
 class Images(core.Cog):
@@ -68,20 +68,19 @@ class Images(core.Cog):
     Commands for image manipuation and more.
     """
 
-    def __init__(self, bot: Bot):
-        self.bot = bot
-        self.emoji = "\U0001f4f7"
-        self.load_time = datetime.datetime.now(datetime.timezone.utc)
+    def __init__(self, bot: Bot) -> None:
+        self.bot: Bot = bot
+        self.emoji: str = "\U0001f4f7"
+        self.load_time: datetime = dt.datetime.now(dt.timezone.utc)
 
     async def do_dagpi(self, ctx: Context, feature: ImageFeatures, argument, gif: bool = False):
-        converter = GetAvatar()
-        image = await converter.convert(ctx, argument)
+        image = await GetAvatarOrImage().convert(ctx, argument)
         if image is None:
             if ctx.message.attachments:
                 img = ctx.message.attachments[0]
                 image = img.url
             else:
-                image = str(ctx.author.avatar.replace(format="png", static_format="png", size=1024))
+                image = str(ctx.author.display_avatar.replace(format="png", static_format="png", size=1024))
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(feature, image)
         return image
@@ -439,7 +438,7 @@ class Images(core.Cog):
 
     @core.command(name="pride")
     @core.cooldown(2, 10, commands.BucketType.member)
-    async def dag_pride(self, ctx: Context, item: GetAvatar, flag: str):
+    async def dag_pride(self, ctx: Context, item: GetAvatarOrImage, flag: str):
         """
         Overlays a flag of choice on your image
         """
@@ -563,7 +562,7 @@ class Images(core.Cog):
 
     @core.command(name="5g1g")
     @core.cooldown(2, 10, commands.BucketType.member)
-    async def dag_5g1g(self, ctx, item1: GetAvatar, item2: GetAvatar):
+    async def dag_5g1g(self, ctx, item1: GetAvatarOrImage, item2: GetAvatarOrImage):
         """
         Ya know, the five guys and one girl thing...
         """
@@ -573,13 +572,22 @@ class Images(core.Cog):
 
     @core.command(name="whyareyougay", aliases=["wayg"])
     @core.cooldown(2, 10, commands.BucketType.member)
-    async def dag_wayg(self, ctx, item1: GetAvatar, item2: GetAvatar):
+    async def dag_wayg(self, ctx, item1: GetAvatarOrImage, item2: GetAvatarOrImage):
         """
         Well why are you??
         """
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.why_are_you_gay(), url=item1, url2=item2)
         await self.dag_embed(ctx, image, ctx.command.name)
+
+    @core.command(name="slap")
+    @core.cooldown(2, 10, commands.BucketType.member)
+    async def dag_slap(self, ctx: Context, item1: GetAvatarOrImage, item2: GetAvatarOrImage):
+        """
+        Slap someone.
+        """
+        async with ctx.channel.typing():
+            image = await self.bot.dagpi.image_process(ImageFeatures.slap(), url=item1, url2=item2)
 
     @core.command(name="obama")
     @core.cooldown(2, 10, commands.BucketType.member)
@@ -665,7 +673,7 @@ class Images(core.Cog):
 
     @core.command(name="tweet")
     @core.cooldown(2, 10, commands.BucketType.member)
-    async def dag_tweet(self, ctx, user: GetAvatar, username: str, *, text: str):
+    async def dag_tweet(self, ctx, user: GetAvatarOrImage, username: str, *, text: str):
         """
         Makes it look like you or someone else tweeted something.
         """
@@ -675,7 +683,7 @@ class Images(core.Cog):
 
     @core.command(name="youtube")
     @core.cooldown(2, 10, commands.BucketType.member)
-    async def dag_youtube(self, ctx, user: discord.Member = None, *, text: str = None):
+    async def dag_youtube(self, ctx, user: discord.Member, *, text: str | None = None):
         """
         Generate a youtube comment.
         """
@@ -685,7 +693,7 @@ class Images(core.Cog):
             text = "I am an idiot for not putting the text in"
             user_name = ctx.author.name
         else:
-            url = str(user.avatar.replace(format="png", static_format="png", size=1024))
+            url = str(user.display_avatar.replace(format="png", static_format="png", size=1024))
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(
                 ImageFeatures.youtube(),
@@ -697,7 +705,7 @@ class Images(core.Cog):
 
     @core.command(name="discord")
     @core.cooldown(2, 10, commands.BucketType.member)
-    async def dag_discord(self, ctx, user: discord.User = None, *, text: str = None):
+    async def dag_discord(self, ctx, user: discord.User | None = None, *, text: str | None = None):
         """
         Makes it look like someone said something.
         """
@@ -707,7 +715,7 @@ class Images(core.Cog):
             text = "I am an idiot for not putting the text in"
             user_name = ctx.author.name
         else:
-            url = str(user.avatar.replace(format="png", static_format="png", size=1024))
+            url = str(user.display_avatar.replace(format="png", static_format="png", size=1024))
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(
                 ImageFeatures.discord(),
@@ -719,22 +727,22 @@ class Images(core.Cog):
 
     @core.command(name="captcha")
     @core.cooldown(2, 10, commands.BucketType.member)
-    async def dag_captcha(self, ctx: Context, text, *, item: GetAvatar):
+    async def dag_captcha(self, ctx: Context, text, *, item: GetAvatarOrImage):
         """
         Overlays your image on a captcha grid.
         """
         async with ctx.channel.typing():
-            image = await self.bot.dagpi.image_process(ImageFeatures.captcha(), item, text=text)
+            image = await self.bot.dagpi.image_process(ImageFeatures.captcha(), url=item, text=text)
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command(name="thoughtimage", aliases=["thinking"])
     @core.cooldown(2, 10, commands.BucketType.member)
-    async def dag_thought_image(self, ctx: Context, text, *, item: GetAvatar):
+    async def dag_thought_image(self, ctx: Context, text, *, item: GetAvatarOrImage):
         """
         Overlays your image on a captcha grid.
         """
         async with ctx.channel.typing():
-            image = await self.bot.dagpi.image_process(ImageFeatures.thought_image(), item, text=text)
+            image = await self.bot.dagpi.image_process(ImageFeatures.thought_image(), url=item, text=text)
         await self.dag_embed(ctx, image, ctx.command.name)
 
     @core.command()

@@ -16,8 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import datetime
+from __future__ import annotations
+
+import datetime as dt
 import re
+from typing import TYPE_CHECKING
 
 import discord
 import humanize
@@ -25,7 +28,6 @@ from discord.ext import commands
 
 import core
 import utils
-from core import Bot, Context
 from .converters import (
     ModActionFlag,
     BanFlag,
@@ -36,17 +38,21 @@ from .converters import (
 )
 from utils import ModReason, DefaultReason
 
+if TYPE_CHECKING:
+    from datetime import datetime
+    from core import Bot, Context
+
 
 class Moderation(core.Cog):
     """
     Moderation commands.
     """
 
-    def __init__(self, bot: Bot):
-        self.bot = bot
-        self.color = 0xF56058
-        self.emoji = "\U0001f6e1"
-        self.load_time = datetime.datetime.now(datetime.timezone.utc)
+    def __init__(self, bot: Bot) -> None:
+        self.bot: Bot = bot
+        self.color: int = 0xF56058
+        self.emoji: str = "\U0001f6e1"
+        self.load_time: datetime = dt.datetime.now(dt.timezone.utc)
 
     @core.command(hybrid=True)
     @core.both_has_permissions(kick_members=True)
@@ -117,8 +123,8 @@ class Moderation(core.Cog):
         You can not softban people with higher permissions than you.
         """
         reason = flags.reason or f"{ctx.author}: No reason provided"
-        await target.ban(reason=reason)
-        await ctx.guild.unban(reason="Soft-ban")
+        await ctx.guild.ban(target, reason=reason)
+        await ctx.guild.unban(target, reason="Soft-ban")
         soft_ban_embed = discord.Embed(title="Soft-banned Member", color=discord.Color.green())
         soft_ban_embed.description = f"**{target}** has been soft-banned from the server."
         if flags.dm:
@@ -237,12 +243,12 @@ class Moderation(core.Cog):
         if target.is_timed_out():
             conf = await ctx.confirm(
                 message=f"{target.mention} is already muted. Do you want to overwrite their mute?",
-                ephemeral=True, delete_after=True
+                ephemeral=True, delete_message_after=True
             )
             if not conf.result:
                 return await ctx.send("Okay, I won't replace their mute.", delete_after=10, ephemeral=True)
         reason = reason or f"{ctx.author}: No reason provided."
-        dur = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=duration)
+        dur = dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=duration)
         await target.edit(timed_out_until=dur, reason=reason)
         embed = discord.Embed(
             title="Muted Member",
@@ -279,7 +285,7 @@ class Moderation(core.Cog):
             return await ctx.send("I can not mute you because your role is higher than mine.", ephemeral=True)
         if duration > 86400 or duration < 300:
             return await ctx.send("Self mute time must be over 5 minutes and under 1 day.", ephemeral=True)
-        dur = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=duration)
+        dur = dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=duration)
         conf = await ctx.confirm(
             message=f"Are you sure you want to mute yourself for {utils.format_seconds(duration, friendly=True)}?",
             delete_after=True, ephemeral=True

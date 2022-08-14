@@ -22,7 +22,7 @@ import datetime as dt
 import logging
 import re
 from datetime import datetime
-from typing import TYPE_CHECKING, Callable, Any, Type
+from typing import TYPE_CHECKING, Callable, Any, Type, Mapping
 
 import asyncpg
 import discord
@@ -40,7 +40,7 @@ from wavelink.ext import spotify
 from topgg.client import DBLClient
 from topgg.webhook import WebhookManager
 
-from core import Command, Group
+from core import Command, Group, Cog
 from utils.cache import Cache
 
 if TYPE_CHECKING:
@@ -86,28 +86,29 @@ class Bot(commands.Bot):
     source: str = "https://github.com/avimetry/avimetry"
     context: Type[commands.Context] | None = None
     pool: asyncpg.Pool
+    cogs: Mapping[str, Cog]
 
     to_load: tuple[str, ...] = (
-        "extensions.listeners.events",
-        "extensions.cogs.owner",
-        "extensions.extras.setup",
         "core.context",
         "extensions.cogs.animals",
         "extensions.cogs.botinfo",
-        "extensions.listeners.errorhandler",
         "extensions.cogs.fun",
         "extensions.cogs.games",
         "extensions.cogs.help",
         "extensions.cogs.images",
-        "extensions.listeners.joinsandleaves",
         "extensions.cogs.meta",
         "extensions.cogs.moderation",
         "extensions.cogs.music",
+        "extensions.cogs.owner",
         "extensions.cogs.servermanagement",
         "extensions.cogs.settings",
+        "extensions.cogs.verification",
+        "extensions.extras.setup",
         "extensions.extras.supportserver",
         "extensions.extras.topgg",
-        "extensions.cogs.verification",
+        "extensions.listeners.errorhandler",
+        "extensions.listeners.events",
+        "extensions.listeners.joinsandleaves",
     )
 
     with open("config.toml") as token:
@@ -147,7 +148,10 @@ class Bot(commands.Bot):
         self._BotBase__cogs: dict[str, commands.Cog] = commands.core._CaseInsensitiveDict()
 
     def __repr__(self) -> str:
-        return f"<Bot id={self.user.id}, name={self.user.discriminator}, discriminator={self.user.discriminator}>"
+        return (
+            f"<Bot id={self.user.id} name={self.user.name!r} "
+            f"discriminator={self.user.discriminator!r} bot={self.user.bot}>"
+        )
 
     async def setup_hook(self) -> None:
         self.session: ClientSession = ClientSession()
@@ -192,7 +196,7 @@ class Bot(commands.Bot):
             try:
                 await self.load_extension(ext)
             except commands.ExtensionError as error:
-                _log.error("Exception in loading extension {ext}", exc_info=error)
+                _log.error(f"Exception in loading extension {ext}", exc_info=error)
 
     async def find_restart_message(self) -> None:
         await self.wait_until_ready()
@@ -244,7 +248,7 @@ class Bot(commands.Bot):
 
             return await super().wait_for(event, check=bl_message_check, timeout=timeout)
 
-        elif event in ("reaction_add", "reaction_remove"):
+        elif event in {"reaction_add", "reaction_remove"}:
 
             def bl_reaction_check(*args) -> bool:
                 if check:
@@ -274,7 +278,7 @@ class Bot(commands.Bot):
 
     async def on_message_delete(self, message: discord.Message) -> None:
         if message.id in self.command_cache:
-            await self.command_cache[message.id].delete()
+            await self.command_cache[message.id].delete(delay=0)
             self.command_cache.pop(message.id, None)
 
     async def is_owner(self, user: discord.User | discord.Member, /) -> bool:

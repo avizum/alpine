@@ -70,7 +70,8 @@ class Setup(core.Cog):
             await self.request_wh.send(embed=embed)
         try:
             if message.channel.id == 945187311509962782:
-                resolved = message.reference.resolved.embeds[0]
+                if ctx.reference is not None:
+                    resolved = ctx.reference.embeds[0]
                 if resolved.footer.text.isdigit():
                     user = self.bot.get_user(int(resolved.footer.text))
                     if user:

@@ -16,19 +16,25 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
 import asyncio
-import datetime
+import datetime as dt
 import random
 from base64 import b64decode
 from io import BytesIO
-from typing import Literal
+from typing import Literal, TYPE_CHECKING
 
 import discord
 from aiogtts import aiogTTS
 from discord.ext import commands
 
 import core
-from core import Bot, Context
+
+if TYPE_CHECKING:
+    from datetime import datetime
+    from core import Bot, Context
+    from discord.ext.commands import CooldownMapping
 
 
 TikTokTTSOptions = Literal[
@@ -91,14 +97,11 @@ class Fun(core.Cog):
     Fun commands for you and friends.
     """
 
-    def __init__(self, bot: Bot):
-        self.bot = bot
-        self.emoji = "\U0001f3b1"
-        self.load_time = datetime.datetime.now(datetime.timezone.utc)
-        self._cd = commands.CooldownMapping.from_cooldown(1.0, 60.0, commands.BucketType.user)
-
-    async def do_mock(self, string: str):
-        return "".join(random.choice([mock.upper, mock.lower])() for mock in string)
+    def __init__(self, bot: Bot) -> None:
+        self.bot: Bot = bot
+        self.emoji: str = "\U0001f3b1"
+        self.load_time: datetime = dt.datetime.now(dt.timezone.utc)
+        self._cd: CooldownMapping = commands.CooldownMapping.from_cooldown(1.0, 60.0, commands.BucketType.user)
 
     @core.command(aliases=["8ball", "8b"])
     @core.cooldown(5, 15, commands.BucketType.member)
@@ -185,13 +188,21 @@ class Fun(core.Cog):
 
     @core.command()
     @core.cooldown(1, 120, commands.BucketType.member)
-    async def say(self, ctx: Context, *, message):
+    async def say(self, ctx: Context, *, message: str):
         """
         Makes me say something.
 
         This command has a high cooldown to prevent abuse.
         """
         await ctx.send(message)
+
+    @core.command()
+    async def mock(self, ctx: Context, *, message: str):
+        """
+        Make text like ThIs.
+        """
+        return await ctx.send("".join(random.choice([mock.upper, mock.lower])() for mock in message))
+
 
     @core.command()
     async def dropkick(self, ctx: Context, *, mention: discord.Member):
@@ -407,7 +418,3 @@ class Fun(core.Cog):
 
             file = discord.File(buffer, f"{ctx.author.name}-tiktok-tts.mp3")
         await ctx.send(file=file)
-
-
-async def setup(bot: Bot):
-    await bot.add_cog(Fun(bot))

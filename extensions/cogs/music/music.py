@@ -16,25 +16,34 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
 import asyncio
 import collections
 import re
+from typing import TYPE_CHECKING, Any
 
 import async_timeout
 import discord
 import wavelink
 from wavelink import (
-    Track as WLTrack,
-    PartialTrack as WLPTrack,
     YouTubeTrack,
     YouTubePlaylist,
+    WaitQueue,
 )
 from discord.ext import menus
 from wavelink.ext import spotify
 from wavelink.ext.spotify import SpotifyTrack
 
-from core import Bot, Context
 from utils import View, format_seconds
+from .exceptions import QueueDuplicateTrack
+
+if TYPE_CHECKING:
+    from wavelink import PartialTrack
+    from wavelink.abc import Playable
+
+    from core import Bot, Context
+
 
 URL_REG = re.compile(r"https?://(?:www\.)?.+")
 
@@ -60,71 +69,35 @@ class IsResponding:
             self.task.cancel()
 
 
-class Queue(asyncio.Queue):
-    """
-    Queue for music.
-    """
-
-    def __init__(self, *, max_size: int = 0, allow_duplicates: bool = True):
-        super().__init__(maxsize=max_size)
-        self._queue: collections.deque | list[Track] = collections.deque()
-        self.allow_duplicates = allow_duplicates
-
-    def __contains__(self, item):
-        return item in self._queue
-
-    def _put(self, item, left=False):
-        if not self.allow_duplicates and item in self._queue:
-            return
-        meth = self._queue.appendleft if left is True else self._queue.append
-        meth(item)
-
-    def remove(self, track):
-        self._queue.remove(track)
-
-    def remove_at_index(self, index: int):
-        self._queue.pop(index)
-
-    def clear(self):
-        self._queue.clear()
-
-    async def put(self, item, left=False):
-        """
-        Put an item into the queue.
-        Put an item into the queue. If the queue is full, wait until a free
-        slot is available before adding item.
-        """
-        while self.full():
-            putter = self._get_loop().create_future()
-            self._putters.append(putter)
-            try:
-                await putter
-            except Exception:
-                putter.cancel()
-                try:
-                    self._putters.remove(putter)
-                except ValueError:
-                    pass
-                if not self.full() and not putter.cancelled():
-                    self._wakeup_next(self._putters)
-                raise
-        return self.put_nowait(item, left=left)
-
-    def put_nowait(self, item, left=False) -> None:
-        if self.full():
-            raise asyncio.QueueFull
-        self._put(item, left=left)
-        self._unfinished_tasks += 1
-        self._finished.clear()
-        self._wakeup_next(self._getters)
+class Queue(WaitQueue):
+    def __init__(
+        self,
+        *, max_size: int | None = None,
+        history_max_size: int | None = None,
+        allow_duplicates: bool = True
+    ) -> None:
+        self._queue: collections.deque[Track | PartialTrack] = collections.deque()
+        self.allow_duplicates: bool = allow_duplicates
+        super().__init__(max_size=max_size, history_max_size=history_max_size)
 
     @property
-    def up_next(self):
-        return self._queue[0] if self.size else None
+    def up_next(self) -> Track | PartialTrack | None:
+        """
+        Returns the next track in the queue.
+        """
+        return self._queue[0] if self.count else None
 
     @property
-    def size(self):
+    def size(self) -> int:
+        """
+        Returns the amount of tracks in the queue.
+        """
         return len(self._queue)
+
+    def put(self, item: Playable) -> None:
+        if not self.allow_duplicates and item in self._queue:
+            raise QueueDuplicateTrack
+        return super().put(item)
 
 
 class Track(wavelink.Track):
@@ -132,7 +105,7 @@ class Track(wavelink.Track):
 
     __slots__ = ("requester", "thumb", "hyperlinked_title")
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args)
 
         self.thumb = kwargs.get("thumb")
@@ -153,34 +126,35 @@ class Player(wavelink.Player):
     Custom wavelink Player class.
     """
 
+    source: Track | PartialTrack | None
+
     def __init__(
         self,
-        *args,
-        context: Context | None = None,
+        *args: Any,
+        context: Context,
         announce: bool = True,
         allow_duplicates: bool = True,
-        **kwargs,
-    ):
-        self.context: Context | None = context
+        **kwargs: Any,
+    ) -> None:
+        self.context: Context = context
         super().__init__(*args, **kwargs)
-        if self.context:
-            self.dj: discord.Member = self.context.author
-            self.bound: discord.TextChannel = self.context.channel
-        self.announce: bool = announce
+        self.dj: discord.Member = self.context.author
+        self.bound: discord.TextChannel | discord.VoiceChannel | discord.Thread = self.context.channel
         self.allow_duplicates: bool = allow_duplicates
-        self.queue: Queue = Queue()
+        self.announce: bool = announce
+        self.queue: Queue = Queue(allow_duplicates=allow_duplicates)
         self.waiting: bool = False
-        self.loop_song: Track | None = None
+        self.loop_song: Playable | None = None
         self.pause_votes: set[discord.Member] = set()
         self.resume_votes: set[discord.Member] = set()
         self.skip_votes: set[discord.Member] = set()
         self.shuffle_votes: set[discord.Member] = set()
         self.stop_votes: set[discord.Member] = set()
 
-    async def connect(self, *, timeout: float, reconnect: bool, **kwargs) -> None:
-        return await super().connect(timeout=timeout, reconnect=reconnect)
-
-    async def get_tracks(self, query: str) -> WLTrack | WLPTrack | list[WLTrack | WLPTrack] | None:
+    async def get_tracks(
+        self,
+        query: str
+    ) -> Playable | SpotifyTrack | list[Playable] | list[SpotifyTrack] | None:
         search_type = spotify.decode_url(query)
 
         if YOUTUBE_REGEX.match(query):
@@ -222,50 +196,63 @@ class Player(wavelink.Player):
         self.shuffle_votes.clear()
         self.stop_votes.clear()
 
+        track = None
+
         try:
             self.waiting = True
             if not self.loop_song:
                 with async_timeout.timeout(120):
-                    track = await self.queue.get()
+                    track = self.queue.get()
             if self.loop_song:
                 track = self.loop_song
+        except wavelink.QueueEmpty:
+            self.waiting = True
         except asyncio.TimeoutError:
             if self.context:
                 await self.context.send("Disconnecting due to inactivity.")
             return await self.disconnect()
 
-        await self.play(track)
+        if track is not None:
+            await self.play(track)
+
         self.waiting = False
         if self.announce:
-            await self.context.channel.send(embed=await self.build_now_playing())
+            embed = await self.build_now_playing()
+            if embed is None:
+                return
+            await self.context.channel.send(embed=embed)
 
-    async def build_now_playing(self, position: float = None) -> discord.Embed | None:
+    async def build_now_playing(self, position: float | None = None) -> discord.Embed | None:
         """
         Builds the "now playing" embed
         """
-        track: Track = self.source
-        if not track:
+        if not self.source:
             return
+        track = self.source
 
         embed = discord.Embed(title="Now Playing")
-        if self.context:
-            embed.color = await self.context.fetch_color()
+        embed.color = await self.context.fetch_color()
+
         time = f"> Length: {format_seconds(track.length)}\n"
         if position:
             time = f"> Position {format_seconds(position)}/{format_seconds(track.length)}\n"
-        if isinstance(self.queue.up_next, wavelink.PartialTrack):
-            next_song = self.queue.up_next.title
-        elif self.loop_song:
-            next_song = self.loop_song.hyperlinked_title
-        elif self.queue.up_next:
-            next_song = self.queue.up_next.hyperlinked_title
-        else:
-            next_song = "Add more songs to the queue!"
 
+        if self.queue.up_next:
+            if isinstance(self.queue.up_next, Track):
+                next_track = self.queue.up_next.hyperlinked_title
+            else:
+                next_track = self.queue.up_next.title
+        elif self.loop_song:
+            if isinstance(self.queue.up_next, Track):
+                next_track = self.loop_song.hyperlinked_title
+            else:
+                next_track = self.loop_song.title
+        else:
+            next_track = "Add more songs to the queue!"
         # Happens when Spotify playlist is added to the queue
         # Partial tracks become Youtube tracks when played
         if isinstance(track, wavelink.YouTubeTrack):
-            embed.description = f"[{track.title}]({track.uri})\n" f"{time}\n" f"Up next: {next_song}"
+            embed.description = f"[{track.title}]({track.uri})\n" f"{time}\n" f"Up next: {next_track}"
             if track.thumb:
                 embed.set_thumbnail(url=track.thumb)
             return embed
@@ -273,13 +260,13 @@ class Player(wavelink.Player):
             f"{track.hyperlinked_title}\n"
             f"{time}"
             f"> Requester: {track.requester.mention} (`{track.requester}`)\n\n"
-            f"Up next: {next_song}"
+            f"Up next: {next_track}"
         )
         if track.thumb:
             embed.set_thumbnail(url=track.thumb)
         return embed
 
-    async def build_added(self, track: Track) -> discord.Embed | None:
+    async def build_added(self, track: Track) -> discord.Embed:
         """
         Builds the "added song to queue" embed.
         """
@@ -303,7 +290,7 @@ class PaginatorSource(menus.ListPageSource):
     async def format_page(self, menu: menus.Menu, page: list[str]):
         embed = discord.Embed(title=f"Queue for {self.ctx.guild}", color=await self.ctx.fetch_color())
         embed.description = "\n".join(page)
-        if self.ctx.guild.icon.url:
+        if self.ctx.guild.icon:
             embed.set_thumbnail(url=self.ctx.guild.icon.url)
         return embed
 
@@ -311,27 +298,28 @@ class PaginatorSource(menus.ListPageSource):
 class SearchView(View):
     def __init__(self, *, ctx: Context):
         self.ctx = ctx
-        self.option = None
+        self.option: list[str] | None = None
         super().__init__(member=ctx.author, timeout=180)
 
     @discord.ui.button(label="Stop", style=discord.ButtonStyle.red)
-    async def stop_view(self, interaction: discord.Interaction, button: discord.Button):
+    async def stop_view(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.ctx.message.delete()
-        await self.stop()
+        self.stop()
 
 
-class SearchSelect(discord.ui.Select):
+class SearchSelect(discord.ui.Select[SearchView]):
     def __init__(self, *, options: list[Track]):
-        options = [discord.SelectOption(label=f"{number+1}) {track.title}") for number, track in enumerate(options)]
+        select_options = [discord.SelectOption(label=f"{number+1}) {track.title}") for number, track in enumerate(options)]
         super().__init__(
             placeholder="Select the songs you want to play",
-            options=options,
+            options=select_options,
             min_values=1,
             max_values=1,
             disabled=False,
         )
 
     async def callback(self, interaction: discord.Interaction):
+        assert self.view is not None
         await interaction.response.defer()
         self.view.option = self.values
         self.view.stop()

@@ -22,11 +22,14 @@ from discord.ext import commands
 from discord.ext.commands import flag
 
 from core import Context
-from utils import ModReason
+
+
+def default_reason(ctx: Context) -> str:
+    return f"{ctx.author}: No reason was provided."
 
 
 class ModActionFlag(commands.FlagConverter):
-    reason: ModReason = flag(default=None, description="Reason that will show up in the audit log.")
+    reason: str = flag(default="s", description="Reason that will show up in the audit log.")
     dm: bool = flag(default=False, description="Whether to DM the user.")
 
 
@@ -93,7 +96,7 @@ class PurgeAmount(int):
 
 class TargetMember(discord.Member):
     @classmethod
-    async def convert(cls, ctx: Context, argument: discord.Member) -> discord.Member:
+    async def convert(cls, ctx: Context, argument: str) -> discord.Member:
         member = await commands.MemberConverter().convert(ctx, argument)
         action = ctx.invoked_with
 
@@ -133,11 +136,11 @@ class FindBan(discord.Member):
             user = await commands.UserConverter().convert(ctx, argument)
             try:
                 await ctx.guild.fetch_ban(user)
-            except discord.NotFound:
-                raise commands.BadArgument("That user isn't banned.")
+            except discord.NotFound as e:
+                raise commands.BadArgument("That user isn't banned.") from e
             return user
         except commands.UserNotFound:
-            bans = await ctx.guild.bans()
+            bans = [entry async for entry in ctx.guild.bans()]
             for ban in bans:
                 if str(ban[1]).startswith(argument):
                     return ban[1]

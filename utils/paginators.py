@@ -125,7 +125,7 @@ class BasePaginator(View):
                 await self.message.delete()
             except discord.NotFound:
                 pass
-        if not self.ctx.interaction:
+        if self.ctx.interaction is None:
             await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")
 
     async def start(self) -> discord.Message:
@@ -304,7 +304,8 @@ class Paginator(BasePaginator):
             await interaction.response.edit_message(view=None)
         elif self.delete_message_after:
             await self.message.delete()
-        await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")
+        if self.ctx.interaction is None:
+            await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")
         self.stop()
 
 

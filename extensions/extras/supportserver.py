@@ -33,11 +33,10 @@ class ButtonRole(discord.ui.View):
         label="General Channels",
         custom_id="828437885820076053",
     )
-    async def general_channels(self, interaction: discord.Interaction, button: discord.Button):
-        if interaction.guild_id != 751490725555994716:
+    async def general_channels(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.guild is None or interaction.guild_id != 751490725555994716:
             return
-        guild = interaction.guild
-        role = guild.get_role(int(button.custom_id))
+        role = interaction.guild.get_role(int(button.custom_id))
         member = interaction.user
         if isinstance(member, discord.User):
             return
@@ -55,8 +54,8 @@ class ButtonRole(discord.ui.View):
         label="Avimetry Support",
         custom_id="927077897318047854",
     )
-    async def avimetry_channels(self, interaction: discord.Interaction, button: discord.Button):
-        if interaction.guild_id != 751490725555994716:
+    async def avimetry_channels(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.guild is None or interaction.guild_id != 751490725555994716:
             return
         guild = interaction.guild
         role = guild.get_role(int(button.custom_id))

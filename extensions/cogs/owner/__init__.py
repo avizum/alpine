@@ -16,8 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .cog import Owner, Bot
+from core import Bot
+from .cog import Owner
+
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(Owner(bot=bot))
+    await bot.add_cog(Owner(bot=bot))  # type: ignore

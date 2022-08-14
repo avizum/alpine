@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
 import random
 from typing import Literal
 
@@ -153,60 +155,6 @@ class AkinatorFlags(commands.FlagConverter):
     child: bool = flag(default=True, description="Whether to use child mode.")
 
 
-class RockPaperScissorGame(View):
-    def __init__(self, timeout=8, *, ctx: Context, member: discord.Member, embed: discord.Embed) -> None:
-        super().__init__(timeout=timeout, member=member)
-        self.ctx: Context = ctx
-        self.embed: discord.Embed = embed
-        self.message: discord.Message | None = None
-
-    async def stop(self) -> None:
-        self.disable_all()
-        if self.message is not None:
-            await self.message.edit(view=self)
-
-    async def on_timeout(self) -> None:
-        await self.stop()
-
-    async def answer(self, button: discord.ui.Button, interaction: discord.Interaction, answer: int):
-        game = {0: "**Rock**", 1: "**Paper**", 2: "**Scissors**"}
-        key = [[0, 1, -1], [-1, 0, 1], [1, -1, 0]]
-        repsonses = {0: "**It's a tie!**", 1: "**You win!**", -1: "**I win!**"}
-        me = random.randint(0, 2)
-        message = repsonses[key[me][answer]]
-        thing = f"You chose: {game[answer]}\nI chose: {game[me]}.\n{message}"
-        if message == repsonses[1]:
-            button.style = discord.ButtonStyle.green
-            self.embed.color = discord.Color.green()
-        elif message == repsonses[-1]:
-            button.style = discord.ButtonStyle.danger
-            self.embed.color = discord.Color.red()
-        self.disable_all()
-        self.embed.description = thing
-        await interaction.response.edit_message(embed=self.embed, view=self)
-        await self.stop()
-
-    @discord.ui.button(label="Rock", emoji="\U0001faa8", style=discord.ButtonStyle.secondary, row=1)
-    async def game_rock(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.answer(button, interaction, 0)
-        button.style = discord.ButtonStyle.success
-
-    @discord.ui.button(label="Paper", emoji="\U0001f4f0", style=discord.ButtonStyle.secondary, row=1)
-    async def game_paper(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.answer(button, interaction, 1)
-        button.style = discord.ButtonStyle.success
-
-    @discord.ui.button(
-        label="Scissors",
-        emoji="\U00002702\U0000fe0f",
-        style=discord.ButtonStyle.secondary,
-        row=1,
-    )
-    async def game_scissors(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.answer(button, interaction, 2)
-        button.style = discord.ButtonStyle.success
-
-
 class CookieView(discord.ui.View):
     def __init__(self, timeout: int, ctx: Context) -> None:
         super().__init__(timeout=timeout)
@@ -225,19 +173,75 @@ class CookieView(discord.ui.View):
         self.stop()
 
 
-class RPSButton(discord.ui.Button):
-    def __init__(self, label: str, player_one: discord.Member, player_two: discord.Member):
-        self.player_one = player_one
-        self.player_two = player_two
-        self.pa = None
-        self.pt = None
-        super().__init__(style=discord.ButtonStyle.success, label=label)
+class RPSButton(discord.ui.Button["RPSView"]):
+    def __init__(self, emoji: str, label: str, answer: int) -> None:
+        self.answer: int = answer
+        super().__init__(style=discord.ButtonStyle.secondary, label=label, emoji=emoji)
 
-    async def callback(self, interaction: discord.Interaction):
-        if interaction.user == self.player_one and not getattr(self.player_one, "answer", None):
-            await interaction.response.send_message(content="You picked {self.label}!")
-            self.pa = self.label
-        elif interaction.user == self.player_two and not getattr(self.player_two, "answer", None):
-            await interaction.response.send_message(content="You picked {self.label}!")
-            self.pt = self.label
-        print(f"Player one: {self.pt}\nPlayer two: {self.pa}")
+    async def callback(self, interaction: discord.Interaction) -> None:
+        assert self.view is not None
+        self.style = discord.ButtonStyle.blurple
+        if interaction.user == self.view.player:
+            if self.view.player_one_response is None:
+                self.view.player_one_response = self.answer
+                await interaction.response.send_message(f"You chose {self.label}", ephemeral=True)
+            else:
+                await interaction.response.send_message(f"You already chose {self.view.player_one_response}", ephemeral=True)
+        if interaction.user == self.view.opponent:
+            if self.view.player_two_response is None:
+                self.view.player_two_response = self.answer
+                await interaction.response.send_message(f"You chose {self.label}", ephemeral=True)
+            else:
+                await interaction.response.send_message(f"You already chose {self.view.player_two_response}", ephemeral=True)
+        if self.view.player_one_response is None or self.view.player_two_response is None:
+            return
+        return await self.view.determine_winner()
+
+
+class RPSView(View):
+    children: list[RPSButton]
+    player_one_response: int | None = None
+    player_two_response: int | None = None
+
+    def __init__(
+        self,
+        embed: discord.Embed,
+        context: Context,
+        opponent: discord.Member
+    ) -> None:
+        super().__init__(member=context.author, timeout=60)
+        self.message: discord.Message
+        self.embed: discord.Embed = embed
+        self.player: discord.Member = context.author
+        self.opponent: discord.Member = opponent
+
+        if self.opponent == context.me:
+            self.player_two_response = random.randint(0, 2)
+
+        for emoji, label, value in [
+            ("\U0001faa8", "Rock", 0),
+            ("\U0001f4f0", "Paper", 1),
+            ("\U00002702\U0000fe0f", "Scissors", 2)
+        ]:
+            self.add_item(RPSButton(emoji=emoji, label=label, answer=value))
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        return interaction.user in (self.player, self.opponent)
+
+    async def determine_winner(self) -> None:
+        if self.player_one_response is None or self.player_two_response is None:
+            return
+        game: dict[int, str] = {0: "**Rock**", 1: "**Paper**", 2: "**Scissors**"}
+        key: list[list[int]] = [[0, 1, -1], [-1, 0, 1], [1, -1, 0]]
+        repsonses: dict[int, str] = {0: "**It's a tie!**", 1: f"**{self.player} wins!**", -1: f"**{self.opponent} wins!**"}
+
+        message = repsonses[key[self.player_two_response][self.player_one_response]]
+        thing = (
+            f"{self.player.mention} chose: {game[self.player_one_response]}\n"
+            f"{self.opponent.mention} chose: {game[self.player_two_response]}.\n"
+            f"{message}"
+        )
+
+        self.embed.description = thing
+        self.disable_all()
+        await self.message.edit(embed=self.embed, view=self)

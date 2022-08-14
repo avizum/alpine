@@ -27,6 +27,7 @@ import re
 import sys
 from difflib import get_close_matches
 from importlib.metadata import distribution, packages_distributions
+from typing import TYPE_CHECKING, Callable, Generator, Deque, Any
 
 import discord
 import psutil
@@ -38,16 +39,22 @@ from jishaku import Feature
 from jishaku.codeblocks import codeblock_converter
 from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.exception_handling import ReplResponseReactor
-from jishaku.flags import Flags
 from jishaku.functools import AsyncSender
 from jishaku.models import copy_context_with
 from jishaku.modules import package_version
 from jishaku.paginators import PaginatorInterface
-from jishaku.repl import AsyncCodeExecutor, get_var_dict_from_ctx
+from jishaku.repl import AsyncCodeExecutor
+
 
 import core
-from core import Bot, Context
 from utils import ModReason, Paginator, PaginatorEmbed, View, Emojis
+
+if TYPE_CHECKING:
+    from jishaku.repl import Scope
+    from jishaku.features.baseclass import CommandTask
+
+    from ..moderation import Moderation
+    from core import Bot, Context
 
 
 def natural_size(size_in_bytes: int) -> str:
@@ -110,6 +117,7 @@ class GuildPageSource(menus.ListPageSource):
     async def format_page(self, menu: menus.Menu, page: list[discord.Guild]) -> discord.Embed:
         embed = PaginatorEmbed(ctx=self.ctx)
         for guild in page:
+            assert guild.me.joined_at is not None
             embed.add_field(
                 name=guild.name,
                 value=(
@@ -146,16 +154,18 @@ class ReloadView(View):
         self.ctx = ctx
         self.bot = bot
         self.embed = embed
-        self.to_reload = None
+        self.to_reload: list[str] | None = None
         self.get_close_cogs(to_reload)
         super().__init__(member=self.ctx.author, timeout=60)
 
-    def get_close_cogs(self, argument: list[str]) -> list[str]:
+    def get_close_cogs(self, argument: list[str]):
         self.to_reload = [get_close_matches(cog, self.bot.extensions)[0] for cog in argument]
 
     @discord.ui.button(label="Reload", style=discord.ButtonStyle.blurple)
-    async def reload_modules(self, interaction: discord.Interaction, button: discord.Button):
+    async def reload_modules(self, interaction: discord.Interaction, button: discord.ui.Button):
         reload_list = []
+        if not self.to_reload:
+            return await interaction.response.send_message("No cogs to reload.")
         for cog in self.to_reload:
             try:
                 await self.bot.reload_extension(cog)
@@ -172,7 +182,7 @@ class ReloadView(View):
         self.stop()
 
     @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
-    async def cancel_reload(self, interaction: discord.Interaction, button: discord.Button):
+    async def cancel_reload(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(view=None)
         self.stop()
 
@@ -181,6 +191,15 @@ FILE_REGEX = re.compile(r"^(.*[^/\n]+)(\.py)")
 
 
 class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
+    tasks: Deque[CommandTask]
+    jsk_python_result_handling: Callable[[Context, Any], Any]
+    jsk_python_get_convertables: Callable[[Context], tuple[dict[str, Any], dict[str, str]]]
+    submit: Callable[[Context], Any]
+    walk_commands: Callable[..., Generator[core.Command, None, None]]
+    load_time: datetime.datetime
+    start_time: datetime.datetime
+    scope: Scope
+
     """
     Advanced debug cog for bot Developers.
     """
@@ -188,7 +207,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     def __init__(self, bot: Bot, **kwargs) -> None:
         self.emoji = "<:jishaku:913256121542791178>"
         self.bot = bot
-        super().__init__(bot=bot, **kwargs)
+        super().__init__(bot=bot, **kwargs)  # type: ignore
         for i in self.walk_commands():
             i.member_permissions = ["Bot Owner"]
 
@@ -214,9 +233,10 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
         # Try to locate what vends the `discord` package
         distributions: list[str] = [
-            dist
-            for dist in packages_distributions()["discord"]
-            if any(file.parts == ("discord", "__init__.py") for file in distribution(dist).files)
+            dist for dist in packages_distributions()["discord"]
+            if any(
+                file.parts == ("discord", "__init__.py")
+                for file in distribution(dist).files)  # type: ignore
         ]
 
         if distributions:
@@ -311,12 +331,12 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.send(embed=embed)
 
     @Feature.Command(parent="jsk", name="py", aliases=["python"])
-    async def jsk_python(self, ctx: Context, *, argument: codeblock_converter):
+    async def jsk_python(self, ctx: Context, *, argument: codeblock_converter):  # type: ignore
         """
         Direct evaluation of Python code.
         """
 
-        arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
+        arg_dict, convertables = self.jsk_python_get_convertables(ctx)
         message_reference = getattr(ctx.message.reference, "resolved", None)
         voice_client = ctx.voice_client
         arg_dict["reference"] = message_reference
@@ -332,8 +352,11 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         try:
             async with ReplResponseReactor(ctx.message):
                 with self.submit(ctx):
-                    executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict)
-                    async for send, result in AsyncSender(executor):
+                    executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict, convertables=convertables)
+                    async for send, result in AsyncSender(executor):  # type: ignore
+                        send: Callable[..., None]
+                        result: Any
+
                         if result is None:
                             continue
 
@@ -365,16 +388,6 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             await self.bot.close()
         if not conf:
             await conf.message.edit(content="Reboot aborted", embed=None, delete_after=5)
-
-    @Feature.Command(parent="jsk", name="battery")
-    async def jsk_battery(self, ctx: Context):
-        """
-        Shows the system battery.
-        """
-        battery = psutil.sensors_battery()
-        plugged = battery.power_plugged
-        percent = str(battery.percent)
-        await ctx.send(f"System battery is at {percent}% and {'Plugged in' if plugged else 'Unplugged'}")
 
     @Feature.Command(parent="jsk", name="su")
     async def jsk_su(self, ctx: Context, member: discord.Member, *, command_string: str):
@@ -417,11 +430,18 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         paginator = commands.Paginator(max_size=1985, prefix="", suffix="")
 
         for task in self.tasks:
-            paginator.add_line(
-                f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "
-                f"{discord.utils.format_dt(task.ctx.message.created_at)} "
-                f"({discord.utils.format_dt(task.ctx.message.created_at, 'R')})"
-            )
+            if task.ctx.command:
+                paginator.add_line(
+                    f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "
+                    f"{discord.utils.format_dt(task.ctx.message.created_at)} "
+                    f"({discord.utils.format_dt(task.ctx.message.created_at, 'R')})"
+                )
+            else:
+                paginator.add_line(
+                    f"{task.index}: unknown, invoked at "
+                    f"{discord.utils.format_dt(task.ctx.message.created_at)} "
+                    f"({discord.utils.format_dt(task.ctx.message.created_at, 'R')})"
+                )
 
         interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
         return await interface.send_to(ctx)
@@ -485,7 +505,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.send(embed=embed)
 
     @Feature.Command(parent="jsk", name="reload", aliases=["r"])
-    async def jsk_reload(self, ctx: Context, module: CogConverter | None = None):
+    async def jsk_reload(self, ctx: Context, module: CogConverter):
         """
         Reload cogs.
         """
@@ -514,6 +534,8 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         )
 
         stdout, stderr = await proc.communicate()
+
+        output = "Something went wrong if you can see this.\n"
 
         if stdout:
             output = f"[stdout]\n{stdout.decode()}"
@@ -553,7 +575,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await pages.start()
 
     @Feature.Command(parent="blacklist", name="add", aliases=["a"])
-    async def blacklist_add(self, ctx: Context, user: discord.User, *, reason: ModReason = None):
+    async def blacklist_add(self, ctx: Context, user: discord.User, *, reason: ModReason | None = None):
         """
         Add a user to the global blacklist.
         """
@@ -574,7 +596,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             await ctx.send(embed=embed)
 
     @Feature.Command(parent="blacklist", name="remove", aliases=["r"])
-    async def blacklist_remove(self, ctx: Context, user: discord.User, *, reason: ModReason = None):
+    async def blacklist_remove(self, ctx: Context, user: discord.User, *, reason: ModReason | None = None):
         """
         Removes a user from the global blacklist.
         """
@@ -620,7 +642,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
         perms = ctx.bot_permissions.manage_messages
         purged = await ctx.channel.purge(limit=amount, check=check, bulk=perms)
-        cog = self.bot.get_cog("moderation")
+        cog: Moderation | None = self.bot.get_cog("moderation")  # type: ignore
+        if cog is None:
+            return await ctx.send(f"{len(purged)} messages deleted.")
         await ctx.can_delete(embed=await cog.do_affected(purged))
 
     @Feature.Command(parent="jsk")
@@ -635,12 +659,12 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.send(f"Maintenance mode has been {match[toggle]}")
 
     @Feature.Command(parent="jsk", aliases=["cog", "extensions", "extension", "ext"])
-    async def cogs(self, ctx: Context, cog: str = None):
+    async def cogs(self, ctx: Context, cog: str | None = None):
         """
         Shows all the loaded cogs and how long ago they were loaded.
         """
         if cog:
-            ext = self.bot.get_cog(cog)
+            ext: core.Cog | None = self.bot.get_cog(cog)  # type: ignore
             if not ext:
                 return await ctx.send(f"{cog} does not exist.")
             return await ctx.send(f"{ext.qualified_name} | Loaded {discord.utils.format_dt(ext.load_time, 'R')}")
@@ -652,7 +676,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
     @Feature.Command(parent="jsk")
     async def guilds(self, ctx: Context):
-        source = GuildPageSource(ctx, guilds=self.bot.guilds)
+        source = GuildPageSource(ctx, guilds=list(self.bot.guilds))
         pages = Paginator(source, ctx=ctx, disable_view_after=True)
         await pages.start()
 
@@ -728,7 +752,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         parent="jsk",
         aliases=["dmsg", "dmessage", "delmsg", "deletem", "deletemsg", "delmessage"],
     )
-    async def deletemessage(self, ctx: Context, message: discord.Message = None):
+    async def deletemessage(self, ctx: Context, message: discord.Message | None = None):
         if message is None and ctx.reference is not None:
             if ctx.reference.author == ctx.me:
                 await ctx.reference.delete()

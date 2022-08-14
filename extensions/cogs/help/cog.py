@@ -24,6 +24,7 @@ from typing import Mapping, Any
 import humanize
 from difflib import get_close_matches
 from discord.ext import commands, menus
+from discord import app_commands
 
 import core
 from core import Bot, Context, Command
@@ -236,6 +237,28 @@ class HelpCommand(core.Cog):
 
     def cog_unload(self):
         self.bot.help_command = self.default
+
+    @app_commands.command(name="help")
+    @app_commands.describe(item="The command or module you need help with.")
+    async def _help(self, interaction: discord.Interaction, item: str | None):
+        """
+        Shows help for a command or module.
+        """
+        ctx: Context = await self.bot.get_context(interaction)
+        await ctx.send_help(item)
+
+    @_help.autocomplete("item")
+    async def _help_autocomplete(
+        self,
+        interaction: discord.Interaction,
+        current: str,
+    ) -> list[app_commands.Choice[str]]:
+        commands = [
+            c.qualified_name for c in list(self.bot.walk_commands()) if current in c.qualified_name and len(current) > 2
+        ]
+        commands.extend([c for c in list(self.bot.cogs) if current in c and len(current) > 2])
+        to_return = [app_commands.Choice(name=cmd, value=cmd) for cmd in commands]
+        return to_return[:25]
 
 
 async def setup(bot: Bot):

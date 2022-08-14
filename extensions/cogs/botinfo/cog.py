@@ -16,11 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import datetime
+from __future__ import annotations
+
+import datetime as dt
 import humanize
 import inspect
 import pathlib
 import os
+from typing import TYPE_CHECKING
 
 import discord
 import psutil
@@ -29,8 +32,11 @@ from discord import app_commands
 from topgg import NotFound, ServerError
 
 import core
-from core import Bot, Context
 from utils import Timer
+
+if TYPE_CHECKING:
+    from datetime import datetime
+    from core import Bot, Context
 
 
 class BotInfo(commands.Cog, name="Bot Info"):
@@ -38,18 +44,18 @@ class BotInfo(commands.Cog, name="Bot Info"):
     Bot Information commands
     """
 
-    def __init__(self, bot: Bot):
-        self.bot = bot
-        self.emoji = "\U00002139"
-        self.load_time = datetime.datetime.now(datetime.timezone.utc)
-        self.process = psutil.Process(os.getpid())
-        self.request_wh = discord.Webhook.from_url(
+    def __init__(self, bot: Bot) -> None:
+        self.bot: Bot = bot
+        self.emoji: str = "\U00002139"
+        self.load_time: datetime = dt.datetime.now(dt.timezone.utc)
+        self.process: psutil.Process = psutil.Process(os.getpid())
+        self.request_wh: discord.Webhook = discord.Webhook.from_url(
             self.bot.settings["webhooks"]["request_log"], session=self.bot.session
         )
 
     @core.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
-        ctx = await self.bot.get_context(message)
+        ctx: Context = await self.bot.get_context(message)
         if message.author == self.bot.user:
             return
         if message.content in [
@@ -90,7 +96,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         except KeyError:
             commits = "Could not get commits."
         embed.add_field(name="Latest Commits", value=commits, inline=False)
-        delta_uptime = datetime.datetime.now(datetime.timezone.utc) - self.bot.launch_time
+        delta_uptime = dt.datetime.now(dt.timezone.utc) - self.bot.launch_time
         embed.add_field(
             name="Info",
             value=f"Up for {humanize.precisedelta(delta_uptime)},\n`{round(self.bot.latency*1000)}ms` latency",
@@ -154,7 +160,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         """
         Check how long the bot has been up for.
         """
-        delta_uptime = datetime.datetime.now(datetime.timezone.utc) - self.bot.launch_time
+        delta_uptime = dt.datetime.now(dt.timezone.utc) - self.bot.launch_time
         ue = discord.Embed(
             title="Current Uptime",
             description=humanize.precisedelta(delta_uptime, format="%.2g"),
@@ -403,7 +409,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         view = discord.ui.View(timeout=None)
         source_embed = discord.Embed(
             title=f"{self.bot.user.name}'s source",
-            timestamp=datetime.datetime.now(datetime.timezone.utc),
+            timestamp=dt.datetime.now(dt.timezone.utc),
         )
         git_link = f"{self.bot.source}/blob/master/"
         license_link = f"{self.bot.source}/blob/master/LICENSE"

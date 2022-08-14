@@ -18,14 +18,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 from io import BytesIO
+from typing import TYPE_CHECKING
 
 import discord
 
 import core
 from utils import Timer
-from core import Bot, Context
+
+if TYPE_CHECKING:
+    from datetime import datetime
+    from core import Bot, Context
+
 
 
 class Animals(core.Cog):
@@ -33,9 +38,9 @@ class Animals(core.Cog):
     Get images of animals.
     """
 
-    def __init__(self, bot: Bot):
-        self.bot = bot
-        self.load_time = datetime.datetime.now(datetime.timezone.utc)
+    def __init__(self, bot: Bot) -> None:
+        self.bot: Bot = bot
+        self.load_time: datetime = dt.datetime.now(dt.timezone.utc)
         self.emoji = "\U0001f98a"
 
     async def do_animal(self, ctx: Context, animal: str):

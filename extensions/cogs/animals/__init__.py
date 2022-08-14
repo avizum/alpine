@@ -16,7 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .cog import Animals, Bot
+from core import Bot
+from .cog import Animals
 
 
 async def setup(bot: Bot):

@@ -100,7 +100,7 @@ class ConfirmResult:
 
 
 class AutoPageSource(menus.ListPageSource):
-    def __init__(self, entry: str | list, language: str = "", *, limit: int = 1000):
+    def __init__(self, entry: str | list | commands.Paginator, language: str = "", *, limit: int = 1000):
         if isinstance(entry, list):
             entry = entry
         elif isinstance(entry, str):
@@ -159,12 +159,9 @@ class Context(commands.Context):
     async def get_prefix(self) -> str:
         if self.guild is None:
             return "a."
-
         get_prefix = await self.cache.get_guild_settings(self.guild.id)
         prefix = get_prefix["prefixes"] if get_prefix else None
-        if not prefix:
-            return "`a.`"
-        return f"`{'` | `'.join(prefix)}`"
+        return f"`{'` | `'.join(prefix)}`" if prefix else "`a.`"
 
     @property
     def reference(self) -> Message | None:
@@ -176,9 +173,8 @@ class Context(commands.Context):
     async def post(self, *, content: str, filename: str) -> str | None:
         gist_file = [AGFile(filename=filename, content=content)]
         posted_gist = await self.bot.gist.post_gist(description=str(self.author), files=gist_file, public=True)
-        if posted_gist.html_url is not None:
-            return f"<{posted_gist.html_url}>"
-        return None
+
+        return None if posted_gist.html_url is None else f"<{posted_gist.html_url}>"
 
     async def fetch_color(self, member: discord.Member | discord.User | None = None) -> discord.Color:
         member = member or self.author
@@ -231,6 +227,11 @@ class Context(commands.Context):
         message = await message.edit(*args, **kwargs)
         self.bot.command_cache[message.id] = message
         return message
+
+    async def send_help(self, item: str | None) -> Any:
+        if not item:
+            return await super().send_help()
+        return await super().send_help(item)
 
     async def send(
         self,

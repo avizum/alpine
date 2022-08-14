@@ -33,6 +33,6 @@ def default_reason(ctx: Context) -> str:
     return f"{ctx.author}: No reason was provided."
 
 
-DefaultReason: str = commands.parameter(
-    default=default_reason, displayed_default="<reason>", converter=ModReason
+DefaultReason: ModReason = commands.parameter(
+    default='s', displayed_default="<reason>", converter=ModReason
 )
