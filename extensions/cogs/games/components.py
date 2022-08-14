@@ -184,15 +184,23 @@ class RPSButton(discord.ui.Button["RPSView"]):
         if interaction.user == self.view.player:
             if self.view.player_one_response is None:
                 self.view.player_one_response = self.answer
+                self.view.player_one_str_response = self.label
                 await interaction.response.send_message(f"You chose {self.label}", ephemeral=True)
             else:
-                await interaction.response.send_message(f"You already chose {self.view.player_one_response}", ephemeral=True)
+                await interaction.response.send_message(
+                    f"You already chose {self.view.player_one_str_response}",
+                    ephemeral=True
+                )
         if interaction.user == self.view.opponent:
             if self.view.player_two_response is None:
                 self.view.player_two_response = self.answer
+                self.view.player_two_str_response = self.label
                 await interaction.response.send_message(f"You chose {self.label}", ephemeral=True)
             else:
-                await interaction.response.send_message(f"You already chose {self.view.player_two_response}", ephemeral=True)
+                await interaction.response.send_message(
+                    f"You already chose {self.view.player_two_str_response}",
+                    ephemeral=True
+                )
         if self.view.player_one_response is None or self.view.player_two_response is None:
             return
         return await self.view.determine_winner()
@@ -201,7 +209,9 @@ class RPSButton(discord.ui.Button["RPSView"]):
 class RPSView(View):
     children: list[RPSButton]
     player_one_response: int | None = None
+    player_one_str_response: str | None = None
     player_two_response: int | None = None
+    player_two_str_response: str | None = None
 
     def __init__(
         self,
@@ -224,6 +234,11 @@ class RPSView(View):
             ("\U00002702\U0000fe0f", "Scissors", 2)
         ]:
             self.add_item(RPSButton(emoji=emoji, label=label, answer=value))
+
+    async def on_timeout(self) -> None:
+        self.embed.description = "Game ended due to timeout."
+        await self.message.edit(embed=self.embed, view=None)
+        self.stop()
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user in (self.player, self.opponent)

@@ -166,11 +166,23 @@ class Games(core.Cog):
         view = AkinatorGameView(member=ctx.author, ctx=ctx, client=akiclient, embed=embed)
         view.message = await ctx.send(embed=embed, view=view)
 
-    @core.command(aliases=["rps"])
+    @core.command(hybrid=True, aliases=["rps"])
     @commands.max_concurrency(1, commands.BucketType.channel)
     @core.cooldown(2, 5, commands.BucketType.member)
+    @core.describe(opponent="Who you want to play against.")
     async def rockpaperscissors(self, ctx: Context, opponent: discord.Member | None = None):
+        """
+        Play a game of rock paper scissors.
+
+        You can play against another person or against the bot if you don't provide an opponent.
+        """
         opp = opponent or ctx.me
+
+        if opp == ctx.author:
+            return await ctx.send("You can't play against yourself.")
+        if opp.bot and opp != ctx.me:
+            return await ctx.send("You can't play against a bot.")
+
         embed = discord.Embed(
             title="Rock Paper Scissors",
             description=f"Who will win: {ctx.author.mention} or {opp.mention}?"
