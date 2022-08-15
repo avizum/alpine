@@ -21,7 +21,7 @@ from __future__ import annotations
 import logging
 
 from copy import deepcopy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict
 
 from discord.ext import tasks
 
@@ -32,17 +32,57 @@ if TYPE_CHECKING:
 _log = logging.getLogger("avimetry")
 
 
+class CacheUsers(TypedDict):
+    timezone: str | None
+    color: int | None
+    dmed: bool
+
+
+class CacheGuildSettings(TypedDict):
+    prefixes: list[str]
+    disabled_commands: list[str]
+    disabled_channels: list[str]
+    auto_unarchive: list[int]
+
+
+class CacheVerification(TypedDict):
+    role_id: int
+    channel_id: int
+    low: bool | None
+    medium: bool | None
+    high: bool | None
+
+class CacheLogging(TypedDict):
+    enabled: bool | None
+    channel_id: int | None
+    message_delete: bool | None
+    message_edit: bool | None
+    member_join: bool | None
+    member_leave: bool | None
+    member_ban: bool | None
+    channel_edit: bool | None
+    channel_delete: bool | None
+    guild_edit: bool | None
+
+class CacheJoinLeave(TypedDict):
+    join_enabled: bool | None
+    join_channel: int | None
+    join_message: str | None
+    leave_enabled: bool | None
+    leave_channel: int | None
+    leave_message: str | None
+
+
 class Cache:
     def __init__(self, bot: Bot) -> None:
         self.bot: Bot = bot
         self.cache_loop.start()
-        self.guild_settings: dict = {}
-        self.verification: dict = {}
-        self.logging: dict[int, dict] = {}
-        self.join_leave: dict[int, dict] = {}
+        self.guild_settings: dict[int, CacheGuildSettings | dict] = {}
+        self.verification: dict[int, CacheVerification | dict] = {}
+        self.logging: dict[int, CacheLogging | dict] = {}
+        self.join_leave: dict[int, CacheJoinLeave | dict] = {}
         self.blacklist: dict[int, str] = {}
-        self.disabled_commmand: dict = {}
-        self.users: dict[int, dict] = {}
+        self.users: dict[int, CacheUsers] = {}
 
     @tasks.loop(minutes=5)
     async def cache_loop(self) -> None:
