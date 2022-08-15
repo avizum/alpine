@@ -17,23 +17,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import asyncio
-import datetime
+import datetime as dt
 import random
 import string
+from typing import TYPE_CHECKING
 
 import discord
 
 import core
-from core import Bot, Context
+
+if TYPE_CHECKING:
+    from datetime import datetime
+    from core import Bot, Context
 
 
 class MemberJoin(core.Cog):
     def __init__(self, bot: Bot):
-        self.bot = bot
-        self.load_time = datetime.datetime.now(datetime.timezone.utc)
-        self.messages = {}
+        self.bot: Bot = bot
+        self.load_time: datetime = dt.datetime.now(dt.timezone.utc)
+        self.messages: dict[int, discord.Message] = {}
 
-    async def do_verify(self, member):
+    async def do_verify(self, member: discord.Member):
         prefix = await self.bot.cache.get_guild_settings(member.guild.id)
         prefixes = prefix.get("prefixes")
         pre = prefixes[0] if prefixes else "a."
