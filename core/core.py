@@ -65,7 +65,7 @@ class Command(commands.Command):
         super().__init__(func, **kwargs)
         if not self._buckets._cooldown:
             cd = commands.Cooldown(3, 15)
-            self._buckets = commands.DynamicCooldownMapping(owner_cd, commands.BucketType.user)
+            self._buckets = commands.DynamicCooldownMapping(owner_cd, commands.BucketType.user)  # type: ignore
             self._buckets._cooldown = cd
 
     def __repr__(self) -> str:
@@ -107,11 +107,19 @@ class Group(commands.Group, Command):
 
 
 class HybridCommand(commands.HybridCommand, Command):
-    pass
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        app_command = getattr(self, "app_command", None)
+        if app_command:
+            app_command.guild_only = True
 
 
 class HybridGroup(commands.HybridGroup, Group):
-    pass
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        app_command = getattr(self, "app_command", None)
+        if app_command:
+            app_command.guild_only = True
 
 
 class Cog(commands.Cog):

@@ -239,6 +239,7 @@ class HelpCommand(core.Cog):
         self.bot.help_command = self.default
 
     @app_commands.command(name="help")
+    @app_commands.guild_only()
     @app_commands.describe(item="The command or module you need help with.")
     async def _help(self, interaction: discord.Interaction, item: str | None):
         """
