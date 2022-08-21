@@ -34,12 +34,16 @@ class ButtonRole(discord.ui.View):
         custom_id="828437885820076053",
     )
     async def general_channels(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if button.custom_id != "828437885820076053":
+            return await interaction.response.defer()
         if interaction.guild is None or interaction.guild_id != 751490725555994716:
-            return
+            return await interaction.response.defer()
         role = interaction.guild.get_role(int(button.custom_id))
+        if role is None:
+            return await interaction.response.defer()
         member = interaction.user
         if isinstance(member, discord.User):
-            return
+            return await interaction.response.defer()
         if role in member.roles:
             await member.remove_roles(role)
             return await interaction.response.send_message(
@@ -55,13 +59,17 @@ class ButtonRole(discord.ui.View):
         custom_id="927077897318047854",
     )
     async def avimetry_channels(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if button.custom_id != "927077897318047854":
+            return await interaction.response.defer()
         if interaction.guild is None or interaction.guild_id != 751490725555994716:
-            return
+            return await interaction.response.defer()
         guild = interaction.guild
         role = guild.get_role(int(button.custom_id))
+        if role is None:
+            return await interaction.response.defer()
         member = interaction.user
         if isinstance(member, discord.User):
-            return
+            return await interaction.response.defer()
         if role in member.roles:
             await member.remove_roles(role)
             return await interaction.response.send_message(
@@ -72,9 +80,9 @@ class ButtonRole(discord.ui.View):
         return await interaction.response.send_message("You now have access to the Avimetry Channels.", ephemeral=True)
 
 
-class Servers(core.Cog):
+class AvimetrySupport(core.Cog):
     """
-    Commands for bot's servers only.
+    Commands for Avimetry Support Server
     """
 
     def __init__(self, bot: Bot):
@@ -82,7 +90,3 @@ class Servers(core.Cog):
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         if ButtonRole() not in self.bot.persistent_views:
             bot.add_view(ButtonRole())
-
-
-async def setup(bot):
-    await bot.add_cog(Servers(bot))

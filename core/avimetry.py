@@ -35,16 +35,16 @@ from sr_api.client import Client as SRClient
 from asyncdagpi.client import Client as DagpiClient
 from aiohttp import ClientSession
 from discord.ext import commands
-from discord.client import _ColourFormatter
+from discord.utils import _ColourFormatter
 from wavelink.ext import spotify
 from topgg.client import DBLClient
 from topgg.webhook import WebhookManager
 
-from core import Command, Group, Cog
+from core import Command, Group
 from utils.cache import Cache
 
 if TYPE_CHECKING:
-    from .context import Context
+    from core import Cog, Context
     from extensions.listeners.errorhandler import ErrorHandler
 
 
@@ -109,6 +109,7 @@ class Bot(commands.Bot):
         "extensions.listeners.errorhandler",
         "extensions.listeners.events",
         "extensions.listeners.joinsandleaves",
+        "extensions.support"
     )
 
     with open("config.toml") as token:
@@ -145,7 +146,7 @@ class Bot(commands.Bot):
             max_messages=5000,
             owner_ids=OWNER_IDS,
         )
-        self._BotBase__cogs: dict[str, commands.Cog] = commands.core._CaseInsensitiveDict()
+        self._BotBase__cogs: dict[str, Cog] = commands.core._CaseInsensitiveDict()
 
     def __repr__(self) -> str:
         return (
@@ -156,7 +157,7 @@ class Bot(commands.Bot):
     async def setup_hook(self) -> None:
         self.session: ClientSession = ClientSession()
         self.cache: Cache = Cache(self)
-        self.pool: asyncpg.Pool = await asyncpg.create_pool(**self.settings["postgresql"]) # type: ignore
+        self.pool: asyncpg.Pool = await asyncpg.create_pool(**self.settings["postgresql"])  # type: ignore
         self.topgg: DBLClient = DBLClient(self, self.api["TopGG"], autopost_interval=None, session=self.session)
         self.topgg_webhook: WebhookManager = WebhookManager(self).dbl_webhook("/dbl", self.api["TopGGWH"])
         self.gist: GistClient = GistClient(self.api["GitHub"], self.session)
@@ -195,8 +196,9 @@ class Bot(commands.Bot):
         for ext in self.to_load:
             try:
                 await self.load_extension(ext)
+                _log.info(f"Loaded extension: {ext}")
             except commands.ExtensionError as error:
-                _log.error(f"Exception in loading extension {ext}", exc_info=error)
+                _log.error(f"Exception in loading extension {ext}:", exc_info=error)
 
     async def find_restart_message(self) -> None:
         await self.wait_until_ready()
