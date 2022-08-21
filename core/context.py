@@ -179,7 +179,9 @@ class Context(commands.Context):
     async def fetch_color(self, member: discord.Member | discord.User | None = None) -> discord.Color:
         member = member or self.author
         data = self.cache.users.get(member.id)
-        color = data.get("color") if data else None
+        color = None
+        if data is not None and data["color"] is not None:
+            color = discord.Color(data["color"])
         if not color:
             color = member.color
         if color == discord.Color(0):
@@ -191,7 +193,9 @@ class Context(commands.Context):
     def get_color(self, member: discord.Member | discord.User | None = None) -> discord.Color:
         member = member or self.author
         data = self.cache.users.get(member.id)
-        color = data.get("color") if data else None
+        color = None
+        if data is not None and data["color"] is not None:
+            color = discord.Color(data["color"])
         if not color:
             color = member.color
         elif color == discord.Color(0):
@@ -220,15 +224,15 @@ class Context(commands.Context):
 
     async def send_and_cache(self, *args: Any, **kwargs: Any) -> Message:
         message = await super().send(*args, **kwargs)
-        self.bot.command_cache[message.id] = message
+        self.bot.command_cache[self.message.id] = message
         return message
 
     async def edit_and_recache(self, message: discord.Message, *args: Any, **kwargs: Any) -> Message:
         message = await message.edit(*args, **kwargs)
-        self.bot.command_cache[message.id] = message
+        self.bot.command_cache[self.message.id] = message
         return message
 
-    async def send_help(self, item: str | None) -> Any:
+    async def send_help(self, item: Any | None) -> Any:
         if not item:
             return await super().send_help()
         return await super().send_help(item)
@@ -342,7 +346,7 @@ class Context(commands.Context):
             msg = await self.interaction.followup.send(**kwargs, wait=True)
         else:
             await self.interaction.response.send_message(**kwargs)
-            msg = await self.interaction.original_message()
+            msg = await self.interaction.original_response()
 
         if delete_after is not None and not (ephemeral and self.interaction is not None):
             await msg.delete(delay=delete_after)
