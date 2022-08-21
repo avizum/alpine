@@ -64,7 +64,7 @@ class Moderation(core.Cog):
 
         You can not kick people with higher permissions than you.
         """
-        reason = flags.reason or f"{ctx.author}: No reason provided"
+        reason = flags.reason or f"{ctx.author}: No reason provided."
         await target.kick(reason=reason)
         kick_embed = discord.Embed(title="Kicked Member", color=discord.Color.green())
         kick_embed.description = f"**{target}** has been kicked from the server."
@@ -95,7 +95,6 @@ class Moderation(core.Cog):
 
         You can not kick people with higher permissions than you.
         """
-        reason = reason or f"{ctx.author}: No reason provided"
         if not targets:
             return await ctx.send("One or more members can not be kick by you. Try again.")
         new_targets = ", ".join(str(i) for i in targets)
@@ -150,7 +149,7 @@ class Moderation(core.Cog):
         You can ban people whether they are in the server or not.
         You can not ban people with higher permissions than you.
         """
-        reason = flags.reason or f"{ctx.author}: No reason provided"
+        reason = flags.reason or f"{ctx.author}: No reason provided."
         await ctx.guild.ban(target, reason=reason, delete_message_days=flags.delete_days)
         kick_embed = discord.Embed(title="Banned Member", color=discord.Color.green())
         kick_embed.description = f"**{target}** has been banned from the server."
@@ -181,7 +180,6 @@ class Moderation(core.Cog):
 
         You can not ban people with a role higher than you or higher permissions.
         """
-        reason = reason or f"{ctx.author}: No reason provided"
         if not targets:
             return await ctx.send("One or more members can not be banned by you. Try again.")
         new_targets = ", ".join(str(i) for i in targets)
@@ -206,7 +204,6 @@ class Moderation(core.Cog):
 
         Anyone with permission to ban members can unban anyone.
         """
-        reason = reason or f"{ctx.author}: No reason provided"
         await ctx.guild.unban(target, reason=reason)
         unban_embed = discord.Embed(
             title="Unbanned Member",
@@ -247,7 +244,6 @@ class Moderation(core.Cog):
             )
             if not conf.result:
                 return await ctx.send("Okay, I won't replace their mute.", delete_after=10, ephemeral=True)
-        reason = reason or f"{ctx.author}: No reason provided."
         dur = dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=duration)
         await target.edit(timed_out_until=dur, reason=reason)
         embed = discord.Embed(
@@ -270,7 +266,6 @@ class Moderation(core.Cog):
         This removes the time out from the member.
         You can not unmute people that are higher than you in the role hierarchy.
         """
-        reason = reason or f"{ctx.author}: No reason provided."
         await target.edit(timed_out_until=None, reason=reason)
         await ctx.send(f"Unmuted {target}.", ephemeral=True)
 
@@ -300,7 +295,7 @@ class Moderation(core.Cog):
         else:
             await conf.message.edit(content="Aborted.")
 
-    async def do_affected(self, messages: list[discord.Message]):
+    async def do_affected(self, messages: list[discord.Message]) -> discord.Embed:
         authors = {}
         for message in messages:
             if message.author not in authors:
@@ -308,16 +303,20 @@ class Moderation(core.Cog):
             else:
                 authors[message.author] += 1
         message = "\n".join(f"{author.mention}: {amount} messages" for author, amount in authors.items())
+        if not message:
+            message = "No messages deleted."
         return discord.Embed(title="Affected Messages", description=message)
 
     async def do_purge(self, /, ctx: Context, *args, **kwargs) -> list[discord.Message]:
-        await ctx.defer(ephemeral=True)
-        return await ctx.channel.purge(*args, **kwargs)
+        async with ctx.typing():
+            messages = await ctx.channel.purge(*args, **kwargs)
+        return messages
 
     @core.group(hybrid=True, fallback="messages", invoke_without_command=True)
     @core.both_has_permissions(manage_messages=True)
     @core.default_permissions(manage_messages=True)
     @core.cooldown(5, 30, commands.BucketType.member)
+    @core.describe(amount="The amount of messages to purge.")
     async def purge(self, ctx: Context, amount: PurgeAmount):
         """
         Mass delete messages in the current channel.
@@ -331,6 +330,7 @@ class Moderation(core.Cog):
     @purge.command(aliases=["user", "person"])
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
+    @core.describe(member="Which member's message to delete.", amount="The amount of messages to purge.")
     async def member(self, ctx: Context, member: discord.Member, amount: PurgeAmount):
         """
         Purge messages from a member.
@@ -343,9 +343,10 @@ class Moderation(core.Cog):
     @purge.command()
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
+    @core.describe(amount="The amount of messages to purge.")
     async def bots(self, ctx: Context, amount: PurgeAmount):
         """
-        Purge any message sent from a bot, including me.
+        Purge any message sent from a bot, including messages sent by me.
         """
         purged = await self.do_purge(ctx, limit=amount, check=lambda m: m.author.bot, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged), ephemeral=True)
@@ -353,6 +354,7 @@ class Moderation(core.Cog):
     @purge.command()
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
+    @core.describe(amount="The amount of messages to purge.")
     async def links(self, ctx: Context, amount: PurgeAmount):
         """
         Purge any message that contains a link.
@@ -372,6 +374,7 @@ class Moderation(core.Cog):
     @purge.command(aliases=["images", "pictures"])
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
+    @core.describe(amount="The amount of messages to purge.")
     async def files(self, ctx: Context, amount: PurgeAmount):
         """
         Purge any message that contains files.
@@ -382,6 +385,7 @@ class Moderation(core.Cog):
     @purge.command(aliases=["in"])
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
+    @core.describe(text="The text to purge.")
     async def contains(self, ctx: Context, *, text: str):
         """
         Purge messages containing text.
@@ -394,6 +398,7 @@ class Moderation(core.Cog):
     @purge.command(aliases=["sw", "starts"])
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
+    @core.describe(text="The text to purge.")
     async def startswith(self, ctx: Context, *, text: str):
         """
         Purge messages starting with text.
@@ -406,6 +411,7 @@ class Moderation(core.Cog):
     @purge.command(aliases=["ew", "ends"])
     @core.has_permissions(manage_messages=True)
     @core.bot_has_permissions(manage_messages=True)
+    @core.describe(text="The text to purge.")
     async def endswith(self, ctx: Context, *, text: str):
         """
         Purge messages ending with with text.
@@ -438,61 +444,70 @@ class Moderation(core.Cog):
         purged = await self.do_purge(ctx, limit=amount, check=check, before=ctx.message)
         await ctx.can_delete(embed=await self.do_affected(purged), ephemeral=True)
 
-    @core.command(usage="<channel> [reason]")
-    @core.has_permissions(manage_channels=True)
-    @core.bot_has_permissions(manage_channels=True)
+    @core.command(hybrid=True)
+    @core.both_has_permissions(manage_messages=True)
+    @core.default_permissions(manage_messages=True)
+    @core.describe(channel="The channel to lock.", reason="The reason for locking the channel.")
     async def lock(
         self,
         ctx: Context,
-        channel: discord.TextChannel,
+        channel: discord.TextChannel = commands.CurrentChannel,
         *,
         reason: ModReason = DefaultReason,
     ):
         """
         Locks a channel.
 
-        This sets the channel overwrite for send messages to false (x)
-        If people can still speak, Set the channel overwrite for send messages to none (/).
-        Then set the server permissions for send messages to on.
-        If you have any problems, DM Avimetry or ask in the support server.
+        This sets the channel overwrite for send messages to Denied.
         """
-        reason = reason or f"Action done by {ctx.author}"
         await channel.set_permissions(
             ctx.guild.default_role,
             send_messages=False,
+            reason=reason
         )
         lc = discord.Embed(
-            title=":lock: This channel has been locked.",
-            description=f"{ctx.author.mention} has locked down <#{channel.id}> reason: {reason}.",
+            title=":lock: Channel Locked.",
+            description=f"Channel has been locked.\nReason: {reason}",
+            color=discord.Color.red(),
         )
-        await channel.send(embed=lc)
+        await ctx.send(f"{utils.Emojis.GREEN_TICK} {channel.mention} locked.")
+        if channel != ctx.channel:
+            await channel.send(embed=lc)
 
-    @core.command(usage="<channel> [reason]")
-    @core.has_permissions(manage_channels=True)
-    @core.bot_has_permissions(manage_channels=True)
+    @core.command(hybrid=True)
+    @core.both_has_permissions(manage_channels=True)
+    @core.default_permissions(manage_channels=True)
+    @core.describe(channel="The channel to unlock.", reason="The reason for unlocking the channel.")
     async def unlock(
         self,
         ctx: Context,
-        channel: discord.TextChannel,
+        channel: discord.TextChannel = commands.CurrentChannel,
         *,
         reason: ModReason = DefaultReason,
     ):
         """
         Unlocks a channel.
 
-        This sets the channel overwrite for send messages to none (/).
+        This sets the channel overwrite for send messages to None.
         """
-        await channel.set_permissions(ctx.guild.default_role, send_messages=None)
-        uc = discord.Embed(
-            title=":unlock: This channel has been unlocked.",
-            description=f"{ctx.author.mention} has unlocked <#{channel.id}> reason: {reason}. ",
+        await channel.set_permissions(
+            ctx.guild.default_role,
+            send_messages=None,
+            reason=reason
         )
-        await channel.send(embed=uc)
+        lc = discord.Embed(
+            title=":unlock: Channel Unocked.",
+            description=f"Channel has been unlocked.\nReason: {reason}",
+            color=discord.Color.green(),
+        )
+        await ctx.send(f"{utils.Emojis.GREEN_TICK} {channel.mention} unlocked.")
+        if channel != ctx.channel:
+            await channel.send(embed=lc)
 
     @core.command()
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
-    async def slowmode(self, ctx: Context, *, seconds: TimeConverter = 0):
+    async def slowmode(self, ctx: Context, *, seconds: TimeConverter):
         """
         Set the channel's slowmode delay.
 
@@ -501,12 +516,14 @@ class Moderation(core.Cog):
         """
         if seconds > 21600:
             raise commands.BadArgument("Amount should be less than or equal to 6 hours")
-        await ctx.channel.edit(slowmode_delay=seconds)
-        smembed = discord.Embed(
+        if isinstance(ctx.channel, discord.Thread):
+            return await ctx.send("Slowmode delay cannot be set in threads.")
+        await ctx.channel.edit(slowmode_delay=seconds)  # type: ignore  # not sure why that happens
+        embed = discord.Embed(
             title="Changed Slowmode",
             description=f"Slowmode delay has been set to {humanize.precisedelta(seconds)}",
         )
-        await ctx.send(embed=smembed)
+        await ctx.send(embed=embed)
 
     @core.group(invoke_without_command=True)
     @core.has_permissions(manage_roles=True)

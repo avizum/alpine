@@ -29,7 +29,7 @@ def default_reason(ctx: Context) -> str:
 
 
 class ModActionFlag(commands.FlagConverter):
-    reason: str = flag(default="s", description="Reason that will show up in the audit log.")
+    reason: str = flag(default=None, description="Reason that will show up in the audit log.")
     dm: bool = flag(default=False, description="Whether to DM the user.")
 
 
@@ -64,7 +64,7 @@ time_dict = {
 }
 
 
-class TimeConverter(float):
+class TimeConverter(commands.Converter, int):
     @classmethod
     async def convert(cls, ctx: Context, argument) -> float:
         args = argument.lower()
@@ -82,7 +82,7 @@ class TimeConverter(float):
         return time
 
 
-class PurgeAmount(int):
+class PurgeAmount(commands.Converter, int):
     @classmethod
     async def convert(cls, ctx: Context, argument: str) -> int:
         try:
@@ -94,7 +94,7 @@ class PurgeAmount(int):
         return number
 
 
-class TargetMember(discord.Member):
+class TargetMember(commands.Converter, discord.Member):
     @classmethod
     async def convert(cls, ctx: Context, argument: str) -> discord.Member:
         member = await commands.MemberConverter().convert(ctx, argument)
@@ -129,7 +129,7 @@ class TargetMember(discord.Member):
         return member
 
 
-class FindBan(discord.Member):
+class FindBan(commands.Converter, discord.Member):
     @classmethod
     async def convert(cls, ctx: Context, argument: str) -> discord.Member | discord.User:
         try:

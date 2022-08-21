@@ -20,7 +20,7 @@ from discord.ext import commands
 from core.context import Context
 
 
-class ModReason(commands.Converter):
+class ModReason(commands.Converter, str):
     async def convert(self, ctx: Context, argument=None) -> str:
         reason = f"{ctx.author}: {argument}"
 
@@ -33,6 +33,9 @@ def default_reason(ctx: Context) -> str:
     return f"{ctx.author}: No reason was provided."
 
 
-DefaultReason: ModReason = commands.parameter(
-    default='s', displayed_default="<reason>", converter=ModReason
+DefaultReason = commands.parameter(
+    default=default_reason,
+    displayed_default="<No reason provided.>",
+    converter=ModReason,
+    description="Reason for the action.",
 )

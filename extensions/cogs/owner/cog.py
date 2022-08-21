@@ -47,7 +47,7 @@ from jishaku.repl import AsyncCodeExecutor
 
 
 import core
-from utils import ModReason, Paginator, PaginatorEmbed, View, Emojis
+from utils import ModReason, DefaultReason, Paginator, PaginatorEmbed, View, Emojis
 
 if TYPE_CHECKING:
     from jishaku.repl import Scope
@@ -71,10 +71,10 @@ def natural_size(size_in_bytes: int) -> str:
     return f"{size_in_bytes / (1024 ** power):.2f} {units[power]}"
 
 
-class CogConverter(commands.Converter):
-    async def convert(self, ctx: Context, argument):
+class CogConverter(commands.Converter, list):
+    async def convert(self, ctx: Context, argument: str) -> list[str]:
         exts = []
-        if argument in ["~", "*", "a", "all"]:
+        if argument in {"~", "*", "a", "all"}:
             exts.extend(ctx.bot.extensions)
         elif argument not in ctx.bot.extensions:
             arg = get_close_matches(argument, ctx.bot.extensions)
@@ -335,7 +335,6 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         Direct evaluation of Python code.
         """
-
         arg_dict, convertables = self.jsk_python_get_convertables(ctx)
         message_reference = getattr(ctx.message.reference, "resolved", None)
         voice_client = ctx.voice_client
@@ -575,11 +574,10 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await pages.start()
 
     @Feature.Command(parent="blacklist", name="add", aliases=["a"])
-    async def blacklist_add(self, ctx: Context, user: discord.User, *, reason: ModReason | None = None):
+    async def blacklist_add(self, ctx: Context, user: discord.User, *, reason: ModReason = DefaultReason):
         """
         Add a user to the global blacklist.
         """
-        reason = reason or f"{ctx.author}: No reason provided."
         if user.id in self.bot.owner_ids:
             return await ctx.send("Can not blacklist that user.")
         blacklist_user = ctx.cache.blacklist.get(user.id)
@@ -596,11 +594,10 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             await ctx.send(embed=embed)
 
     @Feature.Command(parent="blacklist", name="remove", aliases=["r"])
-    async def blacklist_remove(self, ctx: Context, user: discord.User, *, reason: ModReason | None = None):
+    async def blacklist_remove(self, ctx: Context, user: discord.User, *, reason: ModReason = DefaultReason):
         """
         Removes a user from the global blacklist.
         """
-        reason = reason or f"{ctx.author}: No reason provided."
         blacklist_user = ctx.cache.blacklist.get(user.id)
         if blacklist_user:
             query = "DELETE FROM blacklist WHERE user_id = $1"
