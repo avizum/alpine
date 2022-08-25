@@ -411,6 +411,8 @@ class Meta(core.Cog):
         Get the docs for the discord.py library.
         """
         q = await self.scraper.search(query, page="https://discordpy.readthedocs.io/en/latest/")
+        if not q:
+            return await ctx.send("No results found.")
         menu = Paginator(RTFMPageSource(ctx, q[:79], "Discord.py"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
@@ -421,6 +423,8 @@ class Meta(core.Cog):
         Get the docs for the latest Python version
         """
         q = await self.scraper.search(query, page="https://docs.python.org/3/")
+        if not q:
+            return await ctx.send("No results found.")
         menu = Paginator(RTFMPageSource(ctx, q[:79], "Python"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
@@ -431,6 +435,8 @@ class Meta(core.Cog):
         Get the docs for the Wavelink library
         """
         q = await self.scraper.search(query, page="https://wavelink.readthedocs.io/en/latest/")
+        if not q:
+            return await ctx.send("No results found.")
         menu = Paginator(RTFMPageSource(ctx, q[:79], "Wavelink"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
@@ -444,6 +450,8 @@ class Meta(core.Cog):
             q = await self.scraper.search(query, page=url)
         except Exception as e:
             return await ctx.send(str(e))
+        if not q:
+            return await ctx.send("No results found.")
         menu = Paginator(RTFMPageSource(ctx, q[:79], "Custom Docs"), ctx=ctx, remove_view_after=True)
         await menu.start()
 
