@@ -1,7 +1,6 @@
 
-git+https://github.com/Rapptz/discord.py
-git+https://github.com/Gorialis/jishaku
-git+https://github.com/ShineyDev/prettify.py
+discord.py
+jishaku
 aiogTTS
 aiohttp
 akinator.py
@@ -17,5 +16,5 @@ roblox
 sr_api
 tag_formatter
 toml
-twemoji_pars
+twemoji_parser
 wavelink
