@@ -80,6 +80,8 @@ class UnknownError(View):
                 ephemeral=True,
             )
         check = await self.bot.pool.fetchrow("SELECT trackers FROM command_errors WHERE id = $1", self.error_id)
+        if not check:
+            return await interaction.response.send_message("Something broke.", ephemeral=True)
         if self.member.id in check["trackers"]:
             remove_tracker = "UPDATE command_errors SET trackers = ARRAY_REMOVE(trackers, $2) WHERE id = $1"
             await self.bot.pool.execute(remove_tracker, self.error_id, self.member.id)
@@ -148,7 +150,10 @@ class ErrorHandler(core.Cog):
             return
 
         if not ctx.bot_permissions.send_messages:
-            return
+            return await ctx.author.send("I don't have permissions to send messages in that channel.")
+
+        if not ctx.bot_permissions.embed_links:
+            return await ctx.send("I don't have permissions to send embeds in this channel.")
 
         if await self.bot.is_owner(ctx.author) and isinstance(error, reinvoke):
             try:
@@ -325,7 +330,7 @@ class ErrorHandler(core.Cog):
             self.reset(ctx)
             bad_literal_arg = Embed(
                 title="Bad Argument",
-                description=f"This argument must be:\n {format_list(error.literals, last='or')}.",
+                description=f"This argument must be:\n {format_list(list(error.literals), last='or')}.",
             )
             return await ctx.send(embed=bad_literal_arg)
 
@@ -353,6 +358,7 @@ class ErrorHandler(core.Cog):
             if not in_db:
                 insert_query = "INSERT INTO command_errors (command, error) " "VALUES ($1, $2) " "RETURNING *"
                 inserted_error = await self.bot.pool.fetchrow(insert_query, ctx.command.qualified_name, str(error))
+                assert inserted_error is not None
                 embed.title = "An unknown error occured"
                 embed.description = (
                     "This error has been logged and will be fixed soon.\n"

@@ -18,31 +18,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import time
 
+from typing import Any
 
-def format_string(number, value):
+
+def format_string(number: int, value: str) -> str:
     """
     "Humanizes" a name, Ex: 1 time, 2 times
     """
     return f"{number} {value}" if number == 1 else f"{number} {value}s"
 
 
-def format_list(list, *, seperator: str = ", ", last: str = "and") -> str:
+def format_list(item_list: list[Any], *, seperator: str = ", ", last: str = "and") -> str | list[Any]:
     """
     Makes a list easier to read
     """
-    if not list:
-        return list
-    if len(list) == 1:
-        return list[0]
-    if len(list) == 2:
-        return f" {last} ".join(list)
-    return f"{seperator.join(str(item) for item in list[:-1])} {last} {list[-1]}"
+    if not item_list:
+        return item_list
+    if len(item_list) == 1:
+        return item_list[0]
+    if len(item_list) == 2:
+        return f" {last} ".join(item_list)
+    return f"{seperator.join(str(item) for item in item_list[:-1])} {last} {item_list[-1]}"
 
 
 class Timer:
     __slots__ = ("start_time", "end_time")
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.start_time: float | None = None
         self.end_time: float | None = None
 
@@ -54,29 +56,29 @@ class Timer:
         self.start()
         return self
 
-    def __exit__(self, exc_type, exc_value, exc_traceback):
+    def __exit__(self, exc_type, exc_value, exc_traceback) -> None:
         self.stop()
 
-    async def __aexit__(self, exc_type, exc_value, exc_traceback):
+    async def __aexit__(self, exc_type, exc_value, exc_traceback) -> None:
         self.stop()
 
-    def start(self):
+    def start(self) -> None:
         self.start_time = time.perf_counter()
 
-    def stop(self):
+    def stop(self) -> None:
         self.end_time = time.perf_counter()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.total_time)
 
-    def __int__(self):
+    def __int__(self) -> int:
         return int(self.total_time)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Timer time={self.total_time}>"
 
     @property
-    def total_time(self):
+    def total_time(self) -> float:
         if self.start_time is None:
             raise ValueError("Timer has not been started")
         if self.end_time is None:
@@ -115,6 +117,6 @@ def format_seconds(seconds: float, *, friendly: bool = False) -> str:
 def format_times(number: int) -> str:
     if number == 1:
         return "once"
-    if number == 2:
+    elif number == 2:
         return "twice"
     return f"{number} times"

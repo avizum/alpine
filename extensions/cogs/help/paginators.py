@@ -219,8 +219,8 @@ class HelpSelect(discord.ui.Select["HelpPages"]):
             return await interaction.response.defer()
         if self.values[0] == "Home":
             await self.view.edit_source(MainHelp(self.ctx, self.hc), interaction)
-        if cog is None:
-            await interaction.response.send_message("This module doesn't exist??")
+        elif cog is None:
+            await interaction.response.send_message("This module is not available.", ephemeral=True)
         else:
             thing = CogHelp(
                 self.ctx,

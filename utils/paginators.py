@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import discord
 from discord.ext.menus import PageSource
@@ -42,25 +42,27 @@ class PaginatorEmbed(discord.Embed):
 # This paginator is essentially discord.ext.menus but changed a bit so that it uses buttons instead of reactions.
 # https://github.com/Rapptz/discord-ext-menus
 class BasePaginator(View):
+    timeout: float | int
+
     def __init__(
         self,
         source: PageSource,
         *,
         ctx: Context,
-        timeout: int = 180,
+        timeout: float = 180.0,
         current_page: int = 0,
         delete_message_after: bool = False,
         remove_view_after: bool = False,
         disable_view_after: bool = False,
         message: discord.Message | None = None,
-    ):
-        self.source = source
-        self.ctx = ctx
-        self.disable_view_after = disable_view_after
-        self.remove_view_after = remove_view_after
-        self.delete_message_after = delete_message_after
-        self.current_page = current_page
-        self.message = message
+    ) -> None:
+        self.source: PageSource = source
+        self.ctx: Context = ctx
+        self.disable_view_after: bool = disable_view_after
+        self.remove_view_after: bool = remove_view_after
+        self.delete_message_after: bool = delete_message_after
+        self.current_page: int = current_page
+        self.message: discord.Message | None = message
         super().__init__(timeout=timeout, member=ctx.author)
 
     async def interaction_check(self, interaction: discord.Interaction):
@@ -92,15 +94,14 @@ class BasePaginator(View):
     async def show_checked_page(self, interaction: discord.Interaction, page_num: int):
         max_pages = self.source.get_max_pages()
         try:
-            if max_pages is None or max_pages > page_num >= 0:
+            if max_pages is None:
+                await self.show_page(interaction, page_num)
+            elif max_pages > page_num >= 0:
                 await self.show_page(interaction, page_num)
         except IndexError:
-            if page_num > max_pages:
-                await self.show_page(interaction, max_pages)
-            if page_num < 0:
-                await self.show_page(interaction, 0)
+            pass
 
-    async def get_page_kwargs(self, page: int):
+    async def get_page_kwargs(self, page: int) -> dict[str, Any]:
         value = await discord.utils.maybe_coroutine(self.source.format_page, self, page)
         if isinstance(value, dict):
             return value
@@ -116,7 +117,6 @@ class BasePaginator(View):
             return
         if self.disable_view_after:
             self.disable_all()
-            self.stop_view.label = "Disabled"
             await self.message.edit(view=self)
         elif self.remove_view_after:
             await self.message.edit(view=None)
@@ -139,7 +139,7 @@ class BasePaginator(View):
 class SkipToPageModal(discord.ui.Modal, title="Go to page"):
     to_page = discord.ui.TextInput(label="Page Number", style=discord.TextStyle.short, min_length=1, max_length=6)
 
-    def __init__(self, timeout: int, view: Paginator):
+    def __init__(self, timeout: float, view: Paginator):
         super().__init__(timeout=timeout)
         self.view = view
 
@@ -148,6 +148,8 @@ class SkipToPageModal(discord.ui.Modal, title="Go to page"):
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
         try:
+            if not self.to_page.value:
+                raise ValueError("Page number cannot be empty.")
             page_num = int(self.to_page.value)
             max_pages = self.view.source.get_max_pages()
             await self.view.show_checked_page(interaction, int(self.to_page.value) - 1)
@@ -166,7 +168,7 @@ class Paginator(BasePaginator):
         source: PageSource,
         *,
         ctx: Context,
-        timeout: int = 180,
+        timeout: float = 180.0,
         current_page: int = 0,
         delete_message_after: bool = False,
         remove_view_after: bool = False,
@@ -245,6 +247,23 @@ class Paginator(BasePaginator):
             self.go_back_one.disabled = True
             self.skip_to_first.disabled = True
 
+    async def on_timeout(self) -> None:
+        if not self.message:
+            return
+        if self.disable_view_after:
+            self.disable_all()
+            self.stop_view.label = "Disabled"
+            await self.message.edit(view=self)
+        elif self.remove_view_after:
+            await self.message.edit(view=None)
+        elif self.delete_message_after:
+            try:
+                await self.message.delete()
+            except discord.NotFound:
+                pass
+        if self.ctx.interaction is None:
+            await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")
+
     async def start(self) -> discord.Message:
         self._update(self.current_page)
         return await super().start()
@@ -302,7 +321,7 @@ class Paginator(BasePaginator):
             await interaction.response.edit_message(view=self)
         elif self.remove_view_after:
             await interaction.response.edit_message(view=None)
-        elif self.delete_message_after:
+        elif self.delete_message_after and self.message is not None:
             await self.message.delete()
         if self.ctx.interaction is None:
             await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")

@@ -20,7 +20,7 @@ import discord
 
 
 class View(discord.ui.View):
-    def __init__(self, *, member: discord.Member | discord.User, timeout: int = 180) -> None:
+    def __init__(self, *, member: discord.Member | discord.User, timeout: int | float = 180) -> None:
         self.member: discord.Member | discord.User = member
         super().__init__(timeout=timeout)
 

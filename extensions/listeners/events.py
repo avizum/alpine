@@ -88,10 +88,10 @@ class BotLogs(core.Cog):
     @core.Cog.listener("on_message_delete")
     @core.Cog.listener("on_bulk_message_delete")
     async def logging_delete(self, message: discord.Message | list[discord.Message]):
-        try:
-            data = self.bot.cache.logging.get(message.guild.id)
-        except AttributeError:
-            data = self.bot.cache.logging.get(message[0].guild.id)
+        msg = message[0] if isinstance(message, list) else message
+        if msg.guild is None:
+            return
+        data = self.bot.cache.logging.get(msg.guild.id)
         if not data or data["enabled"] is not True or not data.get("message_delete") or not data.get("channel_id"):
             return
         channel = self.bot.get_channel(data["channel_id"])

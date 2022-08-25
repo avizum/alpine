@@ -23,7 +23,7 @@ from discord.ext import commands
 
 import core
 from core import Bot, Context
-from utils import ModReason
+from utils import ModReason, DefaultReason
 
 
 class ServerManagement(commands.Cog, name="Server Management"):
@@ -112,7 +112,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
             new = await channel.clone()
             for channels in channel.channels:
                 thing = await channels.clone(reason="Clone")
-                await thing.edit(category=new)
+                await thing.edit(category=new)  # type: ignore  # still don't know why that happens
             return await ctx.send(f"Successfully cloned {channel.mention}.")
         await channel.clone(reason="because")
         await ctx.send(f"Successfully cloned {channel.mention}.")
@@ -139,7 +139,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
         ctx: Context,
         emoji: discord.PartialEmoji,
         *,
-        reason: ModReason = None,
+        reason: ModReason = DefaultReason,
     ):
         """
         Steal an emoji.
@@ -147,7 +147,6 @@ class ServerManagement(commands.Cog, name="Server Management"):
         This creates an emoji with the same name.
         You can provide a reason.
         """
-        reason = reason or f"{ctx.author}: No reason provided"
         asset = await emoji.read()
         await ctx.guild.create_custom_emoji(name=emoji.name, image=asset, reason=reason)
 
@@ -158,14 +157,13 @@ class ServerManagement(commands.Cog, name="Server Management"):
         self,
         ctx: Context,
         name: str,
-        color: discord.Color = None,
-        reason: ModReason = None,
+        color: discord.Color,
+        reason: ModReason = DefaultReason,
     ):
         """
         Creates a role.
 
         Create a role with the name, color.
         """
-        reason = reason or f"{ctx.author}: No reason provided"
         r = await ctx.guild.create_role(name=name, color=color, reason=reason)
         await ctx.send(f"Created {r}")

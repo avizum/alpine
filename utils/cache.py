@@ -82,7 +82,7 @@ class Cache:
         self.logging: dict[int, CacheLogging | dict] = {}
         self.join_leave: dict[int, CacheJoinLeave | dict] = {}
         self.blacklist: dict[int, str] = {}
-        self.users: dict[int, CacheUsers] = {}
+        self.users: dict[int, CacheUsers | dict] = {}
 
     @tasks.loop(minutes=5)
     async def cache_loop(self) -> None:
@@ -111,7 +111,6 @@ class Cache:
             self.logging,
             self.join_leave,
             self.blacklist,
-            self.disabled_commmand,
             self.users,
         ]
         return f"<Cache size={sum(cache.__sizeof__() for cache in caches)}>"
@@ -123,7 +122,7 @@ class Cache:
         except KeyError:
             return
 
-    async def get_guild_settings(self, guild_id: int) -> dict[str, list] | None:
+    async def get_guild_settings(self, guild_id: int) -> CacheGuildSettings | dict | None:
         return self.guild_settings.get(guild_id)
 
     async def get_prefix(self, guild_id: int) -> list[str] | None:
@@ -132,7 +131,7 @@ class Cache:
             return None
         return guild.get("prefixes")
 
-    async def new_user(self, user_id: int) -> dict:
+    async def new_user(self, user_id: int) -> CacheUsers | dict | None:
         try:
             new = self.users[user_id]
         except KeyError:

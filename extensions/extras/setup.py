@@ -70,18 +70,19 @@ class Setup(core.Cog):
             await self.request_wh.send(embed=embed)
         try:
             if message.channel.id == 945187311509962782:
+                resolved = None
                 if ctx.reference is not None:
                     resolved = ctx.reference.embeds[0]
-                if resolved.footer.text.isdigit():
+                if resolved and resolved.footer.text and resolved.footer.text.isdigit():
                     user = self.bot.get_user(int(resolved.footer.text))
                     if user:
                         send_embed = discord.Embed(timestamp=datetime.datetime.now(datetime.timezone.utc))
                         send_embed.add_field(name=f"From {message.author}:", value=message.content, inline=False)
                         send_embed.add_field(name="You said:", value=resolved.description, inline=False)
-                        send_embed.set_author(name=str(message.author), icon_url=message.author.avatar.url)
+                        send_embed.set_author(name=str(message.author), icon_url=message.author.display_avatar.url)
                         send_embed.set_footer(
                             text="Avimetry Development",
-                            icon_url=self.bot.user.avatar.url
+                            icon_url=self.bot.user.display_avatar.url
                         )
                         await user.send(embed=send_embed)
         except AttributeError:
@@ -103,6 +104,7 @@ class Setup(core.Cog):
         if bots > members:
             summary.append("This guild may be a bot farm.")
         summary.append(f"I am now in a total of {len(self.bot.guilds)} guilds.")
+        assert guild.owner is not None
         embed = discord.Embed(title="New guild", description="\n".join(summary), color=guild.owner.color)
         if guild.icon:
             embed.set_thumbnail(url=guild.icon.url)

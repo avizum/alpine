@@ -70,8 +70,6 @@ class TopGG(core.Cog):
             discord.Game(f"@Avimetry | Made by @{self.bot.get_user(750135653638865017)}"),
         ]
         game = random.choice(games)
-        if game == self.bot.get_guild(814206001451761664).me:
-            return
         await self.bot.change_presence(status=status, activity=game)
 
     @update.before_loop

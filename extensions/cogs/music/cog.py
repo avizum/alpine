@@ -38,21 +38,22 @@ if TYPE_CHECKING:
     from datetime import datetime
     from core import Bot, Context
 
-
-def convert_time(time: int | str) -> float:
-    try:
-        time = int(time)
-    except ValueError:
-        pass
-    if isinstance(time, int):
-        return time
-    if isinstance(time, str):
+class ConvertTime(commands.Converter, int):
+    @classmethod
+    def convert_time(cls, ctx: Context, argument: int | str) -> int:
         try:
-            time_ = dt.datetime.strptime(time, "%M:%S")
-            delta = time_ - dt.datetime(1900, 1, 1)
-            return delta.total_seconds()
-        except ValueError as e:
-            raise commands.BadArgument("Time must be in MM:SS format.") from e
+            argument = int(argument)
+        except ValueError:
+            pass
+        if isinstance(argument, int):
+            return argument
+        if isinstance(argument, str):
+            try:
+                time_ = dt.datetime.strptime(argument, "%M:%S")
+                delta = time_ - dt.datetime(1900, 1, 1)
+                return int(delta.total_seconds())
+            except ValueError as e:
+                raise commands.BadArgument("Time must be in MM:SS format.") from e
 
 
 class Music(core.Cog):
@@ -292,8 +293,8 @@ class Music(core.Cog):
 
         elif isinstance(search, list) and isinstance(search[0], wavelink.PartialTrack):
             for track in search:
-                track.requester = ctx.author
-                track.hyperlinked_title = track.title
+                track.requester = ctx.author  # type: ignore  # runtime attribute assignment
+                track.hyperlinked_title = track.title  # type: ignore  # runtime attribute assignment
                 player.queue.put(track)
             embed = discord.Embed(
                 title="Enqueued Spotify playlist",
@@ -302,7 +303,8 @@ class Music(core.Cog):
             await ctx.send(embed=embed)
 
         elif isinstance(query, spotify.SpotifyTrack):
-            track = Track(search.id, search.info, requester=ctx.author, thumb=search.thumb)
+            #  Spotify track is weird
+            track = Track(search.id, search.info, requester=ctx.author, thumb=search.thumb)  # type: ignore
             player.queue.put(track)
             await ctx.send(embed=await player.build_added(track))
 
@@ -324,13 +326,14 @@ class Music(core.Cog):
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admin can use this command.")
 
+        # Track will always have a title.
         if not player.track:
             return await ctx.send("There is no song playing to loop.")
         if player.loop_song:
             player.loop_song = None
-            return await ctx.send(f"No longer looping: {player.track.title}")
+            return await ctx.send(f"No longer looping: {player.track.title}")  # type: ignore
         player.loop_song = player.track
-        await ctx.send(f"Now looping: {player.track.title}")
+        await ctx.send(f"Now looping: {player.track.title}")  # type: ignore
 
     @track_loop.command(name="queue", enabled=False)
     @core.is_owner()
@@ -348,26 +351,26 @@ class Music(core.Cog):
         if not player:
             return await ctx.send()
 
-    @core.command(hybrid=True)
-    @in_voice()
-    @core.is_owner()
-    @core.describe(index="Song position in the queue to remove.")
-    async def remove(self, ctx: Context, index: int):
-        """
-        Removes a song from the queue.
+    # @core.command(hybrid=True)
+    # @in_voice()
+    # @core.is_owner()
+    # @core.describe(index="Song position in the queue to remove.")
+    # async def remove(self, ctx: Context, index: int):
+    #     """
+    #     Removes a song from the queue.
 
-        The index is the position of the song in the queue.
-        """
-        player: Player = ctx.voice_client
-        if not player:
-            return await ctx.send("I am not in a voice channel.")
-        if not player.queue._queue:
-            return await ctx.send("There are no songs in the queue.")
-        try:
-            await player.queue.remove_at_index(index)
-        except IndexError:
-            return await ctx.send("That is not a valid index.")
-        await ctx.send("Removed song from queue.")
+    #     The index is the position of the song in the queue.
+    #     """
+    #     player: Player = ctx.voice_client
+    #     if not player:
+    #         return await ctx.send("I am not in a voice channel.")
+    #     if not player.queue._queue:
+    #         return await ctx.send("There are no songs in the queue.")
+    #     try:
+    #         await player.queue.remove_at_index(index)
+    #     except IndexError:
+    #         return await ctx.send("That is not a valid index.")
+    #     await ctx.send("Removed song from queue.")
 
     @core.command(hybrid=True, aliases=["stop"])
     @in_voice()
@@ -458,7 +461,7 @@ class Music(core.Cog):
 
             return await player.stop()
 
-        if ctx.author == player.track.requester:
+        if ctx.author == player.track.requester:  # type: ignore  # Track should always have a requester.
             await ctx.send(":track_next: The song requester has skipped the song.")
             player.skip_votes.clear()
 
@@ -479,7 +482,7 @@ class Music(core.Cog):
     @bot_in_voice()
     @in_bound_channel()
     @core.describe(seconds="How many seconds to skip forward.")
-    async def fastforward(self, ctx: Context, seconds: convert_time):  # type: ignore
+    async def fastforward(self, ctx: Context, seconds: ConvertTime):
         """
         Fast forward an amount of seconds in the current song.
 
@@ -491,7 +494,7 @@ class Music(core.Cog):
         if player.source is None:
             return await ctx.send("There is no song playing.")
         if self.is_privileged(ctx):
-            await player.seek((player.position + seconds) * 1000)
+            await player.seek((int(player.position) + seconds) * 1000)
             pos = f"{format_seconds(player.position)}/{format_seconds(player.source.length)}"
             return await ctx.send(f":fast_forward: Fast forwarded {seconds} seconds. ({pos})")
         await ctx.send("Only the DJ can fast forward.")
@@ -501,7 +504,7 @@ class Music(core.Cog):
     @bot_in_voice()
     @in_bound_channel()
     @core.describe(seconds="How many seconds to skip back.")
-    async def rewind(self, ctx: Context, seconds: convert_time):  # type: ignore
+    async def rewind(self, ctx: Context, seconds: ConvertTime):
         """
         Rewind a certain amount of seconds in the current song.
 
@@ -513,7 +516,7 @@ class Music(core.Cog):
         if player.source is None:
             return await ctx.send("There is no song playing.")
         if self.is_privileged(ctx):
-            await player.seek((player.position - seconds) * 1000)
+            await player.seek((int(player.position) - seconds) * 1000)
             pos = f"{format_seconds(player.position)}/{format_seconds(player.source.length)}"
             return await ctx.send(f":rewind: Rewinded {seconds} seconds. ({pos})")
         await ctx.send("Only the DJ can rewind.")
@@ -523,7 +526,7 @@ class Music(core.Cog):
     @bot_in_voice()
     @in_bound_channel()
     @core.describe(seconds="What time in the song to seek to.")
-    async def seek(self, ctx: Context, seconds: convert_time):  # type: ignore
+    async def seek(self, ctx: Context, seconds: ConvertTime):
         """
         Seek in the current song.
 

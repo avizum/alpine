@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
 import asyncio
 import datetime as dt
 import random
@@ -39,6 +41,8 @@ class MemberJoin(core.Cog):
 
     async def do_verify(self, member: discord.Member):
         prefix = await self.bot.cache.get_guild_settings(member.guild.id)
+        if prefix is None:
+            pre = "a."
         prefixes = prefix.get("prefixes")
         pre = prefixes[0] if prefixes else "a."
 

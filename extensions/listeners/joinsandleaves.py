@@ -87,10 +87,10 @@ class JoinsAndLeaves(core.Cog):
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
 
-    async def convert(self, message):
+    def convert(self, message: str) -> discord.Embed | str:
         try:
             message = json.loads(message)
-            message = discord.Embed.from_dict(message)
+            message = discord.Embed.from_dict(message)  # type: ignore
             return message
         except Exception:
             return message
@@ -100,35 +100,37 @@ class JoinsAndLeaves(core.Cog):
         config = self.bot.cache.join_leave.get(member.guild.id)
         if not config:
             return
-        join_channel = discord.utils.get(member.guild.channels, id=config["join_channel"])
+        join_channel: discord.TextChannel = self.bot.get_channel(config["join_channel"])  # type: ignore
         join_message = config["join_message"]
         join_config = config["join_enabled"]
         if not join_channel or not join_message or not join_config:
             return
         env = {"member": member, "guild": member.guild}
         message = parser.parse(join_message, env=env)
-        final = await self.convert(message)
+        final = self.convert(message)
         am = discord.AllowedMentions(everyone=False, users=True)
         if type(final) is discord.Embed:
             return await join_channel.send(embed=final, allowed_mentions=am)
-        return await join_channel.send(final, allowed_mentions=am)
+        if type(final) is str:
+            return await join_channel.send(final, allowed_mentions=am)
 
     @core.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
         config = self.bot.cache.join_leave.get(member.guild.id)
         if not config:
             return
-        leave_channel = discord.utils.get(member.guild.channels, id=config["leave_channel"])
+        leave_channel: discord.TextChannel = self.bot.get_channel(config["leave_channel"])  # type: ignore
         leave_message = config["leave_message"]
         leave_config = config["leave_enabled"]
         if not leave_channel or not leave_message or not leave_config:
             return
         env = {"member": member, "guild": member.guild}
         message = parser.parse(leave_message, env=env)
-        final = await self.convert(message)
+        final = self.convert(message)
         if type(final) is discord.Embed:
             return await leave_channel.send(embed=final)
-        return await leave_channel.send(final)
+        if type(final) is str:
+            return await leave_channel.send(final)
 
 
 async def setup(bot):
