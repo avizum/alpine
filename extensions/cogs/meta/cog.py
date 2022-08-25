@@ -269,18 +269,22 @@ class Meta(core.Cog):
         Sends the avatar of a member.
         """
         member = member or ctx.author
+
+        urls = (
+            f"[`png`]({member.display_avatar.replace(format='png')}) | "
+            f"[`jpeg`]({member.display_avatar.replace(format='jpeg')}) | "
+            f"[`webp`]({member.display_avatar.replace(format='webp')})"
+        )
+
+        if member.display_avatar.is_animated():
+            urls += f" | [`gif`]({member.display_avatar.replace(format='gif')})"
+
         embed = discord.Embed(
             title=f"{member}'s avatar",
-            description=(
-                f"[`png`]({member.display_avatar.with_static_format('png')}) | "
-                f"[`jpg`]({member.display_avatar.with_static_format('jpg')}) | "
-                f"[`webp`]({member.display_avatar.url})"
-            ),
+            description=urls
         )
         avatar = member.display_avatar.url
         embed.set_image(url=avatar)
-        if isinstance(member, discord.Member) and member.guild_avatar:
-            embed.set_thumbnail(url=member.guild_avatar.url)
         await ctx.send(embed=embed)
 
     @core.command()
@@ -289,7 +293,7 @@ class Meta(core.Cog):
         """
         Send the banner of a member.
 
-        If they have no banner and have an accent color, it will send the accent color instead.
+        If they have no banner and have an accent color, the accent color will be sent instead.
         """
         member = member or ctx.author
         fetched = await self.bot.fetch_user(member.id)
@@ -360,6 +364,8 @@ class Meta(core.Cog):
                 ctx.cache.users[ctx.author.id]["timezone"] = timezone
             except KeyError:
                 new = await ctx.cache.new_user(ctx.author.id)
+                if new is None:
+                    return await ctx.send("Something went wrong.")
                 new["timezone"] = timezone
             return await ctx.send("Remove timezone")
         try:
@@ -371,6 +377,8 @@ class Meta(core.Cog):
             ctx.cache.users[ctx.author.id]["timezone"] = timezone
         except KeyError:
             new = await ctx.cache.new_user(ctx.author.id)
+            if new is None:
+                return await ctx.send("Something went wrong.")
             new["timezone"] = timezone
         await ctx.send(f"Set timezone to {timezones}")
 
