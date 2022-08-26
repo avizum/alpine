@@ -20,20 +20,21 @@ from __future__ import annotations
 
 
 import datetime
-from typing import TYPE_CHECKING, TypeVar, Callable, Any, overload
+from typing import TYPE_CHECKING, TypeVar, Callable, Any, overload, Generic, ParamSpec
 
 import discord
 from discord.ext import commands
 from discord.utils import MISSING
 
-
 if TYPE_CHECKING:
     from .avimetry import Bot
 
 
+P = ParamSpec("P")
 T = TypeVar("T")
-GroupT = TypeVar("GroupT", bound="Group")
-CommandT = TypeVar("CommandT", bound="Command")
+CogT = TypeVar("CogT", bound="Cog")
+GroupT = TypeVar("GroupT", bound="Group[Any, ..., Any]")
+CommandT = TypeVar("CommandT", bound="Command[Any, ..., Any]")
 
 
 def to_list(thing) -> list[str]:
@@ -50,7 +51,7 @@ mapping = commands.DynamicCooldownMapping(owner_cd, commands.BucketType.user)
 mapping._cooldown = default_cooldown
 
 
-class Command(commands.Command):
+class Command(commands.Command, Generic[CogT, P, T]):
     def __init__(self, func, **kwargs) -> None:
         self.member_permissions: list[str] = to_list(
             kwargs.get("member_permissions")
@@ -72,7 +73,7 @@ class Command(commands.Command):
         return f"<core.Command name={self.qualified_name}>"
 
 
-class Group(commands.Group, Command):
+class Group(commands.Group, Command[CogT, P, T]):
     def __init__(self, *args, **kwargs) -> None:
         self.invoke_without_command = kwargs.get("invoke_without_command", True)
         super().__init__(*args, **kwargs)

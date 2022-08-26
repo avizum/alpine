@@ -16,20 +16,26 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import itertools
-import discord
-import datetime
-from typing import Mapping, Any
+from __future__ import annotations
 
-import humanize
+import datetime
+import itertools
 from difflib import get_close_matches
-from discord.ext import commands, menus
+from typing import Any, Mapping, TYPE_CHECKING
+
+import discord
+import humanize
 from discord import app_commands
+from discord.ext import commands, menus
 
 import core
-from core import Bot, Context, Command
-from utils import Paginator, Emojis
-from .paginators import MainHelp, HelpPages, HelpSelect, CogHelp, GroupHelp
+from utils import Emojis, Paginator
+
+from .paginators import CogHelp, GroupHelp, HelpPages, HelpSelect, MainHelp
+
+if TYPE_CHECKING:
+    from core import Bot, Command, Context
+
 
 
 class AvimetryHelp(commands.HelpCommand):
@@ -39,7 +45,7 @@ class AvimetryHelp(commands.HelpCommand):
         permissions = getattr(command, perm_type, None) or command.extras.get(perm_type, ["none_needed"])
         return ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
 
-    async def can_run(self, command: core.Command, ctx: Context) -> str:
+    async def can_run(self, command: Command, ctx: Context) -> str:
         try:
             await command.can_run(ctx)
             emoji = Emojis.GREEN_TICK
@@ -60,7 +66,7 @@ class AvimetryHelp(commands.HelpCommand):
     def ending_note(self) -> str:
         return f"Use {self.context.clean_prefix}{self.invoked_with} [command|module] for more help."
 
-    def get_flags(self, command: core.Command) -> list[str] | None:
+    def get_flags(self, command: Command) -> list[str] | None:
         flagconverter: commands.FlagConverter | None = None
         for _, param in command.params.items():
             if isinstance(param.annotation, commands.flags.FlagsMeta):
@@ -83,7 +89,7 @@ class AvimetryHelp(commands.HelpCommand):
             flgs.append(f"`{' | '.join(chained)}` {flag.description} {f_default}")
         return flgs
 
-    async def filter_cogs(self, mapping: Mapping[core.Cog | None, list[core.Command]] | None = None):
+    async def filter_cogs(self, mapping: Mapping[core.Cog | None, list[Command]] | None = None):
         cmd_mapping = mapping or self.get_bot_mapping()
         items = []
         for cog in cmd_mapping:
@@ -95,7 +101,7 @@ class AvimetryHelp(commands.HelpCommand):
         items.sort(key=lambda c: c.qualified_name)
         return items
 
-    async def send_bot_help(self, mapping: Mapping[core.Cog | None, list[core.Command]]):
+    async def send_bot_help(self, mapping: Mapping[core.Cog | None, list[Command]]):
         items = await self.filter_cogs(mapping)
         source = MainHelp(self.context, self)
         menu = HelpPages(source, ctx=self.context)
@@ -125,7 +131,7 @@ class AvimetryHelp(commands.HelpCommand):
         menu = HelpPages(GroupHelp(self.context, filtered, group, self), ctx=self.context)
         await menu.start()
 
-    async def send_command_help(self, command: core.Command):
+    async def send_command_help(self, command: Command):
         embed = discord.Embed(title=f"Command: {command.qualified_name}")
 
         embed.add_field(
@@ -184,7 +190,7 @@ class AvimetryHelp(commands.HelpCommand):
                 command = self.context.bot.get_command(match[0])
                 if isinstance(command, core.Group):
                     return await self.send_group_help(command)
-                elif isinstance(command, core.Command):
+                elif isinstance(command, Command):
                     return await self.send_command_help(command)
             return await conf.message.delete()
         return f'"{string}" was not found. Check your spelling or try a different command.'
@@ -198,7 +204,7 @@ class AllCommandsPageSource(menus.ListPageSource):
         self.ctx = ctx
         super().__init__(commands, per_page=4)
 
-    async def format_page(self, menu: menus.Menu, page: list[core.Command]):
+    async def format_page(self, menu: menus.Menu, page: list[Command]):
         embed = discord.Embed(title="Commands", color=await self.ctx.fetch_color())
         for i in page:
             embed.add_field(name=i.qualified_name, value=i.help, inline=False)
@@ -255,9 +261,9 @@ class HelpCommand(core.Cog):
         current: str,
     ) -> list[app_commands.Choice[str]]:
         commands = [
-            c.qualified_name for c in list(self.bot.walk_commands()) if current in c.qualified_name and len(current) > 2
+            c.qualified_name for c in list(self.bot.walk_commands()) if current in c.qualified_name and len(current) > 3
         ]
-        commands.extend([c for c in list(self.bot.cogs) if current in c and len(current) > 2])
+        commands.extend([c.title() for c in list(self.bot.cogs) if current in c and len(current) > 4])
         to_return = [app_commands.Choice(name=cmd, value=cmd) for cmd in commands]
         return to_return[:25]
 
