@@ -102,14 +102,13 @@ class Bot(commands.Bot):
         "extensions.cogs.owner",
         "extensions.cogs.servermanagement",
         "extensions.cogs.settings",
+        "extensions.cogs.support",
         "extensions.cogs.verification",
         "extensions.extras.setup",
-        "extensions.extras.supportserver",
         "extensions.extras.topgg",
         "extensions.listeners.errorhandler",
         "extensions.listeners.events",
         "extensions.listeners.joinsandleaves",
-        "extensions.support"
     )
 
     with open("config.toml") as token:
@@ -153,6 +152,12 @@ class Bot(commands.Bot):
             f"<Bot id={self.user.id} name={self.user.name!r} "
             f"discriminator={self.user.discriminator!r} bot={self.user.bot}>"
         )
+
+    def __str__(self) -> str:
+        return str(self.user)
+
+    def __int__(self) -> int:
+        return self.user.id
 
     async def setup_hook(self) -> None:
         self.session: ClientSession = ClientSession()
