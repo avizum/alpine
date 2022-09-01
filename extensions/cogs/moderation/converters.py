@@ -22,6 +22,7 @@ from discord.ext import commands
 from discord.ext.commands import flag
 
 from core import Context
+from utils import ModReason
 
 
 def default_reason(ctx: Context) -> str:
@@ -29,7 +30,7 @@ def default_reason(ctx: Context) -> str:
 
 
 class ModActionFlag(commands.FlagConverter):
-    reason: str = flag(default=None, description="Reason that will show up in the audit log.")
+    reason: str = flag(default=None, description="Reason that will show up in the audit log.", converter=ModReason)
     dm: bool = flag(default=False, description="Whether to DM the user.")
 
 
