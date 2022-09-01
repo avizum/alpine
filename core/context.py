@@ -371,8 +371,12 @@ class Context(commands.Context):
     ) -> ConfirmResult:
         if delete_message_after and remove_view_after:
             raise ValueError("Cannot have both delete_message_after and remove_view_after keyword arguments.")
-        if self.interaction and ephemeral and delete_message_after:
+        if not self.interaction and ephemeral and delete_message_after:
             raise ValueError("Cannot have both ephemeral and delete_message_after keyword arguemnts.")
+        # Ephemeral messages can not be deleted after they are sent.
+        if self.interaction and ephemeral and delete_message_after:
+            delete_message_after = False
+            remove_view_after = True
         if embed and message or embed:
             embed.description = f"{embed.description}\n\n{confirm_messsage}" if embed.description else confirm_messsage
         elif message:
@@ -381,6 +385,10 @@ class Context(commands.Context):
         msg = await self.send(content=message, embed=embed, no_reply=no_reply, ephemeral=ephemeral, view=view, **kwargs)
         view.message = msg
         await view.wait()
+        if delete_message_after:
+            await msg.delete()
+        if remove_view_after:
+            await msg.edit(view=None)
         return ConfirmResult(msg, view.value)
 
     async def can_delete(self, *args, **kwargs) -> Message:
