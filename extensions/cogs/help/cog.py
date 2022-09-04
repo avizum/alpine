@@ -37,7 +37,6 @@ if TYPE_CHECKING:
     from core import Bot, Command, Context
 
 
-
 class AvimetryHelp(commands.HelpCommand):
     context: Context
 

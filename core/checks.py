@@ -34,7 +34,6 @@ if TYPE_CHECKING:
     from .context import Context
 
 
-
 def check(
     predicate,
     member_permissions: list | dict[str, bool] | bool | None = None,
@@ -72,7 +71,7 @@ def has_permissions(**perms: bool):
     if invalid:
         raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
-    async def predicate(ctx: Context):
+    async def predicate(ctx: Context) -> bool:
         permissions = ctx.permissions
 
         missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
@@ -139,7 +138,7 @@ def cooldown(rate: int, per: float, type=commands.BucketType.user):
         mapping._cooldown = default_cooldown
 
         if isinstance(func, Command):
-            func._buckets = mapping
+            func._buckets = mapping  # type: ignore
         else:
             func.__commands_cooldown__ = mapping
         return func
