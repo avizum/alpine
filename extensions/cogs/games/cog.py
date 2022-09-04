@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING
 
 import discord
 from discord.ext import commands
-from akinator.async_aki import Akinator
+from asyncakinator import Akinator
 
 import core
 from utils import Timer, Emojis
@@ -149,15 +149,16 @@ class Games(core.Cog):
         # Since you can edit your message to invoke commands,
         # the bot also edits messages and cause interaction errors.
         # This is a lazy workaround to prevent that.
+
+        if flags.child is False and ctx.channel.is_nsfw() is False:
+            return await ctx.send("Child mode must be enabled in non-NSFW channels.")
+
         message = None
         if ctx.message and ctx.message.edited_at:
             message = await ctx.send("Starting game...")
-        akiclient = Akinator()
-        mode_map = {"default": "en", "animals": "en_animals", "objects": "en_objects"}
+        akiclient = Akinator(language=flags.language, theme=flags.theme, child_mode=flags.child)
         async with ctx.typing():
-            game = await akiclient.start_game(language=mode_map[flags.mode], child_mode=flags.child)
-            if akiclient.child_mode is False and ctx.channel.is_nsfw() is False:
-                return await ctx.send("Child mode can only be disabled in NSFW channels.")
+            game = await akiclient.start()
             embed = discord.Embed(title="Akinator", description=f"{akiclient.step+1}. {game}")
 
         if message is not None:

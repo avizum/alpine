@@ -19,13 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import random
-from typing import Literal
 
 import discord
+from asyncakinator import Akinator, Answer, CantGoBackAnyFurther, InvalidLanguage, InvalidTheme, Language, Theme
 from discord.ext import commands
 from discord.ext.commands import flag
-from akinator import CantGoBackAnyFurther
-from akinator.async_aki import Akinator
 
 from core import Context
 from utils import View
@@ -56,7 +54,7 @@ class AkinatorConfirmView(View):
 
 
 class AkinatorButton(discord.ui.Button["AkinatorGameView"]):
-    def __init__(self, label: str, answer: str, style: discord.ButtonStyle, row: int):
+    def __init__(self, label: str, answer: Answer | str, style: discord.ButtonStyle, row: int):
         self.answer = answer
         super().__init__(label=label, style=style, row=row)
 
@@ -83,15 +81,14 @@ class AkinatorGameView(View):
         self.ended: bool = False
         self.cooldown: commands.CooldownMapping = commands.CooldownMapping.from_cooldown(2, 2.5, commands.BucketType.user)
 
-
         stop = AkinatorButton(label="End Game", answer="end", style=discord.ButtonStyle.primary, row=3)
         stop.callback = self.game_stop
         buttons = [
-            AkinatorButton(label="Yes", answer="0", style=discord.ButtonStyle.green, row=1),
-            AkinatorButton(label="No", answer="1", style=discord.ButtonStyle.red, row=1),
-            AkinatorButton(label="Unsure", answer="2", style=discord.ButtonStyle.gray, row=1),
-            AkinatorButton(label="Likely", answer="3", style=discord.ButtonStyle.blurple, row=2),
-            AkinatorButton(label="Unlikely", answer="4", style=discord.ButtonStyle.gray, row=2),
+            AkinatorButton(label="Yes", answer=Answer.YES, style=discord.ButtonStyle.green, row=1),
+            AkinatorButton(label="No", answer=Answer.NO, style=discord.ButtonStyle.red, row=1),
+            AkinatorButton(label="Unsure", answer=Answer.I_DONT_KNOW, style=discord.ButtonStyle.gray, row=1),
+            AkinatorButton(label="Likely", answer=Answer.PROBABLY, style=discord.ButtonStyle.blurple, row=2),
+            AkinatorButton(label="Unlikely", answer=Answer.PROBABLY_NOT, style=discord.ButtonStyle.gray, row=2),
             AkinatorButton(label="Go Back", answer="back", style=discord.ButtonStyle.gray, row=3),
             stop,
         ]
@@ -112,7 +109,7 @@ class AkinatorGameView(View):
         self.embed.description = "Game ended due to timeout."
         await self.stop(embed=self.embed)
 
-    async def answer(self, interaction: discord.Interaction, answer: str) -> None:
+    async def answer(self, interaction: discord.Interaction, answer: Answer | str) -> None:
         if self.message is None:
             return
         retry = self.cooldown.update_rate_limit(self.ctx.message)
@@ -126,6 +123,7 @@ class AkinatorGameView(View):
             except CantGoBackAnyFurther:
                 await interaction.response.send_message("You can't go back. Sorry.", ephemeral=True)
         elif self.client.progression <= 80:
+            assert isinstance(answer, Answer)
             await interaction.response.defer()
             nxt = await self.client.answer(answer)
             self.embed.description = f"{self.client.step+1}. {nxt}"
@@ -135,10 +133,8 @@ class AkinatorGameView(View):
             await self.client.win()
             client = self.client
             await client.close()
-            self.embed.description = (
-                f"Are you thinking of {client.first_guess['name']} ({client.first_guess['description']})?\n"
-            )
-            self.embed.set_image(url=client.first_guess["absolute_picture_path"])
+            self.embed.description = f"Are you thinking of {client.first_guess.name} ({client.first_guess.description})?\n"
+            self.embed.set_image(url=client.first_guess.absolute_picture_path)
             await self.stop()
             new_view = AkinatorConfirmView(member=self.member, message=self.message, embed=self.embed)
             await self.message.edit(view=new_view, embed=self.embed)
@@ -150,8 +146,25 @@ class AkinatorGameView(View):
         await self.stop()
 
 
+class LanguageConverter(str, commands.Converter):
+    async def convert(self, ctx: Context, argument: str) -> Language:
+        try:
+            return Language.from_str(argument)
+        except InvalidLanguage as e:
+            raise commands.BadArgument("Invalid language provided.") from e
+
+
+class ThemeConverter(str, commands.Converter):
+    async def convert(self, ctx: Context, argument: str) -> Theme:
+        try:
+            return Theme.from_str(argument)
+        except InvalidTheme as e:
+            raise commands.BadArgument("Invalid language provided.") from e
+
+
 class AkinatorFlags(commands.FlagConverter):
-    mode: Literal["default", "animals", "objects"] = flag(default="default", description="The mode used for Akinator.")
+    language: Language = flag(default=Language.ENGLISH, converter=LanguageConverter, description="The language to use.")
+    theme: Theme = flag(default=Theme.CHARACTERS, converter=ThemeConverter, description="The theme to use.")
     child: bool = flag(default=True, description="Whether to use child mode.")
 
 
@@ -188,8 +201,7 @@ class RPSButton(discord.ui.Button["RPSView"]):
                 await interaction.response.send_message(f"You chose {self.label}", ephemeral=True)
             else:
                 await interaction.response.send_message(
-                    f"You already chose {self.view.player_one_str_response}",
-                    ephemeral=True
+                    f"You already chose {self.view.player_one_str_response}", ephemeral=True
                 )
         if interaction.user == self.view.opponent:
             if self.view.player_two_response is None:
@@ -198,8 +210,7 @@ class RPSButton(discord.ui.Button["RPSView"]):
                 await interaction.response.send_message(f"You chose {self.label}", ephemeral=True)
             else:
                 await interaction.response.send_message(
-                    f"You already chose {self.view.player_two_str_response}",
-                    ephemeral=True
+                    f"You already chose {self.view.player_two_str_response}", ephemeral=True
                 )
         if self.view.player_one_response is None or self.view.player_two_response is None:
             return
@@ -213,12 +224,7 @@ class RPSView(View):
     player_two_response: int | None = None
     player_two_str_response: str | None = None
 
-    def __init__(
-        self,
-        embed: discord.Embed,
-        context: Context,
-        opponent: discord.Member
-    ) -> None:
+    def __init__(self, embed: discord.Embed, context: Context, opponent: discord.Member) -> None:
         super().__init__(member=context.author, timeout=60)
         self.message: discord.Message
         self.embed: discord.Embed = embed
@@ -231,7 +237,7 @@ class RPSView(View):
         for emoji, label, value in [
             ("\U0001faa8", "Rock", 0),
             ("\U0001f4f0", "Paper", 1),
-            ("\U00002702\U0000fe0f", "Scissors", 2)
+            ("\U00002702\U0000fe0f", "Scissors", 2),
         ]:
             self.add_item(RPSButton(emoji=emoji, label=label, answer=value))
 

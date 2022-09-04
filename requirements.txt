@@ -3,7 +3,7 @@ discord.py
 jishaku
 aiogTTS
 aiohttp
-akinator.py
+asyncakinator
 async_timeout
 asyncdagpi
 asyncgist
