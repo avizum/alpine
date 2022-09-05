@@ -17,4 +17,3 @@ toml
 wavelink
 tag-formatter
 git+https://github.com/avizum/asyncgist/
-git+https://github.com/edugomez102/twemoji-parser

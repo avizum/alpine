@@ -24,7 +24,6 @@ import discord
 from asyncdagpi.image import Image
 from asyncdagpi.image_features import ImageFeatures
 from discord.ext import commands
-from twemoji_parser import emoji_to_url
 
 import core
 from core import Bot, Context
@@ -52,9 +51,6 @@ class GetAvatarOrImage(commands.Converter):
             member = await commands.MemberConverter().convert(ctx, argument)
             return member.display_avatar.replace(format="png", static_format="png", size=1024).url
         except commands.MemberNotFound:
-            url = await emoji_to_url(argument)
-            if URL_REGEX.match(url):
-                return url
             if URL_REGEX.match(argument):
                 return argument
             if EMOJI_REGEX.match(argument):
