@@ -54,7 +54,7 @@ jishaku.Flags.NO_DM_TRACEBACK = True
 
 
 DEFAULT_PREFIXES: list[str] = ["a.", "avimetry"]
-BETA_PREFIXES: list[str] = ["ab.", "ba."]
+BETA_PREFIXES: list[str] = ["i.", "ii."]
 OWNER_IDS: set[int] = {
     750135653638865017,
     547280209284562944,
@@ -157,6 +157,7 @@ class Bot(commands.Bot):
         return str(self.user)
 
     def __int__(self) -> int:
+        self._connection
         return self.user.id
 
     async def setup_hook(self) -> None:
