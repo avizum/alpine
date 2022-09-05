@@ -73,8 +73,7 @@ class Games(core.Cog):
         await cd_cookie.add_reaction("\U0001F36A")
 
         if member:
-
-            def member_check(reaction, user):
+            def member_check(reaction: discord.Reaction, user: discord.Member | discord.User) -> bool:
                 return (
                     reaction.message.id == cd_cookie.id
                     and str(reaction.emoji) == "\U0001F36A"
@@ -82,8 +81,7 @@ class Games(core.Cog):
                 )
             check = member_check
         else:
-
-            def check(reaction, user):
+            def check(reaction: discord.Reaction, user: discord.Member | discord.User):
                 return (
                     reaction.message.id == cd_cookie.id
                     and str(reaction.emoji) in "\U0001F36A"
@@ -113,7 +111,7 @@ class Games(core.Cog):
     @cookie.command()
     @core.cooldown(5, 10, commands.BucketType.member)
     @commands.max_concurrency(2, commands.BucketType.channel)
-    async def button(self, ctx):
+    async def button(self, ctx: Context):
         """
         Grab the cookie! (Button Edition)
 
