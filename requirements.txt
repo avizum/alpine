@@ -15,6 +15,6 @@ roblox
 sr_api
 toml
 wavelink
-git+https://github.com/jay3332/tag-formatter
+tag-formatter
 git+https://github.com/avizum/asyncgist/
 git+https://github.com/edugomez102/twemoji-parser
