@@ -117,7 +117,7 @@ class Meta(core.Cog):
             ]
         description = []
         for x, option in enumerate(options):
-            description += "\n\n{} {}".format(reactions[x], option)
+            description += f"\n\n{reactions[x]} {option}"
         embed = discord.Embed(title=question, description="".join(description))
         react_message = await ctx.channel.send(embed=embed)
         for reaction in reactions[: len(options)]:
@@ -142,6 +142,7 @@ class Meta(core.Cog):
 
     @core.command(hybrid=True, aliases=["ui", "uinfo", "whois", "memberinfo", "mi", "minfo", "user", "member"])
     @core.cooldown(1, 15, commands.BucketType.user)
+    @core.describe(member="Person to get info about.")
     async def userinfo(self, ctx: Context, *, member: discord.Member | discord.User = commands.Author):
         """
         Get info about a user.
@@ -206,12 +207,15 @@ class Meta(core.Cog):
                 flags = []
                 for flag, value in member.public_flags:
                     new = flag.replace(flag, Emojis.BADGES.get(flag, flag))
+                    flag = flag.replace("bot_http_interactions", "interactions_only")
                     if value is True:
                         if new == flag:
-                            flags.append(flag.replace("_", " ").title())
+                            flags.append(
+                                flag.replace("_", " ").title()
+                            )
                             continue
                         flags.append(f"{new} | {flag.replace('_', ' ').title()}")
-                ie.add_field(name=f"Badges [{len(flags)}]", value=", ".join(flags))
+                ie.add_field(name=f"Badges [{len(flags)}]", value=",\n".join(flags))
             if member.status:
                 desktop = member.desktop_status.name
                 mobile = member.mobile_status.name
@@ -537,3 +541,14 @@ class Meta(core.Cog):
         Congrats have a cookie! 🍪
         """
         return
+
+    @core.command()
+    async def testss(self, ctx: Context, item: discord.Attachment | discord.Member | str | None = None):
+        if isinstance(item, discord.Attachment):
+            await ctx.send(item.url)
+        elif isinstance(item, discord.Member):
+            await ctx.send(item.display_avatar.url)
+        elif isinstance(item, str):
+            await ctx.send(item)
+        else:
+            await ctx.send(ctx.author.display_avatar.url)

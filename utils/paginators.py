@@ -308,7 +308,7 @@ class Paginator(BasePaginator):
         """
         await self.show_page(interaction, self.source.get_max_pages() - 1)
 
-    @discord.ui.button(emoji="\U000023f9\U0000fe0f", label="Stop", style=discord.ButtonStyle.red, row=2)
+    @discord.ui.button(emoji="\U000023f9\U0000fe0f", label="Stop", style=discord.ButtonStyle.red)
     async def stop_view(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         """
         Stops the paginator and view.
