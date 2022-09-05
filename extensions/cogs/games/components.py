@@ -89,7 +89,7 @@ class AkinatorGameView(View):
             AkinatorButton(label="Unsure", answer=Answer.I_DONT_KNOW, style=discord.ButtonStyle.gray, row=1),
             AkinatorButton(label="Likely", answer=Answer.PROBABLY, style=discord.ButtonStyle.blurple, row=2),
             AkinatorButton(label="Unlikely", answer=Answer.PROBABLY_NOT, style=discord.ButtonStyle.gray, row=2),
-            AkinatorButton(label="Go Back", answer="back", style=discord.ButtonStyle.gray, row=3),
+            AkinatorButton(label="Go Back", answer=Answer.BACK, style=discord.ButtonStyle.gray, row=3),
             stop,
         ]
         for button in buttons:
@@ -115,17 +115,13 @@ class AkinatorGameView(View):
         retry = self.cooldown.update_rate_limit(self.ctx.message)
         if retry:
             return await interaction.response.send_message(content="You are clicking too fast.", ephemeral=True)
-        if answer == "back":
-            try:
-                nxt = await self.client.back()
-                self.embed.description = f"{self.client.step+1}. {nxt}"
-                await interaction.response.edit_message(embed=self.embed)
-            except CantGoBackAnyFurther:
-                await interaction.response.send_message("You can't go back. Sorry.", ephemeral=True)
-        elif self.client.progression <= 80:
+        if self.client.progression <= 80:
             assert isinstance(answer, Answer)
             await interaction.response.defer()
-            nxt = await self.client.answer(answer)
+            try:
+                nxt = await self.client.answer(answer)
+            except CantGoBackAnyFurther:
+                return await interaction.followup.send("You can't go back. Sorry.", ephemeral=True)
             self.embed.description = f"{self.client.step+1}. {nxt}"
             await self.message.edit(embed=self.embed)
         else:
