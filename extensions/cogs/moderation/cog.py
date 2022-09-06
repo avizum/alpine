@@ -174,7 +174,7 @@ class Moderation(core.Cog):
                 )
                 await target.send(embed=embed)
             except discord.Forbidden:
-                kick_embed.description = f"**{target}** has been kicked from the server, However, I could not DM them."
+                kick_embed.description = f"**{target}** has been banned from the server, However, I could not DM them."
         await ctx.send(embed=kick_embed, ephemeral=True)
 
     @core.command()
