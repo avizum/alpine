@@ -541,14 +541,3 @@ class Meta(core.Cog):
         Congrats have a cookie! 🍪
         """
         return
-
-    @core.command()
-    async def testss(self, ctx: Context, item: discord.Attachment | discord.Member | str | None = None):
-        if isinstance(item, discord.Attachment):
-            await ctx.send(item.url)
-        elif isinstance(item, discord.Member):
-            await ctx.send(item.display_avatar.url)
-        elif isinstance(item, str):
-            await ctx.send(item)
-        else:
-            await ctx.send(ctx.author.display_avatar.url)
