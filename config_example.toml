@@ -1,6 +1,6 @@
 [bot_tokens]
-Avimetry = "Main Bot Token"
-AvimetryII = "Beta Bot Token"
+Ignition = "Main Bot Token"
+IgnitionII = "Beta Bot Token"
 
 [api_tokens]
 DagpiAPI = "Dagpi API token for Image Cog"
@@ -15,7 +15,7 @@ SpotifySecret = "Spotify Secret for Music Cog"
 host = "localhost"
 port = 5432
 user = "admin"
-database = "avimetry"
+database = "ignition"
 
 [webhooks]
 join_log = "Webhook URL for join_log here

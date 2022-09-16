@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Ignition Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ from discord.ext import commands
 from discord.ext.commands import NoPrivateMessage
 
 from .core import Command
-from .avimetry import OWNER_IDS
+from .ignition import OWNER_IDS
 from .exceptions import NotGuildOwner
 
 if TYPE_CHECKING:

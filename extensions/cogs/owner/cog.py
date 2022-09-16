@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Ignition Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -19,8 +19,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import datetime
 import importlib
+import io
 import inspect
 import math
 import re
@@ -346,22 +348,27 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         arg_dict["player"] = voice_client
         arg_dict["_"] = self.last_result
 
+        out = io.StringIO()
         scope = self.scope
 
         try:
             async with ReplResponseReactor(ctx.message):
-                with self.submit(ctx):
-                    executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict, convertables=convertables)
-                    async for send, result in AsyncSender(executor):  # type: ignore
-                        send: Callable[..., None]
-                        result: Any
+                with contextlib.redirect_stdout(out):
+                    with self.submit(ctx):
+                        executor = AsyncCodeExecutor(argument.content, scope, arg_dict=arg_dict, convertables=convertables)
+                        async for send, result in AsyncSender(executor):  # type: ignore
+                            send: Callable[..., None]
+                            result: Any
 
-                        if result is None:
-                            continue
+                            if result is None and out and out.getvalue():
+                                result = out.getvalue()
 
-                        self.last_result = result
+                            if result is None:
+                                continue
 
-                        send(await self.jsk_python_result_handling(ctx, result))
+                            self.last_result = result
+
+                            send(await self.jsk_python_result_handling(ctx, result))
 
         finally:
             scope.clear_intersection(arg_dict)

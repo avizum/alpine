@@ -27,7 +27,7 @@ from discord.ext import commands
 from discord.utils import MISSING
 
 if TYPE_CHECKING:
-    from .avimetry import Bot
+    from .ignition import Bot
 
 
 P = ParamSpec("P")

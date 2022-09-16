@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Ignition Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -473,7 +473,7 @@ class Meta(core.Cog):
         """
         Posts a gist.
 
-        These gists are public and if you want to get one removed, DM Avimetry or join the support server.
+        These gists are public and if you want to get one removed, DM Ignition or join the support server.
         """
         file_post = asyncgist.File(filename=f"output.{code.language or 'txt'}", content=code.content)
         out = await self.bot.gist.post_gist(
@@ -489,7 +489,7 @@ class Meta(core.Cog):
         """
         Deletes a gist
 
-        This deletes gists posted from the avimetry-bot GitHub account.
+        This deletes gists posted from the ignition-bot GitHub account.
         """
         try:
             await self.bot.gist.delete_gist(gist_id)

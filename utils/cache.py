@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Ignition Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -26,10 +26,10 @@ from typing import TYPE_CHECKING, TypedDict
 from discord.ext import tasks
 
 if TYPE_CHECKING:
-    from core.avimetry import Bot
+    from core.ignition import Bot
 
 
-_log = logging.getLogger("avimetry")
+_log = logging.getLogger("ignition")
 
 
 class CacheUsers(TypedDict):

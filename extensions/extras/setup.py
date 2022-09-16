@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Ignition Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -81,7 +81,7 @@ class Setup(core.Cog):
                         send_embed.add_field(name="You said:", value=resolved.description, inline=False)
                         send_embed.set_author(name=str(message.author), icon_url=message.author.display_avatar.url)
                         send_embed.set_footer(
-                            text="Avimetry Development",
+                            text="Ignition Development",
                             icon_url=self.bot.user.display_avatar.url
                         )
                         await user.send(embed=send_embed)
@@ -112,7 +112,7 @@ class Setup(core.Cog):
         if not guild.chunked:
             await guild.chunk()
         embed = discord.Embed(
-            title="\U0001f44b Hey, I am Avimetry!",
+            title="\U0001f44b Hey, I am Ignition!",
             description="Hello, thank you for adding me to your server. Here are some commands to get you started.",
             color=guild.owner.color,
         )
@@ -125,7 +125,7 @@ class Setup(core.Cog):
         embed.add_field(name="a.about", value="Show some info about the bot.", inline=False)
         embed.add_field(
             name="a.vote",
-            value="You can support Avimetry by voting! Thank you!",
+            value="You can support Ignition by voting! Thank you!",
             inline=False,
         )
         embed.set_footer(text="Made by avizum :)")
