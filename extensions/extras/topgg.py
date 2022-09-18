@@ -1,5 +1,5 @@
 """
-[Ignition Bot]
+[Avimetry Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -65,9 +65,9 @@ class TopGG(core.Cog):
             return
         status = discord.Status.online
         games = [
-            discord.Game(f"@Ignition | {len(self.bot.guilds)} Servers"),
-            discord.Game(f"@Ignition | {len(self.bot.users)} Users"),
-            discord.Game(f"@Ignition | Made by @{self.bot.get_user(750135653638865017)}"),
+            discord.Game(f"@Avimetry | {len(self.bot.guilds)} Servers"),
+            discord.Game(f"@Avimetry | {len(self.bot.users)} Users"),
+            discord.Game(f"@Avimetry | Made by @{self.bot.get_user(750135653638865017)}"),
         ]
         game = random.choice(games)
         await self.bot.change_presence(status=status, activity=game)
@@ -88,7 +88,7 @@ class TopGG(core.Cog):
             vote_type = "[Top.GG](https://top.gg/bot/756257170521063444/vote)"
             user_id = data.get("user")
         elif isinstance(data.get("id"), str):
-            vote_type = "[Discord Bot List](https://discordbotlist.com/bots/ignition/upvote)"
+            vote_type = "[Discord Bot List](https://discordbotlist.com/bots/avimetry/upvote)"
             user_id = data.get("id")
         user = self.bot.get_user(int(user_id))
         if not user:

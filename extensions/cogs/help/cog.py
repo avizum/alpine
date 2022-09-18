@@ -1,5 +1,5 @@
 """
-[Ignition Bot]
+[Avimetry Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     from core import Bot, Command, Context
 
 
-class IgnitionHelp(commands.HelpCommand):
+class AvimetryHelp(commands.HelpCommand):
     context: Context
 
     def get_perms(self, perm_type: str, command: commands.Command) -> str:
@@ -215,7 +215,7 @@ class HelpCommand(core.Cog):
         self.default = bot.help_command
         self.bot = bot
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
-        help_command = IgnitionHelp(
+        help_command = AvimetryHelp(
             verify_checks=False,
             show_hidden=False,
             command_attrs=dict(

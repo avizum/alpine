@@ -1,5 +1,5 @@
 """
-[Ignition Bot]
+[Avimetry Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -283,7 +283,7 @@ class Paginator(BasePaginator):
         await self.show_checked_page(interaction, self.current_page - 1)
 
     @discord.ui.button(
-        emoji="<:ignition:940147134471213077>",
+        emoji="<:avimetry:940147134471213077>",
         disabled=False,
         style=discord.ButtonStyle.blurple,
     )

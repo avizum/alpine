@@ -1,5 +1,5 @@
 """
-[Ignition Bot]
+[Avimetry Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -38,7 +38,7 @@ from discord.ext import commands
 from difflib import get_close_matches
 
 
-_log = logging.getLogger("ignition")
+_log = logging.getLogger("avimetry")
 
 
 class Embed(discord.Embed):

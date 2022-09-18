@@ -1,5 +1,5 @@
 """
-[Ignition Bot]
+[Avimetry Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -17,10 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from core import Bot
-from .supportserver import IgnitionSupport
+from .supportserver import AvimetrySupport
 
 
-class Servers(IgnitionSupport):
+class Servers(AvimetrySupport):
     pass
 
 

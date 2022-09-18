@@ -1,5 +1,5 @@
 """
-[Ignition Bot]
+[Avimetry Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -27,5 +27,5 @@ from .checks import (
     is_guild_owner,
     is_owner,
 )
-from .ignition import Bot
+from .avimetry import Bot
 from .context import Context

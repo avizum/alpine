@@ -1,5 +1,5 @@
 """
-[Ignition Bot]
+[Avimetry Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -78,18 +78,18 @@ class BotInfo(commands.Cog, name="Bot Info"):
         """
         Show the bot's news.
         """
-        embed = discord.Embed(title="\U0001f4f0 Ignition News", description=self.bot.news)
+        embed = discord.Embed(title="\U0001f4f0 Avimetry News", description=self.bot.news)
         await ctx.send(embed=embed)
 
     @core.command()
     async def about(self, ctx: Context):
         """
-        Show some information about Ignition.
+        Show some information about Avimetry.
         """
-        embed = discord.Embed(title="Info about Ignition")
+        embed = discord.Embed(title="Info about Avimetry")
         embed.add_field(name="Latest News", value=self.bot.news, inline=False)
         async with ctx.channel.typing():
-            async with self.bot.session.get("https://api.github.com/repos/ignition/ignition/commits") as resp:
+            async with self.bot.session.get("https://api.github.com/repos/avimetry/avimetry/commits") as resp:
                 items = await resp.json()
         try:
             commits = "\n".join(f"[`{cm['sha'][:7]}`]({cm['html_url']}) {cm['commit']['message']}" for cm in items[:3])
@@ -112,9 +112,9 @@ class BotInfo(commands.Cog, name="Bot Info"):
         await ctx.send(embed=embed)
 
     @core.command(name="credits")
-    async def ignition_credits(self, ctx: Context):
+    async def avimetry_credits(self, ctx: Context):
         """
-        List of people that have contributed to Ignition.
+        List of people that have contributed to Avimetry.
 
         If you want to contribute, Check out the GitHub repo.
         """
@@ -139,20 +139,20 @@ class BotInfo(commands.Cog, name="Bot Info"):
     @core.command(aliases=["github"])
     async def commits(self, ctx: Context):
         """
-        Gets the recent commits in the Ignition repo.
+        Gets the recent commits in the Avimetry repo.
 
         This shows the recent commits on the repo.
         You can contribute on the repo.
         """
         async with ctx.channel.typing():
-            async with self.bot.session.get("https://api.github.com/repos/ignition/ignition/commits") as resp:
+            async with self.bot.session.get("https://api.github.com/repos/avimetry/avimetry/commits") as resp:
                 items = await resp.json()
         try:
             commit_list = [f"[`{cm['sha'][:7]}`]({cm['html_url']}) {cm['commit']['message']}" for cm in items[:10]]
         except KeyError:
             return await ctx.send("An error occured while trying to get the commits. Try again later.")
         embed = discord.Embed(title="Recent commits", description="\n".join(commit_list))
-        embed.set_footer(text="Contribute to Ignition by doing magic.")
+        embed.set_footer(text="Contribute to Avimetry by doing magic.")
         await ctx.send(embed=embed)
 
     @core.command()
@@ -182,7 +182,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
             await self.bot.pool.execute("SELECT 1")
         ping_embed = discord.Embed(title="Pong!")
         ping_embed.add_field(
-            name="<:ignition:940147134471213077> Websocket Latency",
+            name="<:avimetry:1020851768143380522> Websocket Latency",
             value=f"`{self.bot.latency * 1000:,.2f} ms`",
             inline=False,
         )
@@ -204,7 +204,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         Shows the message that is sent when I join a server.
         """
         embed = discord.Embed(
-            title="\U0001f44b Hey, I am Ignition!",
+            title="\U0001f44b Hey, I am Avimetry!",
             description=f"Hello {ctx.author.mention}, I am a bot made by [avizum.](https://github.com/avizum)",
             color=0x5e9bbf,
         )
@@ -221,7 +221,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         )
         embed.add_field(
             name=f"{ctx.clean_prefix}vote",
-            value="Support Ignition by voting! Thank you!",
+            value="Support Avimetry by voting! Thank you!",
             inline=False,
         )
         embed.set_footer(text="Made by avizum :)")
@@ -349,7 +349,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
     @core.cooldown(1, 300, commands.BucketType.user)
     async def request(self, ctx: Context, *, request):
         """
-        Request a feature to be added to Ignition.
+        Request a feature to be added to Avimetry.
 
         Spamming this command or sending spam requests will get you blacklisted from the bot.
         """
@@ -380,12 +380,12 @@ class BotInfo(commands.Cog, name="Bot Info"):
     @core.command(hybrid=True)
     async def vote(self, ctx: Context):
         """
-        Support Ignition by voting!
+        Support Avimetry by voting!
         """
         view = discord.ui.View()
         links = [
             ("Top.gg", "https://top.gg/bot/756257170521063444/vote"),
-            ("Discord Bot List", "https://discordbotlist.com/bots/ignition/upvote"),
+            ("Discord Bot List", "https://discordbotlist.com/bots/avimetry/upvote"),
         ]
         for name, link in links:
             view.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label=name, url=link))
@@ -416,14 +416,14 @@ class BotInfo(commands.Cog, name="Bot Info"):
         if not command:
             if self.bot.user.id != 756257170521063444:
                 source_embed.description = (
-                    "This bot is an instance of Ignition.\n"
+                    "This bot is an instance of Avimetry.\n"
                     "Click below for the source."
                     "Made by avizum\n"
                     "Follow the license"
                 )
             else:
                 source_embed.description = (
-                    "Click below for the source of Ignition.\n"
+                    "Click below for the source of Avimetry.\n"
                     "I am made by avizum\n"
                     "Follow the license and please star :)"
                 )
@@ -514,7 +514,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         Get some error about an error
 
         This will show the Traceback and if it has been fixed yet.
-        If you have any ideas on how to fix it, You can DM Ignition or use the suggest command.
+        If you have any ideas on how to fix it, You can DM Avimetry or use the suggest command.
         """
         if error_id is None:
             return await ctx.send_help("error")

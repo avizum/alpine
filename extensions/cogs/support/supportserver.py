@@ -1,5 +1,5 @@
 """
-[Ignition Bot]
+[Avimetry Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -55,10 +55,10 @@ class ButtonRole(discord.ui.View):
 
     @discord.ui.button(
         style=discord.ButtonStyle.blurple,
-        label="Ignition Support",
+        label="Avimetry Support",
         custom_id="927077897318047854",
     )
-    async def ignition_channels(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def avimetry_channels(self, interaction: discord.Interaction, button: discord.ui.Button):
         if button.custom_id != "927077897318047854":
             return await interaction.response.defer()
         if interaction.guild is None or interaction.guild_id != 751490725555994716:
@@ -73,16 +73,16 @@ class ButtonRole(discord.ui.View):
         if role in member.roles:
             await member.remove_roles(role)
             return await interaction.response.send_message(
-                "You have been removed access from the Ignition Support Channels.",
+                "You have been removed access from the Avimetry Support Channels.",
                 ephemeral=True,
             )
         await member.add_roles(role)
-        return await interaction.response.send_message("You now have access to the Ignition Channels.", ephemeral=True)
+        return await interaction.response.send_message("You now have access to the Avimetry Channels.", ephemeral=True)
 
 
-class IgnitionSupport(core.Cog):
+class AvimetrySupport(core.Cog):
     """
-    Commands for Ignition Support Server
+    Commands for Avimetry Support Server
     """
 
     def __init__(self, bot: Bot):

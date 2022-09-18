@@ -1,5 +1,5 @@
 """
-[Ignition Bot]
+[Avimetry Bot]
 Copyright (C) 2021 - 2022 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -53,7 +53,7 @@ jishaku.Flags.NO_UNDERSCORE = True
 jishaku.Flags.NO_DM_TRACEBACK = True
 
 
-DEFAULT_PREFIXES: list[str] = ["a.", "ignition"]
+DEFAULT_PREFIXES: list[str] = ["a.", "avimetry"]
 BETA_PREFIXES: list[str] = ["i.", "ii."]
 OWNER_IDS: set[int] = {
     750135653638865017,
@@ -65,7 +65,7 @@ PUBLIC_BOT_ID: int = 756257170521063444
 BETA_BOT_ID: int = 787046145884291072
 
 
-_log = logging.getLogger("ignition")
+_log = logging.getLogger("avimetry")
 handler = logging.StreamHandler()
 handler.setFormatter(_ColourFormatter())
 _log.setLevel(logging.INFO)
@@ -83,7 +83,7 @@ class Bot(commands.Bot):
     command_cache: dict[int, discord.Message] = {}
     invite: str = discord.utils.oauth_url(bot_id, permissions=discord.Permissions(8))
     support: str = "https://discord.gg/muTVFgDvKf"
-    source: str = "https://github.com/avimetry/ignition"
+    source: str = "https://github.com/avimetry/avimetry"
     context: Type[commands.Context] | None = None
     pool: asyncpg.Pool
     cogs: Mapping[str, Cog]
@@ -310,7 +310,7 @@ class Bot(commands.Bot):
         return self.command(name=name, cls=Group, **kwargs)
 
     def run(self, *args: Any, **kwargs: Any) -> None:
-        token = self.settings["bot_tokens"]["Ignition"]
+        token = self.settings["bot_tokens"]["Avimetry"]
         super().run(token, reconnect=True, *args, **kwargs)
 
     async def close(self) -> None:
