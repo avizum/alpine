@@ -85,7 +85,7 @@ class HighlightListener(core.Cog):
                             f"In the server {message.guild.name}, you were highlighted"
                             f" by {message.author.mention} ({message.author.id})."
                         ),
-                        color=0xF2D413,
+                        color=0x30C5FF,
                         timestamp=message.created_at,
                     )
                     embed.add_field(

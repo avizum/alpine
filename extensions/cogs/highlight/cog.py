@@ -43,6 +43,7 @@ class HighlightCommands(core.Cog):
         await ctx.send_help(ctx.command)
 
     @highlight.command(name="add", aliases=["a", "+"])
+    @core.describe(trigger="The word or phrase to add.")
     async def highlight_add(self, ctx: Context, *, trigger: str):
         """
         Adds a word to your highlight list.
@@ -69,9 +70,10 @@ class HighlightCommands(core.Cog):
             new_data.pop("user_id")
             ctx.bot.cache.highlights[ctx.author.id] = new_data
 
-        return await ctx.send("Highlight trigger added.", delete_after=10)
+        return await ctx.send("Highlight trigger added.", ephemeral=True, delete_after=10)
 
     @highlight.command(name="remove", aliases=["r", "-"])
+    @core.describe(trigger="The word or phrase to remove.")
     async def highlight_remove(self, ctx: Context, *, trigger: str):
         """
         Removes a word from your highlight list.
@@ -88,7 +90,7 @@ class HighlightCommands(core.Cog):
         highlights["triggers"].remove(trigger)
         await self.bot.pool.execute(query, ctx.author.id, highlights["triggers"])
 
-        return await ctx.send("Highlight trigger removed.", delete_after=10)
+        return await ctx.send("Highlight trigger removed.", ephemeral=True, delete_after=10)
 
     @highlight.command(name="list", aliases=["l"])
     async def highlight_list(self, ctx: Context):
@@ -104,7 +106,7 @@ class HighlightCommands(core.Cog):
         embed = discord.Embed(
             title="Your Triggers",
             description=nl.join(highlights["triggers"]),
-            color=0xF2D413,
+            color=0x30C5FF,
         )
 
         return await ctx.send(embed=embed, delete_after=10)
@@ -126,9 +128,10 @@ class HighlightCommands(core.Cog):
 
         await self.bot.pool.execute(query, ctx.author.id)
         del self.bot.cache.highlights[ctx.author.id]
-        await ctx.send("Your highlights have been cleared.", delete_after=10)
+        await ctx.send("Your highlights have been cleared.", ephemeral=True, delete_after=10)
 
     @highlight.command(name="block", aliases=["bl"])
+    @core.describe(user="The user to block from triggering highlights.")
     async def highlight_block(self, ctx: Context, *, user: discord.User):
         """
         Blocks a member from highlighting you.
@@ -156,9 +159,10 @@ class HighlightCommands(core.Cog):
             new_data.pop("user_id")
             ctx.bot.cache.highlights[ctx.author.id] = new_data
 
-        return await ctx.send("Block list updated.", delete_after=10)
+        return await ctx.send("Block list updated.", ephemeral=True, delete_after=10)
 
     @highlight.command(name="unblock", aliases=["unbl"])
+    @core.describe(user="The user to unblock from triggering highlights.")
     async def highlight_unblock(self, ctx: Context, *, user: discord.User):
         """
         Unblocks a member from highlighting you.
@@ -179,4 +183,4 @@ class HighlightCommands(core.Cog):
 
         await self.bot.pool.execute(query, ctx.author.id, highlights["blocked"])
 
-        return await ctx.send("Block list updated.", delete_after=10)
+        return await ctx.send("Block list updated.", ephemeral=True, delete_after=10)
