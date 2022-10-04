@@ -95,6 +95,7 @@ class Bot(commands.Bot):
         "extensions.cogs.fun",
         "extensions.cogs.games",
         "extensions.cogs.help",
+        "extensions.cogs.highlight",
         "extensions.cogs.images",
         "extensions.cogs.meta",
         "extensions.cogs.moderation",
