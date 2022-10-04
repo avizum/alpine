@@ -129,7 +129,7 @@ class HighlightCommands(core.Cog):
         await ctx.send("Your highlights have been cleared.", delete_after=10)
 
     @highlight.command(name="block", aliases=["bl"])
-    async def highlight_block(self, ctx: Context, *, user: discord.User | discord.TextChannel):
+    async def highlight_block(self, ctx: Context, *, user: discord.User):
         """
         Blocks a member from highlighting you.
         """
