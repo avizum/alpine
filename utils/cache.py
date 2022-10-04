@@ -72,6 +72,11 @@ class CacheJoinLeave(TypedDict):
     leave_channel: int | None
     leave_message: str | None
 
+class Highlights(TypedDict):
+    id: int
+    triggers: list[str]
+    blocked: list[int]
+
 
 class Cache:
     def __init__(self, bot: Bot) -> None:
@@ -83,6 +88,7 @@ class Cache:
         self.join_leave: dict[int, CacheJoinLeave | dict] = {}
         self.blacklist: dict[int, str] = {}
         self.users: dict[int, CacheUsers | dict] = {}
+        self.highlights: dict[int, Highlights | dict] = {}
 
     @tasks.loop(minutes=5)
     async def cache_loop(self) -> None:
@@ -159,14 +165,16 @@ class Cache:
         return new
 
     async def populate_cache(self) -> None:
+        _log.info("Populating Cache...")
+
         guild_settings = await self.bot.pool.fetch("SELECT * FROM guild_settings")
         verification = await self.bot.pool.fetch("SELECT * FROM verification")
         logging = await self.bot.pool.fetch("SELECT * FROM logging")
         join_leave = await self.bot.pool.fetch("SELECT * FROM join_leave")
         users = await self.bot.pool.fetch("SELECT * FROM user_settings")
         blacklist = await self.bot.pool.fetch("SELECT * FROM blacklist")
+        highlights = await self.bot.pool.fetch("SELECT * FROM highlights")
 
-        _log.info("Populating Cache...")
         for entry in guild_settings:
             settings = dict(entry)
             settings.pop("guild_id")
@@ -194,5 +202,10 @@ class Cache:
             item = dict(entry)
             item.pop("guild_id")
             self.join_leave[entry["guild_id"]] = item
+
+        for entry in highlights:
+            item = dict(entry)
+            item.pop("user_id")
+            self.highlights[entry["user_id"]] = item
 
         _log.info("Cache Populated.")
