@@ -158,6 +158,21 @@ def command(
 
     return decorator
 
+@overload
+def group(
+    name: str = MISSING,
+    hybrid: bool = True,
+    **kwargs: Any
+) -> Callable[...,  HybridGroup]:
+    ...
+
+@overload
+def group(
+    name: str = MISSING,
+    hybrid: bool = False,
+    **kwargs: Any
+) -> Callable[..., Group]:
+    ...
 
 def group(
     name: str = MISSING,
