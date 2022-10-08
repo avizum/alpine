@@ -96,7 +96,11 @@ class HighlightCommands(core.Cog):
     @highlight_remove.autocomplete("trigger")
     async def highlight_remove_autocomplete(self, itn: discord.Interaction, item: str) -> list[app_commands.Choice]:
         highlights = self.bot.cache.highlights.get(itn.user.id)
-        return [app_commands.Choice(name=hl, value=hl) for hl in highlights["triggers"] if item in hl] if highlights else []
+        if not highlights:
+            return []
+        elif not item:
+            return [app_commands.Choice(name=hl, value=hl) for hl in highlights["triggers"][:25]]
+        return [app_commands.Choice(name=hl, value=hl) for hl in highlights["triggers"][:25] if item in hl and len(item) > 2]
 
     @highlight.command(name="list", aliases=["l"])
     async def highlight_list(self, ctx: Context):
