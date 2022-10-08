@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import datetime
 
 import discord
+from discord import app_commands
 
 import core
 from core import Context, Bot
@@ -91,6 +92,11 @@ class HighlightCommands(core.Cog):
         await self.bot.pool.execute(query, ctx.author.id, highlights["triggers"])
 
         return await ctx.send("Highlight trigger removed.", ephemeral=True, delete_after=10)
+
+    @highlight_remove.autocomplete("trigger")
+    async def highlight_remove_autocomplete(self, itn: discord.Interaction, item: str) -> list[app_commands.Choice]:
+        highlights = self.bot.cache.highlights.get(itn.user.id)
+        return [app_commands.Choice(name=hl, value=hl) for hl in highlights["triggers"] if item in hl] if highlights else []
 
     @highlight.command(name="list", aliases=["l"])
     async def highlight_list(self, ctx: Context):
