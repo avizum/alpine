@@ -262,3 +262,4 @@ class RPSView(View):
         self.embed.description = thing
         self.disable_all()
         await self.message.edit(embed=self.embed, view=self)
+        self.stop()
