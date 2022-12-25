@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import datetime
 import re
+import sys
 from typing import Any, Sequence, TYPE_CHECKING
 
 import discord
@@ -264,6 +265,8 @@ class Context(commands.Context):
             content = str(content)
             for token in self.tokens:
                 content = content.replace(token, "[configuration token omitted]")
+            for path in sys.path:
+                content = content.replace(path, "[PATH]")
             if len(content) >= 2000:
                 if paginate:
                     return await self.paginate(content, remove_view_after=True)
