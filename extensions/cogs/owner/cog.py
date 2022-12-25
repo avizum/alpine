@@ -22,14 +22,16 @@ import asyncio
 import contextlib
 import datetime
 import importlib
-import inspect
 import io
+import inspect
 import math
 import re
 import sys
+import traceback
 from difflib import get_close_matches
 from importlib.metadata import distribution, packages_distributions
-from typing import Any, Callable, Deque, Generator, TYPE_CHECKING
+from types import TracebackType
+from typing import TYPE_CHECKING, Callable, Generator, Deque, Any
 
 import discord
 import psutil
@@ -37,26 +39,26 @@ import toml
 from asyncpg import Record
 from discord.ext import commands, menus
 from discord.utils import format_dt
-from jishaku import Feature
+from jishaku import Feature, exception_handling
 from jishaku.codeblocks import codeblock_converter
 from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.functools import AsyncSender
 from jishaku.models import copy_context_with
 from jishaku.modules import package_version
-from jishaku.paginators import PaginatorInterface, use_file_check, WrappedPaginator
+from jishaku.paginators import PaginatorInterface
 from jishaku.repl import AsyncCodeExecutor
 
+
 import core
-from utils import DefaultReason, Emojis, ModReason, Paginator, PaginatorEmbed, View
+from utils import ModReason, DefaultReason, Paginator, PaginatorEmbed, View, Emojis
 
 if TYPE_CHECKING:
-    from jishaku.features.baseclass import CommandTask
     from jishaku.repl import Scope
-
-    from core import Bot, Context
+    from jishaku.features.baseclass import CommandTask
 
     from ..moderation import Moderation
+    from core import Bot, Context
 
 
 def natural_size(size_in_bytes: int) -> str:
@@ -72,6 +74,42 @@ def natural_size(size_in_bytes: int) -> str:
 
     return f"{size_in_bytes / (1024 ** power):.2f} {units[power]}"
 
+async def _send_traceback(
+    destination: discord.abc.Messageable | discord.Message,
+    verbosity: int,
+    etype: type[BaseException],
+    value: BaseException,
+    trace: TracebackType
+):
+    """
+    Sends a traceback of an exception to a destination.
+    Used when REPL fails for any reason.
+    :param destination: Where to send this information to
+    :param verbosity: How far back this traceback should go. 0 shows just the last stack.
+    :param exc_info: Information about this exception, from sys.exc_info or similar.
+    :return: The last message sent
+    """
+
+    traceback_content = "".join(traceback.format_exception(etype, value, trace, verbosity)).replace("``", "`\u200b`")
+
+    paginator = commands.Paginator(prefix='```py')
+    for line in traceback_content.split('\n'):
+        line = line.replace(str(destination._state.http.token), '[token omitten]')
+        for i in sys.path:
+            line = line.replace(i, '.')
+        paginator.add_line(line)
+
+    message = None
+
+    for page in paginator.pages:
+        if isinstance(destination, discord.Message):
+            message = await destination.reply(page)
+        else:
+            message = await destination.send(page)
+
+    return message
+
+exception_handling.send_traceback = _send_traceback
 
 class CogConverter(commands.Converter, list):
     async def convert(self, ctx: Context, argument: str) -> list[str]:
@@ -194,6 +232,7 @@ FILE_REGEX = re.compile(r"^(.*[^/\n]+)(\.py)")
 
 class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     tasks: Deque[CommandTask]
+    jsk_python_result_handling: Callable[[Context, Any], Any]
     jsk_python_get_convertables: Callable[[Context], tuple[dict[str, Any], dict[str, str]]]
     submit: Callable[[Context], Any]
     walk_commands: Callable[..., Generator[core.Command, None, None]]
@@ -211,67 +250,6 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         super().__init__(bot=bot, **kwargs)  # type: ignore
         for i in self.walk_commands():
             i.member_permissions = ["Bot Owner"]
-
-    async def jsk_python_result_handling(self, ctx: Context, result: Any):
-        """
-        Determines what is done with a result when it comes out of jsk py.
-        This allows you to override how this is done without having to rewrite the command itself.
-        What you return is what gets stored in the temporary _ variable.
-        """
-
-        if isinstance(result, discord.Message):
-            return await ctx.send(f"<Message <{result.jump_url}>>")
-
-        if isinstance(result, discord.File):
-            return await ctx.send(file=result)
-
-        if isinstance(result, discord.Embed):
-            return await ctx.send(embed=result)
-
-        if isinstance(result, PaginatorInterface):
-            return await result.send_to(ctx)
-
-        if not isinstance(result, str):
-            # repr all non-strings
-            result = repr(result)
-
-        # Eventually the below handling should probably be put somewhere else
-        if len(result) <= 2000:
-            if result.strip() == '':
-                result = "\u200b"
-
-            if self.bot.http.token:
-                result = result.replace(self.bot.http.token, "[token omitted]")
-
-            for item in sys.path:
-                result = result.replace(item, "[path]")
-
-
-            return await ctx.send(
-                result,
-                allowed_mentions=discord.AllowedMentions.none()
-            )
-
-        if use_file_check(ctx, len(result)):  # File "full content" preview limit
-            # Discord's desktop and web client now supports an interactive file content
-            #  display for files encoded in UTF-8.
-            # Since this avoids escape issues and is more intuitive than pagination for
-            #  long results, it will now be prioritized over PaginatorInterface if the
-            #  resultant content is below the filesize threshold
-            return await ctx.send(file=discord.File(
-                filename="output.py",
-                fp=io.BytesIO(result.encode('utf-8'))
-            ))
-
-        # inconsistency here, results get wrapped in codeblocks when they are too large
-        #  but don't if they're not. probably not that bad, but noting for later review
-        paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1980)
-
-        paginator.add_line(result)
-
-        interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-        return await interface.send_to(ctx)
-
 
     @core.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.Member) -> None:
