@@ -29,7 +29,8 @@ class Emojis:
         "discord_certified_moderator": "<:certified_moderator:965519988679122964>",
         "verified_bot_developer": "<:verified_bot_developer:965520001547264040>",
         "hypesquad": "<:hypesquad:965832881912037386>",
-        "bot_http_interactions": "<:bot:1011145603100725289>"
+        "bot_http_interactions": "<:bot:1011145603100725289>",
+        "active_developer": "<:developer:1059028671798714429>"
     }
 
     STATUSES: dict[str, str] = {
