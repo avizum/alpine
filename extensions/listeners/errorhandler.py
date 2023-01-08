@@ -240,7 +240,7 @@ class ErrorHandler(core.Cog):
             max_uses = Embed(
                 title="Slow Down",
                 description=(
-                    f"This can only be used {error.number} " f"{'time' if error.number == 1 else 'times'} {error.per.name}."
+                    f"This can only be used {error.number} {'time' if error.number == 1 else 'times'} {error.per.name}."
                 ),
             )
             return await ctx.send(embed=max_uses, ephemeral=True)
