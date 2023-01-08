@@ -21,7 +21,7 @@ from __future__ import annotations
 import datetime
 import re
 import sys
-from typing import Any, Sequence, TYPE_CHECKING
+from typing import Any, Sequence, TYPE_CHECKING, TypeVar, Generic
 
 import discord
 from asyncgist import File as AGFile
@@ -40,6 +40,7 @@ if TYPE_CHECKING:
 
     from .avimetry import Bot
 
+BotT = TypeVar("BotT", bound="commands.Bot | commands.AutoShardedBot", covariant=True)
 
 emoji_regex: re.Pattern = re.compile(r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>")
 
@@ -73,7 +74,7 @@ class TrashView(AView):
 
 
 class ConfirmView(AView):
-    def __init__(self, *, member: discord.Member, timeout=None):
+    def __init__(self, *, member: discord.Member, timeout: int | float):
         super().__init__(member=member, timeout=timeout)
         self.value: bool | None = None
         self.message: Message | None = None
@@ -115,7 +116,8 @@ class AutoPageSource(menus.ListPageSource):
     async def format_page(self, menu, page):
         return page
 
-class Context(commands.Context):
+
+class Context(commands.Context, Generic[BotT]):
     author: discord.Member
     guild: discord.Guild
     channel: discord.TextChannel | discord.VoiceChannel | discord.Thread
@@ -351,7 +353,7 @@ class Context(commands.Context):
             await self.interaction.response.send_message(**kwargs)
             msg = await self.interaction.original_response()
 
-        if delete_after is not None and not (ephemeral and self.interaction is not None):
+        if delete_after is not None:
             await msg.delete(delay=delete_after)
 
         return msg
@@ -374,12 +376,6 @@ class Context(commands.Context):
     ) -> ConfirmResult:
         if delete_message_after and remove_view_after:
             raise ValueError("Cannot have both delete_message_after and remove_view_after keyword arguments.")
-        if not self.interaction and ephemeral and delete_message_after:
-            raise ValueError("Cannot have both ephemeral and delete_message_after keyword arguemnts.")
-        # Ephemeral messages can not be deleted after they are sent.
-        if self.interaction and ephemeral and delete_message_after:
-            delete_message_after = False
-            remove_view_after = True
         if embed and message or embed:
             embed.description = f"{embed.description}\n\n{confirm_messsage}" if embed.description else confirm_messsage
         elif message:
@@ -401,6 +397,7 @@ class Context(commands.Context):
         message = await self.send(*args, **kwargs, view=view)
         view.message = message
         return message
+
 
 async def setup(bot: Bot) -> None:
     bot.context = Context
