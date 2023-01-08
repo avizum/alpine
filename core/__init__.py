@@ -19,10 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from .core import Cog, Command, command, describe, Group, group, HybridCommand, HybridGroup
 from .checks import (
     bot_has_permissions,
-    both_has_permissions,
     check,
     cooldown,
-    default_permissions,
     has_permissions,
     is_guild_owner,
     is_owner,

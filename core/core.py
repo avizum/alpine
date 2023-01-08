@@ -18,21 +18,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-
 import datetime
-from typing import TYPE_CHECKING, TypeVar, Callable, Any, overload, Generic, ParamSpec
+from typing import Any, Callable, Concatenate, Generic, overload, ParamSpec, TYPE_CHECKING, TypeVar
 
 import discord
 from discord.ext import commands
 from discord.utils import MISSING
 
 if TYPE_CHECKING:
+    from discord.ext.commands import Context
+    from discord.ext.commands._types import Coro
+
     from .avimetry import Bot
 
 
 P = ParamSpec("P")
 T = TypeVar("T")
-CogT = TypeVar("CogT", bound="Cog")
+CogT = TypeVar("CogT", bound="Cog | None")
 GroupT = TypeVar("GroupT", bound="Group[Any, ..., Any]")
 CommandT = TypeVar("CommandT", bound="Command[Any, ..., Any]")
 
@@ -42,9 +44,11 @@ def to_list(thing) -> list[str]:
 
 
 default_cooldown = commands.Cooldown(3, 15)
+
+
 def owner_cd(message: discord.Message):
     bot = message._state._get_client()
-    return None if message.author.id in bot.owner_ids else default_cooldown # type: ignore
+    return None if message.author.id in bot.owner_ids else default_cooldown  # type: ignore
 
 
 mapping = commands.DynamicCooldownMapping(owner_cd, commands.BucketType.user)
@@ -52,17 +56,25 @@ mapping._cooldown = default_cooldown
 
 
 class Command(commands.Command, Generic[CogT, P, T]):
-    def __init__(self, func, **kwargs) -> None:
-        self.member_permissions: list[str] = to_list(
-            kwargs.get("member_permissions")
-            or getattr(func, "member_permissions", ["none_needed"])
-            or kwargs.get("extras", {}).get("member_permissions")
-        )
-        self.bot_permissions: list[str] = to_list(
-            kwargs.get("bot_permissions")
-            or getattr(func, "bot_permissions", ["none_needed"])
-            or kwargs.get("extras", {}).get("bot_permissions")
-        )
+    def __init__(
+        self,
+        func: Callable[Concatenate[CogT, Context[Any], P], Coro[T]] | Callable[Concatenate[Context[Any], P], Coro[T]],
+        /,
+        **kwargs: Any,
+    ) -> None:
+        extras = kwargs.get("extras", {})
+        try:
+            member_permissions = func.__member_permissions__
+        except AttributeError:
+            member_permissions = kwargs.get("member_permissions") or extras.get("member_permissions")
+        self.member_permissions = member_permissions
+
+        try:
+            bot_permissions = func.__bot_permissions__
+        except AttributeError:
+            bot_permissions = kwargs.get("bot_permissions") or extras.get("bot_permissions")
+        self.bot_permissions = bot_permissions
+
         super().__init__(func, **kwargs)
         if not self._buckets._cooldown:
             cd = commands.Cooldown(3, 15)
@@ -70,13 +82,16 @@ class Command(commands.Command, Generic[CogT, P, T]):
             self._buckets._cooldown = cd
 
     def __repr__(self) -> str:
-        return f"<core.Command name={self.qualified_name}>"
+        return f"<Command name={self.qualified_name}>"
 
 
 class Group(commands.Group, Command[CogT, P, T]):
     def __init__(self, *args, **kwargs) -> None:
         self.invoke_without_command = kwargs.get("invoke_without_command", True)
         super().__init__(*args, **kwargs)
+
+    def __repr__(self) -> str:
+        return f"<Group name={self.qualified_name}>"
 
     def command(
         self,
@@ -128,27 +143,21 @@ class Cog(commands.Cog):
         self.bot: Bot = bot
         self.load_time: datetime.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
 
-@overload
-def command(
-    name: str = MISSING,
-    hybrid: bool = True,
-    **kwargs: Any
-) -> Callable[...,  HybridCommand]:
-    ...
+    def __repr__(self) -> str:
+        return f"<Cog name={self.qualified_name}>"
+
 
 @overload
-def command(
-    name: str = MISSING,
-    hybrid: bool = False,
-    **kwargs: Any
-) -> Callable[..., Command]:
+def command(name: str = MISSING, hybrid: bool = True, **kwargs: Any) -> Callable[..., HybridCommand]:
     ...
 
-def command(
-    name: str = MISSING,
-    hybrid: bool = False,
-    **kwargs: Any
-) -> Callable[..., Command | HybridCommand]:
+
+@overload
+def command(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callable[..., Command]:
+    ...
+
+
+def command(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callable[..., Command | HybridCommand]:
     cls = HybridCommand if hybrid else Command
 
     def decorator(func):
@@ -158,27 +167,18 @@ def command(
 
     return decorator
 
-@overload
-def group(
-    name: str = MISSING,
-    hybrid: bool = True,
-    **kwargs: Any
-) -> Callable[...,  HybridGroup]:
-    ...
 
 @overload
-def group(
-    name: str = MISSING,
-    hybrid: bool = False,
-    **kwargs: Any
-) -> Callable[..., Group]:
+def group(name: str = MISSING, hybrid: bool = True, **kwargs: Any) -> Callable[..., HybridGroup]:
     ...
 
-def group(
-    name: str = MISSING,
-    hybrid: bool = False,
-    **kwargs: Any
-) -> Callable[..., Group | HybridGroup]:
+
+@overload
+def group(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callable[..., Group]:
+    ...
+
+
+def group(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callable[..., Group | HybridGroup]:
     cls = HybridGroup if hybrid else Group
 
     def decorator(func: Any) -> Group | HybridGroup:
