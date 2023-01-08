@@ -71,10 +71,7 @@ class IsResponding:
 
 class Queue(WaitQueue):
     def __init__(
-        self,
-        *, max_size: int | None = None,
-        history_max_size: int | None = None,
-        allow_duplicates: bool = True
+        self, *, max_size: int | None = None, history_max_size: int | None = None, allow_duplicates: bool = True
     ) -> None:
         self._queue: collections.deque[Track | PartialTrack] = collections.deque()
         self.allow_duplicates: bool = allow_duplicates
@@ -151,10 +148,7 @@ class Player(wavelink.Player):
         self.shuffle_votes: set[discord.Member] = set()
         self.stop_votes: set[discord.Member] = set()
 
-    async def get_tracks(
-        self,
-        query: str
-    ) -> Playable | SpotifyTrack | list[Playable] | list[SpotifyTrack] | None:
+    async def get_tracks(self, query: str) -> Playable | SpotifyTrack | list[Playable] | list[SpotifyTrack] | None:
         search_type = spotify.decode_url(query)
 
         if YOUTUBE_REGEX.match(query):

@@ -214,7 +214,7 @@ class HelpSelect(discord.ui.Select["HelpPages"]):
 
     async def callback(self, interaction: discord.Interaction) -> None:
         assert self.view is not None
-        cog: core.Cog | None = self.ctx.bot.get_cog(self.values[0]) # type: ignore
+        cog: core.Cog | None = self.ctx.bot.get_cog(self.values[0])  # type: ignore
         if self.current_module == cog:
             return await interaction.response.defer()
         if self.values[0] == "Home":

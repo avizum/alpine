@@ -197,7 +197,7 @@ class BotLogs(core.Cog):
             embed.add_field(name="Responsible Moderator:", value=entry.user, inline=False)
             embed.add_field(name="Kick Reason:", value=entry.reason, inline=False)
             embed.set_thumbnail(url=member.display_avatar.url)
-            await channel.send(embed=embed) # type: ignore
+            await channel.send(embed=embed)  # type: ignore
 
     @core.Cog.listener("on_guild_channel_create")
     async def logging_channel_create(self, deleted_channel: discord.abc.GuildChannel):

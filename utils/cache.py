@@ -52,6 +52,7 @@ class CacheVerification(TypedDict):
     medium: bool | None
     high: bool | None
 
+
 class CacheLogging(TypedDict):
     enabled: bool | None
     channel_id: int | None
@@ -64,6 +65,7 @@ class CacheLogging(TypedDict):
     channel_delete: bool | None
     guild_edit: bool | None
 
+
 class CacheJoinLeave(TypedDict):
     join_enabled: bool | None
     join_channel: int | None
@@ -71,6 +73,7 @@ class CacheJoinLeave(TypedDict):
     leave_enabled: bool | None
     leave_channel: int | None
     leave_message: str | None
+
 
 class Highlights(TypedDict):
     id: int

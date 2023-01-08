@@ -94,9 +94,7 @@ class HighlightListener(core.Cog):
                     )
                     embed.set_footer(text="Triggered at")
                     user = (
-                        message.guild.get_member(user_id)
-                        or self.bot.get_user(user_id)
-                        or await self.bot.fetch_user(user_id)
+                        message.guild.get_member(user_id) or self.bot.get_user(user_id) or await self.bot.fetch_user(user_id)
                     )
                     if not user:
                         continue

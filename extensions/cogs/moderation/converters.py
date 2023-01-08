@@ -108,9 +108,7 @@ class TargetMember(commands.Converter, discord.Member):
             raise commands.BadArgument(f"You can not {action} yourself, That would be stupid.")
 
         if ctx.me.top_role < member.top_role:
-            raise commands.BadArgument(
-                f"I can not {action} {member} because their top role is higher than my top role."
-            )
+            raise commands.BadArgument(f"I can not {action} {member} because their top role is higher than my top role.")
 
         if ctx.me.top_role == member.top_role:
             raise commands.BadArgument(f"I can't {action} {member} because they have the same top role as me.")

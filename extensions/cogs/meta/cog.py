@@ -210,9 +210,7 @@ class Meta(core.Cog):
                     flag = flag.replace("bot_http_interactions", "interactions_only")
                     if value is True:
                         if new == flag:
-                            flags.append(
-                                flag.replace("_", " ").title()
-                            )
+                            flags.append(flag.replace("_", " ").title())
                             continue
                         flags.append(f"{new} | {flag.replace('_', ' ').title()}")
                 ie.add_field(name=f"Badges [{len(flags)}]", value=",\n".join(flags))
@@ -227,7 +225,7 @@ class Meta(core.Cog):
                         f"Mobile: {Emojis.STATUSES.get(mobile)} | {mobile.title()}\n"
                         f"Web: {Emojis.STATUSES.get(web)} | {web.title()}"
                     ),
-                    inline=False
+                    inline=False,
                 )
 
         ie.set_thumbnail(url=member.display_avatar.url)
@@ -283,10 +281,7 @@ class Meta(core.Cog):
         if member.display_avatar.is_animated():
             urls += f" | [`gif`]({member.display_avatar.replace(format='gif')})"
 
-        embed = discord.Embed(
-            title=f"{member}'s avatar",
-            description=urls
-        )
+        embed = discord.Embed(title=f"{member}'s avatar", description=urls)
         avatar = member.display_avatar.url
         embed.set_image(url=avatar)
         await ctx.send(embed=embed)
@@ -389,10 +384,7 @@ class Meta(core.Cog):
     @core.command()
     @core.cooldown(1, 15, commands.BucketType.guild)
     async def firstmessage(
-        self,
-        ctx: Context,
-        *,
-        channel: discord.TextChannel | discord.VoiceChannel | discord.Thread | None = None
+        self, ctx: Context, *, channel: discord.TextChannel | discord.VoiceChannel | discord.Thread | None = None
     ):
         """
         Get the first message of the channel.

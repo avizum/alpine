@@ -38,6 +38,7 @@ if TYPE_CHECKING:
     from datetime import datetime
     from core import Bot, Context
 
+
 class ConvertTime(commands.Converter, int):
     @classmethod
     def convert_time(cls, ctx: Context, argument: int | str) -> int:
@@ -130,7 +131,7 @@ class Music(core.Cog):
     ):
         if member.guild.voice_client is None:
             return
-        player: Player = member.guild.voice_client # type: ignore
+        player: Player = member.guild.voice_client  # type: ignore
 
         if member == self.bot.user:
             if after.channel is None:
@@ -206,7 +207,7 @@ class Music(core.Cog):
                 return
             await player.move_to(channel)  # type: ignore
             return
-        player = await channel.connect(cls=Player(context=ctx)) # type: ignore
+        player = await channel.connect(cls=Player(context=ctx))  # type: ignore
 
         if isinstance(player.channel, discord.StageChannel):
             try:
@@ -731,7 +732,6 @@ class Music(core.Cog):
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admins may change the speed.")
 
-
         await player.set_filter(wavelink.Filter(timescale=wavelink.Timescale(speed=speed)), seek=True)
         await ctx.send(f"Set the speed to {speed}x.")
 
@@ -758,10 +758,7 @@ class Music(core.Cog):
     @in_bound_channel()
     @core.describe(frequency="How fast the volume should change.", depth="How much the volume should change.")
     async def filter_tremolo(
-        self,
-        ctx: Context,
-        frequency: commands.Range[float, 1.0, 14.0],
-        depth: commands.Range[float, 1.0, 100.0]
+        self, ctx: Context, frequency: commands.Range[float, 1.0, 14.0], depth: commands.Range[float, 1.0, 100.0]
     ):
         """
         Creates a shuddering effect by quickly changing the volume.
@@ -781,10 +778,7 @@ class Music(core.Cog):
     @in_bound_channel()
     @core.describe(frequency="How fast the pitch should change.", depth="How much the pitch should change.")
     async def filter_vibrato(
-        self,
-        ctx: Context,
-        frequency: commands.Range[float, 1.0, 14.0],
-        depth: commands.Range[float, 1.0, 100.0]
+        self, ctx: Context, frequency: commands.Range[float, 1.0, 14.0], depth: commands.Range[float, 1.0, 100.0]
     ):
         """
         Creates a vibrating effect by quickly changing the pitch.

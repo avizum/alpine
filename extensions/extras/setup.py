@@ -80,10 +80,7 @@ class Setup(core.Cog):
                         send_embed.add_field(name=f"From {message.author}:", value=message.content, inline=False)
                         send_embed.add_field(name="You said:", value=resolved.description, inline=False)
                         send_embed.set_author(name=str(message.author), icon_url=message.author.display_avatar.url)
-                        send_embed.set_footer(
-                            text="Avimetry Development",
-                            icon_url=self.bot.user.display_avatar.url
-                        )
+                        send_embed.set_footer(text="Avimetry Development", icon_url=self.bot.user.display_avatar.url)
                         await user.send(embed=send_embed)
         except AttributeError:
             return

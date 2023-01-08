@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from core import Bot, Context
 
 
-class BotInfo(commands.Cog, name="Bot Info"):
+class BotInfo(core.Cog, name="Bot Info"):
     """
     Bot Information commands
     """
@@ -118,6 +118,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
 
         If you want to contribute, Check out the GitHub repo.
         """
+        # fmt: off
         credit_list = [
             (750135653638865017, "Bot Developer", "https://github.com/avizum",),
             (547280209284562944, "Bot Testing", "https://github.com/LereUwU",),
@@ -126,12 +127,11 @@ class BotInfo(commands.Cog, name="Bot Info"):
             (171539705043615744, "Error Tracking Idea", "https://github.com/iDutchy",),
             (733370212199694467, "Contributor", "https://github.com/MrArkon/",),
         ]
+        # fmt: on
 
         embed = discord.Embed(
             title="Credits",
-            description="\n".join(
-                f"[{self.bot.get_user(user)}]({credit}): {role}" for user, role, credit in credit_list
-            ),
+            description="\n".join(f"[{self.bot.get_user(user)}]({credit}): {role}" for user, role, credit in credit_list),
         )
 
         await ctx.send(embed=embed)
@@ -206,7 +206,7 @@ class BotInfo(commands.Cog, name="Bot Info"):
         embed = discord.Embed(
             title="\U0001f44b Hey, I am Avimetry!",
             description=f"Hello {ctx.author.mention}, I am a bot made by [avizum.](https://github.com/avizum)",
-            color=0x5e9bbf,
+            color=0x5E9BBF,
         )
         embed.add_field(name=f"{ctx.clean_prefix}help", value="Sends the help page.", inline=False)
         embed.add_field(

@@ -120,9 +120,7 @@ class MemberJoin(core.Cog):
         randomkey = "".join(random.choice(letters) for i in range(10))
 
         try:
-            await member.send(
-                f"**Here is your key. Send it in {ctx.channel.mention}. This key will expire in one minute.**"
-            )
+            await member.send(f"**Here is your key. Send it in {ctx.channel.mention}. This key will expire in one minute.**")
             await member.send(f"{randomkey}")
         except discord.Forbidden:
             keyforbidden = discord.Embed()

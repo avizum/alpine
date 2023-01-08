@@ -27,6 +27,7 @@ class QueueDuplicateTrack(QueueException):
 
     pass
 
+
 class NoChannelProvided(commands.CheckFailure):
     """
     Error raised when no suitable voice channel was supplied.

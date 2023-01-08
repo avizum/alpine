@@ -69,12 +69,12 @@ class AvimetryHelp(commands.HelpCommand):
         flagconverter: commands.FlagConverter | None = None
         for _, param in command.params.items():
             if isinstance(param.annotation, commands.flags.FlagsMeta):
-                flagconverter = param.annotation # type: ignore  # too lazy to fix
+                flagconverter = param.annotation  # type: ignore  # too lazy to fix
         if not flagconverter:
             return None
         flags = flagconverter.get_flags()
-        flag_prefix = flagconverter.__commands_flag_prefix__ or "" # type: ignore
-        flag_delimiter = flagconverter.__commands_flag_delimiter__ or "" # type: ignore
+        flag_prefix = flagconverter.__commands_flag_prefix__ or ""  # type: ignore
+        flag_delimiter = flagconverter.__commands_flag_delimiter__ or ""  # type: ignore
         flgs = []
         for name, flag in flags.items():
             if type(flag.description) == discord.utils._MissingSentinel:

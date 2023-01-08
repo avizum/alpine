@@ -30,12 +30,7 @@ from asyncakinator import Akinator
 
 import core
 from utils import Timer, Emojis
-from .components import (
-    CookieView,
-    AkinatorFlags,
-    AkinatorGameView,
-    RPSView
-)
+from .components import CookieView, AkinatorFlags, AkinatorGameView, RPSView
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -73,20 +68,19 @@ class Games(core.Cog):
         await cd_cookie.add_reaction("\U0001F36A")
 
         if member:
+
             def member_check(reaction: discord.Reaction, user: discord.Member | discord.User) -> bool:
                 return (
                     reaction.message.id == cd_cookie.id
                     and str(reaction.emoji) == "\U0001F36A"
                     and user in [ctx.author, member]
                 )
+
             check = member_check
         else:
+
             def check(reaction: discord.Reaction, user: discord.Member | discord.User):
-                return (
-                    reaction.message.id == cd_cookie.id
-                    and str(reaction.emoji) in "\U0001F36A"
-                    and user != self.bot.user
-                )
+                return reaction.message.id == cd_cookie.id and str(reaction.emoji) in "\U0001F36A" and user != self.bot.user
 
         try:
             with Timer() as reaction_time:
@@ -183,8 +177,7 @@ class Games(core.Cog):
             return await ctx.send("You can't play against a bot.")
 
         embed = discord.Embed(
-            title="Rock Paper Scissors",
-            description=f"Who will win: {ctx.author.mention} or {opp.mention}?"
+            title="Rock Paper Scissors", description=f"Who will win: {ctx.author.mention} or {opp.mention}?"
         )
         view = RPSView(embed=embed, context=ctx, opponent=opp)
         view.message = await ctx.send(embed=embed, view=view)
@@ -202,9 +195,7 @@ class Games(core.Cog):
         await react_message.add_reaction("\U0001F36A")
 
         def check_10s(reaction, user):
-            return (
-                reaction.message.id == react_message.id and str(reaction.emoji) in "\U0001F36A" and user == ctx.author
-            )
+            return reaction.message.id == react_message.id and str(reaction.emoji) in "\U0001F36A" and user == ctx.author
 
         try:
             with Timer() as timer:

@@ -190,7 +190,7 @@ class Paginator(BasePaginator):
 
     def add_items(self) -> None:
         if self.source.is_paginating():
-            max_pages = self.source.get_max_pages()
+            max_pages: int = self.source.get_max_pages()  # type: ignore  # can't be None while paginating
             if max_pages <= 1:
                 pass
             elif max_pages > 2:
@@ -227,7 +227,7 @@ class Paginator(BasePaginator):
         if self.show_page_number.emoji:
             self.show_page_number.emoji = None
         current = self.current_page + 1
-        most = self.source.get_max_pages()
+        most: int = self.source.get_max_pages()  # type: ignore  # can't be None while paginating
         self.show_page_number.label = f"{current}/{most}"
 
         self.skip_to_first.label = "1"
@@ -306,7 +306,7 @@ class Paginator(BasePaginator):
         """
         Skips to the last page.
         """
-        await self.show_page(interaction, self.source.get_max_pages() - 1)
+        await self.show_page(interaction, self.source.get_max_pages() - 1)  # type: ignore # can't be None while paginating
 
     @discord.ui.button(emoji="\U000023f9\U0000fe0f", label="Stop", style=discord.ButtonStyle.red)
     async def stop_view(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:

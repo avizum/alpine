@@ -74,12 +74,13 @@ def natural_size(size_in_bytes: int) -> str:
 
     return f"{size_in_bytes / (1024 ** power):.2f} {units[power]}"
 
+
 async def _send_traceback(
     destination: discord.abc.Messageable | discord.Message,
     verbosity: int,
     etype: type[BaseException],
     value: BaseException,
-    trace: TracebackType
+    trace: TracebackType,
 ):
     """
     Sends a traceback of an exception to a destination.
@@ -92,11 +93,11 @@ async def _send_traceback(
 
     traceback_content = "".join(traceback.format_exception(etype, value, trace, verbosity)).replace("``", "`\u200b`")
 
-    paginator = commands.Paginator(prefix='```py')
-    for line in traceback_content.split('\n'):
-        line = line.replace(str(destination._state.http.token), '[token omitten]')
+    paginator = commands.Paginator(prefix="```py")
+    for line in traceback_content.split("\n"):
+        line = line.replace(str(destination._state.http.token), "[token omitten]")
         for i in sys.path:
-            line = line.replace(i, '.')
+            line = line.replace(i, ".")
         paginator.add_line(line)
 
     message = None
@@ -109,7 +110,9 @@ async def _send_traceback(
 
     return message
 
+
 exception_handling.send_traceback = _send_traceback
+
 
 class CogConverter(commands.Converter, list):
     async def convert(self, ctx: Context, argument: str) -> list[str]:
@@ -273,10 +276,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
 
         # Try to locate what vends the `discord` package
         distributions: list[str] = [
-            dist for dist in packages_distributions()["discord"]
-            if any(
-                file.parts == ("discord", "__init__.py")
-                for file in distribution(dist).files)  # type: ignore
+            dist
+            for dist in packages_distributions()["discord"]
+            if any(file.parts == ("discord", "__init__.py") for file in distribution(dist).files)  # type: ignore
         ]
 
         if distributions:
@@ -710,9 +712,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             if not ext:
                 return await ctx.send(f"{cog} does not exist.")
             return await ctx.send(f"{ext.qualified_name} | Loaded {discord.utils.format_dt(ext.load_time, 'R')}")
-        thing_list = [
-            f"{val.qualified_name} | Loaded {format_dt(val.load_time, 'R')}" for _, val in self.bot.cogs.items()
-        ]
+        thing_list = [f"{val.qualified_name} | Loaded {format_dt(val.load_time, 'R')}" for _, val in self.bot.cogs.items()]
         embed = discord.Embed(title="Loaded Cogs", description="\n".join(thing_list))
         await ctx.send(embed=embed)
 

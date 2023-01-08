@@ -32,7 +32,6 @@ if TYPE_CHECKING:
     from core import Bot, Context
 
 
-
 class Animals(core.Cog):
     """
     Get images of animals.

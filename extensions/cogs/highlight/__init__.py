@@ -25,6 +25,7 @@ class Highlight(HighlightCommands, HighlightListener):
     """
     Highlight commands.
     """
+
     pass
 
 

@@ -32,7 +32,6 @@ if TYPE_CHECKING:
     from datetime import datetime
 
 
-
 embed = discord.Embed()
 args = discord.Member | discord.PartialEmoji | discord.Emoji | str | None
 

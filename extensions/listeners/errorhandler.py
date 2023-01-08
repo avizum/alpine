@@ -240,8 +240,7 @@ class ErrorHandler(core.Cog):
             max_uses = Embed(
                 title="Slow Down",
                 description=(
-                    f"This can only be used {error.number} "
-                    f"{'time' if error.number == 1 else 'times'} {error.per.name}."
+                    f"This can only be used {error.number} " f"{'time' if error.number == 1 else 'times'} {error.per.name}."
                 ),
             )
             return await ctx.send(embed=max_uses, ephemeral=True)
@@ -365,7 +364,7 @@ class ErrorHandler(core.Cog):
                     "You can track this error with the button below, or use "
                     f"`{ctx.prefix}error {inserted_error['id']}`.\n\n"
                     f"Error Information:```py\n{error}```"
-                    )
+                )
                 in_db = inserted_error
             elif in_db["error"] == str(error):
                 embed.title = "A known error occured"

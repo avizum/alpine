@@ -20,6 +20,5 @@ from core import Bot
 from .cog import Owner
 
 
-
 async def setup(bot: Bot):
     await bot.add_cog(Owner(bot=bot))  # type: ignore

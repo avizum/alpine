@@ -203,7 +203,6 @@ class Fun(core.Cog):
         """
         return await ctx.send("".join(random.choice([mock.upper, mock.lower])() for mock in message))
 
-
     @core.command()
     async def dropkick(self, ctx: Context, *, mention: discord.Member):
         """

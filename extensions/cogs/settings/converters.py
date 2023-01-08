@@ -26,8 +26,9 @@ PREFIX_CHAR_LIMIT = 35
 MAX_PREFIX_AMOUNT = 20
 
 
-class Prefix(commands.Converter):
-    async def convert(self, ctx: Context, argument) -> str:
+class Prefix(commands.Converter, str):
+    @classmethod
+    async def convert(cls, ctx: Context, argument) -> str:
         user_mention = re.findall(r"<@(!?)([0-9]*)>", argument)
         role_mention = re.findall(r"<@&(\d+)>", argument)
         channel_mention = re.findall(r"<#(\d+)>", argument)

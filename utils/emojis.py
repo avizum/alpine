@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+
 class Emojis:
     BADGES: dict[str, str] = {
         "hypesquad_balance": "<:hypesquad_balance:965514463648296990>",
@@ -30,7 +31,7 @@ class Emojis:
         "verified_bot_developer": "<:verified_bot_developer:965520001547264040>",
         "hypesquad": "<:hypesquad:965832881912037386>",
         "bot_http_interactions": "<:bot:1011145603100725289>",
-        "active_developer": "<:developer:1059028671798714429>"
+        "active_developer": "<:developer:1059028671798714429>",
     }
 
     STATUSES: dict[str, str] = {

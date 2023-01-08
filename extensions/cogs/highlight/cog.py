@@ -35,7 +35,6 @@ class HighlightCommands(core.Cog):
         self.emoji = "\U0001f58b"
         self.bot = bot
 
-
     @core.group(hybrid=True, invoke_without_command=True)
     async def highlight(self, ctx: Context):
         """
@@ -131,10 +130,7 @@ class HighlightCommands(core.Cog):
         if not highlights:
             return await ctx.send("You don't have any highlights.")
 
-        query = (
-            "DELETE FROM highlights "
-            "WHERE user_id = $1"
-        )
+        query = "DELETE FROM highlights " "WHERE user_id = $1"
 
         await self.bot.pool.execute(query, ctx.author.id)
         del self.bot.cache.highlights[ctx.author.id]
@@ -185,11 +181,7 @@ class HighlightCommands(core.Cog):
             return await ctx.send("You don't have a user/channel blocked.")
         highlights["blocked"].remove(user.id)
 
-        query = (
-            "UPDATE highlights "
-            "SET blocked = $2 "
-            "WHERE user_id = $1 "
-        )
+        query = "UPDATE highlights " "SET blocked = $2 " "WHERE user_id = $1 "
 
         await self.bot.pool.execute(query, ctx.author.id, highlights["blocked"])
 
