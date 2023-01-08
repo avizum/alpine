@@ -55,8 +55,8 @@ class Moderation(core.Cog):
         self.load_time: datetime = dt.datetime.now(dt.timezone.utc)
 
     @core.command(hybrid=True)
-    @core.both_has_permissions(kick_members=True)
-    @core.default_permissions(kick_members=True)
+    @core.has_permissions(kick_members=True)
+    @core.bot_has_permissions(kick_members=True)
     @core.describe(target="The person to kick.")
     async def kick(self, ctx: Context, target: TargetMember, *, flags: ModActionFlag):
         """
@@ -83,10 +83,7 @@ class Moderation(core.Cog):
     @core.command(hybrid=True)
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    @core.describe(
-        targets="The people to kick. (Seperate with spaces.)",
-        reason="Reason that will show up in audit logs."
-    )
+    @core.describe(targets="The people to kick. (Seperate with spaces.)", reason="Reason that will show up in audit logs.")
     async def masskick(
         self,
         ctx: Context,
@@ -120,10 +117,9 @@ class Moderation(core.Cog):
         else:
             await conf.message.edit(content="Cancelled.")
 
-
     @core.command(hybrid=True)
-    @core.both_has_permissions(ban_members=True)
-    @core.default_permissions(ban_members=True)
+    @core.has_permissions(ban_members=True)
+    @core.bot_has_permissions(ban_members=True)
     @core.describe(target="The person to softban.")
     async def softban(self, ctx: Context, target: TargetMember, *, flags: ModActionFlag):
         """
@@ -151,8 +147,8 @@ class Moderation(core.Cog):
         await ctx.send(embed=soft_ban_embed, ephemeral=True)
 
     @core.command(hybrid=True)
-    @core.both_has_permissions(ban_members=True)
-    @core.default_permissions(ban_members=True)
+    @core.has_permissions(ban_members=True)
+    @core.bot_has_permissions(ban_members=True)
     @core.describe(target="The person to ban.")
     async def ban(self, ctx: Context, target: TargetMember, *, flags: BanFlag):
         """
@@ -180,10 +176,7 @@ class Moderation(core.Cog):
     @core.command()
     @core.has_permissions(ban_members=True)
     @core.bot_has_permissions(ban_members=True)
-    @core.describe(
-        targets="The people to ban. (Seperate with spaces.)",
-        reason="Reason that will show up in audit logs."
-    )
+    @core.describe(targets="The people to ban. (Seperate with spaces.)", reason="Reason that will show up in audit logs.")
     async def massban(
         self,
         ctx: Context,
@@ -216,8 +209,8 @@ class Moderation(core.Cog):
             await conf.message.edit(content=f"Sucessfully banned {len(targets)-fail}/{len(targets)} members.")
 
     @core.command(hybrid=True)
-    @core.both_has_permissions(ban_members=True)
-    @core.default_permissions(ban_members=True)
+    @core.has_permissions(ban_members=True)
+    @core.bot_has_permissions(ban_members=True)
     @core.describe(target="The person to unban.", reason="The reason for the unban.")
     async def unban(self, ctx: Context, target: FindBan, *, reason: ModReason = DefaultReason):
         """
@@ -235,8 +228,8 @@ class Moderation(core.Cog):
         await ctx.send(embed=unban_embed)
 
     @core.command(hybrid=True, aliases=["timeout", "tempmute"])
-    @core.both_has_permissions(moderate_members=True)
-    @core.default_permissions(moderate_members=True)
+    @core.has_permissions(moderate_members=True)
+    @core.bot_has_permissions(moderate_members=True)
     @core.describe(
         target="The person to mute.",
         duration="The duration of the mute.",
@@ -261,7 +254,8 @@ class Moderation(core.Cog):
         if target.is_timed_out():
             conf = await ctx.confirm(
                 message=f"{target.mention} is already muted. Do you want to overwrite their mute?",
-                ephemeral=True, delete_message_after=True
+                ephemeral=True,
+                delete_message_after=True,
             )
             if not conf.result:
                 return await ctx.send("Okay, I won't replace their mute.", delete_after=10, ephemeral=True)
@@ -274,8 +268,8 @@ class Moderation(core.Cog):
         await ctx.send(embed=embed, ephemeral=True)
 
     @core.command(hybrid=True, aliases=["untimeout", "untempmute"])
-    @core.both_has_permissions(moderate_members=True)
-    @core.default_permissions(moderate_members=True)
+    @core.has_permissions(moderate_members=True)
+    @core.bot_has_permissions(moderate_members=True)
     @core.describe(
         target="The person to unmute.",
         reason="The reason for the unmute.",
@@ -304,7 +298,8 @@ class Moderation(core.Cog):
         dur = dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=duration)
         conf = await ctx.confirm(
             message=f"Are you sure you want to mute yourself for {utils.format_seconds(duration, friendly=True)}?",
-            delete_after=True, ephemeral=True
+            delete_after=True,
+            ephemeral=True,
         )
         if conf.result:
             await ctx.author.edit(timed_out_until=dur, reason=f"Self mute. Expires {dur}")
@@ -334,8 +329,8 @@ class Moderation(core.Cog):
         return messages
 
     @core.group(hybrid=True, fallback="messages", invoke_without_command=True)
-    @core.both_has_permissions(manage_messages=True)
-    @core.default_permissions(manage_messages=True)
+    @core.has_permissions(manage_messages=True)
+    @core.bot_has_permissions(manage_messages=True)
     @core.cooldown(5, 30, commands.BucketType.member)
     @core.describe(amount="The amount of messages to purge.")
     async def purge(self, ctx: Context, amount: PurgeAmount):
@@ -466,7 +461,8 @@ class Moderation(core.Cog):
         await ctx.can_delete(embed=await self.do_affected(purged), ephemeral=True)
 
     @core.group(hybrid=True, invoke_without_command=True)
-    @core.both_has_permissions(manage_channels=True)
+    @core.has_permissions(manage_channels=True)
+    @core.bot_has_permissions(manage_channels=True)
     async def channel(self, ctx: Context):
         """
         Channel management commands.
@@ -474,8 +470,8 @@ class Moderation(core.Cog):
         await ctx.send_help(ctx.command)
 
     @channel.command()
-    @core.both_has_permissions(manage_messages=True)
-    @core.default_permissions(manage_messages=True)
+    @core.has_permissions(manage_messages=True)
+    @core.bot_has_permissions(manage_messages=True)
     @core.describe(channel="The channel to lock.", reason="The reason for locking the channel.")
     async def lock(
         self,
@@ -489,11 +485,7 @@ class Moderation(core.Cog):
 
         This sets the channel overwrite for send messages to Denied.
         """
-        await channel.set_permissions(
-            ctx.guild.default_role,
-            send_messages=False,
-            reason=reason
-        )
+        await channel.set_permissions(ctx.guild.default_role, send_messages=False, reason=reason)
         lc = discord.Embed(
             title=":lock: Channel Locked.",
             description=f"Channel has been locked.\nReason: {reason}",
@@ -504,8 +496,8 @@ class Moderation(core.Cog):
             await channel.send(embed=lc)
 
     @channel.command()
-    @core.both_has_permissions(manage_channels=True)
-    @core.default_permissions(manage_channels=True)
+    @core.has_permissions(manage_channels=True)
+    @core.bot_has_permissions(manage_channels=True)
     @core.describe(channel="The channel to unlock.", reason="The reason for unlocking the channel.")
     async def unlock(
         self,
@@ -519,11 +511,7 @@ class Moderation(core.Cog):
 
         This sets the channel overwrite for send messages to None.
         """
-        await channel.set_permissions(
-            ctx.guild.default_role,
-            send_messages=None,
-            reason=reason
-        )
+        await channel.set_permissions(ctx.guild.default_role, send_messages=None, reason=reason)
         lc = discord.Embed(
             title=":unlock: Channel Unocked.",
             description=f"Channel has been unlocked.\nReason: {reason}",
@@ -534,7 +522,8 @@ class Moderation(core.Cog):
             await channel.send(embed=lc)
 
     @channel.command()
-    @core.both_has_permissions(manage_channels=True)
+    @core.has_permissions(manage_channels=True)
+    @core.bot_has_permissions(manage_channels=True)
     @core.describe(duration="The duration to slowmode the channel for.")
     async def slowmode(self, ctx: Context, *, duration: TimeConverter):
         """
@@ -555,8 +544,8 @@ class Moderation(core.Cog):
         await ctx.send(embed=embed)
 
     @core.group(hybrid=True, invoke_without_command=True)
-    @core.both_has_permissions(manage_roles=True)
-    @core.default_permissions(manage_roles=True)
+    @core.has_permissions(manage_roles=True)
+    @core.bot_has_permissions(manage_roles=True)
     async def role(self, ctx: Context):
         """
         Add or remove a role from a member.
@@ -564,7 +553,8 @@ class Moderation(core.Cog):
         await ctx.send_help("role")
 
     @role.command(aliases=["append"])
-    @core.both_has_permissions(manage_roles=True)
+    @core.has_permissions(manage_roles=True)
+    @core.bot_has_permissions(manage_roles=True)
     @core.describe(member="The member's roles to modify.", role="The role to add to the member.")
     async def add(self, ctx: Context, member: TargetMember, role: discord.Role):
         """
@@ -584,7 +574,8 @@ class Moderation(core.Cog):
         await ctx.send(embed=ra)
 
     @role.command()
-    @core.both_has_permissions(manage_roles=True)
+    @core.has_permissions(manage_roles=True)
+    @core.bot_has_permissions(manage_roles=True)
     @core.describe(member="The member's roles to modify.", role="The role to add to the member.")
     async def remove(self, ctx: Context, member: TargetMember, role: discord.Role):
         """
@@ -607,7 +598,6 @@ class Moderation(core.Cog):
     @core.command(hybrid=True)
     @core.has_permissions(kick_members=True)
     @core.bot_has_permissions(manage_nicknames=True)
-    @core.default_permissions(kick_members=True)
     @core.describe(member="The member to nick.", nick="The name to set.")
     async def nick(self, ctx: Context, member: TargetMember, *, nick: str | None = None):
         """
