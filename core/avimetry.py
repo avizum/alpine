@@ -40,7 +40,7 @@ from wavelink.ext import spotify
 from topgg.client import DBLClient
 from topgg.webhook import WebhookManager
 
-from core import Command, Group
+from .core import Command, Group
 from utils.cache import Cache
 
 if TYPE_CHECKING:
@@ -311,7 +311,7 @@ class Bot(commands.Bot):
         return self.command(name=name, cls=Group, **kwargs)
 
     def run(self, *args: Any, **kwargs: Any) -> None:
-        token = self.settings["bot_tokens"]["Avimetry"]
+        token = self.settings["bot_tokens"]["AvimetryII"]
         super().run(token, reconnect=True, *args, **kwargs)
 
     async def close(self) -> None:

@@ -67,13 +67,13 @@ class Command(commands.Command, Generic[CogT, P, T]):
             member_permissions = func.__member_permissions__
         except AttributeError:
             member_permissions = kwargs.get("member_permissions") or extras.get("member_permissions")
-        self.member_permissions = member_permissions
+        self.member_permissions: list[str] | None = member_permissions
 
         try:
             bot_permissions = func.__bot_permissions__
         except AttributeError:
             bot_permissions = kwargs.get("bot_permissions") or extras.get("bot_permissions")
-        self.bot_permissions = bot_permissions
+        self.bot_permissions: list[str] | None = bot_permissions
 
         super().__init__(func, **kwargs)
         if not self._buckets._cooldown:
