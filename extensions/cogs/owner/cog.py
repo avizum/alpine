@@ -22,8 +22,8 @@ import asyncio
 import contextlib
 import datetime
 import importlib
-import io
 import inspect
+import io
 import math
 import re
 import sys
@@ -31,7 +31,7 @@ import traceback
 from difflib import get_close_matches
 from importlib.metadata import distribution, packages_distributions
 from types import TracebackType
-from typing import TYPE_CHECKING, Callable, Generator, Deque, Any
+from typing import Any, Callable, Deque, Generator, TYPE_CHECKING
 
 import discord
 import psutil
@@ -39,7 +39,7 @@ import toml
 from asyncpg import Record
 from discord.ext import commands, menus
 from discord.utils import format_dt
-from jishaku import Feature, exception_handling
+from jishaku import exception_handling, Feature
 from jishaku.codeblocks import codeblock_converter
 from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.exception_handling import ReplResponseReactor
@@ -49,16 +49,16 @@ from jishaku.modules import package_version
 from jishaku.paginators import PaginatorInterface
 from jishaku.repl import AsyncCodeExecutor
 
-
 import core
-from utils import ModReason, DefaultReason, Paginator, PaginatorEmbed, View, Emojis
+from utils import DefaultReason, Emojis, ModReason, Paginator, PaginatorEmbed, View
 
 if TYPE_CHECKING:
-    from jishaku.repl import Scope
     from jishaku.features.baseclass import CommandTask
+    from jishaku.repl import Scope
+
+    from core import Bot, Context
 
     from ..moderation import Moderation
-    from core import Bot, Context
 
 
 def natural_size(size_in_bytes: int) -> str:
@@ -95,7 +95,7 @@ async def _send_traceback(
 
     paginator = commands.Paginator(prefix="```py")
     for line in traceback_content.split("\n"):
-        line = line.replace(str(destination._state.http.token), "[token omitten]")
+        line = line.replace(str(destination._state.http.token), "[token omitted]")
         for i in sys.path:
             line = line.replace(i, ".")
         paginator.add_line(line)
@@ -103,10 +103,10 @@ async def _send_traceback(
     message = None
 
     for page in paginator.pages:
-        if isinstance(destination, discord.Message):
-            message = await destination.reply(page)
-        else:
+        if isinstance(destination, discord.abc.Messageable):
             message = await destination.send(page)
+        else:
+            message = await destination.reply(page)
 
     return message
 
@@ -238,7 +238,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
     jsk_python_result_handling: Callable[[Context, Any], Any]
     jsk_python_get_convertables: Callable[[Context], tuple[dict[str, Any], dict[str, str]]]
     submit: Callable[[Context], Any]
-    walk_commands: Callable[..., Generator[core.Command, None, None]]
+    walk_commands: Callable[[], Generator[core.Command[Any, ..., Any], None, None]]
     load_time: datetime.datetime
     start_time: datetime.datetime
     scope: Scope
@@ -401,7 +401,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                             result: Any
 
                             if result is None and out and out.getvalue():
-                                result = out.getvalue()
+                                result = f"Redirected stdout\n{ctx.codeblock(out.getvalue())}"
 
                             if result is None:
                                 continue
@@ -518,7 +518,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             await ctx.send(str(exc))
 
     @Feature.Command(parent="jsk", name="load", aliases=["l"])
-    async def jsk_load(self, ctx: Context, *module: str):
+    async def jsk_load(self, ctx: Context, module: str):
         """
         Load cogs.
         """
