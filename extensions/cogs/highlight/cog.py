@@ -22,7 +22,7 @@ import discord
 from discord import app_commands
 
 import core
-from core import Context, Bot
+from core import Bot, Context
 
 
 class HighlightCommands(core.Cog):
@@ -175,7 +175,7 @@ class HighlightCommands(core.Cog):
         """
         await ctx.message.delete(delay=10)
         highlights = self.bot.cache.highlights.get(ctx.author.id)
-        if highlights and user not in highlights["blocked"]:
+        if highlights and user.id not in highlights["blocked"]:
             return await ctx.send("This user is not blocked.")
         if not highlights:
             return await ctx.send("You don't have a user/channel blocked.")
