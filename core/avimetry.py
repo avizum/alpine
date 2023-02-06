@@ -22,7 +22,7 @@ import datetime as dt
 import logging
 import re
 from datetime import datetime
-from typing import TYPE_CHECKING, Callable, Any, Type, Mapping
+from typing import Any, Callable, Mapping, Type, TYPE_CHECKING
 
 import asyncpg
 import discord
@@ -30,18 +30,19 @@ import jishaku
 import mystbin
 import toml
 import wavelink
-from asyncgist.client import Client as GistClient
-from sr_api.client import Client as SRClient
-from asyncdagpi.client import Client as DagpiClient
 from aiohttp import ClientSession
+from asyncdagpi.client import Client as DagpiClient
+from asyncgist.client import Client as GistClient
 from discord.ext import commands
 from discord.utils import _ColourFormatter
-from wavelink.ext import spotify
+from sr_api.client import Client as SRClient
 from topgg.client import DBLClient
 from topgg.webhook import WebhookManager
+from wavelink.ext import spotify
+
+from utils.cache import Cache
 
 from .core import Command, Group
-from utils.cache import Cache
 
 if TYPE_CHECKING:
     from core import Cog, Context
@@ -311,7 +312,7 @@ class Bot(commands.Bot):
         return self.command(name=name, cls=Group, **kwargs)
 
     def run(self, *args: Any, **kwargs: Any) -> None:
-        token = self.settings["bot_tokens"]["AvimetryII"]
+        token = self.settings["bot_tokens"]["Avimetry"]
         super().run(token, reconnect=True, *args, **kwargs)
 
     async def close(self) -> None:
