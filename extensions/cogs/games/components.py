@@ -21,7 +21,7 @@ from __future__ import annotations
 import random
 
 import discord
-from asyncakinator import Akinator, Answer, CantGoBackAnyFurther, InvalidLanguage, InvalidTheme, Language, Theme
+from asyncakinator import Akinator, Answer, CanNotGoBack, InvalidLanguage, InvalidTheme, Language, Theme
 from discord.ext import commands
 from discord.ext.commands import flag
 
@@ -120,7 +120,7 @@ class AkinatorGameView(View):
             await interaction.response.defer()
             try:
                 nxt = await self.client.answer(answer)
-            except CantGoBackAnyFurther:
+            except CanNotGoBack:
                 return await interaction.followup.send("You can't go back. Sorry.", ephemeral=True)
             self.embed.description = f"{self.client.step+1}. {nxt}"
             await self.message.edit(embed=self.embed)
