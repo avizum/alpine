@@ -199,16 +199,20 @@ class Fun(core.Cog):
             subreddit = subreddit.replace("r/", "")
         async with self.bot.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
             if content.status == 404:
+                ctx.command.reset_cooldown(ctx)
                 return await ctx.send("Could not find that subreddit. Please check your spelling and try again.")
             if content.status != 200:
+                ctx.command.reset_cooldown(ctx)
                 return await ctx.send("There has been a problem at Reddit. Please try again later.")
             stuff = await content.json()
         get_data = stuff["data"]["children"]
         if not get_data:
+            ctx.command.reset_cooldown(ctx)
             return await ctx.send("No posts found in this subreddit.")
         try:
             data = random.choice(get_data)["data"]
         except Exception:
+            ctx.command.reset_cooldown(ctx)
             return await ctx.send("No posts found.")
         desc = data["selftext"] if data["selftext"] is not None else ""
         if len(desc) > 2048:
@@ -231,6 +235,7 @@ class Fun(core.Cog):
         if data["over_18"]:
             if ctx.channel.is_nsfw():
                 return await ctx.send(embed=embed)
+            ctx.command.reset_cooldown(ctx)
             return await ctx.send("NSFW posts can't be sent in non-nsfw channels.")
         return await ctx.send(embed=embed)
 
