@@ -21,7 +21,7 @@ from __future__ import annotations
 import datetime
 import re
 import sys
-from typing import Any, Sequence, TYPE_CHECKING, TypeVar, Generic
+from typing import Any, Generic, Sequence, TYPE_CHECKING, TypeVar
 
 import discord
 from asyncgist import File as AGFile
@@ -262,6 +262,7 @@ class Context(commands.Context, Generic[BotT]):
         no_edit: bool = False,
         no_reply: bool = False,
         ephemeral: bool = False,
+        silent: bool = False,
     ) -> Message:
         if content:
             content = str(content)
@@ -303,6 +304,7 @@ class Context(commands.Context, Generic[BotT]):
             "mention_author": mention_author,
             "view": view,
             "suppress_embeds": suppress_embeds,
+            "silent": silent,
         }
 
         if self.message.id in self.bot.command_cache and self.message.edited_at and not no_edit:
@@ -345,6 +347,7 @@ class Context(commands.Context, Generic[BotT]):
             "view": MISSING if view is None else view,
             "suppress_embeds": suppress_embeds,
             "ephemeral": ephemeral,
+            "silent": silent,
         }
 
         if self.interaction.response.is_done():
