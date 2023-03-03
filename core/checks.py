@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import functools
 import inspect
-from typing import Any, TYPE_CHECKING, Union
+from typing import Any, Callable, TYPE_CHECKING, TypeVar
 
 import discord
 from discord.ext import commands
@@ -31,13 +31,16 @@ from .core import Command
 from .exceptions import NotGuildOwner
 
 if TYPE_CHECKING:
-    from discord.ext.commands._types import Check, ContextT, CoroFunc, UserCheck
+    from discord.ext.commands._types import Check, CoroFunc, UserCheck
 
     from .context import Context
+    from .core import Bot
+
+T = TypeVar("T")
 
 
-def check(predicate: UserCheck[ContextT]) -> Check[ContextT]:
-    def decorator(func: Union[Command[Any, ..., Any], CoroFunc]) -> Union[Command[Any, ..., Any], CoroFunc]:
+def check(predicate: UserCheck[Context[Bot]]) -> Check[Context[Bot]]:
+    def decorator(func: Command[Any, ..., Any] | CoroFunc) -> Command[Any, ..., Any] | CoroFunc:
         if isinstance(func, Command):
             func.checks.append(predicate)  # type: ignore
         else:
@@ -53,7 +56,7 @@ def check(predicate: UserCheck[ContextT]) -> Check[ContextT]:
     else:
 
         @functools.wraps(predicate)
-        async def wrapper(ctx: ContextT):
+        async def wrapper(ctx: Context[Bot]):
             return predicate(ctx)
 
         decorator.predicate = wrapper
@@ -154,15 +157,17 @@ def bot_has_permissions(**perms: bool):
     return decorator
 
 
-def cooldown(rate: int, per: float, type=commands.BucketType.user):
+def cooldown(
+    rate: int, per: float, type: commands.BucketType | Callable[[Context[Bot]], Any] = commands.BucketType.user
+) -> Callable[[T], T]:
 
     default_cooldown = commands.Cooldown(rate, per)
 
-    def decorator(func):
+    def decorator(func: Command | CoroFunc) -> Command | CoroFunc:
         def owner_cd(message: discord.Message):
             return None if message.author.id in OWNER_IDS else default_cooldown
 
-        mapping = commands.DynamicCooldownMapping(owner_cd, type)
+        mapping = commands.DynamicCooldownMapping(owner_cd, type)  # type: ignore
         mapping._cooldown = default_cooldown
 
         if isinstance(func, Command):
@@ -171,7 +176,7 @@ def cooldown(rate: int, per: float, type=commands.BucketType.user):
             func.__commands_cooldown__ = mapping
         return func
 
-    return decorator
+    return decorator  # type: ignore
 
 
 def is_owner():
