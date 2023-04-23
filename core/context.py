@@ -33,14 +33,17 @@ from utils.paginators import Paginator, WrappedPaginator
 from utils.view import View as AView
 
 if TYPE_CHECKING:
+    from asyncpg.pool import Pool
     from discord import AllowedMentions, Embed, File, GuildSticker, Message, MessageReference, PartialMessage, StickerItem
     from discord.ui import View
 
     from extensions.cogs.music.cog import Player
+    from utils.cache import Cache
 
     from .avimetry import Bot
 
 BotT = TypeVar("BotT", bound="commands.Bot | commands.AutoShardedBot", covariant=True)
+T = TypeVar("T")
 
 emoji_regex: re.Pattern = re.compile(r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>")
 
@@ -74,35 +77,35 @@ class TrashView(AView):
 
 
 class ConfirmView(AView):
-    def __init__(self, *, member: discord.Member, timeout: int | float):
+    def __init__(self, *, member: discord.Member, timeout: int | float) -> None:
         super().__init__(member=member, timeout=timeout)
         self.value: bool | None = None
         self.message: Message | None = None
 
     @discord.ui.button(label="Yes", style=discord.ButtonStyle.green)
-    async def yes(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def yes(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         await interaction.response.defer()
         self.value = True
         self.stop()
 
     @discord.ui.button(label="No", style=discord.ButtonStyle.red)
-    async def no(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def no(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         await interaction.response.defer()
         self.value = False
         self.stop()
 
 
 class ConfirmResult:
-    def __init__(self, message: discord.Message, result: bool | None):
+    def __init__(self, message: discord.Message, result: bool | None) -> None:
         self.message: discord.Message = message
         self.result: bool | None = result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<ConfirmResult result={self.result}>"
 
 
 class AutoPageSource(menus.ListPageSource):
-    def __init__(self, entry: str | list | commands.Paginator, language: str = "", *, limit: int = 1000):
+    def __init__(self, entry: str | list | commands.Paginator, language: str = "", *, limit: int = 1000) -> None:
         if isinstance(entry, list):
             entry = entry
         elif isinstance(entry, str):
@@ -113,7 +116,7 @@ class AutoPageSource(menus.ListPageSource):
             entry = entry.pages
         super().__init__(entry, per_page=1)
 
-    async def format_page(self, menu, page):
+    async def format_page(self, menu: menus.Menu, page: T) -> T:
         return page
 
 
@@ -139,11 +142,11 @@ class Context(commands.Context, Generic[BotT]):
         self.tokens: list[str] = tokens
 
     @property
-    def cache(self):
+    def cache(self) -> Cache:
         return self.bot.cache
 
     @property
-    def pool(self):
+    def pool(self) -> Pool:
         return self.bot.pool
 
     @property
@@ -319,6 +322,7 @@ class Context(commands.Context, Generic[BotT]):
                     "mention_author",
                     "reference",
                     "suppress_embeds",
+                    "silent",
                 )
                 for pop in to_pop:
                     edit_kwargs.pop(pop, None)
