@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any, TYPE_CHECKING
 
 import discord
 from discord.ext.menus import PageSource
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
 
 class PaginatorEmbed(discord.Embed):
-    def __init__(self, *, ctx: Context, **kwargs):
+    def __init__(self, *, ctx: Context, **kwargs) -> None:
         super().__init__(**kwargs)
         self.color = ctx.get_color()
         self.timestamp = datetime.datetime.now(datetime.timezone.utc)

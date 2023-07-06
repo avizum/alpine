@@ -29,6 +29,7 @@ from utils import Timer
 
 if TYPE_CHECKING:
     from datetime import datetime
+
     from core import Bot, Context
 
 
@@ -42,7 +43,7 @@ class Animals(core.Cog):
         self.load_time: datetime = dt.datetime.now(dt.timezone.utc)
         self.emoji = "\U0001f98a"
 
-    async def do_animal(self, ctx: Context, animal: str):
+    async def do_animal(self, ctx: Context, animal: str) -> None:
         async with ctx.channel.typing():
             with Timer() as timer:
                 e = await self.bot.sr.get_image(animal)

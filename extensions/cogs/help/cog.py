@@ -41,7 +41,7 @@ class AvimetryHelp(commands.HelpCommand):
     context: Context
 
     def get_perms(self, perm_type: str, command: commands.Command) -> str:
-        permissions = getattr(command, perm_type, None) or command.extras.get(perm_type, ["none_needed"])
+        permissions: list[str] = getattr(command, perm_type, None) or command.extras.get(perm_type, ["none_needed"])
         return ", ".join(permissions).replace("_", " ").replace("guild", "server").title()
 
     async def can_run(self, command: Command, ctx: Context) -> str:

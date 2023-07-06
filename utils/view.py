@@ -20,9 +20,9 @@ import discord
 
 
 class View(discord.ui.View):
-    def __init__(self, *, member: discord.Member | discord.User, timeout: int | float = 180) -> None:
+    def __init__(self, *, member: discord.Member | discord.User, timeout: int | float = 180, **kwargs) -> None:
         self.member: discord.Member | discord.User = member
-        super().__init__(timeout=timeout)
+        super().__init__(timeout=timeout, **kwargs)
 
     def disable_all(self) -> None:
         for child in self.children:
