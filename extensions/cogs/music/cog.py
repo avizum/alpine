@@ -22,7 +22,7 @@ import asyncio
 import datetime as dt
 import math
 import random
-from typing import TYPE_CHECKING, Literal
+from typing import Literal, TYPE_CHECKING
 
 import discord
 import wavelink
@@ -30,12 +30,14 @@ from discord.ext import commands
 from wavelink.ext import spotify
 
 import core
-from utils import Paginator, format_seconds
-from .exceptions import NotInVoice, BotNotInVoice, IncorrectChannelError
-from .music import Player, Track, PaginatorSource
+from utils import format_seconds, Paginator
+
+from .exceptions import BotNotInVoice, IncorrectChannelError, NotInVoice
+from .music import EventPayload, PaginatorSource, Player, Track
 
 if TYPE_CHECKING:
     from datetime import datetime
+
     from core import Bot, Context
 
 
@@ -70,7 +72,7 @@ class Music(core.Cog):
     async def cog_check(self, ctx: Context) -> bool:
         try:
             wavelink.NodePool.get_node()
-        except wavelink.ZeroConnectedNodes as e:
+        except wavelink.InvalidNode as e:
             raise NotInVoice("No nodes are connected. Try again later.") from e
         return True
 
@@ -82,7 +84,7 @@ class Music(core.Cog):
                 raise NotInVoice("You are not in a voice channel.")
             if not player:
                 return True
-            elif player.channel != ctx.author.voice.channel:
+            elif player.channel and player.channel != ctx.author.voice.channel:
                 raise IncorrectChannelError(f"This command can only be used in {player.channel.mention}.")
             return True
 
@@ -110,15 +112,20 @@ class Music(core.Cog):
         return commands.check(predicate)
 
     @core.Cog.listener("on_wavelink_track_exception")
-    async def track_exception(self, player: Player, track: Track, error):
-        await player.context.channel.send(f"Error on {track.title}: {error}")
+    async def track_exception(self, payload: EventPayload):
+        player = payload.player
+        track = payload.track
+        await player.context.channel.send(f"Error on {track.title}: {payload.reason}")
 
     @core.Cog.listener("on_wavelink_track_end")
-    async def track_end(self, player: Player, track: Track, reason):
+    async def track_end(self, payload: EventPayload):
+        player = payload.player
         await player.do_next()
 
     @core.Cog.listener("on_wavelink_track_stuck")
-    async def track_stuck(self, player: Player, track: Track, threshold):
+    async def track_stuck(self, payload: EventPayload):
+        player = payload.player
+        track = payload.track
         await player.context.channel.send(f"Track {track.title} got stuck. Skipping.")
         await player.do_next()
 
@@ -274,14 +281,16 @@ class Music(core.Cog):
         if not search:
             return await ctx.send("No results found matching your query.")
 
+        print(search)
+
         if isinstance(search, wavelink.YouTubeTrack):
-            track = Track(search.id, search.info, requester=ctx.author, thumb=search.thumb)
+            track = Track(track=search, context=ctx)
             player.queue.put(track)
             await ctx.send(embed=await player.build_added(track))
 
         if isinstance(search, wavelink.YouTubePlaylist):
             for track in search.tracks:
-                track = Track(track.id, track.info, requester=ctx.author, thumb=track.thumb)
+                track = Track(track=track, context=ctx)
                 player.queue.put(track)
 
             embed = discord.Embed(
@@ -292,20 +301,18 @@ class Music(core.Cog):
                 embed.set_thumbnail(url=search.tracks[0].thumb)
             await ctx.send(embed=embed)
 
-        elif isinstance(search, list) and isinstance(search[0], wavelink.PartialTrack):
+        elif isinstance(search, list) and isinstance(search[0], spotify.SpotifyTrack):
             for track in search:
-                track.requester = ctx.author  # type: ignore  # runtime attribute assignment
-                track.hyperlinked_title = track.title  # type: ignore  # runtime attribute assignment
+                track = Track(track=track, context=ctx)
                 player.queue.put(track)
             embed = discord.Embed(
                 title="Enqueued Spotify playlist",
-                description=(f"Spotify playlist with {len(query)} tracks added to the queue."),
+                description=(f"Spotify playlist with {len(search)} tracks added to the queue."),
             )
             await ctx.send(embed=embed)
 
         elif isinstance(query, spotify.SpotifyTrack):
-            #  Spotify track is weird
-            track = Track(search.id, search.info, requester=ctx.author, thumb=search.thumb)  # type: ignore
+            track = Track(track=query, context=ctx)
             player.queue.put(track)
             await ctx.send(embed=await player.build_added(track))
 
@@ -492,11 +499,11 @@ class Music(core.Cog):
         player: Player = ctx.voice_client
         if not player:
             return await ctx.send("I am not in a voice channel.")
-        if player.source is None:
+        if player.current is None:
             return await ctx.send("There is no song playing.")
         if self.is_privileged(ctx):
             await player.seek((int(player.position) + seconds) * 1000)
-            pos = f"{format_seconds(player.position)}/{format_seconds(player.source.length)}"
+            pos = f"{format_seconds(player.position)}/{format_seconds(player.current.length)}"
             return await ctx.send(f":fast_forward: Fast forwarded {seconds} seconds. ({pos})")
         await ctx.send("Only the DJ can fast forward.")
 
@@ -514,11 +521,11 @@ class Music(core.Cog):
         player: Player = ctx.voice_client
         if not player:
             return await ctx.send("I am not in a voice channel.")
-        if player.source is None:
+        if player.current is None:
             return await ctx.send("There is no song playing.")
         if self.is_privileged(ctx):
             await player.seek((int(player.position) - seconds) * 1000)
-            pos = f"{format_seconds(player.position)}/{format_seconds(player.source.length)}"
+            pos = f"{format_seconds(player.position)}/{format_seconds(player.current.length)}"
             return await ctx.send(f":rewind: Rewinded {seconds} seconds. ({pos})")
         await ctx.send("Only the DJ can rewind.")
 
@@ -536,12 +543,12 @@ class Music(core.Cog):
         player: Player = ctx.voice_client
         if not player:
             return await ctx.send("I am not in a voice channel.")
-        if player.source is None:
+        if player.current is None:
             return await ctx.send("There is no song playing.")
         if self.is_privileged(ctx):
-            if seconds > player.source.length:
+            if seconds > player.current.length:
                 return await ctx.send("That is longer than the song!")
-            await ctx.send(f"Seeked to {format_seconds(seconds)}/{format_seconds(player.source.length)}")
+            await ctx.send(f"Seeked to {format_seconds(seconds)}/{format_seconds(player.current.length)}")
             return await player.seek(seconds * 1000)
         await ctx.send("Only the DJ can seek.")
 
@@ -915,10 +922,7 @@ class Music(core.Cog):
 
         entries = []
         for index, track in enumerate(player.queue._queue):
-            if isinstance(track, Track):
-                entries.append(f"`{index + 1})` {track.hyperlinked_title}")
-            elif isinstance(track, wavelink.PartialTrack):
-                entries.append(f"`{index + 1})` {track.title}")
+            entries.append(f"`{index + 1})` {track.hyperlink} [{track.requester.mention}]")
 
         pages = PaginatorSource(entries=entries, ctx=ctx)
         paginator = Paginator(source=pages, timeout=120, ctx=ctx, delete_message_after=True)

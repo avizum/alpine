@@ -225,12 +225,13 @@ class Bot(commands.Bot):
     async def start_nodes(self) -> None:
         await self.wait_until_ready()
         try:
-            node = await wavelink.NodePool.create_node(
-                bot=self,
+            node = wavelink.Node(
                 **self.settings["lavalink"],
-                spotify_client=spotify.SpotifyClient(**self.settings["spotify"]),
             )
-            _log.info(f"Wavelink node started: Identifier: {node.identifier}")
+            await wavelink.NodePool.connect(client=self, nodes=[node], spotify=spotify.SpotifyClient(
+                **self.settings["spotify"]
+            ))
+            # _log.info(f"Wavelink node started: Identifier: {connected.}")
         except Exception as e:
             cog: ErrorHandler | None = self.get_cog("errorhandler")  # type: ignore
             if cog:

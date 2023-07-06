@@ -17,7 +17,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from discord.ext import commands
-from wavelink.errors import QueueException
+from wavelink.exceptions import WavelinkException
+
+
+class QueueException(WavelinkException):
+    """
+    Base exception for the queue.
+    """
+
+    pass
 
 
 class QueueDuplicateTrack(QueueException):
