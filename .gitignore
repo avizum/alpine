@@ -5,3 +5,4 @@
 .mypy_cache
 config.toml
 reboot.toml
+*avimetry-env
