@@ -16,27 +16,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import datetime
 import copy
+import datetime
 import logging
 import traceback as tb
+from difflib import get_close_matches
 
 import discord
 import humanize
+from discord import app_commands
+from discord.ext import commands
 
 import core
 from core import Bot, Context
-from core.exceptions import (
-    Blacklisted,
-    Maintenance,
-    NotGuildOwner,
-    CommandDisabledChannel,
-    CommandDisabledGuild,
-)
-from utils import View, format_list
-from discord.ext import commands
-from difflib import get_close_matches
-
+from core.exceptions import Blacklisted, CommandDisabledChannel, CommandDisabledGuild, Maintenance, NotGuildOwner
+from utils import format_list, View
 
 _log = logging.getLogger("avimetry")
 
@@ -108,6 +102,11 @@ class ErrorHandler(core.Cog):
             self.bot.settings["webhooks"]["error_log"],
             session=self.bot.session,
         )
+        self._original_tree_error = self.bot.tree.on_error
+        self.bot.tree.on_error = self.on_tree_error
+
+    async def cog_unload(self):
+        self.bot.tree.on_error = self._original_tree_error
 
     def reset(self, ctx: Context):
         try:
@@ -120,10 +119,16 @@ class ErrorHandler(core.Cog):
         if cooldown:
             rate = cooldown.rate
             _type = command._buckets.type.name
-            per = humanize.precisedelta(cooldown.per)
+            per = humanize.precisedelta(int(cooldown.per))
             time = "times" if rate > 1 else "time"
             return f"{per} every {rate} {time} per {_type}"
         return None
+
+    async def on_tree_error(self, itn: discord.Interaction, error: app_commands.AppCommandError):
+        if isinstance(error, app_commands.CommandNotFound):
+            return await itn.response.send_message("This command is unavailable right now.", ephemeral=True)
+        else:
+            raise error
 
     @core.Cog.listener()
     async def on_command_error(self, ctx: Context, error: commands.CommandError):
@@ -162,7 +167,8 @@ class ErrorHandler(core.Cog):
                 pass
         elif await self.bot.is_owner(ctx.author) and ctx.prefix == "" and isinstance(error, commands.CommandNotFound):
             return
-
+        elif isinstance(error, app_commands.CommandNotFound):
+            return await ctx.send("This command is unavailable.")
         elif isinstance(error, Blacklisted):
             blacklisted = Embed(
                 title=f"You are blacklisted from {self.bot.user.name}",
