@@ -16,15 +16,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import discord
 import datetime
 import random
 
+import discord
+from discord.ext import tasks
+from topgg import ServerError
+from topgg.types import BotVoteData
+
 import core
 from core import Bot
-from discord.ext import tasks
-from topgg.types import BotVoteData
-from topgg import ServerError
 
 
 class TopGG(core.Cog):
@@ -63,14 +64,14 @@ class TopGG(core.Cog):
     async def update(self):
         if self.bot.user.id != 756257170521063444:
             return
-        status = discord.Status.online
-        games = [
-            discord.Game(f"@Avimetry | {len(self.bot.guilds)} Servers"),
-            discord.Game(f"@Avimetry | {len(self.bot.users)} Users"),
-            discord.Game(f"@Avimetry | Made by @{self.bot.get_user(750135653638865017)}"),
+        activities = [
+            f"In {len(self.bot.guilds)} Servers",
+            f"Looking at {len(self.bot.users)} Users",
+            f"Made by @{self.bot.get_user(750135653638865017)}",
         ]
-        game = random.choice(games)
-        await self.bot.change_presence(status=status, activity=game)
+        await self.bot.change_presence(
+            status=discord.Status.online, activity=discord.CustomActivity(name=f"@Avimetry | {random.choice(activities)}")
+        )
 
     @update.before_loop
     async def before_update(self):
@@ -81,18 +82,21 @@ class TopGG(core.Cog):
         if not isinstance(data, dict):
             return
         vote_type = "a bot list"
+        user_id = None
         if isinstance(data.get("user"), dict):
             vote_type = "[Discord Boats](https://discord.boats/bot/756257170521063444/vote)"
-            user_id = data.get("user").get("id")
+            user_id = data.get("user").get("id")  # type: ignore # data should be there
         elif isinstance(data.get("user"), str):
             vote_type = "[Top.GG](https://top.gg/bot/756257170521063444/vote)"
             user_id = data.get("user")
         elif isinstance(data.get("id"), str):
             vote_type = "[Discord Bot List](https://discordbotlist.com/bots/avimetry/upvote)"
             user_id = data.get("id")
-        user = self.bot.get_user(int(user_id))
+        if not user_id:
+            return
+        user = self.bot.get_user(int(user_id)) or await self.bot.fetch_user(int(user_id))
         if not user:
-            await self.bot.fetch_user(int(user_id))
+            return
         user_embed = discord.Embed(title="Vote Recieved", description=f"Thank you for voting on {vote_type}!")
         await user.send(embed=user_embed)
 
