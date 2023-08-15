@@ -36,11 +36,11 @@ If you don't care, Here are instructions on how to run your own version of Avime
 
 1. Have Python 3.10 installed
 
-Python has to be installed. This is a Python bot. Python 3.10 is required because of 3.10 Unions.
+Python has to be installed. This is a Python bot.
 
 2. Install requirements
 
-Do `pip install -U -r requirements.txt`
+Run `pip install -U -r requirements.txt`
 
 3. Bot Configuration
 
