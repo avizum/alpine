@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 
 class ConvertTime(commands.Converter, int):
     @classmethod
-    def convert_time(cls, ctx: Context, argument: int | str) -> int:
+    async def convert(cls, ctx: Context, argument: int | str) -> int:
         try:
             argument = int(argument)
         except ValueError:
@@ -149,7 +149,7 @@ class Music(core.Cog):
 
         channel = player.channel
 
-        def check(mem, bef, aft):
+        def check(mem: discord.Member, _, aft: discord.VoiceState):
             return mem == member and aft.channel == channel
 
         if after.channel is None and len(channel.members) == 1 and member.guild.me in channel.members:
@@ -281,17 +281,15 @@ class Music(core.Cog):
         if not search:
             return await ctx.send("No results found matching your query.")
 
-        print(search)
-
         if isinstance(search, wavelink.YouTubeTrack):
             track = Track(track=search, context=ctx)
-            player.queue.put(track)
+            await player.queue.put(track)
             await ctx.send(embed=await player.build_added(track))
 
-        if isinstance(search, wavelink.YouTubePlaylist):
+        elif isinstance(search, wavelink.YouTubePlaylist):
             for track in search.tracks:
                 track = Track(track=track, context=ctx)
-                player.queue.put(track)
+                await player.queue.put(track)
 
             embed = discord.Embed(
                 title="Enqueued YouTube playlist",
@@ -304,16 +302,19 @@ class Music(core.Cog):
         elif isinstance(search, list) and isinstance(search[0], spotify.SpotifyTrack):
             for track in search:
                 track = Track(track=track, context=ctx)
-                player.queue.put(track)
+                await player.queue.put(track)
+            first = search[0]
+            first_track = Track(track=first, context=ctx)
             embed = discord.Embed(
                 title="Enqueued Spotify playlist",
-                description=(f"Spotify playlist with {len(search)} tracks added to the queue."),
+                description=f"[Spotify playlist]({query}) with {len(search)} tracks added to the queue.",
             )
+            embed.set_thumbnail(url=first_track.thumb)
             await ctx.send(embed=embed)
 
-        elif isinstance(query, spotify.SpotifyTrack):
-            track = Track(track=query, context=ctx)
-            player.queue.put(track)
+        elif isinstance(search, spotify.SpotifyTrack):
+            track = Track(track=search, context=ctx)
+            await player.queue.put(track)
             await ctx.send(embed=await player.build_added(track))
 
         if not player.is_playing():
@@ -334,14 +335,13 @@ class Music(core.Cog):
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admin can use this command.")
 
-        # Track will always have a title.
         if not player.track:
             return await ctx.send("There is no song playing to loop.")
         if player.loop_song:
             player.loop_song = None
-            return await ctx.send(f"No longer looping: {player.track.title}")  # type: ignore
+            return await ctx.send(f"No longer looping: {player.track.title}")
         player.loop_song = player.track
-        await ctx.send(f"Now looping: {player.track.title}")  # type: ignore
+        await ctx.send(f"Now looping: {player.track.title}")
 
     @track_loop.command(name="queue", enabled=False)
     @core.is_owner()
@@ -548,7 +548,7 @@ class Music(core.Cog):
         if self.is_privileged(ctx):
             if seconds > player.current.length:
                 return await ctx.send("That is longer than the song!")
-            await ctx.send(f"Seeked to {format_seconds(seconds)}/{format_seconds(player.current.length)}")
+            await ctx.send(f"Seeked to {format_seconds(seconds)}/{format_seconds(player.current.length/1000)}")
             return await player.seek(seconds * 1000)
         await ctx.send("Only the DJ can seek.")
 
@@ -922,7 +922,9 @@ class Music(core.Cog):
 
         entries = []
         for index, track in enumerate(player.queue._queue):
-            entries.append(f"`{index + 1})` {track.hyperlink} [{track.requester.mention}]")
+            entries.append(
+                f"`{index + 1})` {track.hyperlink} [{track.requester.global_name} ({track.requester.global_name})]"
+            )
 
         pages = PaginatorSource(entries=entries, ctx=ctx)
         paginator = Paginator(source=pages, timeout=120, ctx=ctx, delete_message_after=True)
@@ -960,8 +962,10 @@ class Music(core.Cog):
 
         if not player:
             return
+        if not player.is_playing():
+            return await ctx.send("Nothing is playing.")
         pos = player.position
-        await ctx.send(embed=await player.build_now_playing(position=pos))
+        await ctx.send(embed=await player.build_now_playing(pos))
 
     @core.command(aliases=["swap", "new_dj"])
     @in_voice()

@@ -57,6 +57,7 @@ class Track(Playable):
         context: Context,
     ) -> None:
         self.track: Playable | SpotifyTrack = track
+        self.title = track.title
         self.requester: discord.Member = context.author
         self.context: Context = context
         self.uri: str | None = track.uri
@@ -68,12 +69,16 @@ class Track(Playable):
             self.thumb = track.thumb
             self.data = track.data
         elif isinstance(track, spotify.SpotifyTrack):
+            self.title = f"{self.track.title} - {', '.join(track.artists)}"
             self.thumb = track.images[0]
             self.data = track.raw
             uri = track.uri.split(":")
             self.uri = f"https://open.spotify.com/track/{uri[-1]}"
 
-        self.hyperlink = f"[{self.track.title}]({self.uri})"
+        self.hyperlink = f"[{self.title}]({self.uri})"
+
+    def __repr__(self) -> str:
+        return f"Track(title={self.title} requester={self.requester})"
 
 
 class EventPayload(wavelink.TrackEventPayload):
@@ -110,10 +115,10 @@ class Queue(WQueue):
     def get(self) -> Track | None:
         return super().get()  # type: ignore # Custom Track Class
 
-    def put(self, item: Track) -> None:
+    async def put(self, item: Track) -> None:
         if not self.allow_duplicates and item in self._queue:
             raise QueueDuplicateTrack
-        return self._put(item)  # type: ignore # Custom Track Class
+        return await self._put(item)  # type: ignore # Custom Track Class
 
 
 YOUTUBE_REGEX = re.compile(
@@ -165,7 +170,10 @@ class Player(wavelink.Player):
             except wavelink.WavelinkException:
                 return None
         elif search_type:
-            return [partial async for partial in SpotifyTrack.iterator(query=query, type=search_type["type"])]
+            tracks = await spotify.SpotifyTrack.search(query)
+            if len(tracks) > 1:
+                return tracks
+            return tracks[0] if tracks else None
         try:
             tracks = await YouTubeTrack.search(query)
             return tracks[0] if tracks else None
@@ -200,43 +208,57 @@ class Player(wavelink.Player):
 
         if track is not None:
             self.track = track
-            await self.play(track.track)  # type: ignore
+            await self.play(track.track)
+            if self.announce:
+                embed = await self.build_now_playing()
+                if embed is None:
+                    return
+                await self.context.channel.send(embed=embed)
 
         self.waiting = False
-        if self.announce:
-            embed = await self.build_now_playing()
-            if embed is None:
-                return
-            await self.context.channel.send(embed=embed)
 
     async def build_now_playing(self, position: float | None = None) -> discord.Embed | None:
         """
         Builds the "now playing" embed
         """
-        if not self.current:
-            return
-        track = self.current
+        if not self.track:
+            return None
+        current = self.track
 
         embed = discord.Embed(title="Now Playing")
         embed.color = await self.context.fetch_color()
 
-        time = f"> Length: {format_seconds(track.length/1000)}\n"
+        time = f"Length: {format_seconds(current.track.length/1000)}"
         if position:
-            time = f"> Position {format_seconds(position/1000)}/{format_seconds(track.length/1000)}\n"
+            time = f"Position: {format_seconds(position/1000)}/{format_seconds(current.track.length/1000)}"
 
         if self.queue.up_next:
-            next_track = self.queue.up_next.hyperlink
+            next_track = self.queue.up_next
         elif self.loop_song:
-            next_track = self.loop_song.hyperlink
+            next_track = self.loop_song
         else:
-            next_track = "Add more songs to the queue!"
-        # Happens when Spotify playlist is added to the queue
-        # Partial tracks become Youtube tracks when played
-        if isinstance(track, wavelink.YouTubeTrack):
-            embed.description = f"[{track.title}]({track.uri})\n" f"{time}\n" f"Up next: {next_track}"
-            if track.thumb:
-                embed.set_thumbnail(url=track.thumb)
-            return embed
+            next_track = None
+
+        # fmt: off
+        embed.description = (
+            f"{current.hyperlink}\n"
+            f"> {time}\n"
+            f"> Added by: {current.requester.global_name} ({current.requester})\n"
+        )
+        # fmt: on
+        if next_track:
+            next_track_text = (
+                f"{next_track.hyperlink}\n"
+                f"> Length: {format_seconds(next_track.track.length/1000)}\n"
+                f"> Added by: {next_track.requester.global_name} ({next_track.requester})\n"
+            )
+        else:
+            next_track_text = "Nothing - Add something to the queue!"
+
+        if current.thumb:
+            embed.set_thumbnail(url=current.thumb)
+
+        embed.add_field(name="Up Next", value=next_track_text)
         return embed
 
     async def build_added(self, source: Track) -> discord.Embed:
@@ -246,6 +268,7 @@ class Player(wavelink.Player):
         original = source
         embed = discord.Embed(title="Added to queue")
         embed.description = f"Song: {original.hyperlink}"
+        embed.set_thumbnail(url=original.thumb)
 
         return embed
 
