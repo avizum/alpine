@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import logging
-
 from copy import deepcopy
 from typing import TYPE_CHECKING, TypedDict
 
@@ -167,7 +166,7 @@ class Cache:
         )
         return new
 
-    async def populate_cache(self) -> None:
+    async def populate(self) -> None:
         _log.info("Populating Cache...")
 
         guild_settings = await self.bot.pool.fetch("SELECT * FROM guild_settings")

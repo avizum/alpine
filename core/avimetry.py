@@ -172,7 +172,7 @@ class Bot(commands.Bot):
         self.sr: SRClient = SRClient()
         self.dagpi: DagpiClient = DagpiClient(self.api["DagpiAPI"], session=self.session)
         self.myst: mystbin.Client = mystbin.Client(session=self.session)
-        self.loop.create_task(self.cache.populate_cache())
+        self.loop.create_task(self.cache.populate())
         self.loop.create_task(self.load_extensions())
         self.loop.create_task(self.start_nodes())
         self.loop.create_task(self.find_restart_message())
@@ -228,9 +228,9 @@ class Bot(commands.Bot):
             node = wavelink.Node(
                 **self.settings["lavalink"],
             )
-            await wavelink.NodePool.connect(client=self, nodes=[node], spotify=spotify.SpotifyClient(
-                **self.settings["spotify"]
-            ))
+            await wavelink.NodePool.connect(
+                client=self, nodes=[node], spotify=spotify.SpotifyClient(**self.settings["spotify"])
+            )
             # _log.info(f"Wavelink node started: Identifier: {connected.}")
         except Exception as e:
             cog: ErrorHandler | None = self.get_cog("errorhandler")  # type: ignore
