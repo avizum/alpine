@@ -356,7 +356,7 @@ class ErrorHandler(core.Cog):
             exc = tb.format_exception(type(error), error, error.__traceback__)
             traceback = f"```{''.join(exc)}```"
             if len(traceback) > 1995:
-                traceback = f"Error was too long: {await self.bot.myst.post(traceback, 'bash')}"
+                traceback = f"Error was too long: {await self.bot.myst.create_paste(filename='error.py', content=traceback)}"
             query = "SELECT * FROM command_errors WHERE command=$1 and error=$2"
             in_db = await self.bot.pool.fetchrow(query, ctx.command.qualified_name, str(error))
             embed = discord.Embed()
