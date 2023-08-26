@@ -19,16 +19,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import datetime as dt
-import humanize
 import inspect
-import pathlib
 import os
+import pathlib
 from typing import TYPE_CHECKING
 
 import discord
+import humanize
 import psutil
-from discord.ext import commands
 from discord import app_commands
+from discord.ext import commands
 from topgg import NotFound, ServerError
 
 import core
@@ -36,6 +36,7 @@ from utils import Timer
 
 if TYPE_CHECKING:
     from datetime import datetime
+
     from core import Bot, Context
 
 
@@ -301,31 +302,33 @@ class BotInfo(core.Cog, name="Bot Info"):
             await ctx.send("That is not a bot.")
 
     @core.command(aliases=["lc", "linec", "lcount"])
-    async def linecount(self, ctx):
+    async def linecount(self, ctx: Context):
         """
         Check how many lines of code the bot has.
         """
         path = pathlib.Path("./")
         comments = coros = funcs = classes = lines = imports = files = char = 0
         for item in path.rglob("*.py"):
-            if str(item).startswith("venv"):
+            venv = os.environ["VIRTUAL_ENV"]
+            if venv and str(item).startswith(venv.split("/")[-1]):
                 continue
-            files += 1
-            with item.open() as of:
-                for line in of.readlines():
-                    line = line.strip()
-                    if line.startswith("class"):
-                        classes += 1
-                    if line.startswith("def"):
-                        funcs += 1
-                    if line.startswith("async def"):
-                        coros += 1
-                    if "import" in line:
-                        imports += 1
-                    if "#" in line:
-                        comments += 1
-                    lines += 1
-                    char += len(line)
+            else:
+                files += 1
+                with item.open() as of:
+                    for line in of.readlines():
+                        line = line.strip()
+                        if line.startswith("class"):
+                            classes += 1
+                        if line.startswith("def"):
+                            funcs += 1
+                        if line.startswith("async def"):
+                            coros += 1
+                        if "import" in line:
+                            imports += 1
+                        if "#" in line:
+                            comments += 1
+                        lines += 1
+                        char += len(line)
         embed = discord.Embed(
             title="Line Count",
             description=(
@@ -355,7 +358,6 @@ class BotInfo(core.Cog, name="Bot Info"):
         """
         conf = await ctx.confirm(message=f"Are sure you want to send this request?\n> {request}")
         if conf.result:
-
             req_send = discord.Embed(title=f"Request from {ctx.author}", description=f"```{request}```")
 
             await self.request_wh.send(embed=req_send)
