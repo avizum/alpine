@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Alpine Bot]
 Copyright (C) 2021 - 2023 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -23,9 +23,10 @@ import discord
 from discord.ext import commands
 
 import core
-from .converters import Prefix, GetCommand
 from core import Bot, Context
 from utils import preview_message
+
+from .converters import GetCommand, Prefix
 
 
 class Settings(core.Cog):
@@ -45,7 +46,7 @@ class Settings(core.Cog):
         Show custom prefix configuration.
         """
         prefix = ctx.cache.guild_settings.get(ctx.guild.id)
-        if not prefix["prefixes"]:
+        if not prefix or not prefix["prefixes"]:
             return await ctx.send("The default prefix is `a.`")
         guild_prefix = prefix["prefixes"]
         if len(guild_prefix) == 1:
@@ -113,7 +114,7 @@ class Settings(core.Cog):
 
     @core.group(invoke_without_command=True)
     @core.has_permissions(manage_guild=True)
-    async def logging(self, ctx: Context, toggle: bool = None):
+    async def logging(self, ctx: Context, toggle: bool | None = None):
         """
         Configure logging.
 
@@ -213,13 +214,13 @@ class Settings(core.Cog):
         It will show who got kicked and who kicked them and reason if provided.
         """
         query = (
-            "INSERT INTO logging (guild_id, member_kick) "
+            "INSERT INTO logging (guild_id, member_leave) "
             "VALUES ($1, $2) "
             "ON CONFLICT (guild_id) DO "
-            "UPDATE SET member_kick = $2 "
+            "UPDATE SET member_leave = $2 "
         )
         await self.bot.pool.execute(query, ctx.guild.id, toggle)
-        ctx.cache.logging[ctx.guild.id]["member_kick"] = toggle
+        ctx.cache.logging[ctx.guild.id]["member_leave"] = toggle
         await ctx.send(f"{self.map[toggle]} member kicked logs")
 
     @logging.command(name="member-ban", aliases=["mban", "memberban"])

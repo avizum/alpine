@@ -1,4 +1,4 @@
-# Avimetry
+# Alpine
 
 [![Discord Server](https://discord.com/api/guilds/751490725555994716/embed.png)](https://discord.gg/muTVFgDvKf)
 
@@ -8,7 +8,7 @@
 A bot written in Python by [avizum#0735](https://discord.com/users/750135653638865017)
 
 ### Bot Invite
-Invite Avimetry [here](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)
+Invite Alpine [here](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)
 
 
 #### Commands to get you started
@@ -32,7 +32,7 @@ In the help command, you can see all the commands. If you need help reading the 
 ## Running the bot
 It is not recommended to run your own instance. Use the one [here.](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)
 
-If you don't care, Here are instructions on how to run your own version of Avimetry.
+If you don't care, Here are instructions on how to run your own version of Alpine.
 
 1. Have Python 3.10 installed
 
@@ -45,6 +45,6 @@ Run `pip install -U -r requirements.txt`
 3. Bot Configuration
 
 Put your tokens in a `config.toml` file. Check `config_example.toml` for an example.
-In `core/avimetry.py`, change `OWNER_IDS` to your Discord IDs and change `PUBLIC_BOT_ID` to your bot's ID.
+In `core/alpine.py`, change `OWNER_IDS` to your Discord IDs and change `PUBLIC_BOT_ID` to your bot's ID.
 Set your PostgreSQL database (Will add more instructions soon)
 Run main file.

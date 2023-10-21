@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Alpine Bot]
 Copyright (C) 2021 - 2023 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -70,7 +70,7 @@ class TopGG(core.Cog):
             f"Made by @{self.bot.get_user(750135653638865017)}",
         ]
         await self.bot.change_presence(
-            status=discord.Status.online, activity=discord.CustomActivity(name=f"@Avimetry | {random.choice(activities)}")
+            status=discord.Status.online, activity=discord.CustomActivity(name=f"@Alpine | {random.choice(activities)}")
         )
 
     @update.before_loop
@@ -90,7 +90,7 @@ class TopGG(core.Cog):
             vote_type = "[Top.GG](https://top.gg/bot/756257170521063444/vote)"
             user_id = data.get("user")
         elif isinstance(data.get("id"), str):
-            vote_type = "[Discord Bot List](https://discordbotlist.com/bots/avimetry/upvote)"
+            vote_type = "[Discord Bot List](https://discordbotlist.com/bots/alpine/upvote)"
             user_id = data.get("id")
         if not user_id:
             return

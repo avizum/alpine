@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from discord.ext.commands import Context
     from discord.ext.commands._types import Coro
 
-    from .avimetry import Bot
+    from .alpine import Bot
 
 
 P = ParamSpec("P")

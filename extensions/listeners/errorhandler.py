@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Alpine Bot]
 Copyright (C) 2021 - 2023 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@ from core import Bot, Context
 from core.exceptions import Blacklisted, CommandDisabledChannel, CommandDisabledGuild, Maintenance, NotGuildOwner
 from utils import format_list, View
 
-_log = logging.getLogger("avimetry")
+_log = logging.getLogger("alpine")
 
 
 class Embed(discord.Embed):
@@ -132,9 +132,6 @@ class ErrorHandler(core.Cog):
 
     @core.Cog.listener()
     async def on_command_error(self, ctx: Context, error: commands.CommandError):
-        if not ctx.command:
-            return
-
         error = getattr(error, "original", error)
 
         cog_has_handler = ctx.cog.has_error_handler() if ctx.cog else None
@@ -151,6 +148,14 @@ class ErrorHandler(core.Cog):
             Maintenance,
             Blacklisted,
         )
+
+        ignored = (
+            commands.NotOwner,
+            commands.CommandNotFound,
+            commands.NoPrivateMessage,
+            Maintenance,
+        )
+
         if (command_has_handler or cog_has_handler) and ctx.locally_handled is True:
             return
 
@@ -167,8 +172,10 @@ class ErrorHandler(core.Cog):
                 pass
         elif await self.bot.is_owner(ctx.author) and ctx.prefix == "" and isinstance(error, commands.CommandNotFound):
             return
-        elif isinstance(error, app_commands.CommandNotFound):
-            return await ctx.send("This command is unavailable.")
+
+        elif isinstance(error, ignored):
+            return
+
         elif isinstance(error, Blacklisted):
             blacklisted = Embed(
                 title=f"You are blacklisted from {self.bot.user.name}",
@@ -181,75 +188,19 @@ class ErrorHandler(core.Cog):
                 return await ctx.send(embed=blacklisted, delete_after=30, view=view, ephemeral=True)
             return
 
-        elif isinstance(error, Maintenance):
-            retry_after = self.maintenance_cooldown.update_rate_limit(ctx.message)
-            if not retry_after or ctx.interaction is not None:
-                return await ctx.send("Maintenance mode is enabled. Try again later.", ephemeral=True)
-            return
-
-        elif isinstance(error, commands.NoPrivateMessage):
-            embed = Embed(
-                title="No DM commands",
-                description="This command can only be used in a server.",
-            )
-            retry_after = self.no_dm_command_cooldown.update_rate_limit(ctx.message)
-            if not retry_after or ctx.interaction is not None:
-                return await ctx.send(embed=embed, ephemeral=True)
-            return
-
-        elif isinstance(error, commands.CommandNotFound):
-            if ctx.author.id in ctx.cache.blacklist or ctx.invoked_with is None:
-                return
-            if cog := self.bot.get_cog(ctx.invoked_with):
-                return await ctx.send_help(cog)
-            not_found = ctx.invoked_with
-            all_commands = []
-            for cmd in self.bot.commands:
-                try:
-                    await cmd.can_run(ctx)
-                    all_commands.append(cmd.name)
-                    if cmd.aliases:
-                        all_commands.extend(cmd.aliases)
-                except commands.CommandError:
-                    continue
-            if match := get_close_matches(not_found, all_commands):
-                embed = Embed(title="Invalid Command")
-                embed.description = f'I couldn\'t find a command "{not_found}". Did you mean {match[0]}?'
-                bucket1 = self.not_found_cooldown_content.update_rate_limit(ctx.message)
-                bucket2 = self.not_found_cooldown.update_rate_limit(ctx.message)
-                if not bucket1 or not bucket2:
-                    conf = await ctx.confirm(embed=embed)
-                    if conf.result:
-                        new = copy.copy(ctx.message)
-                        new._edited_timestamp = datetime.datetime.now(datetime.timezone.utc)
-                        new.content = new.content.replace(ctx.invoked_with, match[0])
-                        ctx = await self.bot.get_context(new)
-                        await self.bot.invoke(ctx)
-                    if conf.result is False:
-                        return await conf.message.delete()
-
         elif isinstance(error, commands.CommandOnCooldown):
-            cd = Embed(
-                title="Slow down",
-                description=(
-                    "This command is on cooldown.\n"
-                    f"Please try again in {error.retry_after:,.2f} seconds.\n"
-                    f"Command cooldown: {self.get_cooldown(ctx.command)}"
-                ),
-            )
             retry_after = self.on_cooldown_cooldown.update_rate_limit(ctx.message)
             if not retry_after or ctx.interaction is not None:
-                return await ctx.send(embed=cd, ephemeral=True)
+                return await ctx.send(
+                    f"You are on cooldown. Try again after {error.retry_after:,.2f} seconds.", ephemeral=True
+                )
             return
 
         elif isinstance(error, commands.MaxConcurrencyReached):
-            max_uses = Embed(
-                title="Slow Down",
-                description=(
-                    f"This can only be used {error.number} {'time' if error.number == 1 else 'times'} {error.per.name}."
-                ),
+            return await ctx.send(
+                f"This can only be used {error.number} {'time' if error.number == 1 else 'times'} {error.per.name}.",
+                ephemeral=True,
             )
-            return await ctx.send(embed=max_uses, ephemeral=True)
 
         elif isinstance(error, commands.BotMissingPermissions):
             missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_permissions]
@@ -282,20 +233,15 @@ class ErrorHandler(core.Cog):
             )
             return await ctx.send(embed=np, ephemeral=True)
 
-        elif isinstance(error, commands.NotOwner):
-            no = Embed(title="Missing Permissions", description="You do not own this bot.")
-            return await ctx.send(embed=no)
-
         elif isinstance(error, NotGuildOwner):
-            no = Embed(title="Missing Permissions", description="You do not own this server.")
-            return await ctx.send(embed=no)
+            return await ctx.send("You do not own the server.", ephemeral=True)
 
         elif isinstance(error, commands.MissingRequiredArgument):
             self.reset(ctx)
             a = Embed(
                 title="Missing Arguments",
                 description=(
-                    f"`{error.param.name}` is a required parameter to run this command.\n"
+                    f"`{error.param.name}` is required for this command.\n"
                     f"Do you need help for `{ctx.command.qualified_name}`?"
                 ),
             )
@@ -308,7 +254,7 @@ class ErrorHandler(core.Cog):
         elif isinstance(error, CommandDisabledGuild):
             retry_after = self.disabled_command.update_rate_limit(ctx.message)
             if not retry_after or ctx.interaction is not None:
-                return await ctx.send("You can not use this command, It is disabled in this server.", ephemeral=True)
+                return await ctx.send("This command is disabled in the server.", ephemeral=True)
 
         elif isinstance(error, CommandDisabledChannel):
             retry_after = self.disabled_channel.update_rate_limit(ctx.message)
@@ -316,40 +262,18 @@ class ErrorHandler(core.Cog):
                 return await ctx.send("Commands have been disabled in this channel.", ephemeral=True)
 
         elif isinstance(error, commands.DisabledCommand):
-            return await ctx.send("This command is not enabled at the moment.")
+            return await ctx.send("This command is not enabled at the moment.", ephemeral=True)
 
-        elif isinstance(error, commands.BadArgument):
+        elif isinstance(
+            error,
+            (commands.BadArgument, commands.BadUnionArgument, commands.TooManyArguments, commands.ArgumentParsingError),
+        ):
             self.reset(ctx)
-            ba = Embed(
-                title="Bad Argument",
-                description=str(error),
-            )
-            return await ctx.send(embed=ba)
-
-        elif isinstance(error, commands.BadUnionArgument):
-            self.reset(ctx)
-            bad_union_arg = Embed(title="Bad Argument", description=error)
-            return await ctx.send(embed=bad_union_arg)
+            return await ctx.send(str(error), ephemeral=True)
 
         elif isinstance(error, commands.BadLiteralArgument):
             self.reset(ctx)
-            bad_literal_arg = Embed(
-                title="Bad Argument",
-                description=f"This argument must be:\n {format_list(list(error.literals), last='or')}.",
-            )
-            return await ctx.send(embed=bad_literal_arg)
-
-        elif isinstance(error, commands.TooManyArguments):
-            self.reset(ctx)
-            many_arguments = Embed(
-                title="Too many arguments",
-                description=str(error),
-            )
-            return await ctx.send(embed=many_arguments)
-
-        elif isinstance(error, commands.ArgumentParsingError):
-            embed = Embed(title="Quote Error", description=error)
-            return await ctx.send(embed=embed)
+            return await ctx.send(f"This argument must be:\n {format_list(list(error.literals), last='or')}.")
 
         else:
             self.reset(ctx)

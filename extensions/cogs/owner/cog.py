@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Alpine Bot]
 Copyright (C) 2021 - 2023 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -432,7 +432,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 )
             await conf.message.edit(content="Rebooting...", embed=None)
             await self.bot.close()
-        if not conf:
+        else:
             await conf.message.edit(content="Reboot aborted", embed=None, delete_after=5)
 
     @Feature.Command(parent="jsk", name="su")
@@ -497,11 +497,12 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         Change the bot's current news.
         """
-        with open("config.toml", "r") as afile:
-            load = toml.loads(afile.read())
+        with open("config.toml", "r+") as news_file:
+            load = toml.loads(news_file.read())
             load["news"]["news"] = news
-        with open("config.toml", "w") as bfile:
-            toml.dump(load, bfile)
+            news_file.seek(0)
+            news_file.truncate()
+            toml.dump(load, news_file)
             self.bot.news = news
         embed = discord.Embed(title="Successfully Set News.", description=f"Here is the preview.\n{news}")
         await ctx.send(embed=embed)

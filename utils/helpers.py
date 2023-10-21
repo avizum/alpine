@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Alpine Bot]
 Copyright (C) 2021 - 2023 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -89,7 +89,6 @@ class Timer:
 # The following code is not mine Thanks Axel :)
 # https://github.com/Axelancerr/Life/blob/508e1e9c5b02f56f76a53a2cfd9b521ddacdd8f3/Life/utilities/utils.py#L51-L64
 def format_seconds(seconds: float, *, friendly: bool = False) -> str:
-
     seconds = round(seconds)
 
     minute, second = divmod(seconds, 60)

@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Alpine Bot]
 Copyright (C) 2021 - 2023 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import NoPrivateMessage
 
-from .avimetry import OWNER_IDS
+from .alpine import OWNER_IDS
 from .core import Command
 from .exceptions import NotGuildOwner
 
@@ -83,7 +83,6 @@ def has_permissions(**perms: bool):
         permissions = [perm for perm, value in perms.items() if value]
         app_command_permissions = discord.Permissions(**perms)
         if isinstance(func, Command):
-
             func.checks.append(predicate)  # type: ignore
             func.member_permissions = permissions
             if getattr(func, "__commands_is_hybrid__", None):
@@ -160,7 +159,6 @@ def bot_has_permissions(**perms: bool):
 def cooldown(
     rate: int, per: float, type: commands.BucketType | Callable[[Context[Bot]], Any] = commands.BucketType.user
 ) -> Callable[[T], T]:
-
     default_cooldown = commands.Cooldown(rate, per)
 
     def decorator(func: Command | CoroFunc) -> Command | CoroFunc:

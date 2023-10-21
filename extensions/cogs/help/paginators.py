@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Alpine Bot]
 Copyright (C) 2021 - 2023 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -27,18 +27,18 @@ import core
 from core import Context
 from utils import Paginator
 
-
 if TYPE_CHECKING:
     from discord.ext.commands import Command
-    from .cog import AvimetryHelp
     from typing_extensions import Self
+
+    from .cog import AlpineHelp
 
 
 # This help command is inspired by R. Danny, When I am not lazy I might make my own
 class MainHelp(menus.PageSource):
-    def __init__(self, ctx: Context, help: AvimetryHelp) -> None:
+    def __init__(self, ctx: Context, help: AlpineHelp) -> None:
         self.ctx: Context = ctx
-        self.help: AvimetryHelp = help
+        self.help: AlpineHelp = help
         super().__init__()
 
     def is_paginating(self) -> bool:
@@ -54,13 +54,13 @@ class MainHelp(menus.PageSource):
     async def format_page(self, menu: menus.Menu, page: str) -> discord.Embed:
         bot = self.ctx.bot
         commands = list(bot.commands)
-        embed = discord.Embed(title="Avimetry Help Menu", color=await self.ctx.fetch_color())
+        embed = discord.Embed(title="Alpine Help Menu", color=await self.ctx.fetch_color())
         info = "\n".join(
             [
-                f"[Avimetry support server]({self.ctx.bot.support})",
-                f"[Invite Avimetry here]({self.ctx.bot.invite})",
-                "[Vote links](https://avimetry.github.io/)",
-                f"[Avimetry's source code]({self.ctx.bot.support})",
+                f"[Alpine support server]({self.ctx.bot.support})",
+                f"[Invite Alpine here]({self.ctx.bot.invite})",
+                "[Vote links](https://alpine.github.io/)",
+                f"[Alpine's source code]({self.ctx.bot.support})",
             ]
         )
         if self.index == 0:
@@ -78,7 +78,7 @@ class MainHelp(menus.PageSource):
                 "**[]** means the argument is **OPTIONAL**\n"
                 "**[...]** means you can have **MULTIPLE arguments**\n"
                 "**Do NOT** type these when using commands.\n"
-                "Have fun using Avimetry!"
+                "Have fun using Alpine!"
             )
         if self.index == 2:
             embed.description = (
@@ -90,7 +90,7 @@ class MainHelp(menus.PageSource):
             )
         if self.index == 3:
             embed.description = (
-                f"You can support Avimetry by voting. Here are some links.\n{info}\n"
+                f"You can support Alpine by voting. Here are some links.\n{info}\n"
                 f"If you need help using paginators, use `{self.ctx.prefix}help paginator`"
             )
         embed.set_thumbnail(url=bot.user.display_avatar.url)
@@ -104,12 +104,12 @@ class CogHelp(menus.ListPageSource):
         ctx: Context,
         commands: list[Command],
         cog: core.Cog,
-        help_command: AvimetryHelp,
+        help_command: AlpineHelp,
     ) -> None:
         super().__init__(entries=commands, per_page=5)
         self.ctx: Context = ctx
         self.cog: core.Cog = cog
-        self.help_command: AvimetryHelp = help_command
+        self.help_command: AlpineHelp = help_command
 
     async def format_page(self, menu: menus.Menu, commands: list[core.Command]) -> discord.Embed:
         embed = discord.Embed(
@@ -134,12 +134,12 @@ class GroupHelp(menus.ListPageSource):
         ctx: Context,
         commands: list[core.Command],
         group: core.Group,
-        help_command: AvimetryHelp,
+        help_command: AlpineHelp,
     ) -> None:
         super().__init__(entries=commands, per_page=5)
         self.ctx: Context = ctx
         self.group: core.Group = group
-        self.hc: AvimetryHelp = help_command
+        self.hc: AlpineHelp = help_command
 
     async def format_page(self, menu: menus.Menu, commands: list[core.Command]) -> discord.Embed:
         embed = discord.Embed(
@@ -191,9 +191,9 @@ class GroupHelp(menus.ListPageSource):
 
 
 class HelpSelect(discord.ui.Select["HelpPages"]):
-    def __init__(self, ctx: Context, hc: AvimetryHelp, cogs: list[core.Cog]) -> None:
+    def __init__(self, ctx: Context, hc: AlpineHelp, cogs: list[core.Cog]) -> None:
         self.ctx: Context = ctx
-        self.hc: AvimetryHelp = hc
+        self.hc: AlpineHelp = hc
         self.current_module: core.Cog | None = None
         options: list[discord.SelectOption] = [
             discord.SelectOption(

@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Alpine Bot]
 Copyright (C) 2021 - 2023 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from extensions.cogs.music.cog import Player
     from utils.cache import Cache
 
-    from .avimetry import Bot
+    from .alpine import Bot
 
 BotT = TypeVar("BotT", bound="commands.Bot | commands.AutoShardedBot", covariant=True)
 T = TypeVar("T")
@@ -398,7 +398,7 @@ class Context(commands.Context, Generic[BotT]):
         return ConfirmResult(msg, view.value)
 
     async def can_delete(self, *args, **kwargs) -> Message:
-        if kwargs.get("ephemeral") and self.interaction:
+        if self.interaction:
             return await self.send(*args, **kwargs)
         view = TrashView(member=self.author, ctx=self)
         message = await self.send(*args, **kwargs, view=view)

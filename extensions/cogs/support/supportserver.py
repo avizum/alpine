@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Alpine Bot]
 Copyright (C) 2021 - 2023 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -16,11 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import datetime
+
 import discord
 
-import datetime
 import core
-
 from core import Bot
 
 
@@ -55,10 +55,10 @@ class ButtonRole(discord.ui.View):
 
     @discord.ui.button(
         style=discord.ButtonStyle.blurple,
-        label="Avimetry Support",
+        label="Alpine Support",
         custom_id="927077897318047854",
     )
-    async def avimetry_channels(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def alpine_channels(self, interaction: discord.Interaction, button: discord.ui.Button):
         if button.custom_id != "927077897318047854":
             return await interaction.response.defer()
         if interaction.guild is None or interaction.guild_id != 751490725555994716:
@@ -73,16 +73,16 @@ class ButtonRole(discord.ui.View):
         if role in member.roles:
             await member.remove_roles(role)
             return await interaction.response.send_message(
-                "You have been removed access from the Avimetry Support Channels.",
+                "You have been removed access from the Alpine Support Channels.",
                 ephemeral=True,
             )
         await member.add_roles(role)
-        return await interaction.response.send_message("You now have access to the Avimetry Channels.", ephemeral=True)
+        return await interaction.response.send_message("You now have access to the Alpine Channels.", ephemeral=True)
 
 
-class AvimetrySupport(core.Cog):
+class AlpineSupport(core.Cog):
     """
-    Commands for Avimetry Support Server
+    Commands for Alpine Support Server
     """
 
     def __init__(self, bot: Bot):

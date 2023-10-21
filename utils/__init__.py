@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Alpine Bot]
 Copyright (C) 2021 - 2023 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 # flake8: noqa
+from .buttons import ToggleButton
 from .cache import Cache
 from .converters import ModReason, DefaultReason
 from .emojis import Emojis

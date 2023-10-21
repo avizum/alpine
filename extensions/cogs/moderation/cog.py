@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Alpine Bot]
 Copyright (C) 2021 - 2023 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -28,18 +28,13 @@ from discord.ext import commands
 
 import core
 import utils
-from .converters import (
-    ModActionFlag,
-    BanFlag,
-    PurgeAmount,
-    TimeConverter,
-    TargetMember,
-    FindBan,
-)
-from utils import ModReason, DefaultReason
+from utils import DefaultReason, ModReason
+
+from .converters import BanFlag, FindBan, ModActionFlag, PurgeAmount, TargetMember, TimeConverter
 
 if TYPE_CHECKING:
     from datetime import datetime
+
     from core import Bot, Context
 
 
@@ -318,13 +313,13 @@ class Moderation(core.Cog):
                 authors[message.author] = 1
             else:
                 authors[message.author] += 1
-        message = "\n".join(f"{author.mention}: {amount} messages" for author, amount in authors.items())
-        if not message:
-            message = "No messages deleted."
+        message = (
+            "\n".join(f"{author.mention}: {amount} messages" for author, amount in authors.items()) or "No messages deleted"
+        )
         return discord.Embed(title="Affected Messages", description=message)
 
     async def do_purge(self, /, ctx: Context, *args, **kwargs) -> list[discord.Message]:
-        async with ctx.typing():
+        async with ctx.typing(ephemeral=True):
             messages = await ctx.channel.purge(*args, **kwargs)
         return messages
 

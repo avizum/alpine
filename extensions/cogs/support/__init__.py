@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Alpine Bot]
 Copyright (C) 2021 - 2023 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -17,10 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from core import Bot
-from .supportserver import AvimetrySupport
+from .supportserver import AlpineSupport
 
 
-class Servers(AvimetrySupport):
+class Servers(AlpineSupport):
     pass
 
 

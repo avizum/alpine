@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Alpine Bot]
 Copyright (C) 2021 - 2023 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -25,10 +25,10 @@ from typing import TYPE_CHECKING, TypedDict
 from discord.ext import tasks
 
 if TYPE_CHECKING:
-    from core.avimetry import Bot
+    from core.alpine import Bot
 
 
-_log = logging.getLogger("avimetry")
+_log = logging.getLogger("alpine")
 
 
 class CacheUsers(TypedDict):

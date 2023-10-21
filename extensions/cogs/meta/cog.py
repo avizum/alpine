@@ -1,5 +1,5 @@
 """
-[Avimetry Bot]
+[Alpine Bot]
 Copyright (C) 2021 - 2023 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -26,17 +26,18 @@ from typing import TYPE_CHECKING
 import asyncgist
 import discord
 import pytz
-from doc_search import AsyncScraper
 from discord.ext import commands, menus
 from discord.utils import format_dt
+from doc_search import AsyncScraper
 from jishaku.codeblocks import codeblock_converter
 from pytz import UnknownTimeZoneError
 
 import core
-from utils import Paginator, PaginatorEmbed, Emojis
+from utils import Emojis, Paginator, PaginatorEmbed
 
 if TYPE_CHECKING:
     from datetime import datetime
+
     from core import Bot, Context
 
 
@@ -465,7 +466,7 @@ class Meta(core.Cog):
         """
         Posts a gist.
 
-        These gists are public and if you want to get one removed, DM Avimetry or join the support server.
+        These gists are public and if you want to get one removed, DM Alpine or join the support server.
         """
         file_post = asyncgist.File(filename=f"output.{code.language or 'txt'}", content=code.content)
         out = await self.bot.gist.post_gist(
@@ -481,7 +482,7 @@ class Meta(core.Cog):
         """
         Deletes a gist
 
-        This deletes gists posted from the avimetry-bot GitHub account.
+        This deletes gists posted from the alpine-bot GitHub account.
         """
         try:
             await self.bot.gist.delete_gist(gist_id)
@@ -498,7 +499,7 @@ class Meta(core.Cog):
         from core.context import AutoPageSource
 
         pag = commands.Paginator()
-        for i in gist.files[0].content.split("\n"):
+        for i in gist.files[0].content.split("\n"):  # type: ignore
             pag.add_line(i.replace("`", "\u200b`"))
         source = AutoPageSource(pag)
         pages = Paginator(source, ctx=ctx, delete_message_after=True)
