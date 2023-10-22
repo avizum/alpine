@@ -118,7 +118,6 @@ class Queue(WQueue):
     def put(self, item: Track) -> None:
         if not self.allow_duplicates and item in self._queue:
             raise QueueDuplicateTrack
-        print(super().put)
         return self._put(item)  # type: ignore # Custom Track Class
 
 
