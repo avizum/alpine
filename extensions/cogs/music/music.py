@@ -1,5 +1,5 @@
 """
-[Alpine Bot]
+[Avimetry Bot]
 Copyright (C) 2021 - 2023 avizum
 
 This program is free software: you can redistribute it and/or modify
@@ -115,10 +115,11 @@ class Queue(WQueue):
     def get(self) -> Track | None:
         return super().get()  # type: ignore # Custom Track Class
 
-    async def put(self, item: Track) -> None:
+    def put(self, item: Track) -> None:
         if not self.allow_duplicates and item in self._queue:
             raise QueueDuplicateTrack
-        return await self._put(item)  # type: ignore # Custom Track Class
+        print(super().put)
+        return self._put(item)  # type: ignore # Custom Track Class
 
 
 YOUTUBE_REGEX = re.compile(

@@ -283,13 +283,13 @@ class Music(core.Cog):
 
         if isinstance(search, wavelink.YouTubeTrack):
             track = Track(track=search, context=ctx)
-            await player.queue.put(track)
+            player.queue.put(track)
             await ctx.send(embed=await player.build_added(track))
 
         elif isinstance(search, wavelink.YouTubePlaylist):
             for track in search.tracks:
                 track = Track(track=track, context=ctx)
-                await player.queue.put(track)
+                player.queue.put(track)
 
             embed = discord.Embed(
                 title="Enqueued YouTube playlist",
@@ -302,7 +302,7 @@ class Music(core.Cog):
         elif isinstance(search, list) and isinstance(search[0], spotify.SpotifyTrack):
             for track in search:
                 track = Track(track=track, context=ctx)
-                await player.queue.put(track)
+                player.queue.put(track)
             first = search[0]
             first_track = Track(track=first, context=ctx)
             embed = discord.Embed(
@@ -314,7 +314,7 @@ class Music(core.Cog):
 
         elif isinstance(search, spotify.SpotifyTrack):
             track = Track(track=search, context=ctx)
-            await player.queue.put(track)
+            player.queue.put(track)
             await ctx.send(embed=await player.build_added(track))
 
         if not player.is_playing():
