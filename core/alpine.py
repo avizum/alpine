@@ -38,7 +38,6 @@ from discord.utils import _ColourFormatter
 from sr_api.client import Client as SRClient
 from topgg.client import DBLClient
 from topgg.webhook import WebhookManager
-from wavelink.ext import spotify
 
 from utils.cache import Cache
 
@@ -225,13 +224,10 @@ class Bot(commands.Bot):
     async def start_nodes(self) -> None:
         await self.wait_until_ready()
         try:
-            node = wavelink.Node(
-                **self.settings["lavalink"],
-            )
-            await wavelink.NodePool.connect(
-                client=self, nodes=[node], spotify=spotify.SpotifyClient(**self.settings["spotify"])
-            )
-            # _log.info(f"Wavelink node started: Identifier: {connected.}")
+            nodes = [wavelink.Node(**self.settings["lavalink"])]
+            await wavelink.Pool.connect(nodes=nodes, client=self)
+
+            _log.info("Wavelink node started.")
         except Exception as e:
             cog: ErrorHandler | None = self.get_cog("errorhandler")  # type: ignore
             if cog:

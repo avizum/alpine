@@ -21,19 +21,19 @@ from __future__ import annotations
 import asyncio
 import datetime as dt
 import math
-import random
-from typing import Literal, TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
 
 import discord
 import wavelink
 from discord.ext import commands
-from wavelink.ext import spotify
+from wavelink import Playable as WPlayable
+from wavelink import Playlist as WPlaylist
 
 import core
 from utils import format_seconds, Paginator
 
 from .exceptions import BotNotInVoice, IncorrectChannelError, NotInVoice
-from .music import EventPayload, PaginatorSource, Player, Track
+from .music import PaginatorSource, Playable, Player
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -59,6 +59,22 @@ class ConvertTime(commands.Converter, int):
                 raise commands.BadArgument("Time must be in MM:SS format.") from e
 
 
+class TrackException(wavelink.TrackExceptionEventPayload):
+    player: Player | None
+
+
+class TrackEnd(wavelink.TrackEndEventPayload):
+    player: Player | None
+
+
+class TrackStart(wavelink.TrackStartEventPayload):
+    player: Player | None
+
+
+class TrackStuck(wavelink.TrackStuckEventPayload):
+    player: Player | None
+
+
 class Music(core.Cog):
     """
     Music commands for music.
@@ -71,8 +87,8 @@ class Music(core.Cog):
 
     async def cog_check(self, ctx: Context) -> bool:
         try:
-            wavelink.NodePool.get_node()
-        except wavelink.InvalidNode as e:
+            wavelink.Pool.get_node()
+        except wavelink.InvalidNodeException as e:
             raise NotInVoice("No nodes are connected. Try again later.") from e
         return True
 
@@ -112,22 +128,41 @@ class Music(core.Cog):
         return commands.check(predicate)
 
     @core.Cog.listener("on_wavelink_track_exception")
-    async def track_exception(self, payload: EventPayload):
+    async def track_exception(self, payload: TrackException):
         player = payload.player
         track = payload.track
-        await player.context.channel.send(f"Error on {track.title}: {payload.reason}")
+        if player is None:
+            return
+
+        await player.context.channel.send(f"Error on {track.title}: {payload.exception}")
 
     @core.Cog.listener("on_wavelink_track_end")
-    async def track_end(self, payload: EventPayload):
+    async def track_end(self, payload: TrackEnd):
         player = payload.player
-        await player.do_next()
+        if player is None:
+            return
+        try:
+            await player.play(player.queue.get())
+        except wavelink.QueueEmpty:
+            return
+
+    @core.Cog.listener("on_wavelink_track_start")
+    async def track_start(self, payload: TrackStart):
+        player = payload.player
+        if player is None:
+            return
+
+        if player.announce:
+            await player.context.send(embed=await player.build_now_playing())
 
     @core.Cog.listener("on_wavelink_track_stuck")
-    async def track_stuck(self, payload: EventPayload):
+    async def track_stuck(self, payload: TrackStuck):
         player = payload.player
         track = payload.track
+        if player is None:
+            return
         await player.context.channel.send(f"Track {track.title} got stuck. Skipping.")
-        await player.do_next()
+        await player.play(player.queue.get())
 
     @core.Cog.listener("on_voice_state_update")
     async def vs_update(
@@ -170,6 +205,12 @@ class Music(core.Cog):
 
         elif after.channel == channel and player.dj not in channel.members:
             player.dj = member
+
+    def set_info(self, requester: discord.Member | str, item: WPlayable):
+        track = cast(Playable, item)
+        suffix = f" - {track.author}" if track.author not in track.title else ""
+        track.requester = requester
+        track.hyperlink = f"[{track.title}{suffix}](<{track.uri}>)"
 
     def is_privileged(self, ctx: Context):
         """
@@ -265,7 +306,7 @@ class Music(core.Cog):
     @in_voice()
     @in_bound_channel()
     @core.describe(query="What to search for.")
-    async def play(self, ctx: Context, *, query: str):
+    async def play(self, ctx: Context, *, query: str, play_next: bool = False):
         """
         Play or queue a song with the given query.
         """
@@ -277,48 +318,31 @@ class Music(core.Cog):
         if not player.channel:
             return
 
-        search = await player.get_tracks(query)
+        search = await player.fetch_tracks(query)
         if not search:
             return await ctx.send("No results found matching your query.")
 
-        if isinstance(search, wavelink.YouTubeTrack):
-            track = Track(track=search, context=ctx)
-            player.queue.put(track)
-            await ctx.send(embed=await player.build_added(track))
+        put = player.queue.put_wait if not play_next else player.queue.put_left_wait
 
-        elif isinstance(search, wavelink.YouTubePlaylist):
-            for track in search.tracks:
-                track = Track(track=track, context=ctx)
-                player.queue.put(track)
-
-            embed = discord.Embed(
-                title="Enqueued YouTube playlist",
-                description=(f"Playlist {search.name} with {len(search.tracks)} tracks added to the queue."),
-            )
-            if search.tracks[0].thumb:
-                embed.set_thumbnail(url=search.tracks[0].thumb)
-            await ctx.send(embed=embed)
-
-        elif isinstance(search, list) and isinstance(search[0], spotify.SpotifyTrack):
+        if isinstance(search, WPlaylist):
             for track in search:
-                track = Track(track=track, context=ctx)
-                player.queue.put(track)
-            first = search[0]
-            first_track = Track(track=first, context=ctx)
+                self.set_info(ctx.author, track)
+            await put(search)
             embed = discord.Embed(
-                title="Enqueued Spotify playlist",
-                description=f"[Spotify playlist]({query}) with {len(search)} tracks added to the queue.",
+                title="Enqueued Playlist", description=f"Playlist [{search.name}]({search.url or query}) added to the queue."
             )
-            embed.set_thumbnail(url=first_track.thumb)
+            embed.set_thumbnail(url=search.artwork or search[0].artwork)
             await ctx.send(embed=embed)
 
-        elif isinstance(search, spotify.SpotifyTrack):
-            track = Track(track=search, context=ctx)
-            player.queue.put(track)
-            await ctx.send(embed=await player.build_added(track))
+        else:
+            self.set_info(ctx.author, search)
+            await put(search)
+            embed = discord.Embed(title="Enqueued Song", description=f"Added {search.hyperlink} to the queue.")
+            embed.set_thumbnail(url=search.artwork)
+            await ctx.send(embed=embed)
 
-        if not player.is_playing():
-            await player.do_next()
+        if not player.playing:
+            await player.play(player.queue.get())
 
     @core.group(hybrid=True, name="loop", fallback="track")
     @in_voice()
@@ -334,16 +358,14 @@ class Music(core.Cog):
 
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admin can use this command.")
+        if player.queue.mode == wavelink.QueueMode.normal:
+            player.queue.mode = wavelink.QueueMode.loop
+            await ctx.send(f"Looping {player.current}.")
+        else:
+            player.queue.mode = wavelink.QueueMode.normal
+            await ctx.send("Disabled loop.")
 
-        if not player.track:
-            return await ctx.send("There is no song playing to loop.")
-        if player.loop_song:
-            player.loop_song = None
-            return await ctx.send(f"No longer looping: {player.track.title}")
-        player.loop_song = player.track
-        await ctx.send(f"Now looping: {player.track.title}")
-
-    @track_loop.command(name="queue", enabled=False)
+    @track_loop.command(name="queue")
     @core.is_owner()
     @in_voice()
     @bot_in_voice()
@@ -356,8 +378,14 @@ class Music(core.Cog):
         """
         player: Player = ctx.voice_client
 
-        if not player:
-            return await ctx.send()
+        if not self.is_privileged(ctx):
+            return await ctx.send("Only the DJ or admin can use this command.")
+
+        if player.queue.mode != wavelink.QueueMode.loop_all:
+            player.queue.mode = wavelink.QueueMode.loop_all
+            await ctx.send("Looping queue.")
+        else:
+            await ctx.send("Already looping the queue.")
 
     # @core.command(hybrid=True)
     # @in_voice()
@@ -395,13 +423,13 @@ class Music(core.Cog):
 
         if not player:
             return
-        if not player.is_playing():
+        if not player.playing:
             return
 
         if self.is_privileged(ctx):
             await ctx.send(f":pause_button: {ctx.author.display_name} has paused the player.")
             player.pause_votes.clear()
-            return await player.pause()
+            return await player.pause(True)
 
         required = self.required(ctx)
         player.pause_votes.add(ctx.author)
@@ -409,7 +437,7 @@ class Music(core.Cog):
         if len(player.pause_votes) >= required:
             await ctx.send(":pause_button: Pausing because vote to pause passed.")
             player.pause_votes.clear()
-            await player.pause()
+            await player.pause(True)
         else:
             await ctx.send(f"Voted to pause the player. ({len(player.skip_votes)}/{required})")
 
@@ -428,14 +456,14 @@ class Music(core.Cog):
 
         if not player:
             return
-        if not player.is_playing():
+        if not player.playing:
             return await ctx.send("Player is not playing anything.")
 
         if self.is_privileged(ctx):
             await ctx.send(f":arrow_forward: {ctx.author.display_name} has resumed the player.")
             player.resume_votes.clear()
 
-            return await player.resume()
+            return await player.pause(False)
 
         required = self.required(ctx)
         player.resume_votes.add(ctx.author)
@@ -443,7 +471,7 @@ class Music(core.Cog):
         if len(player.resume_votes) >= required:
             await ctx.send(":arrow_forward: Resuming because vote to resume passed.")
             player.resume_votes.clear()
-            await player.resume()
+            await player.pause(False)
         else:
             await ctx.send(f"Voted to resume the player. ({len(player.skip_votes)}/{required})")
 
@@ -467,7 +495,7 @@ class Music(core.Cog):
             await ctx.send(f":track_next: {ctx.author.display_name} has skipped the song.")
             player.skip_votes.clear()
 
-            return await player.stop()
+            return await player.skip()
 
         if ctx.author == player.track.requester:  # type: ignore  # Track should always have a requester.
             await ctx.send(":track_next: The song requester has skipped the song.")
@@ -596,7 +624,7 @@ class Music(core.Cog):
         if self.is_privileged(ctx):
             await ctx.send(f":twisted_rightwards_arrows: {ctx.author.display_name} shuffled the queue.")
             player.shuffle_votes.clear()
-            return random.shuffle(player.queue._queue)
+            player.queue.shuffle()
 
         if player.queue.size < 3:
             return await ctx.send("Add more songs to the queue before shuffling.", delete_after=15)
@@ -607,7 +635,7 @@ class Music(core.Cog):
         if len(player.shuffle_votes) >= required:
             await ctx.send(":twisted_rightwards_arrows: Shuffling queue because vote to shuffle passed.")
             player.shuffle_votes.clear()
-            random.shuffle(player.queue._queue)
+            player.queue.shuffle()
         else:
             await ctx.send(
                 f"Voted to shuffle the playlist. ({len(player.shuffle_votes)}/{required})",
@@ -673,45 +701,16 @@ class Music(core.Cog):
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admins may clear filters.")
 
-        await player.set_filter(wavelink.Filter(), seek=True)
+        player.filters.reset()
+        await player.set_filters(player.filters, seek=True)
         return await ctx.send("Cleared all filters.")
-
-    @filter_base.command(name="equalizer", aliases=["eq"], invoke_without_command=True)
-    @in_voice()
-    @bot_in_voice()
-    @in_bound_channel()
-    @core.describe(equalizer="The equalizer to set.")
-    async def filter_equalizer(self, ctx: Context, *, equalizer: Literal["boost", "flat", "metal", "piano"]):
-        """
-        An equalizer for the player.
-
-        There are four equalizers:
-        Boost, Flat, Metal and Piano.
-        """
-        player: Player = ctx.voice_client
-
-        if not self.is_privileged(ctx):
-            return await ctx.send("Only the DJ or admins may set the equalizer.")
-
-        eq_map = {
-            "boost": wavelink.Equalizer.boost,
-            "flat": wavelink.Equalizer.flat,
-            "metal": wavelink.Equalizer.metal,
-            "piano": wavelink.Equalizer.piano,
-        }
-
-        if equalizer.lower() not in eq_map:
-            return await ctx.send("Please enter a valid equalizer.\nValid equalizers: boost, flat, metal, piano")
-
-        await player.set_filter(wavelink.Filter(equalizer=eq_map[equalizer.lower()]()), seek=True)
-        await ctx.send(f"Set the equalizer to {equalizer}.")
 
     @filter_base.command(name="karaoke")
     @in_voice()
     @bot_in_voice()
     @in_bound_channel()
     @core.describe(level="How much of an effect the filter should have.")
-    async def filter_karaoke(self, ctx: Context, level: int = 1):
+    async def filter_karaoke(self, ctx: Context, level: commands.Range[float, 1.0, 100.0]):
         """
         Karaoke filter tries to dampen the vocals and make the back track louder.
 
@@ -722,7 +721,8 @@ class Music(core.Cog):
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admins may change the karaoke filter.")
 
-        await player.set_filter(wavelink.Filter(karaoke=wavelink.Karaoke(level=level, mono_level=level)), seek=True)
+        player.filters.karaoke.set(level=level / 100, mono_level=level / 100, filter_band=220.0, filter_width=100.0)
+        await player.set_filters(player.filters, seek=True)
         await ctx.send(f"Set the karaoke filter to level {level}.")
 
     @filter_base.command(name="speed")
@@ -739,7 +739,8 @@ class Music(core.Cog):
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admins may change the speed.")
 
-        await player.set_filter(wavelink.Filter(timescale=wavelink.Timescale(speed=speed)), seek=True)
+        player.filters.timescale.set(speed=speed)
+        await player.set_filters(player.filters, seek=True)
         await ctx.send(f"Set the speed to {speed}x.")
 
     @filter_base.command(name="pitch")
@@ -756,7 +757,8 @@ class Music(core.Cog):
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admins may change the pitch.")
 
-        await player.set_filter(wavelink.Filter(timescale=wavelink.Timescale(pitch=pitch)), seek=True)
+        player.filters.timescale.set(pitch=pitch)
+        await player.set_filters(player.filters, seek=True)
         await ctx.send(f"Set the pitch to {pitch}.")
 
     @filter_base.command(name="tremolo")
@@ -776,7 +778,8 @@ class Music(core.Cog):
             return await ctx.send("Only the DJ or admins may change the tremolo filter.")
 
         depth /= 100
-        await player.set_filter(wavelink.Filter(tremolo=wavelink.Tremolo(frequency=frequency, depth=depth)), seek=True)
+        player.filters.tremolo.set(frequency=frequency, depth=depth)
+        await player.set_filters(player.filters, seek=True)
         await ctx.send(f"Set the tremolo filter to {frequency} frequency and {depth}% depth.")
 
     @filter_base.command(name="vibrato")
@@ -796,7 +799,8 @@ class Music(core.Cog):
             return await ctx.send("Only the DJ or admins may change the vibrato filter.")
 
         depth /= 100
-        await player.set_filter(wavelink.Filter(vibrato=wavelink.Vibrato(frequency=frequency, depth=depth)), seek=True)
+        player.filters.vibrato.set(frequency=frequency, depth=depth)
+        await player.set_filters(player.filters, seek=True)
         await ctx.send(f"Set the vibrato filter to {frequency:,} frequency and {depth*100}% depth.")
 
     @filter_base.command(name="rotation")
@@ -813,7 +817,8 @@ class Music(core.Cog):
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admins may change the rotation filter.")
 
-        await player.set_filter(wavelink.Filter(rotation=wavelink.Rotation(speed=speed)), seek=True)
+        player.filters.rotation.set(rotation_hz=speed)
+        await player.set_filters(player.filters, seek=True)
         await ctx.send(f"Set the rotation filter speed to {speed}.")
 
     @filter_base.group(name="mix", invoke_without_command=True)
@@ -839,7 +844,8 @@ class Music(core.Cog):
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admins may change the mix filter.")
 
-        await player.set_filter(wavelink.Filter(channel_mix=wavelink.ChannelMix.only_left()), seek=True)
+        player.filters.channel_mix.set(left_to_left=1.0, left_to_right=0.0, right_to_left=0.0, right_to_right=0.0)
+        await player.set_filters(player.filters, seek=True)
         await ctx.send("Set the mix filter to full left.")
 
     @filter_mix.command(name="only-right")
@@ -855,7 +861,8 @@ class Music(core.Cog):
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admins may change the mix filter.")
 
-        await player.set_filter(wavelink.Filter(channel_mix=wavelink.ChannelMix.only_right()), seek=True)
+        player.filters.channel_mix.set(left_to_left=0.0, left_to_right=0.0, right_to_left=0.0, right_to_right=1.0)
+        await player.set_filters(player.filters, seek=True)
         await ctx.send("Set the mix filter to full right.")
 
     @filter_mix.command(name="mono")
@@ -871,7 +878,8 @@ class Music(core.Cog):
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admins may change the mix filter.")
 
-        await player.set_filter(wavelink.Filter(channel_mix=wavelink.ChannelMix.mono()), seek=True)
+        player.filters.channel_mix.set(left_to_left=0.5, left_to_right=0.5, right_to_left=0.5, right_to_right=0.5)
+        await player.set_filters(player.filters, seek=True)
         await ctx.send("Set the mix filter to mono.")
 
     @filter_mix.command(name="switch")
@@ -887,7 +895,8 @@ class Music(core.Cog):
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admins may change the mix filter.")
 
-        await player.set_filter(wavelink.Filter(channel_mix=wavelink.ChannelMix.switch()), seek=True)
+        player.filters.channel_mix.set(left_to_left=0.0, left_to_right=1.0, right_to_left=1.0, right_to_right=0.0)
+        await player.set_filters(player.filters, seek=True)
         await ctx.send("Set the mix filter switch.")
 
     @filter_base.command(name="lowpass")
@@ -904,7 +913,8 @@ class Music(core.Cog):
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admins may change change the lowpass filter.")
 
-        await player.set_filter(wavelink.Filter(low_pass=wavelink.LowPass(smoothing=smoothing)), seek=True)
+        player.filters.low_pass.set(smoothing=smoothing)
+        await player.set_filters(player.filters, seek=True)
         await ctx.send(f"Set lowpass smoothing to {smoothing}")
 
     @core.command(hybrid=True, aliases=["q", "upnext"])
@@ -922,9 +932,8 @@ class Music(core.Cog):
 
         entries = []
         for index, track in enumerate(player.queue._queue):
-            entries.append(
-                f"`{index + 1})` {track.hyperlink} [{track.requester.global_name} ({track.requester.global_name})]"
-            )
+            track = cast(Playable, track)
+            entries.append(f"`{index + 1})` {track.hyperlink} [{track.requester} ({track.requester})]")
 
         pages = PaginatorSource(entries=entries, ctx=ctx)
         paginator = Paginator(source=pages, timeout=120, ctx=ctx, delete_message_after=True)
@@ -962,7 +971,7 @@ class Music(core.Cog):
 
         if not player:
             return
-        if not player.is_playing():
+        if not player.playing:
             return await ctx.send("Nothing is playing.")
         pos = player.position
         await ctx.send(embed=await player.build_now_playing(pos))
