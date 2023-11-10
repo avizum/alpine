@@ -36,7 +36,8 @@ class PaginatorEmbed(discord.Embed):
         super().__init__(**kwargs)
         self.color = ctx.get_color()
         self.timestamp = datetime.datetime.now(datetime.timezone.utc)
-        self.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.display_avatar.url)
+        if not ctx.interaction:
+            self.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.display_avatar.url)
 
 
 # This paginator is essentially discord.ext.menus but changed a bit so that it uses buttons instead of reactions.

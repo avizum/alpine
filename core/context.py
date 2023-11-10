@@ -280,7 +280,7 @@ class Context(commands.Context, Generic[BotT]):
                     content = f"Output too long, posted here: {await self.post(filename='output.py', content=content)}"
 
         if embed:
-            if not embed.footer:
+            if not embed.footer and not self.interaction:
                 embed.set_footer(
                     text=f"Requested by: {self.author}",
                     icon_url=self.author.display_avatar.url,
