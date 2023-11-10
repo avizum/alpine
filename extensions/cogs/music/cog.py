@@ -933,7 +933,7 @@ class Music(core.Cog):
         entries = []
         for index, track in enumerate(player.queue._queue):
             track = cast(Playable, track)
-            entries.append(f"`{index + 1})` {track.hyperlink} [{track.requester} ({track.requester})]")
+            entries.append(f"`{index + 1})` {track.hyperlink} [{track.requester}]")
 
         pages = PaginatorSource(entries=entries, ctx=ctx)
         paginator = Paginator(source=pages, timeout=120, ctx=ctx, delete_message_after=True)
