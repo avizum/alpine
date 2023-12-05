@@ -83,7 +83,7 @@ class Bot(commands.Bot):
     command_cache: dict[int, discord.Message] = {}
     invite: str = discord.utils.oauth_url(bot_id, permissions=discord.Permissions(8))
     support: str = "https://discord.gg/muTVFgDvKf"
-    source: str = "https://github.com/alpine/alpine"
+    source: str = "https://github.com/avizum/alpine"
     context: Type[commands.Context] | None = None
     pool: asyncpg.Pool
     cogs: Mapping[str, Cog]
