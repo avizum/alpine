@@ -146,7 +146,7 @@ class BotLogs(core.Cog):
     async def logging_edit(self, before: discord.Message, after: discord.Message):
         context = await self.bot.get_context(after)
         guild_channel = discord.abc.GuildChannel
-        if context.valid or before.guild is None or after.guild is None:
+        if before.author.bot or context.valid or before.guild is None or after.guild is None:
             return
         elif not isinstance(before.channel, guild_channel) or not isinstance(after.channel, guild_channel):
             return
