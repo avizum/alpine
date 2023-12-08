@@ -26,6 +26,7 @@ from tagformatter import Parser
 if TYPE_CHECKING:
     from core import Context
 
+__all__ = ("preview_message",)
 
 parser = Parser(case_insensitive=True)
 

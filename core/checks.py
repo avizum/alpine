@@ -36,6 +36,18 @@ if TYPE_CHECKING:
     from .context import Context
     from .core import Bot
 
+
+__all__ = (
+    "check",
+    "has_permissions",
+    "bot_has_permissions",
+    "cooldown",
+    "is_owner",
+    "is_guild_owner",
+    "describe",
+)
+
+
 T = TypeVar("T")
 
 
@@ -241,3 +253,6 @@ def is_guild_owner():
         decorator.predicate = wrapper
 
     return decorator
+
+
+describe = discord.app_commands.describe

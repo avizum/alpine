@@ -31,6 +31,13 @@ if TYPE_CHECKING:
     from core.context import Context
 
 
+__all__ = (
+    "Paginator",
+    "PaginatorEmbed",
+    "WrappedPaginator",
+)
+
+
 class PaginatorEmbed(discord.Embed):
     def __init__(self, *, ctx: Context, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -284,7 +291,7 @@ class Paginator(BasePaginator):
         await self.show_checked_page(interaction, self.current_page - 1)
 
     @discord.ui.button(
-        emoji="<:alpine:940147134471213077>",
+        emoji="<:alpine:1020851768143380522>",
         disabled=False,
         style=discord.ButtonStyle.blurple,
     )

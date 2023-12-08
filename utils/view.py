@@ -18,6 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 
+__all__ = ("View",)
+
 
 class View(discord.ui.View):
     def __init__(self, *, member: discord.Member | discord.User, timeout: int | float = 180, **kwargs) -> None:

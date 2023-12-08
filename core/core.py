@@ -31,6 +31,15 @@ if TYPE_CHECKING:
 
     from .alpine import Bot
 
+__all__ = (
+    "Command",
+    "Group",
+    "HybridCommand",
+    "HybridGroup",
+    "Cog",
+    "command",
+    "group",
+)
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -187,6 +196,3 @@ def group(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callable[
         return cls(func, name=name, **kwargs)
 
     return decorator
-
-
-describe = discord.app_commands.describe

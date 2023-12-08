@@ -19,6 +19,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import time
 from typing import Any
 
+__all__ = (
+    "format_string",
+    "format_list",
+    "Timer",
+    "format_seconds",
+)
+
 
 def format_string(number: int, value: str) -> str:
     """
@@ -110,11 +117,3 @@ def format_seconds(seconds: float, *, friendly: bool = False) -> str:
     hour = f"{hours:02d}:" if hours != 0 or days != 0 else ""
     minsec = f"{minutes:02d}:{seconds:02d}"
     return f"{day}{hour}{minsec}"
-
-
-def format_times(number: int) -> str:
-    if number == 1:
-        return "once"
-    elif number == 2:
-        return "twice"
-    return f"{number} times"
