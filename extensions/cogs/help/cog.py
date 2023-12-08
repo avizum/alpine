@@ -21,7 +21,7 @@ from __future__ import annotations
 import datetime
 import itertools
 from difflib import get_close_matches
-from typing import Any, Mapping, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Mapping
 
 import discord
 import humanize

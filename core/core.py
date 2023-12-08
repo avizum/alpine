@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import datetime
-from typing import Any, Callable, Concatenate, Generic, overload, ParamSpec, TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Concatenate, Generic, ParamSpec, TypeVar, overload
 
 import discord
 from discord.ext import commands

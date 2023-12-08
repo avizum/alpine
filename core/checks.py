@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import functools
 import inspect
-from typing import Any, Callable, TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, TypeVar
 
 import discord
 from discord.ext import commands

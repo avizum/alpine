@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .cog import Images, Bot
+from .cog import Bot, Images
 
 
 async def setup(bot: Bot):

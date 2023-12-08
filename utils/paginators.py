@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import datetime
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import discord
 from discord.ext.menus import PageSource
@@ -127,7 +127,7 @@ class BasePaginator(View):
             except discord.NotFound:
                 pass
         if self.ctx.interaction is None:
-            await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")
+            await self.ctx.message.add_reaction("<:greentick:777096731438874634>")
 
     async def start(self) -> discord.Message:
         await self.source._prepare_once()
@@ -263,7 +263,7 @@ class Paginator(BasePaginator):
             except discord.NotFound:
                 pass
         if self.ctx.interaction is None:
-            await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")
+            await self.ctx.message.add_reaction("<:greentick:777096731438874634>")
 
     async def start(self) -> discord.Message:
         self._update(self.current_page)
@@ -325,7 +325,7 @@ class Paginator(BasePaginator):
         elif self.delete_message_after and self.message is not None:
             await self.message.delete()
         if self.ctx.interaction is None:
-            await self.ctx.message.add_reaction("<:pagination_complete:930557928149241866>")
+            await self.ctx.message.add_reaction("<:greentick:777096731438874634>")
         self.stop()
 
 

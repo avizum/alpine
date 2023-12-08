@@ -15,9 +15,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from discord.ext import commands
 
-from core.context import Context
+if TYPE_CHECKING:
+    from core import Context
 
 
 class ModReason(commands.Converter, str):

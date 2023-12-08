@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import asyncio
 import re
-from typing import Any, cast, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import discord
 import wavelink
@@ -29,7 +29,7 @@ from wavelink import Playable as WPlayable
 from wavelink import Playlist as WPlaylist
 from wavelink import Queue as WQueue
 
-from utils import format_seconds, View
+from utils import View, format_seconds
 
 if TYPE_CHECKING:
     from core import Context

@@ -25,15 +25,17 @@ from io import BytesIO
 from typing import TYPE_CHECKING
 
 import discord
-from discord.ext import commands
 from asyncakinator import Akinator
+from discord.ext import commands
 
 import core
-from utils import Timer, Emojis
-from .components import CookieView, AkinatorFlags, AkinatorGameView, RPSView
+from utils import Emojis, Timer
+
+from .components import AkinatorFlags, AkinatorGameView, CookieView, RPSView
 
 if TYPE_CHECKING:
     from datetime import datetime
+
     from core import Bot, Context
 
 
