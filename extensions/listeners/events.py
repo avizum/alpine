@@ -16,33 +16,38 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import discord
-import datetime
-import asyncio
 import base64
+import datetime as dt
 import re
 from io import BytesIO
 
-from discord.ext import commands, tasks
-from core import Bot
+import discord
 from asyncgist import File
+from discord.ext import commands, tasks
 
 import core
-from core.exceptions import (
-    Blacklisted,
-    CommandDisabledGuild,
-    CommandDisabledChannel,
-    Maintenance,
-)
-from core import Context
+from core import Bot, Context
+from core.exceptions import Blacklisted, CommandDisabledChannel, CommandDisabledGuild, Maintenance
+from utils import format_seconds
 
 TOKEN_REGEX = r"([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}|mfa\.[a-zA-Z0-9_\-]{84})"
+
+
+edit_mapping = {
+    "name": "Changed name",
+    "category": "Moved channel category",
+    "slowmode": "Set slowmode delay to",
+    "topic": "Changed topic",
+    "NSFW": "Set NSFW to",
+}
+
+toggle_mapping = {True: "On", False: "Off"}
 
 
 class BotLogs(core.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
-        self.load_time = datetime.datetime.now(datetime.timezone.utc)
+        self.load_time = dt.datetime.now(dt.timezone.utc)
         self.clear_cache.start()
 
     @core.Cog.listener("on_message")
@@ -77,7 +82,7 @@ class BotLogs(core.Cog):
                     f"It was [uploaded to a Gist.]({gist.html_url})\n"
                 ),
                 color=discord.Color.red(),
-                timestamp=datetime.datetime.now(datetime.timezone.utc),
+                timestamp=dt.datetime.now(dt.timezone.utc),
             )
             embed.set_author(name=message.author, icon_url=message.author.display_avatar.url)
             mentions = discord.AllowedMentions.all()
@@ -91,159 +96,207 @@ class BotLogs(core.Cog):
         msg = message[0] if isinstance(message, list) else message
         if msg.guild is None:
             return
-        data = self.bot.cache.logging.get(msg.guild.id)
-        if not data or data["enabled"] is not True or not data.get("message_delete") or not data.get("channel_id"):
+        settings = self.bot.database.get_guild(msg.guild.id)
+        logging = settings.logging if settings else None
+        if not logging or not logging.enabled or not logging.message_delete or not logging.channel_id:
             return
-        channel = self.bot.get_channel(data["channel_id"])
+
+        destination = msg.guild.get_channel(logging.channel_id)
+        if not isinstance(destination, discord.TextChannel):
+            return
+
         if isinstance(message, discord.Message):
             context = await self.bot.get_context(message)
-            if context.valid or not message.guild:
-                return
-            if message.author == self.bot.user or message.author.bot:
+            if context.valid or message.author.bot or not isinstance(message.channel, discord.abc.GuildChannel):
                 return
             embed = discord.Embed(
                 title="Message Delete",
-                timestamp=datetime.datetime.now(datetime.timezone.utc),
+                timestamp=dt.datetime.now(dt.timezone.utc),
                 description=f"Message from {message.author.mention} deleted in {message.channel.mention}",
                 color=discord.Color.red(),
             )
             embed.set_footer(text="Deleted at")
             if message.content:
                 embed.add_field(name="Deleted content", value=f">>> {message.content}")
-            if not message.content:
-                return
-        if isinstance(message, list):
-            list_of_messages = []
-            for m in message:
-                timestamp = discord.utils.format_dt(m.created_at, "t")
-                content = m.content[:90] or "*No content*"
-                list_of_messages.append(f"[{timestamp}] {m.author}: {content}")
-            if not list_of_messages:
-                return
-            embed = discord.Embed(
-                title="Bulk Message Delete",
-                timestamp=datetime.datetime.now(datetime.timezone.utc),
-                color=discord.Color.red(),
-            )
-            embed.set_footer(text=f"{len(message)} deleted")
-            messages = "\n\n----------\n\n".join(list_of_messages)
-            if len(messages) > 4000:
-                message_file = discord.File(filename="messages.txt", fp=BytesIO(messages.encode("utf-8")))
-                return await channel.send(embed=embed, file=message_file)
-            embed.description = "\n".join(list_of_messages)
-        return await channel.send(embed=embed)
+            return await destination.send(embed=embed)
+
+        assert isinstance(message, list)
+        messages: list[discord.Message] = message
+
+        list_of_messages = []
+        for message in messages:
+            timestamp = discord.utils.format_dt(message.created_at, "t")
+            content = message.content[:90] or "*No content*"
+            list_of_messages.append(f"[{timestamp}] {message.author}: {content}")
+        if not list_of_messages:
+            return
+        embed = discord.Embed(
+            title="Bulk Message Delete",
+            timestamp=dt.datetime.now(dt.timezone.utc),
+            color=discord.Color.red(),
+        )
+        embed.set_footer(text=f"{len(messages)} deleted")
+        message_log = "\n\n----------\n\n".join(list_of_messages)
+        if len(message_log) > 4000:
+            message_file = discord.File(filename="messages.txt", fp=BytesIO(message_log.encode("utf-8")))
+            return await destination.send(embed=embed, file=message_file)
+        embed.description = "\n".join(list_of_messages)
 
     @core.Cog.listener("on_message_edit")
     async def logging_edit(self, before: discord.Message, after: discord.Message):
         context = await self.bot.get_context(after)
-        if context.valid:
+        guild_channel = discord.abc.GuildChannel
+        if context.valid or before.guild is None or after.guild is None:
             return
-        if before.guild is None and after.guild is None:
+        elif not isinstance(before.channel, guild_channel) or not isinstance(after.channel, guild_channel):
             return
-        data = self.bot.cache.logging.get(before.guild.id)
-        if not data or data["enabled"] is not True or not data.get("message_edit") or not data.get("channel_id"):
-            return
-        if before.author == self.bot.user or before.author.bot:
-            return
-        if before.content == after.content:
-            return
-        bef_con = f"{before.content[:1017]}..." if len(before.content) > 1024 else before.content
 
-        aft_con = f"{after.content[:1017]}..." if len(after.content) > 1024 else after.content
+        settings = self.bot.database.get_guild(after.guild.id)
+        logging = settings.logging if settings else None
+
+        if not logging or not logging.enabled or not logging.message_edit or not logging.channel_id:
+            return
+        elif before.content == after.content:
+            return
+
+        old_content = f"{before.content[:1017]}..." if len(before.content) > 1024 else before.content
+        new_content = f"{after.content[:1017]}..." if len(after.content) > 1024 else after.content
 
         embed = discord.Embed(
             title="Message Edit",
-            timestamp=datetime.datetime.now(datetime.timezone.utc),
+            timestamp=dt.datetime.now(dt.timezone.utc),
             description=f"Message was edited by {before.author.mention} in {before.channel.mention}",
         )
-        embed.add_field(name="Before", value=f">>> {bef_con}", inline=False)
-        embed.add_field(name="After", value=f">>> {aft_con}", inline=False)
+        embed.add_field(name="Before", value=f">>> {old_content}", inline=False)
+        embed.add_field(name="After", value=f">>> {new_content}", inline=False)
         embed.set_footer(text="Edited at")
-        channel = self.bot.get_channel(data["channel_id"])
-        await channel.send(embed=embed)
 
-    @core.Cog.listener("on_member_ban")
-    async def logging_ban(self, guild: discord.Guild, user: discord.User):
-        data = self.bot.cache.logging.get(guild.id)
-        if not data or data["enabled"] is not True or not data.get("member_ban") or not data.get("channel_id"):
+        destination = after.guild.get_channel(logging.channel_id)
+        if isinstance(destination, discord.TextChannel):
+            return await destination.send(embed=embed)
+        return
+
+    @core.Cog.listener("on_audit_log_entry_create")
+    async def logging_ban_kick(self, entry: discord.AuditLogEntry):
+        settings = self.bot.database.get_guild(entry.guild.id)
+        logging = settings.logging if settings else None
+        if not logging or not logging.enabled or not logging.channel_id:
             return
-        await asyncio.sleep(2)
-        entry = [entry async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.ban)][0]
-        if entry.target == user:
-            channel = self.bot.get_channel(data["channel_id"])
-            embed = discord.Embed(
-                title="Member Banned",
-                description=f"{user} ({user.id}) has been banned from {guild.name}.",
-                color=discord.Color.red(),
+
+        destination = entry.guild.get_channel(logging.channel_id)
+        message = ""
+        if not isinstance(destination, discord.TextChannel):
+            return
+
+        if entry.action == discord.AuditLogAction.ban:
+            if not isinstance(entry.target, (discord.Object, discord.User)):
+                return
+            elif not logging.member_ban:
+                return
+            user = self.bot.get_user(entry.target.id)
+            if not user or not entry.user:
+                return
+            message = (
+                f"[**{discord.utils.format_dt(dt.datetime.now(dt.timezone.utc))}**] {user} (`{user.id}`) was banned:\n"
+                f"> **Moderator:** {entry.user} (`{entry.user.id}`)\n"
+                f"> **Reason:** {entry.reason}"
             )
-            embed.add_field(name="Responsible Moderator:", value=entry.user, inline=False)
-            embed.add_field(name="Ban Reason:", value=entry.reason, inline=False)
-            embed.set_thumbnail(url=user.display_avatar.url)
-            await channel.send(embed=embed)
-
-    @core.Cog.listener("on_member_remove")
-    async def loggging_kick(self, member: discord.Member):
-        data = self.bot.cache.logging.get(member.guild.id)
-        if not data or data["enabled"] is not True or not data.get("member_kick") or not data.get("channel_id"):
-            return
-        entry = [member async for member in member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick)][0]
-        if entry.target == member:
-            channel = self.bot.get_channel(data["channel_id"])
-            embed = discord.Embed(
-                title="Member Kicked",
-                description=f"{member} ({member.id}) has been kicked from {member.guild.name}.",
-                color=discord.Color.red(),
+        elif entry.action == discord.AuditLogAction.kick:
+            if not isinstance(entry.target, (discord.Object, discord.User)):
+                return
+            elif not logging.member_leave:
+                return
+            user = self.bot.get_user(entry.target.id)
+            if not user:
+                return
+            message = (
+                f"[**{discord.utils.format_dt(dt.datetime.now(dt.timezone.utc))}**] {user} (`{user.id}`) was kicked:\n"
+                f"> **Moderator:** {entry.user}\n"
+                f"> **Reason:** {entry.reason or 'No reason provided.'}"
             )
-            embed.add_field(name="Responsible Moderator:", value=entry.user, inline=False)
-            embed.add_field(name="Kick Reason:", value=entry.reason, inline=False)
-            embed.set_thumbnail(url=member.display_avatar.url)
-            await channel.send(embed=embed)  # type: ignore
 
-    @core.Cog.listener("on_guild_channel_create")
-    async def logging_channel_create(self, deleted_channel: discord.abc.GuildChannel):
-        thing = self.bot.cache.logging.get(deleted_channel.guild.id)
-        if not thing:
+        if not message:
             return
-        if thing.get("enabled") is not True:
+        await destination.send(message)
+
+    @core.Cog.listener("on_guild_channel_update")
+    async def logging_channel_create(self, before: discord.abc.GuildChannel, after: discord.abc.GuildChannel):
+        settings = self.bot.database.get_guild(before.guild.id)
+        logging = settings.logging if settings else None
+        if not logging or not logging.enabled or not logging.channel_edit or not logging.channel_id:
             return
-        if not thing.get("channel_create"):
+
+        destination = before.guild.get_channel(logging.channel_id)
+        changed: list[
+            tuple[
+                str,
+                str | discord.CategoryChannel | int | bool | None,
+                str | discord.CategoryChannel | int | bool | None,
+            ]
+        ] = []
+        if before.name != after.name:
+            changed.append(("name", before.name, after.name))
+        if before.category != after.category:
+            changed.append(("category", before.category, after.category))
+        if isinstance(before, discord.TextChannel) and isinstance(after, discord.TextChannel):
+            if before.slowmode_delay != after.slowmode_delay:
+                changed.append(("slowmode", before.slowmode_delay, after.slowmode_delay))
+            if before.topic != after.topic:
+                changed.append(("topic", before.topic, after.topic))
+            if before.nsfw != after.nsfw:
+                changed.append(("NSFW", before.nsfw, after.nsfw))
+
+        actions = []
+        for action, pre, post in changed:
+            if isinstance(post, bool):
+                actions.append(f"{edit_mapping[action]} {toggle_mapping[post]}")
+                continue
+            if isinstance(post, str) and isinstance(pre, str):
+                actions.append(f"{edit_mapping[action]} from **{pre[:500]}** to **{post[:500]}**")
+                continue
+            if isinstance(post, discord.CategoryChannel):
+                actions.append(f"{edit_mapping[action]} from **{pre}** to **{post}**")
+            if isinstance(post, int):
+                actions.append(f"{edit_mapping[action]} {format_seconds(post, friendly=True)}")
+                continue
+        if not actions:
             return
-        if not thing.get("channel_id"):
-            return
-        channel = self.bot.get_channel(thing["channel_id"])
-        await channel.send(f"Channel has been created: {deleted_channel.mention}")
+        formatted = "\n".join(f"{num}. {action}" for num, action in enumerate(actions, 1))
+        if isinstance(destination, discord.TextChannel):
+            return await destination.send(
+                f"[**{discord.utils.format_dt(dt.datetime.now(dt.timezone.utc))}**]{after.mention} was edited:\n{formatted}"
+            )
+        return
 
     @core.Cog.listener("on_guild_channel_delete")
-    async def logging_channel_delete(self, deleted_channel: discord.abc.GuildChannel):
-        thing = self.bot.cache.logging.get(deleted_channel.guild.id)
-        if not thing:
+    async def logging_channel_delete(self, channel: discord.abc.GuildChannel):
+        settings = self.bot.database.get_guild(channel.guild.id)
+        logging = settings.logging if settings else None
+        if not logging or not logging.enabled or not logging.channel_delete or not logging.channel_id:
             return
-        if thing.get("enabled") is not True:
-            return
-        if not thing.get("channel_delete"):
-            return
-        if not thing.get("channel_id"):
-            return
-        channel = self.bot.get_channel(thing["channel_id"])
-        await channel.send(f"Channel has been deleted: {deleted_channel.name}")
+        logging.channel_id
+        destination = self.bot.get_channel(logging.channel_id)
+        if isinstance(destination, discord.TextChannel):
+            return await destination.send(f"#{channel.name} was deleted")
 
     @core.Cog.listener("on_guild_update")
     async def logging_guild(self, before: discord.Guild, after: discord.Guild):
         pass
 
     async def bot_check(self, ctx: Context) -> bool:
-        if ctx.author.id in self.bot.cache.blacklist:
-            raise Blacklisted(reason=self.bot.cache.blacklist[ctx.author.id])
+        blacklisted = ctx.database.get_blacklist(ctx.author.id)
+        if blacklisted:
+            raise Blacklisted(reason=blacklisted.reason)
         if not ctx.guild:
-            return True
-        if str(ctx.command) in ctx.cache.guild_settings[ctx.guild.id]["disabled_commands"]:
-            raise CommandDisabledGuild()
-        if ctx.channel.id in ctx.cache.guild_settings[ctx.guild.id]["disabled_channels"]:
-            raise CommandDisabledChannel()
-        if ctx.bot.maintenance is True:
+            raise commands.NoPrivateMessage
+        guild_settings = ctx.database.get_guild(ctx.guild.id)
+        if guild_settings:
+            if ctx.command.qualified_name in guild_settings.disabled_commands:
+                raise CommandDisabledGuild
+            elif ctx.channel.id in guild_settings.disabled_channels:
+                raise CommandDisabledChannel
+        if ctx.bot.maintenance:
             raise Maintenance()
-        if ctx.guild is None:
-            raise commands.NoPrivateMessage()
         return True
 
     @tasks.loop(minutes=30)

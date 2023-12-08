@@ -46,7 +46,7 @@ class TimeZoneError(commands.BadArgument):
         self.argument = argument
         super().__init__(
             f'Timezone "{argument}" was not found. [Here]'
-            "(https://gist.github.com/Soheab/3bec6dd6c1e90962ef46b8545823820d) "
+            "(<https://gist.github.com/Soheab/3bec6dd6c1e90962ef46b8545823820d>) "
             "are all the valid timezones you can use."
         )
 
@@ -328,58 +328,36 @@ class Meta(core.Cog):
         If the user does not have a timezone set up, an error will occur.
         """
         member = member or ctx.author
-        try:
-            timezone = ctx.cache.users[member.id]["timezone"]
-            if not timezone:
-                raise KeyError
-        except (KeyError, UnknownTimeZoneError):
-            prefix = ctx.clean_prefix
-            if member == ctx.author:
-                return await ctx.send(f"You don't have a timezone setup yet. Use {prefix}time set <timezone>.")
-            return await ctx.send(f"This user does not have a timezone setup. Use {prefix}time set <timezone>.")
-        timezone = pytz.timezone(timezone)
-        time = dt.datetime.now(timezone)
-        format_time = time.strftime("%A, %B %d at %I:%M %p")
-        time_embed = discord.Embed(description=format_time)
-        time_embed.set_author(name=f"{member.display_name}'s time", icon_url=member.display_avatar.url)
-        time_embed.set_footer(text=f"{member.display_name}'s' timezone: {timezone}")
-        await ctx.send(embed=time_embed)
+        user = ctx.database.get_user(ctx.author.id)
+        if user and user.timezone:
+            timezone = pytz.timezone(user.timezone)
+            time = dt.datetime.now(timezone)
+            format_time = time.strftime("%A, %B %d at %I:%M %p")
+            time_embed = discord.Embed(description=format_time)
+            time_embed.set_author(name=f"{member.display_name}'s time", icon_url=member.display_avatar.url)
+            time_embed.set_footer(text=f"{member.display_name}'s' timezone: {timezone}")
+            return await ctx.send(embed=time_embed)
+        message = f"{member} doesn't have a timezone set up."
+        if member == ctx.author:
+            message = "Use `{ctx.clean_prefix}time set <timezone>` to add your timezone."
+        return await ctx.send(message)
 
     @time.command(name="set")
-    async def time_set(self, ctx: Context, *, timezone):
+    async def time_set(self, ctx: Context, *, timezone: str):
         """
         Set your timezone.
 
         The timezone must be one of [these timezones.](https://gist.github.com/Soheab/3bec6dd6c1e90962ef46b8545823820d)
         """
-        query = (
-            "INSERT INTO user_settings (user_id, timezone) "
-            "VALUES ($1, $2) "
-            "ON CONFLICT (user_id) DO "
-            "UPDATE SET timezone = $2"
-        )
+        user_settings = await ctx.database.get_or_fetch_user(ctx.author.id)
         if timezone.lower() in ["remove", "none"]:
-            await self.bot.pool.execute(query, ctx.author.id, None)
-            try:
-                ctx.cache.users[ctx.author.id]["timezone"] = timezone
-            except KeyError:
-                new = await ctx.cache.new_user(ctx.author.id)
-                if new is None:
-                    return await ctx.send("Something went wrong.")
-                new["timezone"] = timezone
-            return await ctx.send("Remove timezone")
+            await user_settings.update(timezone=None)
+            return await ctx.send("Deleted your timezone.")
         try:
             timezones = pytz.timezone(timezone)
         except KeyError as e:
             raise TimeZoneError(timezone) from e
-        await self.bot.pool.execute(query, ctx.author.id, timezone)
-        try:
-            ctx.cache.users[ctx.author.id]["timezone"] = timezone
-        except KeyError:
-            new = await ctx.cache.new_user(ctx.author.id)
-            if new is None:
-                return await ctx.send("Something went wrong.")
-            new["timezone"] = timezone
+        await user_settings.update(timezone=timezone)
         await ctx.send(f"Set timezone to {timezones}")
 
     @core.command()

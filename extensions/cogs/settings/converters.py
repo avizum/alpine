@@ -20,7 +20,7 @@ import re
 
 from discord.ext import commands
 
-from core import Context
+from core import Command, Context
 
 PREFIX_CHAR_LIMIT = 35
 MAX_PREFIX_AMOUNT = 20
@@ -32,10 +32,10 @@ class Prefix(commands.Converter, str):
         user_mention = re.findall(r"<@(!?)([0-9]*)>", argument)
         role_mention = re.findall(r"<@&(\d+)>", argument)
         channel_mention = re.findall(r"<#(\d+)>", argument)
-        guild_cache = await ctx.cache.get_guild_settings(ctx.guild.id)
-        if not guild_cache:
-            guild_cache = await ctx.cache.cache_new_guild(ctx.guild.id)
-        guild_prefix = guild_cache["prefixes"]
+
+        settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
+        prefixes = settings.prefixes
+
         if user_mention:
             raise commands.BadArgument("You can not add a mention as a prefix.")
         elif role_mention:
@@ -44,16 +44,17 @@ class Prefix(commands.Converter, str):
             raise commands.BadArgument("You can not add a channel mention as a prefix.")
         elif len(argument) > PREFIX_CHAR_LIMIT:
             raise commands.BadArgument(f"That prefix is too long ({len(argument)}/{PREFIX_CHAR_LIMIT})")
-        elif len(guild_prefix) > MAX_PREFIX_AMOUNT:
+        elif len(prefixes) > MAX_PREFIX_AMOUNT:
             raise commands.BadArgument(f"You already the max amount of prefixes {MAX_PREFIX_AMOUNT} prefixes")
-        elif argument in guild_prefix:
+        elif argument in prefixes:
             raise commands.BadArgument("That is already a prefix for this server.")
 
         return argument.lower()
 
 
-class GetCommand(commands.Converter):
-    async def convert(self, ctx: Context, argument: str):
+class GetCommand(commands.Converter, Command):
+    @classmethod
+    async def convert(cls, ctx: Context, argument: str):
         command = ctx.bot.get_command(argument)
         if not command:
             raise commands.BadArgument(f"{argument} is not a command.")

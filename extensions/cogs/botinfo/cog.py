@@ -180,7 +180,7 @@ class BotInfo(core.Cog, name="Bot Info"):
         async with Timer() as api:
             await ctx.channel.typing()
         async with Timer() as db:
-            await self.bot.pool.execute("SELECT 1")
+            await self.bot.database.pool.execute("SELECT 1")
         ping_embed = discord.Embed(title="Pong!")
         ping_embed.add_field(
             name="<:avimetry:1020851768143380522> Websocket Latency",
@@ -499,12 +499,14 @@ class BotInfo(core.Cog, name="Bot Info"):
         )
         conf = await ctx.confirm(embed=embed)
         if conf.result:
-            user_settings = self.bot.cache.users.get(ctx.author.id)
-            if not user_settings:
+            user_settings = ctx.database.get_user(ctx.author.id)
+            highlights = ctx.database.get_highlights(ctx.author.id)
+            if not user_settings and not highlights:
                 return await ctx.send("You are not in my database.")
-            query = "DELETE FROM user_settings " "WHERE user_id=$1"
-            await self.bot.pool.execute(query, ctx.author.id)
-            self.bot.cache.users.pop(ctx.author.id)
+            if user_settings:
+                await user_settings.delete()
+            if highlights:
+                await highlights.delete()
             return await ctx.send("Okay, I deleted all your data.")
         return await conf.message.edit(content="Aborted.")
 
@@ -519,7 +521,7 @@ class BotInfo(core.Cog, name="Bot Info"):
         if error_id is None:
             return await ctx.send_help("error")
         query = "SELECT * FROM command_errors WHERE id=$1"
-        error_info = await self.bot.pool.fetchrow(query, error_id)
+        error_info = await self.bot.database.pool.fetchrow(query, error_id)
         if not error_info:
             return await ctx.send("That is not a valid error id.")
         embed = discord.Embed(

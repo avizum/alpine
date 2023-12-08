@@ -16,11 +16,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import copy
 import datetime
 import logging
 import traceback as tb
-from difflib import get_close_matches
 
 import discord
 import humanize
@@ -30,7 +28,7 @@ from discord.ext import commands
 import core
 from core import Bot, Context
 from core.exceptions import Blacklisted, CommandDisabledChannel, CommandDisabledGuild, Maintenance, NotGuildOwner
-from utils import format_list, View
+from utils import View, format_list
 
 _log = logging.getLogger("alpine")
 
@@ -73,15 +71,15 @@ class UnknownError(View):
                 f"You are doing that too fast. Please try again in {retry:,.2f} seconds.",
                 ephemeral=True,
             )
-        check = await self.bot.pool.fetchrow("SELECT trackers FROM command_errors WHERE id = $1", self.error_id)
+        check = await self.bot.database.pool.fetchrow("SELECT trackers FROM command_errors WHERE id = $1", self.error_id)
         if not check:
             return await interaction.response.send_message("Something broke.", ephemeral=True)
         if self.member.id in check["trackers"]:
             remove_tracker = "UPDATE command_errors SET trackers = ARRAY_REMOVE(trackers, $2) WHERE id = $1"
-            await self.bot.pool.execute(remove_tracker, self.error_id, self.member.id)
+            await self.bot.database.pool.execute(remove_tracker, self.error_id, self.member.id)
             return await interaction.response.send_message(f"No longer tracking Error #{self.error_id}", ephemeral=True)
         add_tracker = "UPDATE command_errors SET trackers = ARRAY_APPEND(trackers, $2) WHERE id = $1"
-        await self.bot.pool.execute(add_tracker, self.error_id, self.member.id)
+        await self.bot.database.pool.execute(add_tracker, self.error_id, self.member.id)
         return await interaction.response.send_message(f"Now tracking Error #{self.error_id}.", ephemeral=True)
 
 
@@ -282,11 +280,11 @@ class ErrorHandler(core.Cog):
             if len(traceback) > 1995:
                 traceback = f"Error was too long: {await self.bot.myst.create_paste(filename='error.py', content=traceback)}"
             query = "SELECT * FROM command_errors WHERE command=$1 and error=$2"
-            in_db = await self.bot.pool.fetchrow(query, ctx.command.qualified_name, str(error))
+            in_db = await self.bot.database.pool.fetchrow(query, ctx.command.qualified_name, str(error))
             embed = discord.Embed()
             if not in_db:
                 insert_query = "INSERT INTO command_errors (command, error) " "VALUES ($1, $2) " "RETURNING *"
-                inserted_error = await self.bot.pool.fetchrow(insert_query, ctx.command.qualified_name, str(error))
+                inserted_error = await self.bot.database.pool.fetchrow(insert_query, ctx.command.qualified_name, str(error))
                 assert inserted_error is not None
                 embed.title = "An unknown error occured"
                 embed.description = (

@@ -31,7 +31,7 @@ import traceback
 from difflib import get_close_matches
 from importlib.metadata import distribution, packages_distributions
 from types import TracebackType
-from typing import Any, Callable, Deque, Generator, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Deque, Generator
 
 import discord
 import psutil
@@ -39,7 +39,7 @@ import toml
 from asyncpg import Record
 from discord.ext import commands, menus
 from discord.utils import format_dt
-from jishaku import exception_handling, Feature
+from jishaku import Feature, exception_handling
 from jishaku.codeblocks import codeblock_converter
 from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.exception_handling import ReplResponseReactor
@@ -183,7 +183,7 @@ class BlacklistedPageSource(menus.ListPageSource):
         embed = PaginatorEmbed(ctx=self.ctx, title="Blacklisted Users")
         for entry in page:
             user = self.ctx.bot.get_user(entry)
-            bl_entry = self.ctx.cache.blacklist[entry]
+            bl_entry = self.ctx.database._blacklists[entry]
             embed.add_field(
                 name=f"{user}({user.id})" if user else entry,
                 value=f"[Reason]\n{bl_entry}",
@@ -616,7 +616,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         Show blacklisted users on the bot.
         """
-        blacklist_ids = list(ctx.cache.blacklist.keys())
+        blacklist_ids = list(ctx.database._blacklists.keys())
         source = BlacklistedPageSource(ctx, blacklist_ids)
         pages = Paginator(source, ctx=ctx, delete_message_after=True)
         await pages.start()
@@ -628,51 +628,29 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         if user.id in self.bot.owner_ids:
             return await ctx.send("Can not blacklist that user.")
-        blacklist_user = ctx.cache.blacklist.get(user.id)
-        if blacklist_user:
+
+        to_blacklist = ctx.database.get_blacklist(user.id)
+        if to_blacklist:
             return await ctx.send(f"{user} is already blacklisted.")
-        else:
-            query = "INSERT INTO blacklist VALUES ($1, $2)"
-            await self.bot.pool.execute(query, user.id, reason)
-            ctx.cache.blacklist[user.id] = reason
-            embed = discord.Embed(
-                title="Updated Blacklist",
-                description=f"Added {user} to the blacklist\nReason: `{reason}`",
-            )
-            await ctx.send(embed=embed)
+
+        await ctx.database.blacklist(user.id, reason=reason)
+        embed = discord.Embed(
+            title="Updated Blacklist",
+            description=f"Added {user} to the blacklist\nReason: `{reason}`",
+        )
+        return await ctx.send(embed=embed)
 
     @Feature.Command(parent="blacklist", name="remove", aliases=["r"])
-    async def blacklist_remove(self, ctx: Context, user: discord.User, *, reason: ModReason = DefaultReason):
+    async def blacklist_remove(self, ctx: Context, user: discord.User):
         """
         Removes a user from the global blacklist.
         """
-        blacklist_user = ctx.cache.blacklist.get(user.id)
-        if blacklist_user:
-            query = "DELETE FROM blacklist WHERE user_id = $1"
-            await self.bot.pool.execute(query, user.id)
-            del ctx.cache.blacklist[user.id]
-            embed = discord.Embed(
-                title="Updated Blacklist",
-                description=f"Removed {user} from the blacklist.\nReason: `{reason}`",
-            )
-            await ctx.send(embed=embed)
-        else:
-            await ctx.send(f"{user} is not blacklisted.")
+        to_unblacklist = ctx.database.get_blacklist(user.id)
+        if not to_unblacklist:
+            return await ctx.send(f"{user} is not blacklisted.")
 
-    @Feature.Command(parent="blacklist", name="update", aliases=["up"])
-    async def blacklist_update(self, ctx: Context, user: discord.User, *, reason: ModReason):
-        blacklist_user = ctx.cache.blacklist.get(user.id)
-        if blacklist_user:
-            query = "UPDATE blacklist SET reason = $2 WHERE user_id = $1"
-            await self.bot.pool.execute(query, user.id, reason)
-            ctx.cache.blacklist[user.id] = reason
-            embed = discord.Embed(
-                title="Updated Blacklist",
-                description=f"Updated {user} blacklist reason.\nOld Reason: `{blacklist_user}`\nNew Reason: `{reason}`",
-            )
-            await ctx.send(embed=embed)
-        else:
-            await ctx.send(f"{user} is not blacklisted.")
+        await to_unblacklist.delete()
+        await ctx.send(f"Removed {user} from the blacklist.")
 
     @Feature.Command(parent="jsk")
     async def cleanup(self, ctx: Context, amount: int = 15):
@@ -728,7 +706,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         Show all the errors in the bot.
         """
-        errors = await self.bot.pool.fetch("SELECT * FROM command_errors WHERE fixed = False")
+        errors = await ctx.database.pool.fetch("SELECT * FROM command_errors WHERE fixed = False")
         if not errors:
             embed = discord.Embed(title="Errors", description="No active errors have been found.")
             return await ctx.send(embed=embed)
@@ -744,7 +722,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         Shows all fixed errors.
         """
-        errors = await self.bot.pool.fetch("SELECT * FROM command_errors WHERE fixed = True")
+        errors = await ctx.database.pool.fetch("SELECT * FROM command_errors WHERE fixed = True")
         if not errors:
             embed = discord.Embed(title="Errors", description="No fixed errors have been found.")
             return await ctx.send(embed=embed)
@@ -778,14 +756,14 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         trackers = None
         for i in error_id:
             query = "SELECT * FROM command_errors WHERE id=$1"
-            error_info = await self.bot.pool.fetchrow(query, i)
+            error_info = await ctx.database.pool.fetchrow(query, i)
             if not error_info:
                 fix_list.append(f"Error ID {i} does not exist.")
             elif error_info["fixed"] is True:
                 fix_list.append(f"Error ID {i} is already marked as fixed.")
             else:
                 query = "UPDATE command_errors SET fixed=$1 WHERE id=$2 RETURNING *"
-                trackers = await self.bot.pool.fetchrow(query, True, i)
+                trackers = await ctx.database.pool.fetchrow(query, True, i)
                 fix_list.append(f"Error ID {i} has been marked as fixed.")
         await ctx.send("\n".join(fix_list))
         if trackers:

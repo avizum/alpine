@@ -30,6 +30,7 @@ import core
 
 if TYPE_CHECKING:
     from datetime import datetime
+
     from core import Bot, Context
 
 
@@ -40,48 +41,38 @@ class MemberJoin(core.Cog):
         self.messages: dict[int, discord.Message] = {}
 
     async def do_verify(self, member: discord.Member):
-        prefix = await self.bot.cache.get_guild_settings(member.guild.id)
-        if prefix is None:
-            pre = "a."
-        prefixes = prefix.get("prefixes")
-        pre = prefixes[0] if prefixes else "a."
-
-        config = self.bot.cache.verification.get(member.guild.id)
-        role = config.get("role_id")
-        high = config.get("high")
-
-        if not config or not role or not high:
+        settings = self.bot.database.get_guild(member.guild.id)
+        if not settings:
+            return
+        verification = settings.verification
+        if not verification:
             return
 
-        if config["high"] is True:
-            if config["role_id"] is None:
-                return
+        prefix = settings.prefixes[0] if settings.prefixes else "a."
+        role = member.guild.get_role(verification.role_id)
+        channel = member.guild.get_channel(verification.channel_id)
+        enabled = verification.high
+        if not enabled or not role or not channel:
+            return
 
-            channel = member.guild.get_channel(config.get("channel_id"))
-            x = discord.Embed(
-                title=f"Welcome to **{member.guild.name}**!",
-                description=(
-                    f"Hey {member.mention}, welcome to the server!\n"
-                    f"Please use `{pre}verify` to verify. Enter the key you recieve in your DMs here."
-                ),
-                timestamp=dt.datetime.now(dt.timezone.utc),
-                color=discord.Color.green(),
-            )
-            message = await channel.send(
-                f"{member.mention}",
-                embed=x,
-                allowed_mentions=discord.AllowedMentions(users=True),
-            )
-            try:
-                self.messages[member.id] = message
-            except KeyError:
-                pass
+        embed = discord.Embed(
+            title=f"Welcome to {member.guild.name}!",
+            description=(
+                f"Hey {member.mention}, you need to verify before you are able to see the channels.\n"
+                f"Use `{prefix}verify` to get started."
+            ),
+            timestamp=dt.datetime.now(dt.timezone.utc),
+            color=discord.Color.green(),
+        )
+
+        assert isinstance(channel, discord.TextChannel)
+
+        message = await channel.send(member.mention, embed=embed, allowed_mentions=discord.AllowedMentions(users=True))
+        self.messages[member.id] = message
 
     @core.Cog.listener()
     async def on_member_join(self, member: discord.Member):
-        if member.bot:
-            return
-        if member.pending:
+        if member.bot or member.pending:
             return
         await self.do_verify(member)
 
@@ -107,60 +98,43 @@ class MemberJoin(core.Cog):
 
         This command only works if the server has verification enabled.
         """
-        await ctx.message.delete()
         member = ctx.author
-        config = self.bot.cache.verification.get(member.guild.id)
-        if not config:
+
+        guild = ctx.database.get_guild(ctx.guild.id)
+        if not guild:
             return
-        role = ctx.guild.get_role(config.get("role_id"))
-        channel = ctx.guild.get_channel(config.get("channel_id"))
+        verification = guild.verification
+        if not verification:
+            return
+        role = ctx.guild.get_role(verification.role_id)
+        channel = ctx.guild.get_channel(verification.channel_id)
         if not role or not channel or role in member.roles:
             return
-        letters = string.ascii_letters
-        randomkey = "".join(random.choice(letters) for i in range(10))
+
+        key = "".join(random.choice(string.ascii_letters) for _ in range(10))
 
         try:
-            await member.send(f"**Here is your key. Send it in {ctx.channel.mention}. This key will expire in one minute.**")
-            await member.send(f"{randomkey}")
+            await member.send(f"Here is your key. Send it in {ctx.channel.mention}.")
+            await member.send(key)
         except discord.Forbidden:
-            keyforbidden = discord.Embed()
-            keyforbidden.add_field(
-                name="Please turn on your DMs and run the `verify` command again.",
-                value="User Settings > Privacy & Safety > Allow direct messages from server members",
-            )
-            return await ctx.send(embed=keyforbidden)
+            return await ctx.send("I can not send you the code. Please enabled your DMs and try again.")
 
-        sent_dms = discord.Embed(
-            title="I sent a key to your DMs",
-            description="Please enter your key here to complete the verification process.",
+        sent_to_dms = await ctx.channel.send(
+            "A key was sent to your DMs. Copy and paste the key here to continue.",
         )
-        send_message = await ctx.send(embed=sent_dms)
 
-        def check(m):
-            return m.author == ctx.author and m.channel == channel
+        def check(message: discord.Message) -> bool:
+            return message.author == member and message.channel == ctx.channel and message.content == key
 
-        while True:
-            try:
-                msg = await self.bot.wait_for("message", timeout=60, check=check)
-            except asyncio.TimeoutError:
-                timeup = discord.Embed(
-                    title="Your Key has expired",
-                    description=(
-                        "Sorry, your key has expired. If you want to generate a new key, "
-                        f"use the command `{ctx.clean_prefix}verify` to generate a new key."
-                    ),
-                )
-                await ctx.author.send(embed=timeup)
-                break
-            else:
-                if msg.content != randomkey:
-                    await msg.delete(delay=5)
-                    pass
-                else:
-                    await send_message.delete()
-                    message = self.messages.get(member.id)
-                    if message:
-                        await message.delete()
-                    await msg.delete(delay=5)
-                    await member.add_roles(role)
-                    break
+        try:
+            message: discord.Message = await self.bot.wait_for("message", check=check, timeout=60)
+        except asyncio.TimeoutError:
+            return await ctx.author.send(f"Timed out. Run `{ctx.prefix}verify` to continue.")
+        else:
+            await ctx.message.delete()
+            await sent_to_dms.delete()
+            to_delete = self.messages.get(ctx.author.id)
+            if to_delete:
+                await to_delete.delete()
+            await message.delete()
+            await ctx.author.add_roles(role)

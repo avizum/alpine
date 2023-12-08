@@ -21,7 +21,7 @@ from __future__ import annotations
 import datetime
 import re
 import sys
-from typing import Any, Generic, Sequence, TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, Sequence, TypeVar
 
 import discord
 from asyncgist import File as AGFile
@@ -33,14 +33,18 @@ from utils.paginators import Paginator, WrappedPaginator
 from utils.view import View as AView
 
 if TYPE_CHECKING:
-    from asyncpg.pool import Pool
     from discord import AllowedMentions, Embed, File, GuildSticker, Message, MessageReference, PartialMessage, StickerItem
     from discord.ui import View
 
     from extensions.cogs.music.cog import Player
-    from utils.cache import Cache
+    from utils import Database
 
     from .alpine import Bot
+
+__all__ = (
+    "Context",
+    "ConfirmResult",
+)
 
 BotT = TypeVar("BotT", bound="commands.Bot | commands.AutoShardedBot", covariant=True)
 T = TypeVar("T")
@@ -142,12 +146,8 @@ class Context(commands.Context, Generic[BotT]):
         self.tokens: list[str] = tokens
 
     @property
-    def cache(self) -> Cache:
-        return self.bot.cache
-
-    @property
-    def pool(self) -> Pool:
-        return self.bot.pool
+    def database(self) -> Database:
+        return self.bot.database
 
     @property
     def clean_prefix(self) -> str:
@@ -165,8 +165,8 @@ class Context(commands.Context, Generic[BotT]):
     async def get_prefix(self) -> str:
         if self.guild is None:
             return "a."
-        get_prefix = await self.cache.get_guild_settings(self.guild.id)
-        prefix = get_prefix["prefixes"] if get_prefix else None
+        guild_data = await self.database.get_or_fetch_guild(self.guild.id)
+        prefix = guild_data.prefixes
         return f"`{'` | `'.join(prefix)}`" if prefix else "`a.`"
 
     @property
@@ -184,10 +184,10 @@ class Context(commands.Context, Generic[BotT]):
 
     async def fetch_color(self, member: discord.Member | discord.User | None = None) -> discord.Color:
         member = member or self.author
-        data = self.cache.users.get(member.id)
+        data = await self.database.fetch_user(member.id)
         color = None
-        if data is not None and data["color"] is not None:
-            color = discord.Color(data["color"])
+        if data is not None and data.color is not None:
+            color = discord.Color(data.color)
         if not color:
             color = member.color
         if color == discord.Color(0):
@@ -198,10 +198,10 @@ class Context(commands.Context, Generic[BotT]):
 
     def get_color(self, member: discord.Member | discord.User | None = None) -> discord.Color:
         member = member or self.author
-        data = self.cache.users.get(member.id)
+        data = self.database.get_user(member.id)
         color = None
-        if data is not None and data["color"] is not None:
-            color = discord.Color(data["color"])
+        if data is not None and data.color is not None:
+            color = discord.Color(data.color)
         if not color:
             color = member.color
         elif color == discord.Color(0):
@@ -238,7 +238,7 @@ class Context(commands.Context, Generic[BotT]):
         self.bot.command_cache[self.message.id] = message
         return message
 
-    async def send_help(self, item: Any | None) -> Any:
+    async def send_hselp(self, item: Any | None) -> Any:
         if not item:
             return await super().send_help()
         return await super().send_help(item)
@@ -397,10 +397,10 @@ class Context(commands.Context, Generic[BotT]):
             await msg.edit(view=None)
         return ConfirmResult(msg, view.value)
 
-    async def can_delete(self, *args, **kwargs) -> Message:
+    async def can_delete(self, *args, timeout: int = 60, **kwargs) -> Message:
         if self.interaction:
             return await self.send(*args, **kwargs)
-        view = TrashView(member=self.author, ctx=self)
+        view = TrashView(member=self.author, timeout=timeout, ctx=self)
         message = await self.send(*args, **kwargs, view=view)
         view.message = message
         return message

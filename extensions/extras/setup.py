@@ -47,19 +47,10 @@ class Setup(core.Cog):
         if message.author.bot:
             return
         if isinstance(message.channel, discord.DMChannel):
-            cache = self.bot.cache.users.get(message.author.id)
-            if cache:
-                dmed = cache.get("dmed")
-                if not dmed:
-                    await message.channel.send("Hey, these DMs are logged and sent to the support server.")
-                    cache["dmed"] = True
-                    query = (
-                        "INSERT INTO user_settings (user_id, dmed) "
-                        "VALUES ($1, $2) "
-                        "ON CONFLICT (user_id) DO "
-                        "UPDATE SET dmed = $2"
-                    )
-                    await self.bot.pool.execute(query, ctx.author.id, True)
+            user_data = await ctx.database.get_or_fetch_user(ctx.author.id)
+            if not user_data.dmed:
+                await message.channel.send("Hey, these DMs are logged and sent to the support server.")
+                await user_data.update(dmed=True)
             embed = discord.Embed(title=f"DM from {message.author}", description=message.content)
             embed.set_footer(text=message.author.id)
             ts = message.created_at.timestamp()
@@ -89,8 +80,6 @@ class Setup(core.Cog):
     async def on_guild_join(self, guild: discord.Guild):
         if self.bot.user.id != 756257170521063444:
             return
-        await self.bot.cache.cache_new_guild(guild.id)
-        await self.bot.cache.check_for_cache()
         members = sum(not m.bot for m in guild.members)
         bots = sum(m.bot for m in guild.members)
         summary = [
@@ -133,10 +122,12 @@ class Setup(core.Cog):
         await channel.send(embed=embed)
 
     @core.Cog.listener()
-    async def on_guild_remove(self, guild):
+    async def on_guild_remove(self, guild: discord.Guild):
         if self.bot.user.id != 756257170521063444:
             return
-        await self.bot.cache.delete_all(guild.id)
+        settings = self.bot.database.get_guild(guild.id)
+        if settings:
+            await settings.delete()
 
         message = [
             f"I got removed from a server named {guild.name} ({guild.id}).",

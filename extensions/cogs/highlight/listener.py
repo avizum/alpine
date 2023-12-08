@@ -41,14 +41,14 @@ class HighlightListener(core.Cog):
         history = None
 
         highlight_list = []
-        for user_id, data in self.bot.cache.highlights.items():
+        for user_id, highlight in self.bot.database._highlights.items():
             if user_id == message.author.id:
                 continue
 
-            if data["blocked"] and message.author.id in data["blocked"] or message.channel.id in data["blocked"]:
+            if highlight.blocked and message.author.id in highlight.blocked or message.channel.id in highlight.blocked:
                 continue
 
-            for word in data["triggers"]:
+            for word in highlight.triggers:
                 highlight_list.append(word)
             reg = "|".join(rf"\b({h})\b" for h in highlight_list)
 
@@ -56,7 +56,7 @@ class HighlightListener(core.Cog):
             if not match:
                 continue
 
-            trigger = discord.utils.find(lambda t: t in match.groups(), data["triggers"])  # type: ignore
+            trigger = discord.utils.find(lambda t: t in match.groups(), highlight.triggers)  # type: ignore
             if not trigger:
                 continue
 

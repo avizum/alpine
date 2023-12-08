@@ -49,26 +49,14 @@ class HighlightCommands(core.Cog):
         Adds a word to your highlight list.
         """
         await ctx.message.delete(delay=10)
-        highlights = self.bot.cache.highlights.get(ctx.author.id)
-        if highlights and trigger in highlights["triggers"]:
+        highlights = ctx.database.get_highlights(ctx.author.id) or await ctx.database.fetch_highlights(ctx.author.id)
+        triggers = highlights.triggers
+        if trigger in triggers:
             return await ctx.send("This is already a highlight.")
-        if highlights:
-            highlights["triggers"].append(trigger)
 
-        query = (
-            "INSERT INTO highlights (user_id, triggers) "
-            "VALUES ($1, $2) "
-            "ON CONFLICT (user_id) DO "
-            "UPDATE SET triggers = $2"
-            "RETURNING *"
-        )
-        to_add = highlights["triggers"] if highlights else [trigger]
-        data = await self.bot.pool.fetchrow(query, ctx.author.id, to_add)
+        triggers.append(trigger)
 
-        if not highlights and data is not None:
-            new_data = dict(data)
-            new_data.pop("user_id")
-            ctx.bot.cache.highlights[ctx.author.id] = new_data
+        await highlights.update(triggers=triggers)
 
         return await ctx.send("Highlight trigger added.", ephemeral=True, delete_after=10)
 
@@ -79,27 +67,28 @@ class HighlightCommands(core.Cog):
         Removes a word from your highlight list.
         """
         await ctx.message.delete(delay=10)
-        highlights = self.bot.cache.highlights.get(ctx.author.id)
+        highlights = ctx.database.get_highlights(ctx.author.id)
         if not highlights:
-            return await ctx.send("You don't have any highlights.")
-        if trigger not in highlights["triggers"]:
-            return await ctx.send("This highlight is not saved.")
+            return await ctx.send("You don't have any highlights.", ephemeral=True)
 
-        query = "UPDATE highlights " "SET triggers = $2 " "WHERE user_id = $1 "
+        triggers = highlights.triggers
 
-        highlights["triggers"].remove(trigger)
-        await self.bot.pool.execute(query, ctx.author.id, highlights["triggers"])
+        if trigger not in triggers:
+            return await ctx.send("This highlight is not saved.", ephemeral=True)
+
+        triggers.remove(trigger)
+        await highlights.update(triggers=triggers)
 
         return await ctx.send("Highlight trigger removed.", ephemeral=True, delete_after=10)
 
     @highlight_remove.autocomplete("trigger")
     async def highlight_remove_autocomplete(self, itn: discord.Interaction, item: str) -> list[app_commands.Choice]:
-        highlights = self.bot.cache.highlights.get(itn.user.id)
+        highlights = self.bot.database.get_highlights(itn.user.id)
         if not highlights:
             return []
         elif not item:
-            return [app_commands.Choice(name=hl, value=hl) for hl in highlights["triggers"][:25]]
-        return [app_commands.Choice(name=hl, value=hl) for hl in highlights["triggers"][:25] if item in hl and len(item) > 2]
+            return [app_commands.Choice(name=hl, value=hl) for hl in highlights.triggers[:25]]
+        return [app_commands.Choice(name=hl, value=hl) for hl in highlights.triggers if item in hl and len(item) > 2]
 
     @highlight.command(name="list", aliases=["l"])
     async def highlight_list(self, ctx: Context):
@@ -107,18 +96,19 @@ class HighlightCommands(core.Cog):
         Lists all your highlight triggers.
         """
         await ctx.message.delete(delay=10)
-        highlights = self.bot.cache.highlights.get(ctx.author.id)
+        highlights = ctx.database.get_highlights(ctx.author.id)
         if not highlights:
             return await ctx.send("You don't have any highlights.")
 
         nl = "\n"
         embed = discord.Embed(
             title="Your Triggers",
-            description=nl.join(highlights["triggers"]),
+            description=nl.join(highlights.triggers),
             color=0x30C5FF,
         )
-
-        return await ctx.send(embed=embed, delete_after=10)
+        if ctx.interaction:
+            return await ctx.send(embed=embed, ephemeral=True)
+        return await ctx.can_delete(embed=embed, delete_after=10, timeout=10)
 
     @highlight.command(name="clear", aliases=["clr"])
     async def highlight_clear(self, ctx: Context):
@@ -126,14 +116,10 @@ class HighlightCommands(core.Cog):
         Removes all of your highlight triggers and blocked list.
         """
         await ctx.message.delete(delay=10)
-        highlights = self.bot.cache.highlights.get(ctx.author.id)
+        highlights = ctx.database.get_highlights(ctx.author.id)
         if not highlights:
-            return await ctx.send("You don't have any highlights.")
-
-        query = "DELETE FROM highlights " "WHERE user_id = $1"
-
-        await self.bot.pool.execute(query, ctx.author.id)
-        del self.bot.cache.highlights[ctx.author.id]
+            return await ctx.send("You don't have any highlights.", ephemeral=True, delete_after=10)
+        await highlights.delete()
         await ctx.send("Your highlights have been cleared.", ephemeral=True, delete_after=10)
 
     @highlight.command(name="block", aliases=["bl"])
@@ -143,29 +129,17 @@ class HighlightCommands(core.Cog):
         Blocks a member from highlighting you.
         """
         await ctx.message.delete(delay=10)
-        highlights = self.bot.cache.highlights.get(ctx.author.id)
-        if highlights and user in highlights["blocked"]:
-            return await ctx.send("This user is already blocked.")
-        if highlights:
-            highlights["blocked"].append(user.id)
+        highlights = ctx.database.get_highlights(ctx.author.id)
+        if not highlights:
+            return await ctx.send("You do not have highlight enabled.", ephemeral=True, delete_after=10)
 
-        query = (
-            "INSERT INTO highlights (user_id, blocked) "
-            "VALUES ($1, $2) "
-            "ON CONFLICT (user_id) DO "
-            "UPDATE SET blocked = $2"
-            "RETURNING *"
-        )
+        blocked = highlights.blocked
+        if user.id in blocked:
+            return await ctx.send("This user is already blocked.", ephemeral=True, delete_after=10)
 
-        to_add = highlights["blocked"] if highlights else [user.id]
-        data = await self.bot.pool.fetchrow(query, ctx.author.id, to_add)
-
-        if not highlights and data is not None:
-            new_data = dict(data)
-            new_data.pop("user_id")
-            ctx.bot.cache.highlights[ctx.author.id] = new_data
-
-        return await ctx.send("Block list updated.", ephemeral=True, delete_after=10)
+        blocked.append(user.id)
+        await highlights.update(blocked=blocked)
+        await ctx.send("Block list updated.", ephemeral=True, delete_after=10)
 
     @highlight.command(name="unblock", aliases=["unbl"])
     @core.describe(user="The user to unblock from triggering highlights.")
@@ -174,15 +148,15 @@ class HighlightCommands(core.Cog):
         Unblocks a member from highlighting you.
         """
         await ctx.message.delete(delay=10)
-        highlights = self.bot.cache.highlights.get(ctx.author.id)
-        if highlights and user.id not in highlights["blocked"]:
-            return await ctx.send("This user is not blocked.")
+        highlights = ctx.database.get_highlights(ctx.author.id)
         if not highlights:
-            return await ctx.send("You don't have a user/channel blocked.")
-        highlights["blocked"].remove(user.id)
+            return await ctx.send("You do not have highlight enabled.", ephemeral=True, delete_after=10)
 
-        query = "UPDATE highlights " "SET blocked = $2 " "WHERE user_id = $1 "
+        blocked = highlights.blocked
 
-        await self.bot.pool.execute(query, ctx.author.id, highlights["blocked"])
+        if user.id not in blocked:
+            return await ctx.send("That user is not blocked.", ephemeral=True, delete_after=10)
 
-        return await ctx.send("Block list updated.", ephemeral=True, delete_after=10)
+        blocked.remove(user.id)
+        await highlights.update(blocked=blocked)
+        await ctx.send("Block list updated.", ephemeral=True, delete_after=10)

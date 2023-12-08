@@ -23,7 +23,7 @@ from discord.ext import commands
 
 import core
 from core import Bot, Context
-from utils import ModReason, DefaultReason
+from utils import DefaultReason, ModReason
 
 
 class ServerManagement(commands.Cog, name="Server Management"):
@@ -38,7 +38,9 @@ class ServerManagement(commands.Cog, name="Server Management"):
 
     @core.Cog.listener()
     async def on_thread_update(self, before: discord.Thread, after: discord.Thread):
-        if before.id not in self.bot.cache.guild_settings[before.guild.id]["auto_unarchive"]:
+        settings = self.bot.database.get_guild(before.guild.id)
+        auto_unarchive = settings.auto_unarchive if settings else []
+        if before.id not in auto_unarchive:
             return
 
         if before.archived is False and after.archived is True:
@@ -127,7 +129,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
         This asks for confirmation to prevent abuse.
         """
         conf = await ctx.confirm(message=f"Are you sure you want to delete {channel.mention}?")
-        if conf:
+        if conf.result:
             return await ctx.channel.delete()
         return await conf.message.edit(content="Aborted.")
 

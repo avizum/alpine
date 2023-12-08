@@ -18,13 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
+import asyncio
 import datetime as dt
 import logging
 import re
 from datetime import datetime
-from typing import Any, Callable, Mapping, Type, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Mapping
 
-import asyncpg
+import async_timeout
 import discord
 import jishaku
 import mystbin
@@ -39,7 +40,7 @@ from sr_api.client import Client as SRClient
 from topgg.client import DBLClient
 from topgg.webhook import WebhookManager
 
-from utils.cache import Cache
+from utils import Database
 
 from .core import Command, Group
 
@@ -47,13 +48,14 @@ if TYPE_CHECKING:
     from core import Cog, Context
     from extensions.listeners.errorhandler import ErrorHandler
 
+__all__ = ("Bot",)
 
 jishaku.Flags.HIDE = True
 jishaku.Flags.NO_UNDERSCORE = True
 jishaku.Flags.NO_DM_TRACEBACK = True
 
 
-DEFAULT_PREFIXES: list[str] = ["a.", "alpine"]
+DEFAULT_PREFIXES: list[str] = ["a."]
 BETA_PREFIXES: list[str] = ["i.", "ii."]
 OWNER_IDS: set[int] = {
     750135653638865017,
@@ -84,8 +86,7 @@ class Bot(commands.Bot):
     invite: str = discord.utils.oauth_url(bot_id, permissions=discord.Permissions(8))
     support: str = "https://discord.gg/muTVFgDvKf"
     source: str = "https://github.com/avizum/alpine"
-    context: Type[commands.Context] | None = None
-    pool: asyncpg.Pool
+    context: type[commands.Context] | None = None
     cogs: Mapping[str, Cog]
 
     to_load: tuple[str, ...] = (
@@ -118,7 +119,7 @@ class Bot(commands.Bot):
     news: str = settings["news"]["news"]
 
     allowed_mentions: discord.AllowedMentions = discord.AllowedMentions.none()
-    activity: discord.Game = discord.Game("Loading...")
+    activity: discord.CustomActivity = discord.CustomActivity(name="Loading...")
 
     intents: discord.Intents = discord.Intents(
         bans=True,
@@ -163,41 +164,36 @@ class Bot(commands.Bot):
 
     async def setup_hook(self) -> None:
         self.session: ClientSession = ClientSession()
-        self.cache: Cache = Cache(self)
-        self.pool: asyncpg.Pool = await asyncpg.create_pool(**self.settings["postgresql"])  # type: ignore
+        self.database: Database = Database(self)
         self.topgg: DBLClient = DBLClient(self, self.api["TopGG"], autopost_interval=None, session=self.session)
         self.topgg_webhook: WebhookManager = WebhookManager(self).dbl_webhook("/dbl", self.api["TopGGWH"])
         self.gist: GistClient = GistClient(self.api["GitHub"], self.session)
         self.sr: SRClient = SRClient()
         self.dagpi: DagpiClient = DagpiClient(self.api["DagpiAPI"], session=self.session)
         self.myst: mystbin.Client = mystbin.Client(session=self.session)
-        self.loop.create_task(self.cache.populate())
         self.loop.create_task(self.load_extensions())
         self.loop.create_task(self.start_nodes())
         self.loop.create_task(self.find_restart_message())
         self.topgg_webhook.run(8025)
 
     async def get_prefix(self, message: discord.Message) -> list[str]:
-        prefixes: list[str] = [f"<@{self.user.id}>", f"<@!{self.user.id}>"]
-        commands: tuple[str, ...] = ("dev", "developer", "jsk", "jishaku")
-        if await self.is_owner(message.author) and message.content.lower().startswith(commands):
-            prefixes.append("")
-        if message.guild is None:
-            prefixes.extend(DEFAULT_PREFIXES)
-            return prefixes
-        get_prefix = await self.cache.get_prefix(message.guild.id)
+        base: list[str] = [f"<@{self.user.id}>", f"<@!{self.user.id}>"]
 
-        if self.user.id == BETA_BOT_ID:
-            prefixes.extend(BETA_PREFIXES)
-        elif not get_prefix:
-            prefixes.extend(DEFAULT_PREFIXES)
+        if message.guild:
+            guild_settings = self.database.get_guild(message.guild.id)
+            if not guild_settings or guild_settings and not guild_settings.prefixes:
+                base.extend(DEFAULT_PREFIXES)
+            else:
+                base.extend(guild_settings.prefixes)
         else:
-            prefixes.extend(get_prefix)
-        command_prefix = "|".join(map(re.escape, prefixes))
-        prefix: re.Match[str] | None = re.match(rf"^({command_prefix}\s*).*", message.content, flags=re.IGNORECASE)
-        if prefix:
-            prefixes.append(prefix[1])
-        return prefixes
+            base.extend(DEFAULT_PREFIXES)
+
+        prefixes = "|".join(map(re.escape, base))
+
+        match = re.match(rf"^({prefixes}\s*).*", message.content, flags=re.IGNORECASE)
+        if match:
+            base.append(match[1])
+        return base
 
     async def load_extensions(self) -> None:
         for ext in self.to_load:
@@ -223,17 +219,22 @@ class Bot(commands.Bot):
 
     async def start_nodes(self) -> None:
         await self.wait_until_ready()
-        try:
-            nodes = [wavelink.Node(**self.settings["lavalink"])]
-            await wavelink.Pool.connect(nodes=nodes, client=self)
 
-            _log.info("Wavelink node started.")
-        except Exception as e:
-            cog: ErrorHandler | None = self.get_cog("errorhandler")  # type: ignore
-            if cog:
-                await cog.error_webhook.send(str(e))
-            await self.unload_extension("extensions.cogs.music")
-            _log.error("Exception in starting Wavelink node", exc_info=e)
+        nodes = [wavelink.Node(**self.settings["lavalink"])]
+        try:
+            async with async_timeout.timeout(15):
+                await wavelink.Pool.connect(nodes=nodes, client=self)
+                _log.info("Connected to Lavalink node. ")
+
+        except asyncio.TimeoutError as timed_out:
+            extension = "extensions.cogs.music"
+            error_handler: ErrorHandler | None = self.get_cog("errorhandler")  # type: ignore
+            message = f"Could not connect to Lavalink node within 15 seconds. Unloaded {extension}"
+            if error_handler:
+                await error_handler.error_webhook.send(message)
+            await self.unload_extension(extension)
+
+            _log.error(message, exc_info=timed_out)
 
     async def on_ready(self) -> None:
         _log.info(f"Running: {self.user.name} ({self.user.id})")
@@ -248,27 +249,25 @@ class Bot(commands.Bot):
         if event == "message":
 
             def bl_message_check(*args: Any) -> bool:
+                can_run = self.database.get_blacklist(args[0].author.id) is None
                 if check:
-                    return args[0].author.id not in self.cache.blacklist and check(*args)
-                else:
-                    return args[0].author.id not in self.cache.blacklist
+                    return can_run and check(*args)
+                return can_run
 
             return await super().wait_for(event, check=bl_message_check, timeout=timeout)
 
         elif event in {"reaction_add", "reaction_remove"}:
 
             def bl_reaction_check(*args) -> bool:
+                can_run = self.database.get_blacklist(args[0].author.id) is None
                 if check:
-                    return args[1].id not in self.cache.blacklist and check(*args)
-                return args[1].id not in self.cache.blacklist
+                    return can_run and check(*args)
+                return not can_run
 
             return await super().wait_for(event, check=bl_reaction_check, timeout=timeout)
         else:
             bl_check = check
         return await super().wait_for(event, check=bl_check, timeout=timeout)
-
-    async def wait_for_message(self, *, check=None, timeout=None) -> Any:
-        return await self.wait_for("message", check=check, timeout=timeout)
 
     async def get_context(
         self,
@@ -309,7 +308,7 @@ class Bot(commands.Bot):
         return self.command(name=name, cls=Group, **kwargs)
 
     def run(self, *args: Any, **kwargs: Any) -> None:
-        token = self.settings["bot_tokens"]["Alpine"]
+        token = self.settings["bot_tokens"]["AlpineII"]
         super().run(token, reconnect=True, *args, **kwargs)
 
     async def close(self) -> None:
