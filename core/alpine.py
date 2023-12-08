@@ -308,7 +308,7 @@ class Bot(commands.Bot):
         return self.command(name=name, cls=Group, **kwargs)
 
     def run(self, *args: Any, **kwargs: Any) -> None:
-        token = self.settings["bot_tokens"]["AlpineII"]
+        token = self.settings["bot_tokens"]["Alpine"]
         super().run(token, reconnect=True, *args, **kwargs)
 
     async def close(self) -> None:
