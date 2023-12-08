@@ -28,7 +28,6 @@ import core
 from core import Bot, Context
 from utils import preview_message
 
-from .components import LoggingView, ToggleLogging
 from .converters import GetCommand, Prefix
 
 if TYPE_CHECKING:
