@@ -31,56 +31,51 @@ parser = Parser(case_insensitive=True)
 
 
 @parser.tag("member")
-def member(env):
+def member(env) -> str:
     return str(env.member)
 
 
 @member.tag("mention", alias="ping")
-def member_mention(env):
+def member_mention(env) -> str:
     return env.member.mention
 
 
 @member.tag("name")
-def member_name(env):
+def member_name(env) -> str:
     return env.member.name
 
 
 @member.tag("id")
-def member_id(env):
+def member_id(env) -> int:
     return env.member.id
 
 
-@member.tag("discriminator", alias="tag")
-def member_discriminator(env):
-    return env.member.discriminator
-
-
 @member.tag("avatar", aliases=["image", "pfp", "picture", "pic", "icon"])
-def member_avatar(env):
+def member_avatar(env) -> str:
     return str(env.member.avatar.replace(format="png", static_format="png", size=512))
 
 
 @parser.tag("guild", alias="server")
-def guild(env):
+def guild(env) -> str:
     return env.guild.name
 
 
 @guild.tag("member_count", alias="count")
-def guild_member_count(env):
+def guild_member_count(env) -> int:
     return env.guild.member_count
 
 
 @guild.tag("icon", aliases=["picture", "pfp", "pic", "image"])
-def guild_icon(env):
+def guild_icon(env) -> str:
     return str(env.guild.icon.replace(format="png", static_format="png", size=512))
 
 
-async def preview_message(message, ctx: Context):
+async def preview_message(message: str, ctx: Context) -> str | discord.Embed:
     env = {"member": ctx.author, "guild": ctx.guild}
-    message = parser.parse(message, env=env)
+    parsed = parser.parse(message, env=env)
     try:
-        message = json.loads(message)
-        message = discord.Embed.from_dict(message)
-        return message
+        data = json.loads(parsed)
+        embed = discord.Embed.from_dict(data)
+        return embed
     except Exception:
-        return message
+        return parsed
