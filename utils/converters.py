@@ -24,6 +24,12 @@ from discord.ext import commands
 if TYPE_CHECKING:
     from core import Context
 
+__all__ = (
+    "ModReason",
+    "default_reason",
+    "DefaultReason",
+)
+
 
 class ModReason(commands.Converter, str):
     async def convert(self, ctx: Context, argument=None) -> str:
