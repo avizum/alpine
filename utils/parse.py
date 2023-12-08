@@ -15,13 +15,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+from __future__ import annotations
+
+import json
+from typing import TYPE_CHECKING
 
 import discord
-import json
-
 from tagformatter import Parser
 
-from core.context import Context
+if TYPE_CHECKING:
+    from core import Context
 
 
 parser = Parser(case_insensitive=True)
