@@ -23,6 +23,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
 import asyncpg
+import discord
 
 if TYPE_CHECKING:
     from core.alpine import Bot
@@ -208,6 +209,7 @@ class LoggingData(BaseData):
         self.guild_id: int = guild_id
         self.database: Database = database
         self._data: dict[str, Any] = {}
+        self._webhook: discord.Webhook | None = None
 
         self.database._logging[guild_id] = self
 
@@ -246,8 +248,21 @@ class LoggingData(BaseData):
         return self._data.get("enabled", False)
 
     @property
-    def channel_id(self) -> int:
-        return self._data.get("channel_id", 0)
+    def webhook_url(self) -> str | None:
+        return self._data.get("webhook")
+
+    @property
+    def webhook(self) -> discord.Webhook | None:
+        url: str | None = self._data.get("webhook")
+
+        if not url:
+            return None
+        elif self._webhook and self._webhook.url == url:
+            return self._webhook
+
+        webhook = discord.Webhook.from_url(url, client=self.database.bot)
+        self._webhook = webhook
+        return webhook
 
     @property
     def message_delete(self) -> bool:

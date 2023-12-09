@@ -148,7 +148,7 @@ class Settings(core.Cog):
         await ctx.send("Logging is now disabled.")
 
     @logging.command(name="channel")
-    @core.has_permissions(manage_guild=True)
+    @core.has_permissions(manage_guild=True, manage_webhooks=True)
     async def logging_channel(self, ctx: Context, channel: discord.TextChannel):
         """
         Set the channel for logging.
@@ -160,11 +160,23 @@ class Settings(core.Cog):
 
         if not logging or not logging.enabled:
             return await ctx.send("Logging is not enabled.")
-        elif channel.id == logging.channel_id:
+        elif logging.webhook and channel.id == logging.webhook.channel_id:
             return await ctx.send(f"Channel is already set to {channel.mention}")
 
-        await logging.update(channel_id=channel.id)
-        return await ctx.send(f"Set logging channel to {channel.mention}")
+        existing = None
+        for webhook in await channel.webhooks():
+            if webhook.user and webhook.user.id == self.bot.user.id:
+                existing = webhook
+                break
+
+        avatar = await self.bot.user.display_avatar.read()
+        if existing:
+            webhook = existing
+        else:
+            webhook = await channel.create_webhook(name="Alpine Logs", avatar=avatar, reason="Set Alpine logging channel")
+
+        await logging.update(webhook=webhook.url)
+        return await ctx.send(f"Set logging channel to {channel.mention}.")
 
     @logging.command(name="channel-edit", aliases=["chedit", "channeledit"])
     @core.has_permissions(manage_guild=True)

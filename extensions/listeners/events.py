@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import base64
+import contextlib
 import datetime as dt
 import re
 from io import BytesIO
@@ -98,12 +99,10 @@ class BotLogs(core.Cog):
             return
         settings = self.bot.database.get_guild(msg.guild.id)
         logging = settings.logging if settings else None
-        if not logging or not logging.enabled or not logging.message_delete or not logging.channel_id:
+        if not logging or not logging.enabled or not logging.message_delete or not logging.webhook:
             return
 
-        destination = msg.guild.get_channel(logging.channel_id)
-        if not isinstance(destination, discord.TextChannel):
-            return
+        destination = logging.webhook
 
         if isinstance(message, discord.Message):
             context = await self.bot.get_context(message)
@@ -154,7 +153,7 @@ class BotLogs(core.Cog):
         settings = self.bot.database.get_guild(after.guild.id)
         logging = settings.logging if settings else None
 
-        if not logging or not logging.enabled or not logging.message_edit or not logging.channel_id:
+        if not logging or not logging.enabled or not logging.message_edit or not logging.webhook:
             return
         elif before.content == after.content:
             return
@@ -171,22 +170,17 @@ class BotLogs(core.Cog):
         embed.add_field(name="After", value=f">>> {new_content}", inline=False)
         embed.set_footer(text="Edited at")
 
-        destination = after.guild.get_channel(logging.channel_id)
-        if isinstance(destination, discord.TextChannel):
-            return await destination.send(embed=embed)
-        return
+        with contextlib.suppress(discord.HTTPException):
+            return await logging.webhook.send(embed=embed)
 
     @core.Cog.listener("on_audit_log_entry_create")
     async def logging_ban_kick(self, entry: discord.AuditLogEntry):
         settings = self.bot.database.get_guild(entry.guild.id)
         logging = settings.logging if settings else None
-        if not logging or not logging.enabled or not logging.channel_id:
+        if not logging or not logging.enabled or not logging.webhook:
             return
 
-        destination = entry.guild.get_channel(logging.channel_id)
         message = ""
-        if not isinstance(destination, discord.TextChannel):
-            return
 
         if entry.action == discord.AuditLogAction.ban:
             if not isinstance(entry.target, (discord.Object, discord.User)):
@@ -217,16 +211,16 @@ class BotLogs(core.Cog):
 
         if not message:
             return
-        await destination.send(message)
+        with contextlib.suppress(discord.HTTPException):
+            return await logging.webhook.send(message)
 
     @core.Cog.listener("on_guild_channel_update")
     async def logging_channel_create(self, before: discord.abc.GuildChannel, after: discord.abc.GuildChannel):
         settings = self.bot.database.get_guild(before.guild.id)
         logging = settings.logging if settings else None
-        if not logging or not logging.enabled or not logging.channel_edit or not logging.channel_id:
+        if not logging or not logging.enabled or not logging.channel_edit or not logging.webhook:
             return
 
-        destination = before.guild.get_channel(logging.channel_id)
         changed: list[
             tuple[
                 str,
@@ -262,22 +256,21 @@ class BotLogs(core.Cog):
         if not actions:
             return
         formatted = "\n".join(f"{num}. {action}" for num, action in enumerate(actions, 1))
-        if isinstance(destination, discord.TextChannel):
-            return await destination.send(
-                f"[**{discord.utils.format_dt(dt.datetime.now(dt.timezone.utc))}**]{after.mention} was edited:\n{formatted}"
+        with contextlib.suppress(discord.HTTPException):
+            return await logging.webhook.send(
+                f"[**{discord.utils.format_dt(dt.datetime.now(dt.timezone.utc))}**] {after.mention} was edited:\n{formatted}"
             )
-        return
 
     @core.Cog.listener("on_guild_channel_delete")
     async def logging_channel_delete(self, channel: discord.abc.GuildChannel):
         settings = self.bot.database.get_guild(channel.guild.id)
         logging = settings.logging if settings else None
-        if not logging or not logging.enabled or not logging.channel_delete or not logging.channel_id:
+        if not logging or not logging.enabled or not logging.channel_delete or not logging.webhook:
             return
-        logging.channel_id
-        destination = self.bot.get_channel(logging.channel_id)
-        if isinstance(destination, discord.TextChannel):
-            return await destination.send(f"#{channel.name} was deleted")
+
+        return await logging.webhook.send(
+            f"[**{discord.utils.format_dt(dt.datetime.now(dt.timezone.utc))}**] #{channel.name} was deleted"
+        )
 
     @core.Cog.listener("on_guild_update")
     async def logging_guild(self, before: discord.Guild, after: discord.Guild):
