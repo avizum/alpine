@@ -336,7 +336,7 @@ class LoggingChannelSelect(ui.ChannelSelect["LoggingView"]):
         if not webhook:
             new_webhook = await channel.create_webhook(name="Alpine Logs", avatar=avatar, reason=reason)
         else:
-            new_webhook = await webhook.edit(name="Alpine Logs", avatar=avatar, reason=reason)
+            new_webhook = await webhook.edit(name="Alpine Logs", avatar=avatar, reason=reason, channel=channel)
 
         await self.logging.update(webhook=new_webhook.url)
         await itn.followup.send(f"Successfully set logging channel to {channel.mention}")
