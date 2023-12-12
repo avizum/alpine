@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import discord
+from discord.ui.select import BaseSelect
 
 __all__ = ("View",)
 
@@ -28,7 +29,7 @@ class View(discord.ui.View):
 
     def disable_all(self) -> None:
         for child in self.children:
-            if isinstance(child, (discord.ui.Button, discord.ui.Select)):
+            if isinstance(child, (discord.ui.Button, BaseSelect)):
                 child.disabled = True
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
