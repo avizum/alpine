@@ -207,7 +207,7 @@ class HelpSelect(discord.ui.Select["HelpPages"]):
                 discord.SelectOption(
                     label=cog.qualified_name,
                     description=cog.description,
-                    emoji=getattr(cog, "emoji", "<:avimetry:848820318117691432>"),
+                    emoji=getattr(cog, "emoji", "<:alpine:1020851768143380522>"),
                 )
             )
         super().__init__(placeholder=f"Select a module ({len(cogs)} modules)", options=options)
