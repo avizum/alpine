@@ -4,14 +4,13 @@ line-length = 125
 [tool.isort]
 profile = "black"
 line_length = 125
-force_alphabetical_sort_within_sections = true
+
 
 [tool.pyright]
 typeCheckingMode = "basic"
 
 [tool.ruff]
 select = ["E", "F"]
-ignore = []
+extend-ignore = ["F403"]
 line-length = 125
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-target-version = "py311"
+dummy-variable-rgx = "^_$"

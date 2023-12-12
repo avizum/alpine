@@ -5,11 +5,9 @@ AlpineII = "Beta Bot Token"
 [api_tokens]
 DagpiAPI = "Dagpi API token for Image Cog"
 TopGG = "TopGG API token"
-TopGGWH = "Bot List Webhook Secret"
+TopGGWH = "TopGG webhook secret"
+DBL = "Discord Bot List token
 GitHub = "GitHub Access Token"
-Roblox = "Roblox Token"
-SpotifyClientID = "Spotify Client ID for Music Cog"
-SpotifySecret = "Spotify Secret for Music Cog"
 
 [postgresql]
 host = "localhost"
