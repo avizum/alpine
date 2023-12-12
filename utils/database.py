@@ -169,7 +169,7 @@ class VerificationData(BaseData):
         query = f"""
                 UPDATE verification
                 SET {",".join(fmt)}
-                WHERE user_id = $1
+                WHERE guild_id = $1
                 RETURNING *
                 """
         self._data.update(await self.database.pool.fetchrow(query, self.guild_id, *kwargs.values()))
@@ -178,7 +178,7 @@ class VerificationData(BaseData):
     async def delete(self) -> None:
         query = """
                 DELETE FROM verification
-                WHERE user_id = $1
+                WHERE guild_id = $1
                 """
         del self.database._verification[self.guild_id]
         await self.database.pool.execute(query)
@@ -290,7 +290,7 @@ class LoggingData(BaseData):
 
     @property
     def channel_delete(self) -> bool:
-        return self._data.get("channel_edit", False)
+        return self._data.get("channel_delete", False)
 
     @property
     def guild_edit(self) -> bool:
@@ -336,24 +336,16 @@ class JoinLeaveData(BaseData):
         await self.database.pool.execute(query)
 
     @property
-    def join_enabled(self) -> bool:
-        return self._data.get("join_enabled", False)
+    def enabled(self) -> bool:
+        return self._data.get("enabled", False)
 
     @property
-    def join_channel(self) -> int:
-        return self._data.get("join_channel", 0)
+    def channel_id(self) -> int:
+        return self._data.get("channel_id", 0)
 
     @property
     def join_message(self) -> str | None:
         return self._data.get("join_message")
-
-    @property
-    def leave_enabled(self) -> bool:
-        return self._data.get("leave_enabled", False)
-
-    @property
-    def leave_channel(self) -> int:
-        return self._data.get("leave_channel", 0)
 
     @property
     def leave_message(self) -> str | None:
