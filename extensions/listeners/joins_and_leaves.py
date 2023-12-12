@@ -125,7 +125,7 @@ class JoinsAndLeaves(core.Cog):
         if not settings or not settings.enabled or not settings.channel_id or not settings.leave_message:
             return
         channel = self.bot.get_channel(settings.channel_id)
-        message = settings.join_message
+        message = settings.leave_message
 
         assert isinstance(channel, discord.TextChannel)
 
