@@ -55,16 +55,16 @@ jishaku.Flags.NO_UNDERSCORE = True
 jishaku.Flags.NO_DM_TRACEBACK = True
 
 
+BOT_ID: int = 756257170521063444
+BETA_BOT_ID: int = 787046145884291072
 DEFAULT_PREFIXES: list[str] = ["a."]
-BETA_PREFIXES: list[str] = ["i.", "ii."]
+BETA_PREFIXES: list[str] = ["b."]
 OWNER_IDS: set[int] = {
     750135653638865017,
     547280209284562944,
     765098549099626507,
     756757268736901120,
 }
-PUBLIC_BOT_ID: int = 756257170521063444
-BETA_BOT_ID: int = 787046145884291072
 
 
 _log = logging.getLogger("alpine")
@@ -72,18 +72,19 @@ handler = logging.StreamHandler()
 handler.setFormatter(_ColourFormatter())
 _log.setLevel(logging.INFO)
 _log.addHandler(handler)
+logging.getLogger("wavelink").addHandler(handler)
 
 
 class Bot(commands.Bot):
     user: discord.ClientUser
     owner_ids: set[int]
-    bot_id: int = PUBLIC_BOT_ID
+    token: str
     launch_time: datetime = datetime.now(dt.timezone.utc)
     maintenance: bool = False
     commands_ran: int = 0
     command_usage: dict[str, int] = {}
     command_cache: dict[int, discord.Message] = {}
-    invite: str = discord.utils.oauth_url(bot_id, permissions=discord.Permissions(8))
+    invite: str = discord.utils.oauth_url(BOT_ID, permissions=discord.Permissions(8))
     support: str = "https://discord.gg/muTVFgDvKf"
     source: str = "https://github.com/avizum/alpine"
     context: type[commands.Context] | None = None
@@ -113,8 +114,8 @@ class Bot(commands.Bot):
         "extensions.listeners.joinsandleaves",
     )
 
-    with open("config.toml") as token:
-        settings = toml.loads(token.read())
+    with open("config.toml") as config:
+        settings = toml.loads(config.read())
     api: dict[str, str] = settings["api_tokens"]
     news: str = settings["news"]["news"]
 
@@ -147,6 +148,7 @@ class Bot(commands.Bot):
             max_messages=5000,
             owner_ids=OWNER_IDS,
         )
+        self.token: str
         self._BotBase__cogs: dict[str, Cog] = commands.core._CaseInsensitiveDict()
 
     def __repr__(self) -> str:
@@ -178,6 +180,10 @@ class Bot(commands.Bot):
 
     async def get_prefix(self, message: discord.Message) -> list[str]:
         base: list[str] = [f"<@{self.user.id}>", f"<@!{self.user.id}>"]
+
+        if BOT_ID == BETA_BOT_ID:
+            base.extend(BETA_PREFIXES)
+            return base
 
         if message.guild:
             guild_settings = self.database.get_guild(message.guild.id)
@@ -308,8 +314,9 @@ class Bot(commands.Bot):
         return self.command(name=name, cls=Group, **kwargs)
 
     def run(self, *args: Any, **kwargs: Any) -> None:
-        token = self.settings["bot_tokens"]["Alpine"]
-        super().run(token, reconnect=True, *args, **kwargs)
+        if not self.token:
+            raise TypeError(f"Bot.token expected to be str, recieved {self.token.__class__.__name__} instead")
+        super().run(self.token, *args, **kwargs, reconnect=True)
 
     async def close(self) -> None:
         await self.session.close()

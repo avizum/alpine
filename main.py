@@ -16,8 +16,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from core import Bot
+import argparse
+
+from core import Bot, alpine
+
+parser = argparse.ArgumentParser("Alpine Bot")
+parser.add_argument("-b", "--beta", action="store_true")
+parsed = parser.parse_args()
 
 if __name__ == "__main__":
-    avi = Bot()
-    avi.run()
+    bot = Bot()
+    tokens = bot.settings["bot_tokens"]
+
+    if parsed.beta:
+        bot.token = tokens["AlpineII"]
+        alpine.BOT_ID = alpine.BETA_BOT_ID
+
+    bot.token = tokens["Alpine"] if not parsed.beta else tokens["AlpineII"]
+    bot.run()
