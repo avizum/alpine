@@ -111,7 +111,7 @@ class Bot(commands.Bot):
         "extensions.extras.topgg",
         "extensions.listeners.errorhandler",
         "extensions.listeners.events",
-        "extensions.listeners.joinsandleaves",
+        "extensions.listeners.joins_and_leaves",
     )
 
     with open("config.toml") as config:
