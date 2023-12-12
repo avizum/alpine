@@ -162,14 +162,6 @@ class Context(commands.Context, Generic[BotT]):
         return self.message.content
 
     @property
-    async def get_prefix(self) -> str:
-        if self.guild is None:
-            return "a."
-        guild_data = await self.database.get_or_fetch_guild(self.guild.id)
-        prefix = guild_data.prefixes
-        return f"`{'` | `'.join(prefix)}`" if prefix else "`a.`"
-
-    @property
     def reference(self) -> Message | None:
         ref = self.message.reference
         if ref and isinstance(ref.resolved, discord.Message):
@@ -238,7 +230,7 @@ class Context(commands.Context, Generic[BotT]):
         self.bot.command_cache[self.message.id] = message
         return message
 
-    async def send_hselp(self, item: Any | None) -> Any:
+    async def send_help(self, item: Any | None) -> Any:
         if not item:
             return await super().send_help()
         return await super().send_help(item)
@@ -280,7 +272,7 @@ class Context(commands.Context, Generic[BotT]):
                     content = f"Output too long, posted here: {await self.post(filename='output.py', content=content)}"
 
         if embed:
-            if not embed.footer and not self.interaction:
+            if not embed.footer and not self.interaction and not self.message.to_reference(fail_if_not_exists=False):
                 embed.set_footer(
                     text=f"Requested by: {self.author}",
                     icon_url=self.author.display_avatar.url,
