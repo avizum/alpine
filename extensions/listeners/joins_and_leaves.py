@@ -101,9 +101,9 @@ class JoinsAndLeaves(core.Cog):
         if not guild:
             return
         settings = guild.join_leave
-        if not settings or not settings.join_enabled or not settings.join_channel or not settings.join_message:
+        if not settings or not settings.enabled or not settings.channel_id or not settings.join_message:
             return
-        channel = self.bot.get_channel(settings.join_channel)
+        channel = self.bot.get_channel(settings.channel_id)
         message = settings.join_message
 
         assert isinstance(channel, discord.TextChannel)
@@ -122,9 +122,9 @@ class JoinsAndLeaves(core.Cog):
             return
 
         settings = guild.join_leave
-        if not settings or not settings.leave_enabled or not settings.leave_channel or not settings.leave_message:
+        if not settings or not settings.enabled or not settings.channel_id or not settings.leave_message:
             return
-        channel = self.bot.get_channel(settings.leave_channel)
+        channel = self.bot.get_channel(settings.channel_id)
         message = settings.join_message
 
         assert isinstance(channel, discord.TextChannel)
