@@ -238,7 +238,7 @@ class LoggingData(BaseData):
     async def delete(self) -> None:
         query = """
                 DELETE FROM logging
-                WHERE user_id = $1
+                WHERE guild_id = $1
                 """
         del self.database._logging[self.guild_id]
         await self.database.pool.execute(query)
@@ -330,7 +330,7 @@ class JoinLeaveData(BaseData):
     async def delete(self) -> None:
         query = """
                 DELETE FROM join_leave
-                WHERE user_id = $1
+                WHERE guild_id = $1
                 """
         del self.database._join_leave[self.guild_id]
         await self.database.pool.execute(query)
