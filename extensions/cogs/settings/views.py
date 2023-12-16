@@ -270,12 +270,11 @@ class LoggingSelect(ui.Select["LoggingView"]):
     def __init__(self, settings: GuildData) -> None:
         self.settings: GuildData = settings
         self.logging = settings.logging
-        options = []
-        if self.logging:
-            for label, value, description in LoggingOptions:
-                default = bool(self.logging._data.get(value))
-                options.append(discord.SelectOption(label=label, value=value, description=description, default=default))
+        options: list[discord.SelectOption] = []
+        for label, value, description in LoggingOptions:
+            options.append(discord.SelectOption(label=label, value=value, description=description))
         super().__init__(placeholder="Select what to log...", min_values=0, max_values=len(options), options=options)
+        self._update()
 
     def _update(self) -> None:
         if not self.logging:
