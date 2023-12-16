@@ -40,7 +40,7 @@ from asyncpg import Record
 from discord.ext import commands, menus
 from discord.utils import format_dt
 from jishaku import Feature, exception_handling
-from jishaku.codeblocks import codeblock_converter
+from jishaku.codeblocks import Codeblock, codeblock_converter
 from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.functools import AsyncSender
@@ -567,7 +567,16 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         embed = discord.Embed(title="Reloaded Extensions", description=description)
         await ctx.send(embed=embed)
 
-    @Feature.Command(parent="jsk", name="gitsync", aliases=["git_sync", "gsync"])
+    @Feature.Command(parent="jsk", name="git", invoke_without_command=True)
+    async def jsk_git(self, ctx: Context, argument: codeblock_converter):  # type: ignore
+        """
+        Shortcut for `jsk git sh`.
+        """
+        return await ctx.invoke(
+            self.jsk_shell, argument=Codeblock(argument.language, "git " + argument.content)  # type: ignore
+        )
+
+    @Feature.Command(parent="jsk_git", name="sync")
     async def jsk_git_sync(self, ctx: Context):
         """
         Pulls from GitHub then reloads all modules.
@@ -593,10 +602,10 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         sync_embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
         sync_embed.title = "Synced With GitHub"
 
-        to_reload = [item.replace("/", ".").strip() for item in re.findall(r".*[^\/\n]+\.py", output, re.MULTILINE)]
+        to_reload = None or [item.replace("/", ".").strip() for item in re.findall(r".*[^\/\n]+\.py", output, re.MULTILINE)]
         view = None
         if to_reload:
-            sync_embed.set_footer(text="Reload Changed Files?")
+            sync_embed.set_footer(text="Reload changed files?")
             view = ReloadView(ctx, self.bot, to_reload, sync_embed)
         await edit_sync.edit(view=view, embed=sync_embed)
 
