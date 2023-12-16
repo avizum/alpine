@@ -365,14 +365,14 @@ class LoggingView(View):
     def _update(self) -> None:
         logging = self.logging
 
-        self._set_state(True)
-        self.enable_disable.style = discord.ButtonStyle.green
-        self.enable_disable.label = "Enable Logging"
+        self._set_state(False)
+        self.enable_disable.style = discord.ButtonStyle.red
+        self.enable_disable.label = "Disable Logging"
 
-        if not logging or logging.enabled:
-            self._set_state(False)
-            self.enable_disable.style = discord.ButtonStyle.red
-            self.enable_disable.label = "Disable Logging"
+        if not logging or not logging.enabled:
+            self._set_state(True)
+            self.enable_disable.style = discord.ButtonStyle.green
+            self.enable_disable.label = "Enable Logging"
 
         self.enable_disable.disabled = False
 
