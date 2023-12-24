@@ -486,7 +486,7 @@ class BlacklistData(BaseData):
                 WHERE user_id = $1
                 """
         del self.database._blacklists[self.user_id]
-        await self.database.pool.execute(query)
+        await self.database.pool.execute(query, self.user_id)
 
     @property
     def reason(self) -> str:
