@@ -181,7 +181,7 @@ class ErrorHandler(core.Cog):
                 view = discord.ui.View()
                 view.add_item(discord.ui.Button(label="Appeal Here", url=self.bot.support))
                 return await ctx.send(
-                    f"**You are blacklisted from Alpine:**\n> **Reason:**{reason}\n> **Moderator:**{moderator}\n",
+                    f"**You are blacklisted from Alpine:**\n> **Reason:** {reason}\n> **Moderator:** {moderator}\n",
                     delete_after=30,
                     view=view,
                     ephemeral=True,
