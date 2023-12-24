@@ -464,7 +464,7 @@ class BlacklistData(BaseData):
         query = """
                 INSERT INTO blacklist (user_id, reason)
                 VALUES ($1, $2)
-                ON CONLFICT (user_id) SER user_id = $1
+                ON CONLFICT (user_id) SET user_id = $1
                 RETURNING *
                 """
         self.database._blacklists[self.user_id] = self
