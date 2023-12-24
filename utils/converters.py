@@ -33,7 +33,7 @@ __all__ = (
 
 class ModReason(commands.Converter, str):
     async def convert(self, ctx: Context, argument=None) -> str:
-        reason = f"{ctx.author}: {argument}"
+        reason = f"{ctx.author}|\u200b|{argument}"
 
         if len(reason) > 512:
             raise commands.BadArgument(f"Reason is too long ({len(reason)}/512)")

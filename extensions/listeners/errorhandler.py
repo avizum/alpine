@@ -175,15 +175,17 @@ class ErrorHandler(core.Cog):
             return
 
         elif isinstance(error, Blacklisted):
-            blacklisted = Embed(
-                title=f"You are blacklisted from {self.bot.user.name}",
-                description=(f"Reason: `{error.reason}`\n" f"If you want to appeal, please join the support server."),
-            )
             retry_after = self.blacklist_cooldown.update_rate_limit(ctx.message)
             if not retry_after or ctx.interaction is not None:
+                moderator, reason = error.reason.split("|\u200b|")
                 view = discord.ui.View()
-                view.add_item(discord.ui.Button(label="Support Server", url=self.bot.support))
-                return await ctx.send(embed=blacklisted, delete_after=30, view=view, ephemeral=True)
+                view.add_item(discord.ui.Button(label="Appeal Here", url=self.bot.support))
+                return await ctx.send(
+                    f"**You are blacklisted from Alpine:**\n> **Reason:**{reason}\n> **Moderator:**{moderator}\n",
+                    delete_after=30,
+                    view=view,
+                    ephemeral=True,
+                )
             return
 
         elif isinstance(error, commands.CommandOnCooldown):

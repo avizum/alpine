@@ -645,7 +645,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         await ctx.database.blacklist(user.id, reason=reason)
         embed = discord.Embed(
             title="Updated Blacklist",
-            description=f"Added {user} to the blacklist\nReason: `{reason}`",
+            description=f"Added {user} to the blacklist\nReason: `{reason.replace('|\u200b|', ': ')}`",
         )
         return await ctx.send(embed=embed)
 

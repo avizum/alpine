@@ -34,8 +34,8 @@ class NotGuildOwner(commands.CheckFailure):
 
 
 class Blacklisted(commands.CheckFailure):
-    def __init__(self, reason) -> None:
-        self.reason = reason
+    def __init__(self, reason: str) -> None:
+        self.reason: str = reason
 
 
 class Maintenance(commands.CheckFailure):
