@@ -76,8 +76,8 @@ class GuildData(BaseData):
         query = """
                 INSERT INTO guild_settings (guild_id)
                 VALUES ($1)
-                ON CONFLICT (guild_id) UPDATE
-                SET guild_id = $1
+                ON CONFLICT (guild_id)
+                DO UPDATE SET guild_id = $1
                 RETURNING *
                 """
         self.database._guilds[self.guild_id] = self
@@ -464,7 +464,7 @@ class BlacklistData(BaseData):
         query = """
                 INSERT INTO blacklist (user_id, reason)
                 VALUES ($1, $2)
-                ON CONLFICT (user_id)
+                ON CONFLICT (user_id)
                 DO UPDATE SET user_id = $1
                 RETURNING *
                 """
