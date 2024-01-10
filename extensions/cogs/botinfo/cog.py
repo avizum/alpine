@@ -1,6 +1,6 @@
 """
 [Alpine Bot]
-Copyright (C) 2021 - 2023 avizum
+Copyright (C) 2021 - 2024 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -236,7 +236,7 @@ class BotInfo(core.Cog, name="Bot Info"):
         perm = discord.Permissions(permissions)
         view = discord.ui.View(timeout=None)
         invite_embed = discord.Embed(
-            title=f"{self.bot.user.name} Invite",
+            title="Alpine Invite",
             description="Invite me to your server! Here are the invite links.",
         )
         invite_embed.set_thumbnail(url=self.bot.user.display_avatar.url)
@@ -365,7 +365,7 @@ class BotInfo(core.Cog, name="Bot Info"):
                 title="Request sent",
                 description=(
                     "Thank you for your request! It has been sent to the support server. "
-                    f"Spam will get you permanently blacklisted from this {self.bot.user.name}."
+                    "Spam will get you permanently blacklisted from Alpine."
                 ),
             )
             req_embed.add_field(name="Your request", value=f"```{request}```")
@@ -392,7 +392,7 @@ class BotInfo(core.Cog, name="Bot Info"):
         for name, link in links:
             view.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label=name, url=link))
         vote_embed = discord.Embed(
-            title=f"Vote for {self.bot.user.name}",
+            title="Vote for Alpine",
             description="Thank you for voting for me!\nYour support is greatly appreciated :)",
         )
         vote_embed.set_thumbnail(url=self.bot.user.display_avatar.url)
@@ -410,7 +410,7 @@ class BotInfo(core.Cog, name="Bot Info"):
         button = discord.ui.Button
         view = discord.ui.View(timeout=None)
         source_embed = discord.Embed(
-            title=f"{self.bot.user.name}'s source",
+            title="Alpine's source",
             timestamp=dt.datetime.now(dt.timezone.utc),
         )
         git_link = f"{self.bot.source}/blob/master/"

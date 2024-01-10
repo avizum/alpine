@@ -1,6 +1,6 @@
 """
 [Alpine Bot]
-Copyright (C) 2021 - 2023 avizum
+Copyright (C) 2021 - 2024 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ from __future__ import annotations
 import asyncio
 import datetime as dt
 import math
-from typing import cast, TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import discord
 import wavelink
@@ -30,7 +30,7 @@ from wavelink import Playable as WPlayable
 from wavelink import Playlist as WPlaylist
 
 import core
-from utils import format_seconds, Paginator
+from utils import Paginator, format_seconds
 
 from .exceptions import BotNotInVoice, IncorrectChannelError, NotInVoice
 from .music import PaginatorSource, Playable, Player

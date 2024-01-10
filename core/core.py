@@ -1,6 +1,6 @@
 """
-Custom command class for discord.ext.commands
-Copyright (C) 2021 - 2023 avizum
+[Alpine Bot]
+Copyright (C) 2021 - 2024 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
