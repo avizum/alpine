@@ -70,7 +70,7 @@ class TopGG(core.Cog):
             f"Made by @{self.bot.get_user(750135653638865017)}",
         ]
         await self.bot.change_presence(
-            status=discord.Status.online, activity=discord.CustomActivity(name=f"@Alpine | {random.choice(activities)}")
+            status=discord.Status.online, activity=discord.CustomActivity(name=random.choice(activities))
         )
 
     @update.before_loop
