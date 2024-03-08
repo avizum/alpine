@@ -15,30 +15,75 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+from __future__ import annotations
 
 import asyncio
+import contextlib
 import re
+from typing import TYPE_CHECKING
 
 import discord
 from discord.utils import format_dt
 
 import core
-from core import Bot
+
+if TYPE_CHECKING:
+    from core import Bot
+    from utils import HighlightsData
 
 
 class HighlightListener(core.Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
+        self.raw_highlights: dict[int, HighlightsData] = self.bot.database._highlights
+
+    def is_valid(self, message: discord.Message) -> bool:
+        if message.guild is None or message.author.bot or message.webhook_id or message.content is None:
+            return False
+        return True
+
+    def can_see_channel(self, member: discord.Member, channel: discord.abc.MessageableChannel):
+        return channel.permissions_for(member).read_messages
+
+    async def notify_user(self, message: discord.Message, member: discord.Member, trigger: str):
+        assert message.guild is not None
+
+        messages = []
+        async for msg in message.channel.history(limit=9, around=message):
+            timestamp = format_dt(msg.created_at, "t")
+            author = msg.author
+            content = msg.content[:90] or "*No message content*"
+            if msg.id == message.id:
+                content = content.replace(trigger, f"*__{trigger}__*")
+                messages.append(f"[**[{timestamp}] {author}: {content}**]({msg.jump_url})")
+            else:
+                messages.append(f"[{timestamp}] {author}: {content}")
+            messages.reverse()
+        embed = discord.Embed(
+            title=f"Highlight trigger: {trigger}",
+            description=(
+                f"In the server {message.guild.name}, you were highlighted"
+                f" by {message.author.mention} ({message.author.id})."
+            ),
+            color=0x30C5FF,
+            timestamp=message.created_at,
+        )
+        embed.add_field(
+            name="Messages",
+            value="\n".join(messages),
+        )
+        embed.set_footer(text="Triggered at")
+        if not self.can_see_channel(member, message.channel):
+            return
+        with contextlib.suppress(discord.Forbidden):
+            await member.send(embed=embed)
 
     @core.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if message.guild is None or message.author.bot:
+        if not self.is_valid(message):
             return
 
-        if not message.content:
-            return
-
-        history = None
+        assert message.guild is not None
 
         highlight_list = []
         for user_id, highlight in self.bot.database._highlights.items():
@@ -50,7 +95,8 @@ class HighlightListener(core.Cog):
 
             for word in highlight.triggers:
                 highlight_list.append(word)
-            reg = "|".join(rf"\b({h})\b" for h in highlight_list)
+
+            reg = "|".join(rf"\b({re.escape(h)})\b" for h in highlight_list)
 
             match = re.search(reg, message.content.lower(), flags=re.IGNORECASE)
             if not match:
@@ -60,49 +106,14 @@ class HighlightListener(core.Cog):
             if not trigger:
                 continue
 
-            if history is None:
+            def check(msg: discord.Message):
+                return msg.author.id == user_id and msg.channel == message.channel
 
-                def check(msg: discord.Message):
-                    return msg.author.id == user_id and msg.channel == message.channel
+            try:
+                await self.bot.wait_for("message", check=check, timeout=25)
+            except asyncio.TimeoutError:
+                member = message.guild.get_member(user_id)
+                if not member:
+                    return
 
-                try:
-                    await self.bot.wait_for_message(check=check, timeout=25)
-                except asyncio.TimeoutError:
-                    messages = []
-                    async for msg in message.channel.history(limit=9, around=message):
-                        timestamp = format_dt(msg.created_at, "t")
-                        author = msg.author
-                        content = msg.content[:90] or "*No message content*"
-                        if msg.id == message.id:
-                            content = content.replace(trigger, f"*__{trigger}__*")
-                            messages.append(f"[**[{timestamp}] {author}: {content}**]({msg.jump_url})")
-                        else:
-                            messages.append(f"[{timestamp}] {author}: {content}")
-                    messages.reverse()
-                    embed = discord.Embed(
-                        title=f"Highlight trigger: {trigger}",
-                        description=(
-                            f"In the server {message.guild.name}, you were highlighted"
-                            f" by {message.author.mention} ({message.author.id})."
-                        ),
-                        color=0x30C5FF,
-                        timestamp=message.created_at,
-                    )
-                    embed.add_field(
-                        name="Messages",
-                        value="\n".join(messages),
-                    )
-                    embed.set_footer(text="Triggered at")
-                    user = (
-                        message.guild.get_member(user_id) or self.bot.get_user(user_id) or await self.bot.fetch_user(user_id)
-                    )
-                    if not user:
-                        continue
-                    if user and user not in message.guild.members:
-                        continue
-                    try:
-                        await user.send(embed=embed)
-                    except discord.Forbidden:
-                        continue
-                else:
-                    continue
+                await self.notify_user(message, member, trigger)
