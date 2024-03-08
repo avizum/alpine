@@ -161,7 +161,7 @@ class PrefixAddModal(ui.Modal, title="Add a prefix"):
         return await itn.response.send_message(f"Added {prefix} to the list of prefixes.", ephemeral=True)
 
 
-class PrefixRemoveSelect(ui.Select["PrefixView"]):
+class PrefixRemoveSelect(ui.Select["AView"]):
     def __init__(self, settings: GuildData) -> None:
         self.settings: GuildData = settings
         options = [discord.SelectOption(label=prefix) for prefix in self.settings.prefixes]
@@ -173,9 +173,11 @@ class PrefixRemoveSelect(ui.Select["PrefixView"]):
         for prefix in self.values:
             self.settings.prefixes.remove(prefix)
         await self.settings.update(prefixes=self.settings.prefixes)
-        await itn.response.send_message(
-            f"Removed {len(self.values)} prefixes:\n`{'` | `'.join(self.values)}`", ephemeral=True
+        await itn.response.edit_message(
+            content=f"Removed {len(self.values)} prefixes:\n`{'` | `'.join(self.values)}`",
+            view=None,
         )
+        self.view.stop()
 
 
 class PrefixView(View):
@@ -235,10 +237,7 @@ class PrefixView(View):
         select = PrefixRemoveSelect(self.settings)
         view.add_item(select)
         await itn.response.send_message("Select prefixes to remove.", view=view, ephemeral=True)
-        msg = await itn.original_response()
         await view.wait()
-        view.stop()
-        await msg.delete()
         self._update()
         await self.message.edit(embed=self.embed, view=self)
 
@@ -304,7 +303,16 @@ class LoggingChannelSelect(ui.ChannelSelect["LoggingView"]):
         self.ctx: Context = ctx
         self.settings: GuildData = settings
         self.logging: LoggingData | None = settings.logging
-        super().__init__(channel_types=[discord.ChannelType.text], placeholder="Select a channel to send logs to...")
+        logging = self.logging
+        default = []
+        if logging and logging.webhook:
+            default.append(discord.Object(logging.webhook.channel_id or 0))
+
+        super().__init__(
+            channel_types=[discord.ChannelType.text],
+            placeholder="Select a channel to send logs to...",
+            default_values=default,
+        )
 
     async def callback(self, itn: Interaction) -> None:
         await itn.response.defer(ephemeral=True, thinking=True)
@@ -425,7 +433,15 @@ class JoinsAndLeavesChannelSelect(ui.ChannelSelect["JoinsAndLeavesView"]):
     def __init__(self, settings: GuildData) -> None:
         self.settings: GuildData = settings
         self.joins_and_leaves: JoinLeaveData | None = settings.join_leave
-        super().__init__(channel_types=[discord.ChannelType.text], placeholder="Select a channel to send messages to...")
+        join_leave = self.joins_and_leaves
+        default = []
+        if join_leave and join_leave.channel_id:
+            default.append(discord.Object(join_leave.channel_id))
+        super().__init__(
+            channel_types=[discord.ChannelType.text],
+            placeholder="Select a channel to send messages to...",
+            default_values=default,
+        )
 
     async def callback(self, itn: Interaction) -> None:
         if not self.joins_and_leaves:
@@ -542,8 +558,14 @@ class MemberVerificationChannelSelect(ui.ChannelSelect["MemberVerificationView"]
     def __init__(self, settings: GuildData) -> None:
         self.settings: GuildData = settings
         self.verification = settings.verification
+        verification = self.verification
+        default = []
+        if verification and verification.channel_id:
+            default.append(discord.Object(verification.channel_id))
         super().__init__(
-            channel_types=[discord.ChannelType.text], placeholder="Select a channel to use for member verification..."
+            channel_types=[discord.ChannelType.text],
+            placeholder="Select a channel to use for member verification...",
+            default_values=default,
         )
 
     async def callback(self, itn: Interaction) -> None:
@@ -567,7 +589,11 @@ class MemberVerificationRoleSelect(ui.RoleSelect["MemberVerificationView"]):
         self.ctx: Context = ctx
         self.settings: GuildData = settings
         self.verification = settings.verification
-        super().__init__(placeholder="Select a role to use for member verification...")
+        verification = self.verification
+        default = []
+        if verification and verification.role_id:
+            default.append(discord.Object(verification.role_id))
+        super().__init__(placeholder="Select a role to use for member verification...", default_values=default)
 
     async def confirm(self, itn: Interaction) -> ConfirmResult:
         view = ConfirmView(member=self.ctx.author, timeout=300)
