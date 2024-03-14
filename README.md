@@ -15,8 +15,7 @@ Invite Alpine [here](https://discord.com/oauth2/authorize?client_id=756257170521
 |           Command          |            Description            |
 |:--------------------------:|:---------------------------------:|
 | `a.help [command\|module]` |      Shows the bot help menu      |
-|   `a.prefix add <prefix>`  |    Adds a prefix to your server   |
-| `a.prefix remove <prefix>` | Removes a prefix from your server |
+|   `a.settings`             |    Manages Alpine's settings      |
 |          `a.about`         |    Shows the bot's information    |
 
 

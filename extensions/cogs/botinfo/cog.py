@@ -123,7 +123,7 @@ class BotInfo(core.Cog, name="Bot Info"):
         credit_list = [
             (750135653638865017, "Bot Developer", "https://github.com/avizum",),
             (547280209284562944, "Bot Testing", "https://github.com/LereUwU",),
-            (672122220566413312, "Original Avatar Design", "https://discord.com/users/672122220566413312",),
+            (672122220566413312, "Original Avatar Design", "discord://-/users/672122220566413312",),
             (80088516616269824, "discord.py Developer", "https://github.com/Rapptz",),
             (171539705043615744, "Error Tracking Idea", "https://github.com/iDutchy",),
             (733370212199694467, "Contributor", "https://github.com/MrArkon/",),
@@ -211,21 +211,11 @@ class BotInfo(core.Cog, name="Bot Info"):
         )
         embed.add_field(name=f"{ctx.clean_prefix}help", value="Sends the help page.", inline=False)
         embed.add_field(
-            name=f"{ctx.clean_prefix}prefix add",
-            value="Adds a prefix to this server. (You can have up to 15 prefixes)",
+            name=f"{ctx.clean_prefix}settings",
+            value="Manage Alpine's settings for this server.",
             inline=False,
         )
-        embed.add_field(
-            name=f"{ctx.clean_prefix}about",
-            value="Show some info about the bot.",
-            inline=False,
-        )
-        embed.add_field(
-            name=f"{ctx.clean_prefix}vote",
-            value="Support Alpine by voting! Thank you!",
-            inline=False,
-        )
-        embed.set_footer(text="Made by avizum :)")
+        embed.set_footer(text="This message can be deleted.")
         await ctx.send(embed=embed)
 
     @core.command()

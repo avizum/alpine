@@ -49,7 +49,10 @@ class Setup(core.Cog):
         if isinstance(message.channel, discord.DMChannel):
             user_data = await ctx.database.get_or_fetch_user(ctx.author.id)
             if not user_data.dmed:
-                await message.channel.send("Hey, these DMs are logged and sent to the support server.")
+                await message.channel.send(
+                    "Hello. Please note that messages sent through DM are logged, "
+                    "and can be used as a way to send a message to the developers."
+                )
                 await user_data.update(dmed=True)
             embed = discord.Embed(title=f"DM from {message.author}", description=message.content)
             embed.set_footer(text=message.author.id)
@@ -104,17 +107,11 @@ class Setup(core.Cog):
         )
         embed.add_field(name="a.help", value="Sends the help page.", inline=False)
         embed.add_field(
-            name="a.prefix add",
-            value="Adds a prefix to this server. (You can have up to 15 prefixes)",
+            name="a.settings",
+            value="Manage Alpine's settings for this server.",
             inline=False,
         )
-        embed.add_field(name="a.about", value="Show some info about the bot.", inline=False)
-        embed.add_field(
-            name="a.vote",
-            value="You can support Alpine by voting! Thank you!",
-            inline=False,
-        )
-        embed.set_footer(text="Made by avizum :)")
+        embed.set_footer(text="This message can be deleted.")
         channel = discord.utils.get(guild.text_channels, name="general")
         if not channel:
             channels = [channel for channel in guild.text_channels if channel.permissions_for(guild.me).send_messages]
