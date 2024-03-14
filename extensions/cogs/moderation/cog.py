@@ -28,7 +28,7 @@ from discord.ext import commands
 
 import core
 import utils
-from utils import DefaultReason, ModReason
+from utils import DefaultReason, ModReason, format_list
 
 from .converters import BanFlag, FindBan, ModActionFlag, PurgeAmount, TargetMember, TimeConverter
 
@@ -61,8 +61,8 @@ class Moderation(core.Cog):
         """
         reason = flags.reason or f"{ctx.author}: No reason provided."
         await target.kick(reason=reason)
-        kick_embed = discord.Embed(title="Kicked Member", color=discord.Color.green())
-        kick_embed.description = f"**{target}** has been kicked from the server."
+
+        message = f"Kicked {target}."
         if flags.dm:
             try:
                 embed = discord.Embed(
@@ -72,8 +72,8 @@ class Moderation(core.Cog):
                 )
                 await target.send(embed=embed)
             except discord.Forbidden:
-                kick_embed.description = f"**{target}** has been kicked from the server, However, I could not DM them."
-        await ctx.send(embed=kick_embed, ephemeral=True)
+                message = f"Kicked {target}. I could not DM them."
+        await ctx.send(message)
 
     @core.command(hybrid=True)
     @core.has_permissions(ban_members=True)
@@ -97,18 +97,20 @@ class Moderation(core.Cog):
         conf = await ctx.confirm(
             message=f"This will kick:\n{new_targets} ({len(targets)} members),\nWith the reason {reason}.",
             confirm_messsage=f'Press "Yes" to kick {(len(targets))} members or "No" to cancel.',
-            ephemeral=True,
-            delete_message_after=True,
+            remove_view_after=True,
         )
         if conf.result:
             fail = 0
             await conf.message.edit(content="Kicking...")
+            kicked: list[discord.Member] = []
             for member in targets:
                 try:
                     await member.kick(reason=reason)
+                    kicked.append(member)
                 except Exception:
                     fail += 1
-            await conf.message.edit(content=f"Sucessfully kicked {len(targets)-fail}/{len(targets)} members.")
+            kicked_fmt = format_list(kicked)
+            await conf.message.edit(content=f"Sucessfully kicked {kicked_fmt} ({len(targets)-fail}/{len(targets)}) members.")
         else:
             await conf.message.edit(content="Cancelled.")
 
@@ -127,8 +129,7 @@ class Moderation(core.Cog):
         reason = flags.reason or f"{ctx.author}: No reason provided"
         await ctx.guild.ban(target, reason=reason)
         await ctx.guild.unban(target, reason="Soft-ban")
-        soft_ban_embed = discord.Embed(title="Soft-banned Member", color=discord.Color.green())
-        soft_ban_embed.description = f"**{target}** has been soft-banned from the server."
+        message = f"Soft-banned {target}."
         if flags.dm:
             try:
                 embed = discord.Embed(
@@ -138,8 +139,8 @@ class Moderation(core.Cog):
                 )
                 await target.send(embed=embed)
             except discord.Forbidden:
-                soft_ban_embed.description = f"**{target}** has been soft-banned, However, I could not DM them."
-        await ctx.send(embed=soft_ban_embed, ephemeral=True)
+                message = f"Soft-banned {target}. I could not DM them."
+        await ctx.send(message)
 
     @core.command(hybrid=True)
     @core.has_permissions(ban_members=True)
@@ -154,8 +155,7 @@ class Moderation(core.Cog):
         """
         reason = flags.reason or f"{ctx.author}: No reason provided."
         await ctx.guild.ban(target, reason=reason, delete_message_days=flags.delete_days)
-        kick_embed = discord.Embed(title="Banned Member", color=discord.Color.green())
-        kick_embed.description = f"**{target}** has been banned from the server."
+        message = f"Banned {target}."
         if flags.dm:
             try:
                 embed = discord.Embed(
@@ -165,8 +165,8 @@ class Moderation(core.Cog):
                 )
                 await target.send(embed=embed)
             except discord.Forbidden:
-                kick_embed.description = f"**{target}** has been banned from the server, However, I could not DM them."
-        await ctx.send(embed=kick_embed, ephemeral=True)
+                message = f"Banned {target}. I could not DM them."
+        await ctx.send(message)
 
     @core.command()
     @core.has_permissions(ban_members=True)
@@ -186,22 +186,26 @@ class Moderation(core.Cog):
         """
         if not targets:
             return await ctx.send("One or more members can not be banned by you. Try again.", ephemeral=True)
-        new_targets = ", ".join(str(i) for i in targets)
+        new_targets = format_list(targets)
         conf = await ctx.confirm(
             message=f"This will ban:\n{new_targets} ({len(targets)} members),\nWith reason {reason}.",
             confirm_messsage=f'Press "Yes" to ban {(len(targets))} members or "No" to cancel.',
-            ephemeral=True,
-            delete_message_after=True,
+            remove_view_after=True,
         )
         if conf.result:
             fail = 0
-            await conf.message.edit(content="Banning...")
+            await conf.message.edit(content=f"Banning {len(targets)} members...")
+            banned: list[discord.Member] = []
             for member in targets:
                 try:
                     await member.ban(reason=reason)
+                    banned.append(member)
                 except Exception:
                     fail += 1
-            await conf.message.edit(content=f"Sucessfully banned {len(targets)-fail}/{len(targets)} members.")
+            banned_fmt = format_list(banned)
+            await conf.message.edit(content=f"Sucessfully banned {banned_fmt} ({len(targets)-fail}/{len(targets)}) members.")
+        else:
+            await conf.message.edit(content="Cancelled.")
 
     @core.command(hybrid=True)
     @core.has_permissions(ban_members=True)
@@ -214,13 +218,8 @@ class Moderation(core.Cog):
         Anyone with permission to ban members can unban anyone.
         """
         await ctx.guild.unban(target, reason=reason)
-        unban_embed = discord.Embed(
-            title="Unbanned Member",
-            description=f"**{target}** has been unbanned from the server.",
-            color=discord.Color.green(),
-        )
 
-        await ctx.send(embed=unban_embed)
+        await ctx.send(f"Unbanned {target}.")
 
     @core.command(hybrid=True, aliases=["timeout", "tempmute"])
     @core.has_permissions(moderate_members=True)
@@ -247,20 +246,17 @@ class Moderation(core.Cog):
         if duration > 2419200 or duration < 60:
             return await ctx.send("Mute time must be over 1 minute and under 28 days.", ephemeral=True)
         if target.is_timed_out():
+            f"{target.mention} is already muted. Do you want to continue?"
             conf = await ctx.confirm(
-                message=f"{target.mention} is already muted. Do you want to overwrite their mute?",
+                message=f"{target.mention} is already muted. Do you want to continue?",
                 ephemeral=True,
-                delete_message_after=True,
+                remove_view_after=True,
             )
             if not conf.result:
-                return await ctx.send("Okay, I won't replace their mute.", delete_after=10, ephemeral=True)
+                return await conf.message.edit(content="Okay, cancelled.", delete_after=10)
         dur = dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=duration)
         await target.edit(timed_out_until=dur, reason=reason)
-        embed = discord.Embed(
-            title="Muted Member",
-            description=f"{target.mention} will be muted until {discord.utils.format_dt(dur)}.\nReason: {reason}",
-        )
-        await ctx.send(embed=embed, ephemeral=True)
+        await ctx.send(f"Muted {target} until {discord.utils.format_dt(dur)}.\nReason: {reason}", ephemeral=True)
 
     @core.command(hybrid=True, aliases=["untimeout", "untempmute"])
     @core.has_permissions(moderate_members=True)
@@ -293,7 +289,6 @@ class Moderation(core.Cog):
         dur = dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=duration)
         conf = await ctx.confirm(
             message=f"Are you sure you want to mute yourself for {utils.format_seconds(duration, friendly=True)}?",
-            delete_after=True,
             ephemeral=True,
         )
         if conf.result:
@@ -306,7 +301,7 @@ class Moderation(core.Cog):
         else:
             await conf.message.edit(content="Aborted.")
 
-    async def do_affected(self, messages: list[discord.Message]) -> discord.Embed:
+    async def _affected(self, messages: list[discord.Message]) -> discord.Embed:
         authors = {}
         for message in messages:
             if message.author not in authors:
@@ -318,7 +313,7 @@ class Moderation(core.Cog):
         )
         return discord.Embed(title="Affected Messages", description=message)
 
-    async def do_purge(self, /, ctx: Context, *args, **kwargs) -> list[discord.Message]:
+    async def _purge(self, /, ctx: Context, *args, **kwargs) -> list[discord.Message]:
         async with ctx.typing(ephemeral=True):
             messages = await ctx.channel.purge(*args, **kwargs)
         return messages
@@ -335,8 +330,8 @@ class Moderation(core.Cog):
         This always avoids pinned messages.
         You can only purge up to 1000 messages at a time.
         """
-        purged = await self.do_purge(ctx, limit=amount, check=lambda m: not m.pinned, before=ctx.message)
-        await ctx.can_delete(embed=await self.do_affected(purged), ephemeral=True)
+        purged = await self._purge(ctx, limit=amount, check=lambda m: not m.pinned, before=ctx.message)
+        await ctx.can_delete(embed=await self._affected(purged), ephemeral=True)
 
     @purge.command(aliases=["user", "person"])
     @core.has_permissions(manage_messages=True)
@@ -348,8 +343,8 @@ class Moderation(core.Cog):
 
         You can purge up to 1000 messages from a member.
         """
-        purged = await self.do_purge(ctx, limit=amount, check=lambda m: m.author == member, before=ctx.message)
-        await ctx.can_delete(embed=await self.do_affected(purged), ephemeral=True)
+        purged = await self._purge(ctx, limit=amount, check=lambda m: m.author == member, before=ctx.message)
+        await ctx.can_delete(embed=await self._affected(purged), ephemeral=True)
 
     @purge.command()
     @core.has_permissions(manage_messages=True)
@@ -359,8 +354,8 @@ class Moderation(core.Cog):
         """
         Purge any message sent from a bot, including messages sent by me.
         """
-        purged = await self.do_purge(ctx, limit=amount, check=lambda m: m.author.bot, before=ctx.message)
-        await ctx.can_delete(embed=await self.do_affected(purged), ephemeral=True)
+        purged = await self._purge(ctx, limit=amount, check=lambda m: m.author.bot, before=ctx.message)
+        await ctx.can_delete(embed=await self._affected(purged), ephemeral=True)
 
     @purge.command()
     @core.has_permissions(manage_messages=True)
@@ -379,8 +374,8 @@ class Moderation(core.Cog):
                 )
             )
 
-        purged = await self.do_purge(ctx, limit=amount, check=check, before=ctx.message)
-        await ctx.can_delete(embed=await self.do_affected(purged), ephemeral=True)
+        purged = await self._purge(ctx, limit=amount, check=check, before=ctx.message)
+        await ctx.can_delete(embed=await self._affected(purged), ephemeral=True)
 
     @purge.command(aliases=["images", "pictures"])
     @core.has_permissions(manage_messages=True)
@@ -390,8 +385,8 @@ class Moderation(core.Cog):
         """
         Purge any message that contains files.
         """
-        purged = await self.do_purge(ctx, limit=amount, check=lambda m: m.attachments, before=ctx.message)
-        await ctx.can_delete(embed=await self.do_affected(purged), ephemeral=True)
+        purged = await self._purge(ctx, limit=amount, check=lambda m: m.attachments, before=ctx.message)
+        await ctx.can_delete(embed=await self._affected(purged), ephemeral=True)
 
     @purge.command(aliases=["in"])
     @core.has_permissions(manage_messages=True)
@@ -403,8 +398,8 @@ class Moderation(core.Cog):
 
         This removes up to 100 messages.
         """
-        purged = await self.do_purge(ctx, limit=100, check=lambda m: text in m.content, before=ctx.message)
-        await ctx.can_delete(embed=await self.do_affected(purged), ephemeral=True)
+        purged = await self._purge(ctx, limit=100, check=lambda m: text in m.content, before=ctx.message)
+        await ctx.can_delete(embed=await self._affected(purged), ephemeral=True)
 
     @purge.command(aliases=["sw", "starts"])
     @core.has_permissions(manage_messages=True)
@@ -416,8 +411,8 @@ class Moderation(core.Cog):
 
         This removes up to 100 messages.
         """
-        purged = await self.do_purge(ctx, limit=100, check=lambda m: m.content.startswith(text))
-        await ctx.can_delete(embed=await self.do_affected(purged), ephemeral=True)
+        purged = await self._purge(ctx, limit=100, check=lambda m: m.content.startswith(text))
+        await ctx.can_delete(embed=await self._affected(purged), ephemeral=True)
 
     @purge.command(aliases=["ew", "ends"])
     @core.has_permissions(manage_messages=True)
@@ -429,8 +424,8 @@ class Moderation(core.Cog):
 
         This removes up to 100 messages.
         """
-        purged = await self.do_purge(ctx, limit=100, check=lambda m: m.content.endswith(text))
-        await ctx.can_delete(embed=await self.do_affected(purged), ephemeral=True)
+        purged = await self._purge(ctx, limit=100, check=lambda m: m.content.endswith(text))
+        await ctx.can_delete(embed=await self._affected(purged), ephemeral=True)
 
     @core.command(hybrid=True)
     @core.has_permissions(manage_messages=True)
@@ -452,8 +447,8 @@ class Moderation(core.Cog):
         def check(message: discord.Message):
             return message.content.startswith(prefixes) or message.author == self.bot.user
 
-        purged = await self.do_purge(ctx, limit=amount, check=check, before=ctx.message)
-        await ctx.can_delete(embed=await self.do_affected(purged), ephemeral=True)
+        purged = await self._purge(ctx, limit=amount, check=check, before=ctx.message)
+        await ctx.can_delete(embed=await self._affected(purged), ephemeral=True)
 
     @core.group(hybrid=True, invoke_without_command=True)
     @core.has_permissions(manage_channels=True)

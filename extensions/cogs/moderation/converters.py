@@ -40,6 +40,8 @@ class BanFlag(ModActionFlag):
     )
 
 
+PurgeAmount = commands.Range[int, 1, 1000]
+
 time_regex = re.compile(r"(?:(\d{1,5})\s?(h|s|m|d|w|y))+?")
 time_dict = {
     "h": 3600,
@@ -81,18 +83,6 @@ class TimeConverter(commands.Converter, int):
         if time < 0:
             raise commands.BadArgument("Time can not be under 1 second")
         return time
-
-
-class PurgeAmount(commands.Converter, int):
-    @classmethod
-    async def convert(cls, ctx: Context, argument: str) -> int:
-        try:
-            number = int(argument)
-        except Exception as e:
-            raise commands.BadArgument(f"{argument} is not a number. Please give a number.") from e
-        if number < 1 or number > 1000:
-            raise commands.BadArgument("Number must be greater than 0 and less than 1000")
-        return number
 
 
 class TargetMember(commands.Converter, discord.Member):
@@ -144,4 +134,4 @@ class FindBan(commands.Converter, discord.Member):
                 if str(ban[1]).startswith(argument):
                     return ban[1]
 
-        raise commands.BadArgument("That user isn't banned")
+        raise commands.BadArgument("That user isn't banned.")

@@ -264,6 +264,36 @@ class ErrorHandler(core.Cog):
         elif isinstance(error, commands.DisabledCommand):
             return await ctx.send("This command is not enabled at the moment.", ephemeral=True)
 
+        elif isinstance(error, commands.RangeError):
+            minimum = error.minimum
+            maximum = error.maximum
+            value = error.value
+
+            item_type: str = ""
+
+            if isinstance(minimum, (int, str)):
+                item_type = "a number"
+            elif isinstance(minimum, str):
+                item_type = "text containing"
+
+            label: str = ""
+            if minimum is None and maximum is not None:
+                label = f"no more than {maximum}"
+            elif minimum is not None and maximum is None:
+                label = f"no less than {minimum}"
+            elif maximum is not None and minimum is not None:
+                label = f"between {minimum} and {maximum}"
+
+            if label and isinstance(value, str):
+                label += " characters"
+                count = len(value)
+                if count == 1:
+                    value = "1 character"
+                else:
+                    value = f"{count} characters"
+
+            return await ctx.send(f"This argument must be {item_type} {label}.")
+
         elif isinstance(
             error,
             (commands.BadArgument, commands.BadUnionArgument, commands.TooManyArguments, commands.ArgumentParsingError),
