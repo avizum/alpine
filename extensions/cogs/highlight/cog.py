@@ -52,7 +52,7 @@ class HighlightCommands(core.Cog):
         highlights = ctx.database.get_highlights(ctx.author.id) or await ctx.database.fetch_highlights(ctx.author.id)
         triggers = highlights.triggers
         if trigger in triggers:
-            return await ctx.send("This is already a highlight.")
+            return await ctx.send("This is already a highlight.", ephemeral=True)
 
         triggers.append(trigger)
 
