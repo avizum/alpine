@@ -275,32 +275,6 @@ class Moderation(core.Cog):
         await target.edit(timed_out_until=None, reason=reason)
         await ctx.send(f"Unmuted {target}.", ephemeral=True)
 
-    @core.command(hybrid=True)
-    @core.bot_has_permissions(moderate_members=True)
-    @core.describe(duration="How long you will be muted for.")
-    async def selfmute(self, ctx: Context, duration: TimeConverter):
-        """
-        Mute yourself for a certain amount of time.
-        """
-        if ctx.author.top_role > ctx.me.top_role:
-            return await ctx.send("I can not mute you because your role is higher than mine.", ephemeral=True)
-        if duration > 86400 or duration < 300:
-            return await ctx.send("Self mute time must be over 5 minutes and under 1 day.", ephemeral=True)
-        dur = dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=duration)
-        conf = await ctx.confirm(
-            message=f"Are you sure you want to mute yourself for {utils.format_seconds(duration, friendly=True)}?",
-            ephemeral=True,
-        )
-        if conf.result:
-            await ctx.author.edit(timed_out_until=dur, reason=f"Self mute. Expires {dur}")
-            embed = discord.Embed(
-                title="Self muted",
-                description="You have been muted. Do not complain to the moderators about your decision.",
-            )
-            await ctx.send(embed=embed, ephemeral=True)
-        else:
-            await conf.message.edit(content="Aborted.")
-
     async def _affected(self, messages: list[discord.Message]) -> discord.Embed:
         authors = {}
         for message in messages:
