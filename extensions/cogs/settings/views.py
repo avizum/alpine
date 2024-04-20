@@ -222,8 +222,12 @@ class PrefixView(View):
             )
         else:
             modal = PrefixAddModal(self)
+
             await itn.response.send_modal(modal)
+            timeout = self.timeout
+            self.timeout = None
             await modal.wait()
+            self.timeout = timeout
             self._update()
             await self.message.edit(embed=self.embed, view=self)
 
@@ -237,7 +241,10 @@ class PrefixView(View):
         select = PrefixRemoveSelect(self.settings)
         view.add_item(select)
         await itn.response.send_message("Select prefixes to remove.", view=view, ephemeral=True)
+        timeout = self.timeout
+        self.timeout = None
         await view.wait()
+        self.timeout = timeout
         self._update()
         await self.message.edit(embed=self.embed, view=self)
 
@@ -306,7 +313,7 @@ class LoggingChannelSelect(ui.ChannelSelect["LoggingView"]):
         logging = self.logging
         default = []
         if logging and logging.webhook:
-            default.append(discord.Object(logging.webhook.channel_id or 0))
+            default.append(logging.webhook.channel)
 
         super().__init__(
             channel_types=[discord.ChannelType.text],
@@ -494,6 +501,8 @@ class JoinsAndLeavesView(View):
             self.enable_disable.label = "Enable Joins and Leaves"
 
     async def confirm(self, itn: Interaction, message: str) -> ConfirmResult:
+        timeout = self.view.timeout
+        self.view.timeout = None
         view = ConfirmView(member=self.ctx.author, timeout=300)
         view.yes.label = "Looks good!"
         view.no.label = "Try again."
@@ -501,8 +510,9 @@ class JoinsAndLeavesView(View):
         if isinstance(preview, discord.Embed):
             msg = await itn.followup.send(embed=preview, view=view, ephemeral=True, wait=True)
         else:
+            preview = f"## Preview:\n{preview}"
             msg = await itn.followup.send(preview, view=view, ephemeral=True, wait=True)
-        await view.wait()
+        self.view.timeout = timeout
         return ConfirmResult(msg, view.value)
 
     @ui.button(label="Enable", style=discord.ButtonStyle.green)
@@ -530,23 +540,29 @@ class JoinsAndLeavesView(View):
 
         join_message: str | None = None
         leave_message: str | None = None
-        if modal.join_message:
+
+        if modal.join_message and modal.join_message != self.joins_and_leaves.join_message:
             join = await self.confirm(itn, modal.join_message)
             if join.result:
                 join_message = modal.join_message
                 await join.message.edit(content="Successfully set join message.", embed=None, view=None)
             else:
                 await join.message.edit(content="Okay, join message was not set.", embed=None, view=None)
-        else:
+        elif modal.join_message == self.joins_and_leaves.join_message:
+            pass
+        elif not modal.join_message:
             await itn.followup.send("Disabled join message.", ephemeral=True)
-        if modal.leave_message:
+
+        if modal.leave_message and modal.leave_message != self.joins_and_leaves.leave_message:
             leave = await self.confirm(itn, modal.leave_message)
             if leave.result:
                 leave_message = modal.leave_message
                 await leave.message.edit(content="Successfully set leave message.", embed=None, view=None)
             else:
                 await leave.message.edit(content="Okay, leave message wasn't set.", embed=None, view=None)
-        else:
+        elif modal.leave_message == self.joins_and_leaves.leave_message:
+            pass
+        elif not modal.leave_message:
             await itn.followup.send("Disabled leave message.", ephemeral=True)
 
         await self.joins_and_leaves.update(join_message=join_message, leave_message=leave_message)
