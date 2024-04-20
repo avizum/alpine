@@ -312,8 +312,8 @@ class LoggingChannelSelect(ui.ChannelSelect["LoggingView"]):
         self.logging: LoggingData | None = settings.logging
         logging = self.logging
         default = []
-        if logging and logging.webhook:
-            default.append(logging.webhook.channel)
+        if logging and logging.channel_id:
+            default.append(discord.Object(logging.channel_id))
 
         super().__init__(
             channel_types=[discord.ChannelType.text],
@@ -334,25 +334,19 @@ class LoggingChannelSelect(ui.ChannelSelect["LoggingView"]):
 
         webhook = self.logging.webhook
 
-        if webhook and webhook.channel_id == channel.id:
+        if webhook and self.logging.channel_id == channel.id:
             return await itn.response.send_message(f"Logging channel is already set to {channel.mention}.", ephemeral=True)
 
         avatar = await self.ctx.bot.user.display_avatar.read()
         reason = f"{self.ctx.author}: set logging channel"
 
-        if webhook:
-            try:
-                webhook = await webhook.fetch()
-            except discord.HTTPException:
-                webhook = None
+        try:
+            assert webhook is not None
+            await webhook.edit(name="Alpine Logs", avatar=avatar, reason=reason, channel=channel)
+        except (discord.HTTPException, AssertionError):
+            webhook = await channel.create_webhook(name="Alpine Logs", avatar=avatar, reason=reason)
 
-        new_webhook: discord.Webhook | None
-        if not webhook:
-            new_webhook = await channel.create_webhook(name="Alpine Logs", avatar=avatar, reason=reason)
-        else:
-            new_webhook = await webhook.edit(name="Alpine Logs", avatar=avatar, reason=reason, channel=channel)
-
-        await self.logging.update(webhook=new_webhook.url)
+        await self.logging.update(webhook=webhook.url, channel_id=channel.id)
         await itn.followup.send(f"Successfully set logging channel to {channel.mention}")
 
 

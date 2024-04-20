@@ -260,9 +260,13 @@ class LoggingData(BaseData):
         elif self._webhook and self._webhook.url == url:
             return self._webhook
 
-        webhook = discord.Webhook.from_url(url, client=self.database.bot)
+        webhook = discord.Webhook.from_url(url, client=self.database.bot, bot_token=self.database.bot.http.token)
         self._webhook = webhook
         return webhook
+
+    @property
+    def channel_id(self) -> int:
+        return self._data.get("channel_id", 0)
 
     @property
     def message_delete(self) -> bool:
