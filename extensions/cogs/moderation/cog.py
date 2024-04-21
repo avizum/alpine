@@ -341,12 +341,7 @@ class Moderation(core.Cog):
         """
 
         def check(m: discord.Message):
-            return bool(
-                re.match(
-                    r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
-                    m.content,
-                )
-            )
+            return bool(re.findall(r"\b(?:https?):\/\/[-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[-A-Za-z0-9+&@#\/%=~_|]", m.content))
 
         purged = await self._purge(ctx, limit=amount, check=check, before=ctx.message)
         await ctx.can_delete(embed=await self._affected(purged), ephemeral=True)
