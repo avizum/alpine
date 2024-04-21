@@ -110,9 +110,7 @@ class ConfirmResult:
 
 class AutoPageSource(menus.ListPageSource):
     def __init__(self, entry: str | list | commands.Paginator, language: str = "", *, limit: int = 1000) -> None:
-        if isinstance(entry, list):
-            entry = entry
-        elif isinstance(entry, str):
+        if isinstance(entry, str):
             pag = WrappedPaginator(prefix=f"```{language}", suffix="```", max_size=limit, force_wrap=True)
             pag.add_line(entry)
             entry = pag.pages
