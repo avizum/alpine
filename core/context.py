@@ -230,10 +230,10 @@ class Context(commands.Context, Generic[BotT]):
         self.bot.command_cache[self.message.id] = message
         return message
 
-    async def send_help(self, item: Any | None) -> Any:
-        if not item:
+    async def send_help(self, *args: Any) -> Any:
+        if not args:
             return await super().send_help()
-        return await super().send_help(item)
+        return await super().send_help(args)
 
     async def send(
         self,
