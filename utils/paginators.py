@@ -25,6 +25,7 @@ import discord
 from discord.ext.menus import PageSource
 from jishaku.paginators import WrappedPaginator
 
+from utils.emojis import Emojis
 from utils.view import View
 
 if TYPE_CHECKING:
@@ -134,7 +135,7 @@ class BasePaginator(View):
             except discord.NotFound:
                 pass
         if self.ctx.interaction is None:
-            await self.ctx.message.add_reaction("<:greentick:777096731438874634>")
+            await self.ctx.message.add_reaction(Emojis.GREEN_TICK)
 
     async def start(self) -> discord.Message:
         await self.source._prepare_once()
@@ -270,7 +271,7 @@ class Paginator(BasePaginator):
             except discord.NotFound:
                 pass
         if self.ctx.interaction is None:
-            await self.ctx.message.add_reaction("<:greentick:777096731438874634>")
+            await self.ctx.message.add_reaction(Emojis.GREEN_TICK)
 
     async def start(self) -> discord.Message:
         self._update(self.current_page)
@@ -332,7 +333,7 @@ class Paginator(BasePaginator):
         elif self.delete_message_after and self.message is not None:
             await self.message.delete()
         if self.ctx.interaction is None:
-            await self.ctx.message.add_reaction("<:greentick:777096731438874634>")
+            await self.ctx.message.add_reaction(Emojis.GREEN_TICK)
         self.stop()
 
 
