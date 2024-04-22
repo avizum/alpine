@@ -29,6 +29,7 @@ from discord.ext import commands, menus
 from discord.utils import MISSING
 
 from utils.emojis import Emojis
+from utils.helpers import EMOJI_REGEX
 from utils.paginators import Paginator, WrappedPaginator
 from utils.view import View as AView
 
@@ -48,8 +49,6 @@ __all__ = (
 
 BotT = TypeVar("BotT", bound="commands.Bot | commands.AutoShardedBot", covariant=True)
 T = TypeVar("T")
-
-emoji_regex: re.Pattern = re.compile(r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>")
 
 
 class TrashView(AView):
@@ -149,9 +148,9 @@ class Context(commands.Context, Generic[BotT]):
 
     @property
     def clean_prefix(self) -> str:
-        match = emoji_regex.match(self.prefix)
+        match = EMOJI_REGEX.match(self.prefix)
         if match:
-            return re.sub(emoji_regex, match[2], self.prefix)
+            return re.sub(EMOJI_REGEX, match[2], self.prefix)
 
         return re.sub(f"<@!?{self.bot.user.id}>", f"@{self.me.display_name} ", self.prefix)
 

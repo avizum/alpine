@@ -42,7 +42,7 @@ class BanFlag(ModActionFlag):
 
 PurgeAmount = commands.Range[int, 1, 1000]
 
-time_regex = re.compile(r"(?:(\d{1,5})\s?(h|s|m|d|w|y))+?")
+TIME_REGEX = re.compile(r"(?:(\d{1,5})\s?([hsmdwy]))+")
 time_dict = {
     "h": 3600,
     "hours": 3600,
@@ -71,9 +71,8 @@ class TimeConverter(commands.Converter, int):
     @classmethod
     async def convert(cls, ctx: Context, argument) -> float:
         args = argument.lower()
-        matches = re.findall(time_regex, args)
         time = 0
-        for key, value in matches:
+        for key, value in TIME_REGEX.findall(args):
             try:
                 time += time_dict[value] * float(key)
             except KeyError:

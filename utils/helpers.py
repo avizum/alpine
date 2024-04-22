@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import re
 import time
 from typing import Any
 
@@ -24,7 +25,13 @@ __all__ = (
     "format_list",
     "Timer",
     "format_seconds",
+    "URL_REGEX",
+    "EMOJI_REGEX",
 )
+
+
+URL_REGEX = re.compile(r"\b(?:https?):\/\/[-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[-A-Za-z0-9+&@#\/%=~_|]")
+EMOJI_REGEX: re.Pattern = re.compile(r"<(?P<animated>a?):(?P<name>\w{2,32}):(?P<id>[\d]{18,22})>")
 
 
 def format_string(number: int, value: str) -> str:

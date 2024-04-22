@@ -17,7 +17,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import datetime as dt
-import re
 from typing import TYPE_CHECKING
 
 import discord
@@ -27,6 +26,7 @@ from discord.ext import commands
 
 import core
 from core import Bot, Context
+from utils.helpers import EMOJI_REGEX, URL_REGEX
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -34,12 +34,6 @@ if TYPE_CHECKING:
 
 embed = discord.Embed()
 args = discord.Member | discord.PartialEmoji | discord.Emoji | str | None
-
-URL_REGEX = re.compile(
-    r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+"
-    r"[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
-)
-EMOJI_REGEX = re.compile(r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>")
 
 
 class GetAvatarOrImage(commands.Converter):

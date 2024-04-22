@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import datetime as dt
-import re
 from typing import TYPE_CHECKING
 
 import discord
@@ -28,7 +27,7 @@ from discord.ext import commands
 
 import core
 import utils
-from utils import DefaultReason, ModReason, format_list
+from utils import EMOJI_REGEX, DefaultReason, ModReason, format_list
 
 from .converters import BanFlag, FindBan, ModActionFlag, PurgeAmount, TargetMember, TimeConverter
 
@@ -341,7 +340,7 @@ class Moderation(core.Cog):
         """
 
         def check(m: discord.Message):
-            return bool(re.findall(r"\b(?:https?):\/\/[-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[-A-Za-z0-9+&@#\/%=~_|]", m.content))
+            return bool(EMOJI_REGEX.findall(m.content))
 
         purged = await self._purge(ctx, limit=amount, check=check, before=ctx.message)
         await ctx.can_delete(embed=await self._affected(purged), ephemeral=True)

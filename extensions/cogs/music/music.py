@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import asyncio
-import re
 from typing import TYPE_CHECKING, Any, cast
 
 import discord
@@ -33,9 +32,6 @@ from utils import View, format_seconds
 
 if TYPE_CHECKING:
     from core import Context
-
-
-URL_REG = re.compile(r"https?://(?:www\.)?.+")
 
 
 async def do_after(time, coro, *args, **kwargs):

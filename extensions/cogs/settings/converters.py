@@ -25,23 +25,17 @@ from core import Command, Context
 PREFIX_CHAR_LIMIT = 35
 MAX_PREFIX_AMOUNT = 20
 
+MENTION_REGEX: re.Pattern = re.compile(r"<(@!?|#|&)([\d]*)>")
+
 
 class Prefix(commands.Converter, str):
     @classmethod
     async def convert(cls, ctx: Context, argument) -> str:
-        user_mention = re.findall(r"<@(!?)([0-9]*)>", argument)
-        role_mention = re.findall(r"<@&(\d+)>", argument)
-        channel_mention = re.findall(r"<#(\d+)>", argument)
-
         settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
         prefixes = settings.prefixes
 
-        if user_mention:
+        if MENTION_REGEX.match(argument):
             raise commands.BadArgument("You can not add a mention as a prefix.")
-        elif role_mention:
-            raise commands.BadArgument("You can not add a role mention as a prefix.")
-        elif channel_mention:
-            raise commands.BadArgument("You can not add a channel mention as a prefix.")
         elif len(argument) > PREFIX_CHAR_LIMIT:
             raise commands.BadArgument(f"That prefix is too long ({len(argument)}/{PREFIX_CHAR_LIMIT})")
         elif len(prefixes) > MAX_PREFIX_AMOUNT:
