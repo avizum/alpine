@@ -126,7 +126,7 @@ class ErrorHandler(core.Cog):
         if isinstance(error, app_commands.CommandNotFound):
             return await itn.response.send_message("This command is unavailable right now.", ephemeral=True)
         else:
-            raise error
+            _log.error(f"Ignoring exception in tree command {itn.command}:", exc_info=error)
 
     @core.Cog.listener()
     async def on_command_error(self, ctx: Context, error: commands.CommandError):
@@ -186,7 +186,6 @@ class ErrorHandler(core.Cog):
                     view=view,
                     ephemeral=True,
                 )
-            return
 
         elif isinstance(error, commands.CommandOnCooldown):
             retry_after = self.on_cooldown_cooldown.update_rate_limit(ctx.message)
@@ -194,7 +193,6 @@ class ErrorHandler(core.Cog):
                 return await ctx.send(
                     f"You are on cooldown. Try again after {error.retry_after:,.2f} seconds.", ephemeral=True
                 )
-            return
 
         elif isinstance(error, commands.MaxConcurrencyReached):
             return await ctx.send(

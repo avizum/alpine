@@ -504,11 +504,3 @@ class Meta(core.Cog):
         if len(info) > 2000:
             info = f"The output was too long, posted to {await ctx.post(content=dumps, filename='raw_message.json')}"
         return await ctx.send(info)
-
-    @core.command(hidden=True)
-    @core.is_owner()
-    async def _(self, ctx):
-        """
-        Congrats have a cookie! 🍪
-        """
-        return

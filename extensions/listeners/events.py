@@ -252,7 +252,6 @@ class BotLogs(core.Cog):
                 actions.append(f"{edit_mapping[action]} from **{pre}** to **{post}**")
             if isinstance(post, int):
                 actions.append(f"{edit_mapping[action]} {format_seconds(post, friendly=True)}")
-                continue
         if not actions:
             return
         formatted = "\n".join(f"{num}. {action}" for num, action in enumerate(actions, 1))
