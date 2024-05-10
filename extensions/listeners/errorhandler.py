@@ -24,6 +24,26 @@ import discord
 import humanize
 from discord import app_commands
 from discord.ext import commands
+from discord.ext.commands import (
+    ArgumentParsingError,
+    BadArgument,
+    BadLiteralArgument,
+    BadUnionArgument,
+    BotMissingPermissions,
+    BucketType,
+    CommandNotFound,
+    CommandOnCooldown,
+    DisabledCommand,
+    MaxConcurrencyReached,
+    MissingAnyRole,
+    MissingPermissions,
+    MissingRequiredArgument,
+    MissingRole,
+    NoPrivateMessage,
+    NotOwner,
+    RangeError,
+    TooManyArguments,
+)
 
 import core
 from core import Bot, Context
@@ -136,21 +156,21 @@ class ErrorHandler(core.Cog):
         command_has_handler = ctx.command.has_error_handler() if ctx.command else None
 
         reinvoke = (
-            commands.CommandOnCooldown,
-            commands.NoPrivateMessage,
-            commands.MaxConcurrencyReached,
-            commands.MissingAnyRole,
-            commands.MissingPermissions,
-            commands.MissingRole,
-            commands.DisabledCommand,
+            CommandOnCooldown,
+            NoPrivateMessage,
+            MaxConcurrencyReached,
+            MissingAnyRole,
+            MissingPermissions,
+            MissingRole,
+            DisabledCommand,
             Maintenance,
             Blacklisted,
         )
 
         ignored = (
-            commands.NotOwner,
-            commands.CommandNotFound,
-            commands.NoPrivateMessage,
+            NotOwner,
+            CommandNotFound,
+            NoPrivateMessage,
             Maintenance,
         )
 
@@ -187,20 +207,38 @@ class ErrorHandler(core.Cog):
                     ephemeral=True,
                 )
 
-        elif isinstance(error, commands.CommandOnCooldown):
+        elif isinstance(error, CommandOnCooldown):
             retry_after = self.on_cooldown_cooldown.update_rate_limit(ctx.message)
             if not retry_after or ctx.interaction is not None:
                 return await ctx.send(
                     f"You are on cooldown. Try again after {error.retry_after:,.2f} seconds.", ephemeral=True
                 )
 
-        elif isinstance(error, commands.MaxConcurrencyReached):
+        elif isinstance(error, MaxConcurrencyReached):
+            per = error.per
+            bucket = ""
+            if per == BucketType.default:
+                bucket = "globally"
+            elif per == BucketType.user or per == BucketType.member:
+                bucket = "per user"
+            elif per == BucketType.guild:
+                bucket = "in this server"
+            elif per == BucketType.channel:
+                bucket = "in this channel"
+            elif per == BucketType.category:
+                bucket = "in this channel category"
+            elif per == BucketType.role:
+                bucket = f"for the {ctx.author.top_role} role"
+
+            uses = "use" if error.number == 1 else "uses"
+
             return await ctx.send(
-                f"This can only be used {error.number} {'time' if error.number == 1 else 'times'} {error.per.name}.",
+                f"Maximum concurrency limit has been reached.\n"
+                f"This command is limited to {error.number} concurrent {uses} {bucket}.",
                 ephemeral=True,
             )
 
-        elif isinstance(error, commands.BotMissingPermissions):
+        elif isinstance(error, BotMissingPermissions):
             missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_permissions]
 
             if len(missing) > 2:
@@ -217,7 +255,7 @@ class ErrorHandler(core.Cog):
             except discord.HTTPException:
                 return
 
-        elif isinstance(error, commands.MissingPermissions):
+        elif isinstance(error, MissingPermissions):
             missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_permissions]
 
             if len(missing) > 2:
@@ -234,7 +272,7 @@ class ErrorHandler(core.Cog):
         elif isinstance(error, NotGuildOwner):
             return await ctx.send("You do not own the server.", ephemeral=True)
 
-        elif isinstance(error, commands.MissingRequiredArgument):
+        elif isinstance(error, MissingRequiredArgument):
             self.reset(ctx)
             a = Embed(
                 title="Missing Arguments",
@@ -259,20 +297,20 @@ class ErrorHandler(core.Cog):
             if not retry_after or ctx.interaction is not None:
                 return await ctx.send("Commands have been disabled in this channel.", ephemeral=True)
 
-        elif isinstance(error, commands.DisabledCommand):
+        elif isinstance(error, DisabledCommand):
             return await ctx.send("This command is not enabled at the moment.", ephemeral=True)
 
-        elif isinstance(error, commands.RangeError):
+        elif isinstance(error, RangeError):
             minimum = error.minimum
             maximum = error.maximum
             value = error.value
 
-            item_type: str = ""
+            itebucket: str = ""
 
             if isinstance(minimum, (int, str)):
-                item_type = "a number"
+                itebucket = "a number"
             elif isinstance(minimum, str):
-                item_type = "text containing"
+                itebucket = "text containing"
 
             label: str = ""
             if minimum is None and maximum is not None:
@@ -290,16 +328,16 @@ class ErrorHandler(core.Cog):
                 else:
                     value = f"{count} characters"
 
-            return await ctx.send(f"This argument must be {item_type} {label}.")
+            return await ctx.send(f"This argument must be {itebucket} {label}.")
 
         elif isinstance(
             error,
-            (commands.BadArgument, commands.BadUnionArgument, commands.TooManyArguments, commands.ArgumentParsingError),
+            (BadArgument, BadUnionArgument, TooManyArguments, ArgumentParsingError),
         ):
             self.reset(ctx)
             return await ctx.send(str(error), ephemeral=True)
 
-        elif isinstance(error, commands.BadLiteralArgument):
+        elif isinstance(error, BadLiteralArgument):
             self.reset(ctx)
             return await ctx.send(f"This argument must be:\n {format_list(list(error.literals), last='or')}.")
 
