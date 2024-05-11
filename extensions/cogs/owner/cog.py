@@ -678,7 +678,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         cog: Moderation | None = self.bot.get_cog("moderation")  # type: ignore
         if cog is None:
             return await ctx.send(f"{len(purged)} messages deleted.")
-        await ctx.can_delete(embed=await cog.do_affected(purged))
+        await ctx.can_delete(embed=await cog._affected(purged))
 
     @Feature.Command(parent="jsk")
     async def maintenance(self, ctx: Context, toggle: bool):
