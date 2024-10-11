@@ -265,7 +265,7 @@ class Bot(commands.Bot):
         elif event in {"reaction_add", "reaction_remove"}:
 
             def bl_reaction_check(*args) -> bool:
-                can_run = self.database.get_blacklist(args[0].author.id) is None
+                can_run = self.database.get_blacklist(args[1].id) is None
                 if check:
                     return can_run and check(*args)
                 return not can_run
