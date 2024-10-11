@@ -35,6 +35,8 @@ if TYPE_CHECKING:
     from core import Context
     from utils import Database, GuildData, JoinLeaveData, LoggingData, VerificationData
 
+    from .cog import Settings
+
 
 class View(AView):
     embed: discord.Embed
@@ -52,6 +54,8 @@ class View(AView):
         await itn.response.defer()
         with contextlib.suppress(discord.HTTPException):
             await itn.delete_original_response()
+
+        self.stop()
 
     async def on_timeout(self) -> None:
         with contextlib.suppress(discord.HTTPException):
@@ -107,8 +111,9 @@ class SettingsView(View):
             color=self.ctx.get_color(),
         )
 
-    def __init__(self, ctx: Context, database: Database, settings: GuildData) -> None:
+    def __init__(self, cog: Settings, ctx: Context, database: Database, settings: GuildData) -> None:
         self.ctx: Context = ctx
+        self.cog: Settings = cog
         self.database: Database = database
         self.settings: GuildData = settings
         self.message: discord.Message | None = None
@@ -118,6 +123,7 @@ class SettingsView(View):
         self.add_item(self.select)
 
     async def start(self, *, view: View | None = None):
+        self.cog._settings[self.ctx.guild.id] = self
         if view:
             self.select.current_view = view
             message = await self.ctx.send(embed=view.embed, view=view)
@@ -125,6 +131,15 @@ class SettingsView(View):
             self.message = message
             return
         self.message = await self.ctx.send(embed=self.embed, view=self)
+        self.on_timeout
+
+    def stop(self) -> None:
+        self.cog._settings.pop(self.ctx.guild.id, None)
+        return super().stop()
+
+    async def on_timeout(self) -> None:
+        self.stop()
+        return await super().on_timeout()
 
     def get_view(self, name: str) -> View | None:
         match name.lower():

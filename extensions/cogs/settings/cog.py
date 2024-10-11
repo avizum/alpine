@@ -43,7 +43,12 @@ class Settings(core.Cog):
         self.emoji = "\U00002699"
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.map = {True: "Enabled", False: "Disabled", None: "Not Set"}
-        self.logging_map = {True: "now be logged", False: "now longer be logged"}
+        self._settings: dict[int, SettingsView] = {}
+
+    async def cog_check(self, ctx: Context) -> bool:
+        if self._settings.get(ctx.guild.id):
+            raise commands.MaxConcurrencyReached(1, commands.BucketType.guild)
+        return True
 
     @core.group(hybrid=True, fallback="show")
     @core.has_permissions(manage_guild=True)
@@ -52,7 +57,7 @@ class Settings(core.Cog):
         Configure Alpine settings for this server.
         """
         guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
-        view = SettingsView(ctx, ctx.database, guild_settings)
+        view = SettingsView(self, ctx, ctx.database, guild_settings)
         return await view.start()
 
     @settings.group(fallback="show")
@@ -61,7 +66,7 @@ class Settings(core.Cog):
         Show custom prefix configuration.
         """
         guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
-        view = SettingsView(ctx, ctx.database, guild_settings)
+        view = SettingsView(self, ctx, ctx.database, guild_settings)
         return await view.start(view=PrefixView(ctx, view))
 
     @prefix.command(name="add", aliases=["append"])
@@ -116,7 +121,7 @@ class Settings(core.Cog):
         Configure logging.
         """
         guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
-        view = SettingsView(ctx, ctx.database, guild_settings)
+        view = SettingsView(self, ctx, ctx.database, guild_settings)
         return await view.start(view=LoggingView(ctx, view))
 
     @settings.command(name="join-and-leaves")
@@ -126,7 +131,7 @@ class Settings(core.Cog):
         Configure join and leave messages.
         """
         guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
-        view = SettingsView(ctx, ctx.database, guild_settings)
+        view = SettingsView(self, ctx, ctx.database, guild_settings)
         return await view.start(view=JoinsAndLeavesView(ctx, view))
 
     @settings.command()
@@ -137,7 +142,7 @@ class Settings(core.Cog):
         Configure member verification.
         """
         guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
-        view = SettingsView(ctx, ctx.database, guild_settings)
+        view = SettingsView(self, ctx, ctx.database, guild_settings)
         return await view.start(view=MemberVerificationView(ctx, view))
 
     @core.group(invoke_without_command=True, case_insensitive=True)
