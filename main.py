@@ -24,7 +24,8 @@ parser = argparse.ArgumentParser("Alpine Bot")
 parser.add_argument("-b", "--beta", action="store_true")
 parsed = parser.parse_args()
 
-if __name__ == "__main__":
+
+def main():
     bot = Bot()
     tokens = bot.settings["bot_tokens"]
 
@@ -34,3 +35,7 @@ if __name__ == "__main__":
 
     bot.token = tokens["Alpine"] if not parsed.beta else tokens["AlpineII"]
     bot.run()
+
+
+if __name__ == "__main__":
+    main()
