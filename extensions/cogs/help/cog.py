@@ -57,7 +57,7 @@ class AlpineHelp(commands.HelpCommand):
         if cooldown:
             rate = cooldown.rate
             _type = command._buckets.type.name
-            per = humanize.precisedelta(cooldown.per)
+            per = humanize.precisedelta(int(cooldown.per))
             time = "times" if rate > 1 else "time"
             return f"{per} every {rate} {time} per {_type}"
         return None
@@ -250,8 +250,11 @@ class HelpCommand(core.Cog):
         """
         Shows help for a command or module.
         """
+
         ctx: Context = await self.bot.get_context(interaction)
-        await ctx.send_help(item)
+        if not item:
+            return await ctx.send_help()
+        return await ctx.send_help(item)
 
     @_help.autocomplete("item")
     async def _help_autocomplete(
