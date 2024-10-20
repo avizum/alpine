@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 import discord
 from discord.ext import menus
@@ -29,7 +29,6 @@ from utils import Paginator
 
 if TYPE_CHECKING:
     from discord.ext.commands import Command
-    from typing_extensions import Self
 
     from .cog import AlpineHelp
 

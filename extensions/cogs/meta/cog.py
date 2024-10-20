@@ -30,7 +30,6 @@ from discord.ext import commands, menus
 from discord.utils import format_dt
 from doc_search import AsyncScraper
 from jishaku.codeblocks import codeblock_converter
-from pytz import UnknownTimeZoneError
 
 import core
 from utils import Emojis, Paginator, PaginatorEmbed

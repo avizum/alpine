@@ -77,7 +77,7 @@ class AlpineHelp(commands.HelpCommand):
         flag_delimiter = flagconverter.__commands_flag_delimiter__ or ""  # type: ignore
         flgs = []
         for name, flag in flags.items():
-            if type(flag.description) == discord.utils._MissingSentinel:
+            if type(flag.description) is discord.utils._MissingSentinel:
                 flag.description = "No description provided."
             f_name = f"{flag_prefix}{name}{flag_delimiter}"
             f_aliases = [f"{flag_prefix}{alias}{flag_delimiter}" for alias in flag.aliases]

@@ -215,11 +215,10 @@ class ReloadView(View):
                 reload_list.append(f"{Emojis.GREEN_TICK} | {cog}")
             except commands.ExtensionError as e:
                 reload_list.append(f"{Emojis.RED_TICK} | {cog}\n```{e}```")
-            else:
-                if not reload_list:
-                    self.embed.add_field(name="Reloaded Modules", value="No modules were reloaded")
-                else:
-                    self.embed.add_field(name="Reloaded Modules", value="\n".join(reload_list))
+        if not reload_list:
+            self.embed.add_field(name="Reloaded Modules", value="No modules were reloaded")
+        else:
+            self.embed.add_field(name="Reloaded Modules", value="\n".join(reload_list))
         self.embed.set_footer()
         await interaction.response.edit_message(embed=self.embed, view=None)
         self.stop()
@@ -430,7 +429,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                     },
                     f,
                 )
-            await conf.message.edit(content="Rebooting...", embed=None)
+            await conf.message.edit(content="Rebooting...", embed=None, view=None)
             await self.bot.close()
         else:
             await conf.message.edit(content="Reboot aborted", embed=None, delete_after=5)

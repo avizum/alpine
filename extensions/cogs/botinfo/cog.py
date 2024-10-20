@@ -197,6 +197,7 @@ class BotInfo(core.Cog, name="Bot Info"):
             value=f"`{db.total_time * 1000:,.2f} ms`",
             inline=False,
         )
+        await ctx.message.add_reaction("<:greentick:777096731438874634>")
         await ctx.send(embed=ping_embed)
 
     @core.command()
@@ -377,7 +378,7 @@ class BotInfo(core.Cog, name="Bot Info"):
         view = discord.ui.View()
         links = [
             ("Top.gg", "https://top.gg/bot/756257170521063444/vote"),
-            ("Discord Bot List", "https://discordbotlist.com/bots/alpine/upvote"),
+            ("Discord Bot List", "https://discordbotlist.com/bots/avimetry/upvote"),
         ]
         for name, link in links:
             view.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label=name, url=link))
@@ -540,4 +541,3 @@ class BotInfo(core.Cog, name="Bot Info"):
         ⏹: Stops the paginator
         1/x: Click on it to choose a page to jump to.
         """
-        return

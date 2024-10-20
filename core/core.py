@@ -157,13 +157,11 @@ class Cog(commands.Cog):
 
 
 @overload
-def command(name: str = MISSING, hybrid: bool = True, **kwargs: Any) -> Callable[..., HybridCommand]:
-    ...
+def command(name: str = MISSING, hybrid: bool = True, **kwargs: Any) -> Callable[..., HybridCommand]: ...
 
 
 @overload
-def command(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callable[..., Command]:
-    ...
+def command(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callable[..., Command]: ...
 
 
 def command(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callable[..., Command | HybridCommand]:
@@ -178,13 +176,11 @@ def command(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callabl
 
 
 @overload
-def group(name: str = MISSING, hybrid: bool = True, **kwargs: Any) -> Callable[..., HybridGroup]:
-    ...
+def group(name: str = MISSING, hybrid: bool = True, **kwargs: Any) -> Callable[..., HybridGroup]: ...
 
 
 @overload
-def group(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callable[..., Group]:
-    ...
+def group(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callable[..., Group]: ...
 
 
 def group(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callable[..., Group | HybridGroup]:

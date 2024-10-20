@@ -134,7 +134,7 @@ class Music(core.Cog):
         if player is None:
             return
 
-        await player.context.channel.send(f"Error on {track.title}: {payload.exception}")
+        await player.context.channel.send(f"An error occured while playing {track}")
 
     @core.Cog.listener("on_wavelink_track_end")
     async def track_end(self, payload: TrackEnd):
@@ -173,7 +173,7 @@ class Music(core.Cog):
     ):
         if member.guild.voice_client is None:
             return
-        player: Player = member.guild.voice_client  # type: ignore
+        player: Player = cast(Player, member.guild.voice_client)
 
         if member == self.bot.user:
             if after.channel is None:
@@ -491,13 +491,16 @@ class Music(core.Cog):
         if not player:
             return
 
+        if not player.current:
+            return await ctx.send("There is nothing to skip.")
+
         if self.is_privileged(ctx):
             await ctx.send(f":track_next: {ctx.author.display_name} has skipped the song.")
             player.skip_votes.clear()
 
             return await player.skip()
 
-        if ctx.author == player.track.requester:  # type: ignore  # Track should always have a requester.
+        if ctx.author == player.current.requester:
             await ctx.send(":track_next: The song requester has skipped the song.")
             player.skip_votes.clear()
 

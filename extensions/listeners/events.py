@@ -215,7 +215,7 @@ class BotLogs(core.Cog):
             return await logging.webhook.send(message)
 
     @core.Cog.listener("on_guild_channel_update")
-    async def logging_channel_create(self, before: discord.abc.GuildChannel, after: discord.abc.GuildChannel):
+    async def logging_channel_edit(self, before: discord.abc.GuildChannel, after: discord.abc.GuildChannel):
         settings = self.bot.database.get_guild(before.guild.id)
         logging = settings.logging if settings else None
         if not logging or not logging.enabled or not logging.channel_edit or not logging.webhook:
