@@ -34,6 +34,7 @@ from utils.paginators import Paginator, WrappedPaginator
 from utils.view import View as AView
 
 if TYPE_CHECKING:
+    from asyncpg import Pool
     from discord import AllowedMentions, Embed, File, GuildSticker, Message, MessageReference, PartialMessage, StickerItem
     from discord.ui import View
 
@@ -145,6 +146,10 @@ class Context(commands.Context, Generic[BotT]):
     @property
     def database(self) -> Database:
         return self.bot.database
+
+    @property
+    def pool(self) -> Pool:
+        return self.bot.database.pool
 
     @property
     def clean_prefix(self) -> str:
