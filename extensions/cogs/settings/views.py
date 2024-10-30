@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING
 
 import discord
 from discord import ui
+from discord.ext import commands
 from discord.ui.select import BaseSelect
 
 import utils
@@ -551,6 +552,7 @@ class JoinsAndLeavesView(View):
         self.message: discord.Message | None = settings_view.message
         self.settings: GuildData = settings_view.settings
         self.joins_and_leaves: JoinLeaveData | None = self.settings.join_leave
+        self.cd: commands.CooldownMapping = commands.CooldownMapping.from_cooldown(1, 15, lambda itn: itn.user)
         super().__init__(member=ctx.author)
         self.join_message: JoinsAndLeavesMessageEditButton = JoinsAndLeavesMessageEditButton()
         self.leave_message: JoinsAndLeavesMessageEditButton = JoinsAndLeavesMessageEditButton(leave=True)
@@ -629,11 +631,15 @@ class JoinsAndLeavesView(View):
 
     @ui.button(label="Test join message", style=discord.ButtonStyle.blurple, row=1)
     async def test_join_message(self, itn: Interaction, _):
+        if self.cd.update_rate_limit(itn):
+            await itn.response.send_message("Slow down.")
         self.ctx.bot.dispatch("test_member_join", itn.user)
         await itn.response.send_message("Sent test join message.", ephemeral=True)
 
     @ui.button(label="Test leave message", style=discord.ButtonStyle.blurple, row=2)
     async def test_leave_message(self, itn: Interaction, _):
+        if self.cd.update_rate_limit(itn):
+            await itn.response.send_message("Slow down.")
         self.ctx.bot.dispatch("test_member_remove", itn.user)
         await itn.response.send_message("Sent test leave message.", ephemeral=True)
 
