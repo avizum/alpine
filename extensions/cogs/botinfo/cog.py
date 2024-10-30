@@ -22,6 +22,7 @@ import datetime as dt
 import inspect
 import os
 import pathlib
+import sys
 from typing import TYPE_CHECKING
 
 import discord
@@ -300,8 +301,8 @@ class BotInfo(core.Cog, name="Bot Info"):
         path = pathlib.Path("./")
         comments = coros = funcs = classes = lines = imports = files = char = 0
         for item in path.rglob("*.py"):
-            venv = os.environ["VIRTUAL_ENV"]
-            if venv and str(item).startswith(venv.split("/")[-1]):
+            venv = sys.prefix != sys.base_prefix
+            if venv and str(item).startswith(sys.prefix.split("/")[-1]):
                 continue
             else:
                 files += 1
@@ -501,16 +502,16 @@ class BotInfo(core.Cog, name="Bot Info"):
             return await ctx.send("Okay, I deleted all your data.")
         return await conf.message.edit(content="Aborted.")
 
-    @core.command()
-    async def error(self, ctx: Context, error_id: int | None = None):
+    @core.command(hybrid=True)
+    @core.describe(error_id="The ID of the error")
+    @app_commands.rename(error_id="id")
+    async def error(self, ctx: Context, error_id: int):
         """
         Get some error about an error
 
         This will show the Traceback and if it has been fixed yet.
         If you have any ideas on how to fix it, You can DM Alpine or use the suggest command.
         """
-        if error_id is None:
-            return await ctx.send_help("error")
         query = "SELECT * FROM command_errors WHERE id=$1"
         error_info = await self.bot.database.pool.fetchrow(query, error_id)
         if not error_info:
