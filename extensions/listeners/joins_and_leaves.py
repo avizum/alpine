@@ -112,9 +112,10 @@ class JoinsAndLeaves(core.Cog):
         env = {"member": member, "guild": member.guild}
         message = parser.parse(message, env=env)
         final = self.convert(message)
+        allowed_mentions = discord.AllowedMentions(everyone=False, roles=False, users=[member])
         if isinstance(final, discord.Embed):
-            return await channel.send(embed=final)
-        return await channel.send(final)
+            return await channel.send(embed=final, allowed_mentions=allowed_mentions)
+        return await channel.send(final, allowed_mentions=allowed_mentions)
 
     @core.Cog.listener("on_member_remove")
     @core.Cog.listener("on_test_member_remove")
@@ -134,9 +135,10 @@ class JoinsAndLeaves(core.Cog):
         env = {"member": member, "guild": member.guild}
         message = parser.parse(message, env=env)
         final = self.convert(message)
+        allowed_mentions = discord.AllowedMentions(everyone=False, roles=False, users=[member])
         if isinstance(final, discord.Embed):
-            return await channel.send(embed=final)
-        return await channel.send(final)
+            return await channel.send(embed=final, allowed_mentions=allowed_mentions)
+        return await channel.send(final, allowed_mentions=allowed_mentions)
 
 
 async def setup(bot):
