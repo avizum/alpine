@@ -95,8 +95,9 @@ class JoinsAndLeaves(core.Cog):
         except Exception:
             return message
 
-    @core.Cog.listener()
-    async def on_member_join(self, member: discord.Member):
+    @core.Cog.listener("on_member_join")
+    @core.Cog.listener("on_test_member_join")
+    async def member_join(self, member: discord.Member):
         guild = self.bot.database.get_guild(member.guild.id)
         if not guild:
             return
@@ -115,8 +116,9 @@ class JoinsAndLeaves(core.Cog):
             return await channel.send(embed=final)
         return await channel.send(final)
 
-    @core.Cog.listener()
-    async def on_member_remove(self, member: discord.Member):
+    @core.Cog.listener("on_member_remove")
+    @core.Cog.listener("on_test_member_remove")
+    async def member_remove(self, member: discord.Member):
         guild = self.bot.database.get_guild(member.guild.id)
         if not guild:
             return

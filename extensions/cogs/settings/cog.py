@@ -57,7 +57,7 @@ class Settings(core.Cog):
         Configure Alpine settings for this server.
         """
         guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
-        view = SettingsView(self, ctx, ctx.database, guild_settings)
+        view = SettingsView(self, ctx, guild_settings)
         return await view.start()
 
     @settings.group(fallback="show")
@@ -66,7 +66,7 @@ class Settings(core.Cog):
         Show custom prefix configuration.
         """
         guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
-        view = SettingsView(self, ctx, ctx.database, guild_settings)
+        view = SettingsView(self, ctx, guild_settings)
         return await view.start(view=PrefixView(ctx, view))
 
     @prefix.command(name="add", aliases=["append"])
@@ -121,7 +121,7 @@ class Settings(core.Cog):
         Configure logging.
         """
         guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
-        view = SettingsView(self, ctx, ctx.database, guild_settings)
+        view = SettingsView(self, ctx, guild_settings)
         return await view.start(view=LoggingView(ctx, view))
 
     @settings.command(name="joins-and-leaves", aliases=["joinsandleaves", "jal", "joins", "leaves"])
@@ -131,7 +131,7 @@ class Settings(core.Cog):
         Configure join and leave messages.
         """
         guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
-        view = SettingsView(self, ctx, ctx.database, guild_settings)
+        view = SettingsView(self, ctx, guild_settings)
         return await view.start(view=JoinsAndLeavesView(ctx, view))
 
     @settings.command()
@@ -142,7 +142,7 @@ class Settings(core.Cog):
         Configure member verification.
         """
         guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
-        view = SettingsView(self, ctx, ctx.database, guild_settings)
+        view = SettingsView(self, ctx, guild_settings)
         return await view.start(view=MemberVerificationView(ctx, view))
 
     @core.group(invoke_without_command=True, case_insensitive=True)

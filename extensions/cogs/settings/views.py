@@ -509,7 +509,6 @@ class JoinsAndLeavesMessageEditButton(ui.Button["JoinsAndLeavesView"]):
                 confirm = await self.view.confirm(itn, modal.output)
                 if confirm.result:
                     join_message = modal.output
-                    print(join_message)
                     await confirm.message.edit(content="Join message has been set.", embed=None, view=None)
                 else:
                     await confirm.message.edit(content="Okay, join message was not set.", embed=None, view=None)
@@ -556,10 +555,19 @@ class JoinsAndLeavesView(View):
         self.join_message: JoinsAndLeavesMessageEditButton = JoinsAndLeavesMessageEditButton()
         self.leave_message: JoinsAndLeavesMessageEditButton = JoinsAndLeavesMessageEditButton(leave=True)
         self.channel_select: JoinsAndLeavesChannelSelect = JoinsAndLeavesChannelSelect(self.settings)
-        self.add_item(self.join_message)
-        self.add_item(self.leave_message)
-        self.add_item(self.channel_select)
+        self.clear_items()
+        self._add_items()
         self._update()
+
+    def _add_items(self) -> None:
+        self.add_item(self.enable_disable)
+        self.add_item(self.join_message)
+        self.add_item(self.test_join_message)
+        self.add_item(self.leave_message)
+        self.add_item(self.test_leave_message)
+        self.add_item(self.channel_select)
+        self.add_item(self.home)
+        self.add_item(self.close)
 
     def _update(self) -> None:
         join_leave = self.joins_and_leaves
@@ -567,14 +575,14 @@ class JoinsAndLeavesView(View):
         self._set_state(False)
         self.enable_disable.style = discord.ButtonStyle.red
         self.enable_disable.label = "Disable Joins and Leaves"
+        self.test_join_message.disabled = True
+        self.test_leave_message.disabled = True
 
         if not join_leave or join_leave and not join_leave.enabled:
             self._set_state(True)
             self.enable_disable.disabled = False
             self.enable_disable.style = discord.ButtonStyle.green
             self.enable_disable.label = "Enable Joins and Leaves"
-
-        if not self.joins_and_leaves:
             return
 
         self.join_message.label = "Enable join message"
@@ -582,13 +590,15 @@ class JoinsAndLeavesView(View):
         self.leave_message.label = "Enable leave message"
         self.leave_message.style = discord.ButtonStyle.green
 
-        if self.joins_and_leaves.join_message:
+        if join_leave.join_message:
             self.join_message.label = "Edit join message"
             self.join_message.style = discord.ButtonStyle.gray
+            self.test_join_message.disabled = False
 
-        if self.joins_and_leaves.leave_message:
+        if join_leave.leave_message:
             self.leave_message.label = "Edit leave message"
             self.leave_message.style = discord.ButtonStyle.gray
+            self.test_leave_message.disabled = False
 
     async def confirm(self, itn: Interaction, message: str) -> ConfirmResult:
         timeout = self.view.timeout
@@ -616,6 +626,16 @@ class JoinsAndLeavesView(View):
         await self.joins_and_leaves.update(enabled=not state)
         self._update()
         await itn.response.edit_message(view=self)
+
+    @ui.button(label="Test join message", style=discord.ButtonStyle.blurple, row=1)
+    async def test_join_message(self, itn: Interaction, _):
+        self.ctx.bot.dispatch("test_member_join", itn.user)
+        await itn.response.send_message("Sent test join message.", ephemeral=True)
+
+    @ui.button(label="Test leave message", style=discord.ButtonStyle.blurple, row=2)
+    async def test_leave_message(self, itn: Interaction, _):
+        self.ctx.bot.dispatch("test_member_remove", itn.user)
+        await itn.response.send_message("Sent test leave message.", ephemeral=True)
 
 
 class MemberVerificationChannelSelect(ui.ChannelSelect["MemberVerificationView"]):
