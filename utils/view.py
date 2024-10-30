@@ -23,8 +23,8 @@ __all__ = ("View",)
 
 
 class View(discord.ui.View):
-    def __init__(self, *, member: discord.Member | discord.User, timeout: int | float = 180, **kwargs) -> None:
-        self.member: discord.Member | discord.User = member
+    def __init__(self, *, member: discord.Member | discord.User, timeout: float | None = 180.0, **kwargs) -> None:
+        self.member: discord.Member | discord.User | discord.Object = member
         super().__init__(timeout=timeout, **kwargs)
 
     def disable_all(self) -> None:
