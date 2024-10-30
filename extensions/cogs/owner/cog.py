@@ -763,17 +763,17 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         fix_list = []
         trackers = None
-        for i in error_id:
+        for _id in error_id:
             query = "SELECT * FROM command_errors WHERE id=$1"
-            error_info = await ctx.database.pool.fetchrow(query, i)
+            error_info = await ctx.database.pool.fetchrow(query, _id)
             if not error_info:
-                fix_list.append(f"Error ID {i} does not exist.")
+                fix_list.append(f"Error ID {_id} does not exist.")
             elif error_info["fixed"] is True:
-                fix_list.append(f"Error ID {i} is already marked as fixed.")
+                fix_list.append(f"Error ID {_id} is already marked as fixed.")
             else:
-                query = "UPDATE command_errors SET fixed=$1 WHERE id=$2 RETURNING *"
-                trackers = await ctx.database.pool.fetchrow(query, True, i)
-                fix_list.append(f"Error ID {i} has been marked as fixed.")
+                query = "UPDATE command_errors SET fixed=$1, trackers=$2 WHERE id=$3 RETURNING *"
+                trackers = await ctx.database.pool.fetchrow(query, True, [], _id)
+                fix_list.append(f"Error ID {_id} has been marked as fixed.")
         await ctx.send("\n".join(fix_list))
         if trackers:
             await self.dm_error_trackers(trackers)
