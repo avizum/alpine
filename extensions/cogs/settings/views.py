@@ -111,10 +111,10 @@ class SettingsView(View):
             color=self.ctx.get_color(),
         )
 
-    def __init__(self, cog: Settings, ctx: Context, database: Database, settings: GuildData) -> None:
+    def __init__(self, cog: Settings, ctx: Context, settings: GuildData) -> None:
         self.ctx: Context = ctx
         self.cog: Settings = cog
-        self.database: Database = database
+        self.database: Database = ctx.database
         self.settings: GuildData = settings
         self.message: discord.Message | None = None
         super().__init__(member=ctx.author, timeout=120)
@@ -176,23 +176,23 @@ class PrefixAddModal(ui.Modal, title="Add a prefix"):
         return await itn.response.send_message(f"Added {prefix} to the list of prefixes.", ephemeral=True)
 
 
-class PrefixRemoveSelect(ui.Select["AView"]):
+class PrefixRemoveSelect(ui.Select["PrefixView"]):
     def __init__(self, settings: GuildData) -> None:
         self.settings: GuildData = settings
         options = [discord.SelectOption(label=prefix) for prefix in self.settings.prefixes]
-        super().__init__(options=options, max_values=len(options))
+        super().__init__(placeholder="Select a prefix to remove...", options=options, max_values=len(options), row=1)
 
     async def callback(self, itn: Interaction) -> None:
         assert self.view is not None
+        assert self.view.prefix_remove_select is not None
 
         for prefix in self.values:
             self.settings.prefixes.remove(prefix)
         await self.settings.update(prefixes=self.settings.prefixes)
-        await itn.response.edit_message(
-            content=f"Removed {len(self.values)} prefixes:\n`{'` | `'.join(self.values)}`",
-            view=None,
-        )
-        self.view.stop()
+        self.view.remove_item(self.view.prefix_remove_select)
+        self.view.prefix_remove_select = None
+        self.view._update()
+        await itn.response.edit_message(embed=self.view.embed, view=self.view)
 
 
 class PrefixView(View):
@@ -215,6 +215,7 @@ class PrefixView(View):
         self.message: discord.Message | None = settings_view.message
         self.settings: GuildData = settings_view.settings
         self.ctx: Context = ctx
+        self.prefix_remove_select: PrefixRemoveSelect | None = None
         super().__init__(member=ctx.author)
         self._update()
 
@@ -222,7 +223,7 @@ class PrefixView(View):
         self.add_prefix.disabled = False
         self.remove_prefix.disabled = False
 
-        if not self.settings.prefixes:
+        if not self.settings.prefixes or self.prefix_remove_select:
             self.remove_prefix.disabled = True
         if len(self.settings.prefixes) >= 35:
             self.add_prefix.disabled = True
@@ -252,16 +253,10 @@ class PrefixView(View):
 
         if not self.settings.prefixes:
             return await itn.response.send_message("There are no prefixes to remove.", ephemeral=True)
-        view = AView(member=self.ctx.author)
-        select = PrefixRemoveSelect(self.settings)
-        view.add_item(select)
-        await itn.response.send_message("Select prefixes to remove.", view=view, ephemeral=True)
-        timeout = self.timeout
-        self.timeout = None
-        await view.wait()
-        self.timeout = timeout
+        self.prefix_remove_select = PrefixRemoveSelect(self.settings)
+        self.add_item(self.prefix_remove_select)
         self._update()
-        await self.message.edit(embed=self.embed, view=self)
+        await itn.response.edit_message(embed=self.embed, view=self)
 
 
 LoggingOptions: list[tuple[str, ...]] = [
