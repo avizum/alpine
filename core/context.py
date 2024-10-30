@@ -278,7 +278,7 @@ class Context(commands.Context, Generic[BotT]):
             if not embed.color:
                 embed.color = await self.fetch_color()
 
-        if ephemeral:
+        if ephemeral and self.interaction:
             no_reply = True
 
         kwargs: dict[str, Any] = {
