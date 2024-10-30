@@ -180,7 +180,7 @@ class Meta(core.Cog):
                 ie.add_field(name="Nickname", value=member.nick)
 
             sort = sorted(ctx.guild.members, key=lambda m: getattr(m, "joined_at"))
-            pos = f"{sort.index(member) + 1:,}/{len(ctx.guild.members):,}"
+            pos = f"{sort.index(member) + 1:,} of {len(ctx.guild.members):,}"
             assert member.joined_at is not None
             ie.add_field(
                 name="Join Date",
@@ -195,12 +195,12 @@ class Meta(core.Cog):
             top_role = member.top_role.mention
             if top_role != ctx.guild.default_role.mention:
                 ie.add_field(name="Top Role", value=top_role, inline=False)
-            userroles = ", ".join(userroles)
-            if len(userroles) > 1024:
-                userroles = f"{member.display_name} has too many roles to show here."
+            if len(userroles) >= 40:
+                userroles = userroles[:40]
+                userroles.append("...")
             ie.add_field(
                 name=f"Roles [{len(member.roles)}]",
-                value=userroles,
+                value=", ".join(userroles),
                 inline=False,
             )
             if member.public_flags.value > 0:
