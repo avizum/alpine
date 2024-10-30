@@ -414,34 +414,41 @@ class LoggingView(View):
 
 
 class JoinsAndLeavesMessageModal(ui.Modal):
-    def __init__(self, view: JoinsAndLeavesView):
+    def __init__(self, view: JoinsAndLeavesView, leave: bool = False):
+
         self.view = view
-        self.join_message: str | None = None
-        self.leave_message: str | None = None
-        title = "Edit join and leave messages"
+        self.output: str
+
+        if not view.joins_and_leaves:
+            raise ValueError("Expected view to have joins_and_leaves attribute set, not None")
+
+        title = "Set join message"
+        label = "Join message [Leave blank to disable]"
+        placeholder = "{member.mention} joined {server}! Now at {server.count} members!"
+        default = view.joins_and_leaves.join_message
+
+        if leave:
+            title = "Set leave message"
+            label = "Leave message [Leave blank to disable]"
+            placeholder = "Aww, {member.mention} left {server}... Now at {server.count} members."
+            default = view.joins_and_leaves.leave_message
+
         super().__init__(title=title)
         if not view.joins_and_leaves:
             return
-        self.join_input = ui.TextInput(
+
+        self.input = ui.TextInput(
             style=discord.TextStyle.long,
-            label="Join message",
-            placeholder="{member.mention} joined {server}! Now at {server.count} members!",
-            default=view.joins_and_leaves.join_message,
+            label=label,
+            placeholder=placeholder,
+            default=default,
             required=False,
         )
-        self.leave_input = ui.TextInput(
-            style=discord.TextStyle.long,
-            label="Leave message",
-            placeholder="Aww, {member.mention} left {server}... Now at {server.count} members.",
-            default=view.joins_and_leaves.leave_message,
-            required=False,
-        )
-        self.add_item(self.join_input)
-        self.add_item(self.leave_input)
+
+        self.add_item(self.input)
 
     async def on_submit(self, itn: Interaction) -> None:
-        self.join_message = self.join_input.value
-        self.leave_message = self.leave_input.value
+        self.output = self.input.value
         await itn.response.defer()
 
 
@@ -473,6 +480,65 @@ class JoinsAndLeavesChannelSelect(ui.ChannelSelect["JoinsAndLeavesView"]):
         return await itn.response.send_message(f"Set channel to {channel.mention}.", ephemeral=True)
 
 
+class JoinsAndLeavesMessageEditButton(ui.Button["JoinsAndLeavesView"]):
+    def __init__(self, *, leave: bool = False):
+        self.leave: bool = leave
+        label = "Edit join message"
+        emoji = "<:Join:1297308667938476073>"
+        row = 1
+        if leave:
+            label = "Edit leave message"
+            emoji = "<:Leave:1297308655976452197>"
+            row = 2
+        super().__init__(label=label, emoji=emoji, row=row)
+
+    async def callback(self, itn: Interaction):
+        assert self.view is not None
+        assert self.view.joins_and_leaves is not None
+        assert self.view.message is not None
+
+        joins_and_leaves = self.view.joins_and_leaves
+
+        modal = JoinsAndLeavesMessageModal(self.view, leave=self.leave)
+        timeout = self.view.timeout
+        self.view.timeout = None
+        await itn.response.send_modal(modal)
+        await modal.wait()
+        self.view.timeout = timeout
+
+        join_message: str | None = joins_and_leaves.join_message
+        leave_message: str | None = joins_and_leaves.leave_message
+
+        if self.leave is False:
+            if modal.output and modal.output != join_message:
+                confirm = await self.view.confirm(itn, modal.output)
+                if confirm.result:
+                    join_message = modal.output
+                    print(join_message)
+                    await confirm.message.edit(content="Join message has been set.", embed=None, view=None)
+                else:
+                    await confirm.message.edit(content="Okay, join message was not set.", embed=None, view=None)
+            elif not modal.output:
+                join_message = None
+                await itn.followup.send("Disabled join message.", ephemeral=True)
+
+        else:
+            if modal.output and modal.output != leave_message:
+                confirm = await self.view.confirm(itn, modal.output)
+                if confirm.result:
+                    leave_message = modal.output
+                    await confirm.message.edit(content="Leave message has been set.", embed=None, view=None)
+                else:
+                    await confirm.message.edit(content="Okay, leave message was not set.", embed=None, view=None)
+            elif not modal.output:
+                leave_message = None
+                await itn.followup.send("Disabled leave message.", ephemeral=True)
+
+        await joins_and_leaves.update(join_message=join_message, leave_message=leave_message)
+        self.view._update()
+        await self.view.message.edit(view=self.view)
+
+
 class JoinsAndLeavesView(View):
     @property
     def embed(self) -> discord.Embed:
@@ -492,7 +558,11 @@ class JoinsAndLeavesView(View):
         self.settings: GuildData = settings_view.settings
         self.joins_and_leaves: JoinLeaveData | None = self.settings.join_leave
         super().__init__(member=ctx.author)
+        self.join_message: JoinsAndLeavesMessageEditButton = JoinsAndLeavesMessageEditButton()
+        self.leave_message: JoinsAndLeavesMessageEditButton = JoinsAndLeavesMessageEditButton(leave=True)
         self.channel_select: JoinsAndLeavesChannelSelect = JoinsAndLeavesChannelSelect(self.settings)
+        self.add_item(self.join_message)
+        self.add_item(self.leave_message)
         self.add_item(self.channel_select)
         self._update()
 
@@ -509,6 +579,22 @@ class JoinsAndLeavesView(View):
             self.enable_disable.style = discord.ButtonStyle.green
             self.enable_disable.label = "Enable Joins and Leaves"
 
+        if not self.joins_and_leaves:
+            return
+
+        self.join_message.label = "Enable join message"
+        self.join_message.style = discord.ButtonStyle.green
+        self.leave_message.label = "Enable leave message"
+        self.leave_message.style = discord.ButtonStyle.green
+
+        if self.joins_and_leaves.join_message:
+            self.join_message.label = "Edit join message"
+            self.join_message.style = discord.ButtonStyle.gray
+
+        if self.joins_and_leaves.leave_message:
+            self.leave_message.label = "Edit leave message"
+            self.leave_message.style = discord.ButtonStyle.gray
+
     async def confirm(self, itn: Interaction, message: str) -> ConfirmResult:
         timeout = self.view.timeout
         self.view.timeout = None
@@ -521,6 +607,7 @@ class JoinsAndLeavesView(View):
         else:
             preview = f"## Preview:\n{preview}"
             msg = await itn.followup.send(preview, view=view, ephemeral=True, wait=True)
+        await view.wait()
         self.view.timeout = timeout
         return ConfirmResult(msg, view.value)
 
@@ -534,49 +621,6 @@ class JoinsAndLeavesView(View):
         await self.joins_and_leaves.update(enabled=not state)
         self._update()
         await itn.response.edit_message(view=self)
-
-    @ui.button(label="Edit join and leave message")
-    async def join_message(self, itn: Interaction, _: ui.Button) -> None:
-        assert self.joins_and_leaves is not None
-        assert self.message is not None
-
-        modal = JoinsAndLeavesMessageModal(self)
-        timeout = self.timeout
-        self.timeout = None
-        await itn.response.send_modal(modal)
-        await modal.wait()
-        self.timeout = timeout
-
-        join_message: str | None = None
-        leave_message: str | None = None
-
-        if modal.join_message and modal.join_message != self.joins_and_leaves.join_message:
-            join = await self.confirm(itn, modal.join_message)
-            if join.result:
-                join_message = modal.join_message
-                await join.message.edit(content="Successfully set join message.", embed=None, view=None)
-            else:
-                await join.message.edit(content="Okay, join message was not set.", embed=None, view=None)
-        elif modal.join_message == self.joins_and_leaves.join_message:
-            pass
-        elif not modal.join_message:
-            await itn.followup.send("Disabled join message.", ephemeral=True)
-
-        if modal.leave_message and modal.leave_message != self.joins_and_leaves.leave_message:
-            leave = await self.confirm(itn, modal.leave_message)
-            if leave.result:
-                leave_message = modal.leave_message
-                await leave.message.edit(content="Successfully set leave message.", embed=None, view=None)
-            else:
-                await leave.message.edit(content="Okay, leave message wasn't set.", embed=None, view=None)
-        elif modal.leave_message == self.joins_and_leaves.leave_message:
-            pass
-        elif not modal.leave_message:
-            await itn.followup.send("Disabled leave message.", ephemeral=True)
-
-        await self.joins_and_leaves.update(join_message=join_message, leave_message=leave_message)
-        self._update()
-        await self.message.edit(view=self)
 
 
 class MemberVerificationChannelSelect(ui.ChannelSelect["MemberVerificationView"]):

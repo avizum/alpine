@@ -124,7 +124,7 @@ class Settings(core.Cog):
         view = SettingsView(self, ctx, ctx.database, guild_settings)
         return await view.start(view=LoggingView(ctx, view))
 
-    @settings.command(name="join-and-leaves")
+    @settings.command(name="joins-and-leaves", aliases=["joinsandleaves", "jal", "joins", "leaves"])
     @core.has_permissions(manage_guild=True)
     async def joins_and_leaves(self, ctx: Context):
         """
