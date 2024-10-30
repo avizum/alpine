@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import functools
 import inspect
-from typing import TYPE_CHECKING, Any, Callable, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, Literal, TypeVar
 
 import discord
 from discord.ext import commands
@@ -31,7 +31,7 @@ from .core import Command
 from .exceptions import NotGuildOwner
 
 if TYPE_CHECKING:
-    from discord.ext.commands._types import Check, CoroFunc, UserCheck
+    from discord.ext.commands._types import Check, UserCheck
 
     from .context import Context
     from .core import Bot
@@ -49,6 +49,9 @@ __all__ = (
 
 
 T = TypeVar("T")
+Coro = Coroutine[Any, Any, T]
+CoroFunc = Callable[..., Coro[Any]]
+CommandFunc = Command[Any, ..., Any] | CoroFunc
 
 
 def check(predicate: UserCheck[Context[Bot]]) -> Check[Context[Bot]]:
@@ -76,94 +79,91 @@ def check(predicate: UserCheck[Context[Bot]]) -> Check[Context[Bot]]:
     return decorator  # type: ignore
 
 
-def has_permissions(**perms: bool):
+def _validate_permissions(**perms: bool) -> None:
     invalid = set(perms) - set(discord.Permissions.VALID_FLAGS)
     if invalid:
         raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
 
+
+def _permissions_wrapper(kind: Literal["permissions", "bot_permissions"], **perms: bool) -> Any:
     def predicate(ctx: Context[Any]) -> bool:
-        permissions = ctx.permissions
+        permissions: discord.Permissions = getattr(ctx, kind)
 
         missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
 
         if not missing:
             return True
 
-        raise commands.MissingPermissions(missing)
+        exc = commands.MissingPermissions
+        if kind == "bot_permissions":
+            exc = commands.BotMissingPermissions
 
-    def decorator(func: Command | CoroFunc) -> Command | CoroFunc:
-        permissions = [perm for perm, value in perms.items() if value]
-        app_command_permissions = discord.Permissions(**perms)
-        if isinstance(func, Command):
-            func.checks.append(predicate)  # type: ignore
-            func.member_permissions = permissions
-            if getattr(func, "__commands_is_hybrid__", None):
-                app_command = getattr(func, "app_command", None)
-                if app_command:
-                    app_command.default_permissions = app_command_permissions
-        else:
-            if not hasattr(func, "__member_permissions__"):
-                func.__member_permissions__ = []
-            if not hasattr(func, "__commands_checks__"):
-                func.__commands_checks__ = []
-            func.__member_permissions__.extend(permissions)
-            func.__commands_checks__.append(predicate)
-            func.__discord_app_commands_default_permissions__ = app_command_permissions
-
-        return func
+        raise exc(missing)
 
     if inspect.iscoroutinefunction(predicate):
-        decorator.predicate = predicate
+        return predicate
+
+    @functools.wraps(predicate)
+    async def wrapper(ctx: Context):
+        return predicate(ctx)
+
+    return wrapper
+
+
+def _member_permissions(func: CommandFunc, **perms: bool) -> CommandFunc:
+    permissions = [perm for perm, value in perms.items() if value]
+    app_command_permissions = discord.Permissions(**perms)
+
+    if isinstance(func, Command):
+        func.checks.append(_permissions_wrapper("permissions", **perms))
+        func.member_permissions = permissions
+        if getattr(func, "__commands_is_hybrid__", None):
+            app_command = getattr(func, "app_command", None)
+            if app_command:
+                app_command.default_permissions = app_command_permissions
     else:
+        if not hasattr(func, "__member_permissions__"):
+            func.__member_permissions__ = []
+        if not hasattr(func, "__commands_checks__"):
+            func.__commands_checks__ = []
+        func.__member_permissions__.extend(permissions)
+        func.__commands_checks__.append(_permissions_wrapper("permissions", **perms))
+        func.__discord_app_commands_default_permissions__ = app_command_permissions
 
-        @functools.wraps(predicate)
-        async def wrapper(ctx: Context):
-            return predicate(ctx)
+    return func
 
-        decorator.predicate = wrapper
+
+def _bot_permissions(func: CommandFunc, **perms: bool) -> CommandFunc:
+    permissions = [perm for perm, value in perms.items() if value]
+
+    if isinstance(func, Command):
+        func.checks.append(_permissions_wrapper("bot_permissions", **perms))
+        func.member_permissions = permissions
+    else:
+        if not hasattr(func, "__bot_permissions__"):
+            func.__bot_permissions__ = []
+        if not hasattr(func, "__commands_checks__"):
+            func.__commands_checks__ = []
+        func.__bot_permissions__.extend(permissions)
+        func.__commands_checks__.append(_permissions_wrapper("bot_permissions", **perms))
+
+    return func
+
+
+def has_permissions(**perms: bool) -> Callable[[CommandFunc], CommandFunc]:
+    _validate_permissions(**perms)
+
+    def decorator(func: CommandFunc) -> CommandFunc:
+        return _member_permissions(func, **perms)
 
     return decorator
 
 
-def bot_has_permissions(**perms: bool):
-    invalid = set(perms) - set(discord.Permissions.VALID_FLAGS)
-    if invalid:
-        raise TypeError(f"Invalid permission(s): {', '.join(invalid)}")
+def bot_has_permissions(**perms: bool) -> Callable[[CommandFunc], CommandFunc]:
+    _validate_permissions(**perms)
 
-    def predicate(ctx: Context[Any]) -> bool:
-        permissions = ctx.bot_permissions
-
-        missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
-
-        if not missing:
-            return True
-
-        raise commands.MissingPermissions(missing)
-
-    def decorator(func: Command | CoroFunc) -> Command | CoroFunc:
-        permissions = [perm for perm, value in perms.items() if value]
-        if isinstance(func, Command):
-            func.checks.append(predicate)  # type: ignore
-            func.member_permissions = permissions
-        else:
-            if not hasattr(func, "__bot_permissions__"):
-                func.__bot_permissions__ = []
-            if not hasattr(func, "__commands_checks__"):
-                func.__commands_checks__ = []
-            func.__bot_permissions__.extend(permissions)
-            func.__commands_checks__.append(predicate)
-
-        return func
-
-    if inspect.iscoroutinefunction(predicate):
-        decorator.predicate = predicate
-    else:
-
-        @functools.wraps(predicate)
-        async def wrapper(ctx: Context):
-            return predicate(ctx)
-
-        decorator.predicate = wrapper
+    def decorator(func: CommandFunc) -> CommandFunc:
+        return _bot_permissions(func, **perms)
 
     return decorator
 
@@ -173,7 +173,7 @@ def cooldown(
 ) -> Callable[[T], T]:
     default_cooldown = commands.Cooldown(rate, per)
 
-    def decorator(func: Command | CoroFunc) -> Command | CoroFunc:
+    def decorator(func: CommandFunc) -> CommandFunc:
         def owner_cd(message: discord.Message):
             return None if message.author.id in OWNER_IDS else default_cooldown
 
@@ -195,7 +195,7 @@ def is_owner():
             raise commands.NotOwner("You do not own this bot.")
         return True
 
-    def decorator(func: Command | CoroFunc) -> Command | CoroFunc:
+    def decorator(func: CommandFunc) -> CommandFunc:
         if isinstance(func, Command):
             func.checks.append(predicate)  # type: ignore
             func.member_permissions = ["bot_owner"]
@@ -229,7 +229,7 @@ def is_guild_owner():
             raise NotGuildOwner
         return True
 
-    def decorator(func: Command | CoroFunc) -> Command | CoroFunc:
+    def decorator(func: CommandFunc) -> CommandFunc:
         if isinstance(func, Command):
             func.checks.append(predicate)  # type: ignore
             func.member_permissions = ["guild_owner"]
@@ -251,7 +251,6 @@ def is_guild_owner():
             return predicate(ctx)
 
         decorator.predicate = wrapper
-
     return decorator
 
 
