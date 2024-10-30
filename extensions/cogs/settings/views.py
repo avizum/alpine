@@ -632,14 +632,14 @@ class JoinsAndLeavesView(View):
     @ui.button(label="Test join message", style=discord.ButtonStyle.blurple, row=1)
     async def test_join_message(self, itn: Interaction, _):
         if self.cd.update_rate_limit(itn):
-            await itn.response.send_message("Slow down.")
+            return await itn.response.send_message("Slow down.", ephemeral=True)
         self.ctx.bot.dispatch("test_member_join", itn.user)
         await itn.response.send_message("Sent test join message.", ephemeral=True)
 
     @ui.button(label="Test leave message", style=discord.ButtonStyle.blurple, row=2)
     async def test_leave_message(self, itn: Interaction, _):
         if self.cd.update_rate_limit(itn):
-            await itn.response.send_message("Slow down.")
+            return await itn.response.send_message("Slow down.", ephemeral=True)
         self.ctx.bot.dispatch("test_member_remove", itn.user)
         await itn.response.send_message("Sent test leave message.", ephemeral=True)
 
