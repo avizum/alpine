@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
 import logging
+import re
 import traceback as tb
 
 import discord
@@ -49,7 +50,7 @@ from mystbin import File as MystFile
 import core
 from core import Bot, Context
 from core.exceptions import Blacklisted, CommandDisabledChannel, CommandDisabledGuild, Maintenance, NotGuildOwner
-from utils import View, format_list
+from utils import format_list
 
 _log = logging.getLogger("alpine")
 
@@ -66,42 +67,40 @@ class CooldownByContent(commands.CooldownMapping):
         return (message.channel.id, message.content)
 
 
-class UnknownError(View):
-    def __init__(self, *, member: discord.Member, bot: Bot, error_id: int):
-        self.error_id = error_id
-        self.bot = bot
-        super().__init__(member=member, timeout=3600)
-        support = discord.ui.Button(style=discord.ButtonStyle.link, label="Support Server", url=self.bot.support)
-        self.add_item(support)
-        self.message: discord.Message | None = None
-        self.cooldown = commands.CooldownMapping.from_cooldown(2, 60, commands.BucketType.user)
+class ErrorTrackerButton(discord.ui.DynamicItem[discord.ui.Button], template=r"error:id:(?P<id>[0-9]+)"):
+    error_get = "SELECT fixed, trackers FROM command_errors WHERE id = $1"
+    tracker_sub = "UPDATE command_errors SET trackers = ARRAY_APPEND(trackers, $2) WHERE id = $1"
+    tracker_unsub = "UPDATE command_errors SET trackers = ARRAY_REMOVE(trackers, $2) WHERE id = $1"
 
-    async def interaction_check(self, interaction: discord.Interaction):
-        return True
+    def __init__(self, error_id: int):
+        super().__init__(
+            discord.ui.Button(style=discord.ButtonStyle.blurple, label="Track Error", custom_id=f"error:id:{error_id}")
+        )
+        self.error_id: int = error_id
 
-    async def on_timeout(self) -> None:
-        if self.message:
-            await self.message.edit(view=None)
+    @classmethod
+    async def from_custom_id(cls, _: discord.Interaction[Bot], __: discord.ui.Button, match: re.Match[str], /):
+        return cls(int(match["id"]))
 
-    @discord.ui.button(label="Track Error", style=discord.ButtonStyle.blurple)
-    async def track_error(self, interaction: discord.Interaction, button: discord.ui.Button):
-        assert self.message is not None
-        retry = self.cooldown.update_rate_limit(self.message)
-        if retry:
-            return await interaction.response.send_message(
-                f"You are doing that too fast. Please try again in {retry:,.2f} seconds.",
-                ephemeral=True,
-            )
-        check = await self.bot.database.pool.fetchrow("SELECT trackers FROM command_errors WHERE id = $1", self.error_id)
-        if not check:
-            return await interaction.response.send_message("Something broke.", ephemeral=True)
-        if self.member.id in check["trackers"]:
-            remove_tracker = "UPDATE command_errors SET trackers = ARRAY_REMOVE(trackers, $2) WHERE id = $1"
-            await self.bot.database.pool.execute(remove_tracker, self.error_id, self.member.id)
-            return await interaction.response.send_message(f"No longer tracking Error #{self.error_id}", ephemeral=True)
-        add_tracker = "UPDATE command_errors SET trackers = ARRAY_APPEND(trackers, $2) WHERE id = $1"
-        await self.bot.database.pool.execute(add_tracker, self.error_id, self.member.id)
-        return await interaction.response.send_message(f"Now tracking Error #{self.error_id}.", ephemeral=True)
+    async def callback(self, itn: discord.Interaction[Bot]):
+        await itn.response.defer(thinking=True, ephemeral=True)
+        entry = await itn.client.database.pool.fetchrow(self.error_get, self.error_id)
+        if not entry:
+            self.item.disabled = True
+            if itn.message:
+                await itn.message.edit(view=self.view)
+            return await itn.followup.send("This error no longer exists.", ephemeral=True)
+        elif entry["fixed"]:
+            self.item.disabled = True
+            if itn.message:
+                await itn.message.edit(view=self.view)
+            return await itn.followup.send(f"Error `#{self.error_id}` is already marked as fixed.")
+        if itn.user.id in entry["trackers"]:
+            await itn.client.database.pool.execute(self.tracker_unsub, self.error_id, itn.user.id)
+            await itn.followup.send(f"You are no longer tracking error `#{self.error_id}`", ephemeral=True)
+        else:
+            await itn.client.database.pool.execute(self.tracker_sub, self.error_id, itn.user.id)
+            await itn.followup.send(f"You are now tracking error `#{self.error_id}`", ephemeral=True)
 
 
 class ErrorHandler(core.Cog):
@@ -110,11 +109,6 @@ class ErrorHandler(core.Cog):
         self.load_time = datetime.datetime.now(datetime.timezone.utc)
         self.blacklist_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
         self.on_cooldown_cooldown = commands.CooldownMapping.from_cooldown(1, 30, commands.BucketType.user)
-        self.max_concurrency_cooldown = commands.CooldownMapping.from_cooldown(1, 30, commands.BucketType.user)
-        self.maintenance_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.channel)
-        self.no_dm_command_cooldown = commands.CooldownMapping.from_cooldown(1, 300, commands.BucketType.user)
-        self.not_found_cooldown_content = CooldownByContent.from_cooldown(1, 15, commands.BucketType.user)
-        self.not_found_cooldown = commands.CooldownMapping.from_cooldown(2, 30, commands.BucketType.user)
         self.disabled_channel = commands.CooldownMapping.from_cooldown(1, 60, commands.BucketType.channel)
         self.disabled_command = commands.CooldownMapping.from_cooldown(1, 60, commands.BucketType.channel)
         self.error_webhook = discord.Webhook.from_url(
@@ -122,10 +116,14 @@ class ErrorHandler(core.Cog):
             session=self.bot.session,
         )
         self._original_tree_error = self.bot.tree.on_error
+
+    def cog_load(self):
+        self.bot.add_dynamic_items(ErrorTrackerButton)
         self.bot.tree.on_error = self.on_tree_error
 
-    async def cog_unload(self):
+    def cog_unload(self):
         self.bot.tree.on_error = self._original_tree_error
+        self.bot.remove_dynamic_items(ErrorTrackerButton)
 
     def reset(self, ctx: Context):
         try:
@@ -189,8 +187,6 @@ class ErrorHandler(core.Cog):
                 return await ctx.reinvoke(restart=True)
             except Exception:
                 pass
-        elif await self.bot.is_owner(ctx.author) and ctx.prefix == "" and isinstance(error, commands.CommandNotFound):
-            return
 
         elif isinstance(error, ignored):
             return
@@ -384,8 +380,10 @@ class ErrorHandler(core.Cog):
             )
             await self.error_webhook.send(traceback, embed=webhook_error_embed, username="Command Error")
             _log.error(f"Ignoring exception in command {ctx.command}:", exc_info=error)
-            view = UnknownError(member=ctx.author, bot=self.bot, error_id=in_db["id"])
-            view.message = await ctx.send(embed=embed, view=view, ephemeral=True)
+            view = discord.ui.View(timeout=None)
+            view.add_item(ErrorTrackerButton(in_db["id"]))
+            view.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label="Support Server", url=self.bot.support))
+            await ctx.send(embed=embed, view=view, ephemeral=True)
 
 
 async def setup(bot):
