@@ -215,15 +215,16 @@ class Meta(core.Cog):
                         flags.append(f"{new} | {flag.replace('_', ' ').title()}")
                 ie.add_field(name=f"Badges [{len(flags)}]", value=",\n".join(flags))
             if member.status:
+                replace = ("dnd", "do not disturb")
                 desktop = member.desktop_status.name
                 mobile = member.mobile_status.name
                 web = member.web_status.name
                 ie.add_field(
                     name="Status",
                     value=(
-                        f"Desktop: {Emojis.STATUSES.get(desktop)} | {desktop.title()}\n"
-                        f"Mobile: {Emojis.STATUSES.get(mobile)} | {mobile.title()}\n"
-                        f"Web: {Emojis.STATUSES.get(web)} | {web.title()}"
+                        f"Desktop: {Emojis.STATUSES.get(desktop)} | {desktop.replace(*replace).title()}\n"
+                        f"Mobile: {Emojis.STATUSES.get(mobile)} | {mobile.replace(*replace).title()}\n"
+                        f"Web: {Emojis.STATUSES.get(web)} | {web.replace(*replace).title()}"
                     ),
                     inline=False,
                 )
