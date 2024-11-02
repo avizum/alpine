@@ -198,7 +198,6 @@ class BotInfo(core.Cog, name="Bot Info"):
             value=f"`{db.total_time * 1000:,.2f} ms`",
             inline=False,
         )
-        await ctx.message.add_reaction("<:greentick:777096731438874634>")
         await ctx.send(embed=ping_embed)
 
     @core.command()
