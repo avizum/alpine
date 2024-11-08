@@ -534,7 +534,7 @@ class Music(core.Cog):
             return await ctx.send("There is no song playing.")
         if self.is_privileged(ctx):
             await player.seek((int(player.position) + seconds) * 1000)
-            pos = f"{format_seconds(player.position)}/{format_seconds(player.current.length)}"
+            pos = f"{format_seconds(player.position / 1000)}/{format_seconds(player.current.length / 1000)}"
             return await ctx.send(f":fast_forward: Fast forwarded {seconds} seconds. ({pos})")
         await ctx.send("Only the DJ can fast forward.")
 
@@ -556,7 +556,7 @@ class Music(core.Cog):
             return await ctx.send("There is no song playing.")
         if self.is_privileged(ctx):
             await player.seek((int(player.position) - seconds) * 1000)
-            pos = f"{format_seconds(player.position)}/{format_seconds(player.current.length)}"
+            pos = f"{format_seconds(player.position / 1000)}/{format_seconds(player.current.length / 1000)}"
             return await ctx.send(f":rewind: Rewinded {seconds} seconds. ({pos})")
         await ctx.send("Only the DJ can rewind.")
 
@@ -579,7 +579,7 @@ class Music(core.Cog):
         if self.is_privileged(ctx):
             if seconds > player.current.length:
                 return await ctx.send("That is longer than the song!")
-            await ctx.send(f"Seeked to {format_seconds(seconds)}/{format_seconds(player.current.length/1000)}")
+            await ctx.send(f"Seeked to {format_seconds(seconds)}/{format_seconds(player.current.length / 1000)}")
             return await player.seek(seconds * 1000)
         await ctx.send("Only the DJ can seek.")
 
