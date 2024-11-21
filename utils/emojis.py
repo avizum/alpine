@@ -21,19 +21,19 @@ __all__ = ("Emojis",)
 
 class Emojis:
     BADGES: dict[str, str] = {
-        "hypesquad_balance": "<:hypesquad_balance:965514463648296990>",
-        "hypesquad_brilliance": "<:hypesquad_brilliance:965514648050888744>",
-        "hypesquad_bravery": "<:hypesquad_bravery:965514631286247484>",
+        "hypesquad_balance": "<:hypesquad_balance:1308917879151788135>",
+        "hypesquad_brilliance": "<:hypesquad_brilliance:1308917912869802085>",
+        "hypesquad_bravery": "<:hypesquad_bravery:1308917891847946320>",
         "bug_hunter": "<:bug_hunter_level_one:965517882614218802>",
         "bug_hunter_level_2": "<:bug_hunter_level_two:965517899882192927>",
         "early_supporter": "<:early_supporter:965518847178309642>",
-        "staff": "<:staff:965832209065979976>",
-        "partner": "<:partner:965832324107366440>",
-        "discord_certified_moderator": "<:certified_moderator:965519988679122964>",
-        "verified_bot_developer": "<:verified_bot_developer:965520001547264040>",
-        "hypesquad": "<:hypesquad:965832881912037386>",
+        "staff": "<:staff:1309297931894919168>",
+        "partner": "<:partner:1309297922025852970>",
+        "discord_certified_moderator": "<:certified_moderator:1309297911900803215>",
+        "verified_bot_developer": "<:verified_bot_developer:1309297945769807982>",
+        "hypesquad": "<:hypesquad:1308917937998004275>",
         "bot_http_interactions": "<:bot:1011145603100725289>",
-        "active_developer": "<:developer:1059028671798714429>",
+        "active_developer": "<:active_developer:1308917865172435016>",
     }
 
     STATUSES: dict[str, str] = {
