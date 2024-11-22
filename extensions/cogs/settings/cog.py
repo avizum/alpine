@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-import datetime
 from typing import TYPE_CHECKING
 
 import discord
@@ -33,24 +32,20 @@ if TYPE_CHECKING:
     from core import Bot, Context
 
 
-class Settings(core.Cog):
-    """
-    Configure bot settings.
-    """
+class Settings(core.GroupCog, group_name="settings"):
+    """Configure server and user settings."""
 
-    def __init__(self, bot: Bot):
-        self.bot = bot
+    def __init__(self, bot: Bot) -> None:
         self.emoji = "\U00002699"
-        self.load_time = datetime.datetime.now(datetime.timezone.utc)
-        self.map = {True: "Enabled", False: "Disabled", None: "Not Set"}
         self._settings: dict[int, SettingsView] = {}
+        super().__init__(bot)
 
     async def cog_check(self, ctx: Context) -> bool:
         if self._settings.get(ctx.guild.id):
             raise commands.MaxConcurrencyReached(1, commands.BucketType.guild)
         return True
 
-    @core.group(hybrid=True, fallback="show")
+    @core.command(hybrid=True, app_command_name="show")
     @core.has_permissions(manage_guild=True)
     async def settings(self, ctx: Context):
         """
@@ -60,7 +55,7 @@ class Settings(core.Cog):
         view = SettingsView(self, ctx, guild_settings)
         return await view.start()
 
-    @settings.group(fallback="show")
+    @core.group(fallback="show", hybrid=True)
     async def prefix(self, ctx: Context):
         """
         Show custom prefix configuration.
@@ -114,7 +109,7 @@ class Settings(core.Cog):
             message += f"\nHere are the prefixes: `{'` | `'.join(prefixes)}`"
         return await ctx.send(message)
 
-    @settings.command()
+    @core.command(hybrid=True)
     @core.has_permissions(manage_guild=True)
     async def logging(self, ctx: Context):
         """
@@ -124,7 +119,7 @@ class Settings(core.Cog):
         view = SettingsView(self, ctx, guild_settings)
         return await view.start(view=LoggingView(ctx, view))
 
-    @settings.command(name="joins-and-leaves", aliases=["joinsandleaves", "jal", "joins", "leaves"])
+    @core.command(name="joins-and-leaves", aliases=["joinsandleaves", "jal", "joins", "leaves"], hybrid=True)
     @core.has_permissions(manage_guild=True)
     async def joins_and_leaves(self, ctx: Context):
         """
@@ -134,7 +129,7 @@ class Settings(core.Cog):
         view = SettingsView(self, ctx, guild_settings)
         return await view.start(view=JoinsAndLeavesView(ctx, view))
 
-    @settings.command()
+    @core.command(hybrid=True)
     @core.has_permissions(manage_guild=True)
     @core.bot_has_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
     async def verification(self, ctx: Context):
@@ -145,7 +140,7 @@ class Settings(core.Cog):
         view = SettingsView(self, ctx, guild_settings)
         return await view.start(view=MemberVerificationView(ctx, view))
 
-    @core.group(invoke_without_command=True, case_insensitive=True)
+    @core.group(invoke_without_command=True, case_insensitive=True, hybrid=True)
     @core.cooldown(1, 60, commands.BucketType.user)
     async def theme(self, ctx: Context, *, color: discord.Color):
         """

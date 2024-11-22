@@ -22,7 +22,9 @@ import datetime
 from typing import TYPE_CHECKING, Any, Callable, Concatenate, Generic, ParamSpec, TypeVar, overload
 
 import discord
+from discord import app_commands
 from discord.ext import commands
+from discord.ext.commands.hybrid import HybridAppCommand
 from discord.utils import MISSING
 
 if TYPE_CHECKING:
@@ -37,6 +39,7 @@ __all__ = (
     "HybridCommand",
     "HybridGroup",
     "Cog",
+    "GroupCog",
     "command",
     "group",
 )
@@ -131,19 +134,35 @@ class Group(commands.Group, Command[CogT, P, T]):
         return decorator
 
 
-class HybridCommand(commands.HybridCommand, Command):
+class HybridCommand(commands.HybridCommand, Command[CogT, P, T]):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        app_command = getattr(self, "app_command", None)
-        if app_command:
-            app_command.guild_only = True
+        # Prevent the lib from creating a HybridAppCommand
+        super().__init__(*args, with_app_command=False, **kwargs)
+        self.with_app_command: bool = kwargs.pop("with_app_command", True)
+        self.app_command_name: str | app_commands.locale_str = kwargs.pop("app_command_name", MISSING)
+        hybrid_name = self.name if self.app_command_name is MISSING else self.app_command_name
+        self.app_command = HybridAppCommand(self, hybrid_name) if self.with_app_command else None
+        if self.app_command:
+            self.app_command.guild_only = True
 
 
 class HybridGroup(commands.HybridGroup, Group):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        app_command = getattr(self, "app_command", None)
+        # We let the lib create the app command here beacuse it does not have a custom class
+        # like HybridCommand. So we will just edit the command at runtime.
+        self.app_command_name: str | app_commands.locale_str = kwargs.pop("app_command_name", MISSING)
+
+        app_command: app_commands.Group | None = getattr(self, "app_command", None)
         if app_command:
+            name, name_locale = (
+                (self.app_command_name.message, self.app_command_name)
+                if isinstance(self.app_command_name, app_commands.locale_str)
+                else (self.app_command_name, None)
+            )
+            if name is not MISSING:
+                app_command.name = name
+            app_command._locale_name = name_locale
             app_command.guild_only = True
 
 
@@ -154,6 +173,15 @@ class Cog(commands.Cog):
 
     def __repr__(self) -> str:
         return f"<Cog name={self.qualified_name}>"
+
+
+class GroupCog(commands.GroupCog):
+    def __init__(self, bot: Bot) -> None:
+        self.bot: Bot = bot
+        self.load_time: datetime.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
+
+    def __repr__(self) -> str:
+        return f"<Group Cog name={self.qualified_name}>"
 
 
 @overload
