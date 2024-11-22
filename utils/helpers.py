@@ -16,8 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
 import re
 import time
+from datetime import datetime
 from typing import Any
 
 __all__ = (
@@ -27,6 +30,7 @@ __all__ = (
     "format_seconds",
     "URL_REGEX",
     "EMOJI_REGEX",
+    "timestamp",
 )
 
 
@@ -124,3 +128,14 @@ def format_seconds(seconds: float, *, friendly: bool = False) -> str:
     hour = f"{hours:02d}:" if hours != 0 or days != 0 else ""
     minsec = f"{minutes:02d}:{seconds:02d}"
     return f"{day}{hour}{minsec}"
+
+
+class timestamp:
+    def __init__(self, datetime: datetime) -> None:
+        self.datetime: datetime = datetime
+
+    def __format__(self, format_spec: str = "f"):
+        timestamp = int(self.datetime.timestamp())
+        if format_spec not in ["t", "T", "d", "D", "f", "F", "R"]:
+            format_spec = "f"
+        return f"<t:{timestamp}:{format_spec}>"

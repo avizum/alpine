@@ -38,7 +38,6 @@ import psutil
 import toml
 from asyncpg import Record
 from discord.ext import commands, menus
-from discord.utils import format_dt
 from jishaku import Feature, exception_handling
 from jishaku.codeblocks import Codeblock, codeblock_converter
 from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
@@ -50,7 +49,7 @@ from jishaku.paginators import PaginatorInterface
 from jishaku.repl import AsyncCodeExecutor
 
 import core
-from utils import DefaultReason, Emojis, ModReason, Paginator, PaginatorEmbed, View
+from utils import DefaultReason, Emojis, ModReason, Paginator, PaginatorEmbed, View, timestamp
 
 if TYPE_CHECKING:
     from jishaku.features.baseclass import CommandTask
@@ -166,8 +165,8 @@ class GuildPageSource(menus.ListPageSource):
                 value=(
                     f"Owner: {guild.owner}\n"
                     f"Members: {guild.member_count}\n"
-                    f"Created at: {discord.utils.format_dt(guild.created_at)}\n"
-                    f"Joined at: {discord.utils.format_dt(guild.me.joined_at)}"
+                    f"Created at: {timestamp(guild.created_at)}\n"
+                    f"Joined at: {timestamp(guild.me.joined_at)}"
                 ),
                 inline=False,
             )
@@ -478,14 +477,14 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             if task.ctx.command:
                 paginator.add_line(
                     f"{task.index}: `{task.ctx.command.qualified_name}`, invoked at "
-                    f"{discord.utils.format_dt(task.ctx.message.created_at)} "
-                    f"({discord.utils.format_dt(task.ctx.message.created_at, 'R')})"
+                    f"{timestamp(task.ctx.message.created_at)} "
+                    f"({timestamp(task.ctx.message.created_at):R})"
                 )
             else:
                 paginator.add_line(
                     f"{task.index}: unknown, invoked at "
-                    f"{discord.utils.format_dt(task.ctx.message.created_at)} "
-                    f"({discord.utils.format_dt(task.ctx.message.created_at, 'R')})"
+                    f"{timestamp(task.ctx.message.created_at)} "
+                    f"({timestamp(task.ctx.message.created_at):R})"
                 )
 
         interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
@@ -699,8 +698,8 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             ext: core.Cog | None = self.bot.get_cog(cog)  # type: ignore
             if not ext:
                 return await ctx.send(f"{cog} does not exist.")
-            return await ctx.send(f"{ext.qualified_name} | Loaded {discord.utils.format_dt(ext.load_time, 'R')}")
-        thing_list = [f"{val.qualified_name} | Loaded {format_dt(val.load_time, 'R')}" for _, val in self.bot.cogs.items()]
+            return await ctx.send(f"{ext.qualified_name} | Loaded {timestamp(ext.load_time):R}")
+        thing_list = [f"{val.qualified_name} | Loaded {timestamp(val.load_time):R}" for _, val in self.bot.cogs.items()]
         embed = discord.Embed(title="Loaded Cogs", description="\n".join(thing_list))
         await ctx.send(embed=embed)
 

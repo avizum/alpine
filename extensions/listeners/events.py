@@ -25,11 +25,12 @@ from io import BytesIO
 import discord
 from asyncgist import File
 from discord.ext import commands, tasks
+from discord.utils import escape_markdown
 
 import core
 from core import Bot, Context
 from core.exceptions import Blacklisted, CommandDisabledChannel, CommandDisabledGuild, Maintenance
-from utils import format_seconds
+from utils import format_seconds, timestamp
 
 TOKEN_REGEX = r"([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}|mfa\.[a-zA-Z0-9_\-]{84})"
 
@@ -124,9 +125,9 @@ class BotLogs(core.Cog):
 
         list_of_messages = []
         for message in messages:
-            timestamp = discord.utils.format_dt(message.created_at, "t")
-            content = message.content[:90] or "*No content*"
-            list_of_messages.append(f"[{timestamp}] {message.author}: {content}")
+            time = format(timestamp(message.created_at), "t")
+            content = escape_markdown(message.content[:90]) or "*No content*"
+            list_of_messages.append(f"[{time}] {message.author}: {content}")
         if not list_of_messages:
             return
         embed = discord.Embed(
@@ -191,7 +192,7 @@ class BotLogs(core.Cog):
             if not user or not entry.user:
                 return
             message = (
-                f"[**{discord.utils.format_dt(dt.datetime.now(dt.timezone.utc))}**] {user} (`{user.id}`) was banned:\n"
+                f"[**{timestamp(entry.created_at)}**] {user} (`{user.id}`) was banned:\n"
                 f"> **Moderator:** {entry.user} (`{entry.user.id}`)\n"
                 f"> **Reason:** {entry.reason}"
             )
@@ -204,7 +205,7 @@ class BotLogs(core.Cog):
             if not user:
                 return
             message = (
-                f"[**{discord.utils.format_dt(dt.datetime.now(dt.timezone.utc))}**] {user} (`{user.id}`) was kicked:\n"
+                f"[**{timestamp(entry.created_at)}**] {user} (`{user.id}`) was kicked:\n"
                 f"> **Moderator:** {entry.user}\n"
                 f"> **Reason:** {entry.reason or 'No reason provided.'}"
             )
@@ -257,7 +258,7 @@ class BotLogs(core.Cog):
         formatted = "\n".join(f"{num}. {action}" for num, action in enumerate(actions, 1))
         with contextlib.suppress(discord.HTTPException):
             return await logging.webhook.send(
-                f"[**{discord.utils.format_dt(dt.datetime.now(dt.timezone.utc))}**] {after.mention} was edited:\n{formatted}"
+                f"[**{timestamp(dt.datetime.now(dt.timezone.utc))}**] {after.mention} was edited:\n{formatted}"
             )
 
     @core.Cog.listener("on_guild_channel_delete")
@@ -267,9 +268,7 @@ class BotLogs(core.Cog):
         if not logging or not logging.enabled or not logging.channel_delete or not logging.webhook:
             return
 
-        return await logging.webhook.send(
-            f"[**{discord.utils.format_dt(dt.datetime.now(dt.timezone.utc))}**] #{channel.name} was deleted"
-        )
+        return await logging.webhook.send(f"[**{timestamp(dt.datetime.now(dt.timezone.utc))}**] #{channel.name} was deleted")
 
     @core.Cog.listener("on_guild_update")
     async def logging_guild(self, before: discord.Guild, after: discord.Guild):

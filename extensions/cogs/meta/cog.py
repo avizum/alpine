@@ -27,12 +27,11 @@ import asyncgist
 import discord
 import pytz
 from discord.ext import commands, menus
-from discord.utils import format_dt
 from doc_search import AsyncScraper
 from jishaku.codeblocks import codeblock_converter
 
 import core
-from utils import Emojis, Paginator, PaginatorEmbed
+from utils import Emojis, Paginator, PaginatorEmbed, timestamp
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -160,7 +159,7 @@ class Meta(core.Cog):
             ie.add_field(name="User ID", value=member.id)
             ie.add_field(
                 name="Creation Date",
-                value=f"{format_dt(member.created_at)} ({format_dt(member.created_at, 'R')})",
+                value=f"{timestamp(member.created_at)} ({timestamp(member.created_at):R})",
                 inline=False,
             )
         else:
@@ -184,12 +183,12 @@ class Meta(core.Cog):
             assert member.joined_at is not None
             ie.add_field(
                 name="Join Date",
-                value=f"{format_dt(member.joined_at)} ({format_dt(member.joined_at, 'R')})\nJoin Position: {pos}",
+                value=f"{timestamp(member.joined_at)} ({timestamp(member.joined_at):R})\nJoin Position: {pos}",
                 inline=False,
             )
             ie.add_field(
                 name="Account Creation Date",
-                value=f"{format_dt(member.created_at)} ({format_dt(member.created_at, 'R')})",
+                value=f"{timestamp(member.created_at)} ({timestamp(member.created_at):R})",
                 inline=False,
             )
             top_role = member.top_role.mention
@@ -236,7 +235,7 @@ class Meta(core.Cog):
     @core.is_owner()
     async def roleinfo(self, ctx: Context, role: discord.Role):
         embed = discord.Embed(title="Role Info")
-        embed.add_field(name="Created At", value=discord.utils.format_dt(role.created_at))
+        embed.add_field(name="Created At", value=f"{timestamp(role.created_at)}")
         embed.add_field(name="Role ID", value=role.id)
 
     @core.group(aliases=["members", "mc"])

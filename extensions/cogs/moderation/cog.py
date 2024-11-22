@@ -27,7 +27,7 @@ from discord.ext import commands
 
 import core
 import utils
-from utils import EMOJI_REGEX, DefaultReason, ModReason, format_list
+from utils import EMOJI_REGEX, DefaultReason, ModReason, format_list, timestamp
 
 from .converters import BanFlag, FindBan, ModActionFlag, PurgeAmount, TargetMember, TimeConverter
 
@@ -255,7 +255,7 @@ class Moderation(core.Cog):
                 return await conf.message.edit(content="Okay, cancelled.", delete_after=10)
         dur = dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=duration)
         await target.edit(timed_out_until=dur, reason=reason)
-        await ctx.send(f"Muted {target} until {discord.utils.format_dt(dur)}.\nReason: {reason}", ephemeral=True)
+        await ctx.send(f"Muted {target} until {timestamp(dur)}.\nReason: {reason}", ephemeral=True)
 
     @core.command(hybrid=True, aliases=["untimeout", "untempmute"])
     @core.has_permissions(moderate_members=True)
