@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING, Any, Mapping
 
 import discord
 import humanize
-from discord import app_commands
+from discord import app_commands, utils
 from discord.ext import commands, menus
 
 import core
@@ -66,27 +66,23 @@ class AlpineHelp(commands.HelpCommand):
         return f"Use {self.context.clean_prefix}{self.invoked_with} [command|module] for more help."
 
     def get_flags(self, command: Command) -> list[str] | None:
-        flagconverter: commands.FlagConverter | None = None
-        for _, param in command.params.items():
-            if isinstance(param.annotation, commands.flags.FlagsMeta):
-                flagconverter = param.annotation  # type: ignore  # too lazy to fix
-        if not flagconverter:
-            return None
-        flags = flagconverter.get_flags()
-        flag_prefix = flagconverter.__commands_flag_prefix__ or ""  # type: ignore
-        flag_delimiter = flagconverter.__commands_flag_delimiter__ or ""  # type: ignore
-        flgs = []
-        for name, flag in flags.items():
-            if type(flag.description) is discord.utils._MissingSentinel:
-                flag.description = "No description provided."
-            f_name = f"{flag_prefix}{name}{flag_delimiter}"
-            f_aliases = [f"{flag_prefix}{alias}{flag_delimiter}" for alias in flag.aliases]
-            f_default = ""
-            if flag.default:
-                f_default = f"(Default: {flag.default})"
-            chained = itertools.chain([f_name], f_aliases)
-            flgs.append(f"`{' | '.join(chained)}` {flag.description} {f_default}")
-        return flgs
+        flag_params: list[str] = []
+        for name, param in command.params.items():
+            flag_converter: type[commands.FlagConverter] | None = getattr(param.annotation, "__commands_is_flag__", None)
+            if flag_converter:
+                prefix: str = flag_converter.__commands_flag_prefix__
+                delimiter: str = flag_converter.__commands_flag_delimiter__
+                params = flag_converter.get_flags()
+
+                for name, flag in params.items():
+                    fmt_name = f"{prefix}{name}{delimiter}"
+                    fmt_aliases = [f"{prefix}{alias}{delimiter}" for alias in flag.aliases]
+                    fmt_description = "No description provided." if flag.description is utils.MISSING else flag.description
+                    fmt_default = f" (Default: {flag.default})" if flag.default else ""
+                    chained = itertools.chain([fmt_name], fmt_aliases)
+                    flag_params.append(f"`{" | ".join(chained)}` {fmt_description}{fmt_default}")
+
+        return flag_params or None
 
     async def filter_cogs(self, mapping: Mapping[core.Cog | None, list[Command]] | None = None):
         cmd_mapping = mapping or self.get_bot_mapping()
