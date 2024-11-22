@@ -30,10 +30,12 @@ class Emojis:
         "staff": "<:staff:1309297931894919168>",
         "partner": "<:partner:1309297922025852970>",
         "discord_certified_moderator": "<:certified_moderator:1309297911900803215>",
+        "verified_bot": "<:verified_bot:1308918319860158555>",
         "verified_bot_developer": "<:verified_bot_developer:1309297945769807982>",
         "hypesquad": "<:hypesquad:1308917937998004275>",
         "bot_http_interactions": "<:bot:1011145603100725289>",
         "active_developer": "<:active_developer:1308917865172435016>",
+        "guild_owner": "<:server_owner:1309623251919437966>",
     }
 
     STATUSES: dict[str, str] = {
