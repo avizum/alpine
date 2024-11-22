@@ -182,11 +182,11 @@ class ErrorHandler(core.Cog):
         if not ctx.bot_permissions.embed_links:
             return await ctx.send("I don't have permissions to send embeds in this channel.")
 
-        if await self.bot.is_owner(ctx.author) and isinstance(error, reinvoke):
+        if await self.bot.is_owner(ctx.author) and isinstance(error, reinvoke) and not ctx.interaction:
             try:
                 return await ctx.reinvoke(restart=True)
             except Exception:
-                pass
+                raise
 
         elif isinstance(error, ignored):
             return
@@ -369,7 +369,7 @@ class ErrorHandler(core.Cog):
                     f"Error Information:```py\n{error}```"
                 )
 
-            webhook_error_embed = Embed(title="Old error" if in_db else "A new error")
+            webhook_error_embed = Embed(title="Old error" if in_db["error"] == str(error) else "A new error")
             webhook_error_embed.description = (
                 f"Guild: {ctx.guild.name} ({ctx.guild.id})\n"
                 f"Channel: {ctx.channel} ({ctx.channel.id})\n"
