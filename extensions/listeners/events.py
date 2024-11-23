@@ -90,7 +90,7 @@ class BotLogs(core.Cog):
             mentions = discord.AllowedMentions.all()
             if message.guild is None:
                 return
-            await message.reply(embed=embed, allowed_mentions=mentions, mention_author=True)
+            # await message.reply(embed=embed, allowed_mentions=mentions, mention_author=True)
 
     @core.Cog.listener("on_message_delete")
     @core.Cog.listener("on_bulk_message_delete")
