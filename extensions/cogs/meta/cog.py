@@ -212,7 +212,7 @@ class Meta(core.Cog):
                             flags.append(flag.replace("_", " ").title())
                             continue
                         flags.append(f"{new} | {flag.replace('_', ' ').title()}")
-                if ctx.guild.owner and ctx.guild.owner_id:
+                if ctx.guild.owner and ctx.guild.owner == member:
                     flags.append(f"{Emojis.BADGES["guild_owner"]} | Server Owner")
                 ie.add_field(name=f"Badges [{len(flags)}]", value=",\n".join(flags))
             if member.status:
