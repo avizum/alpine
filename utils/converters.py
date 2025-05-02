@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -32,11 +33,20 @@ __all__ = (
 
 
 class ModReason(commands.Converter, str):
+    def __init__(self):
+        self.reason: str = ""
+        super().__init__()
+
+    @property
+    def blacklist(self) -> str:
+        return self.reason.replace(":\u200b ", "|\u200b|")
+
     async def convert(self, ctx: Context, argument=None) -> str:
-        reason = f"{ctx.author}|\u200b|{argument}"
+        reason = f"{ctx.author}:\u200b {argument}"
 
         if len(reason) > 512:
             raise commands.BadArgument(f"Reason is too long ({len(reason)}/512)")
+        self.reason = reason
         return reason
 
 
