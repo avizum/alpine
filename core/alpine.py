@@ -193,7 +193,6 @@ class Bot(commands.Bot):
                 base.extend(guild_settings.prefixes)
         else:
             base.extend(DEFAULT_PREFIXES)
-
         prefixes = "|".join(map(re.escape, base))
 
         match = re.match(rf"^({prefixes}\s*).*", message.content, flags=re.IGNORECASE)
@@ -321,5 +320,26 @@ class Bot(commands.Bot):
     async def close(self) -> None:
         await self.session.close()
         await self.sr.close()
+
+        # Cope
+        for view in list(self._connection._view_store._synced_message_views.values()):
+            if view.is_finished():
+                continue
+            try:
+                message: discord.Message = getattr(view, "message")
+                delete_after: bool = getattr(view, "delete_message_after")
+                remove_after: bool = getattr(view, "remove_view_after")
+                disable_after: bool = getattr(view, "disable_view_after")
+                if delete_after:
+                    await message.delete()
+                if remove_after:
+                    await message.edit(view=None)
+                if disable_after:
+                    getattr(view, "disable_all")()
+                    await message.edit(view=view)
+                view.stop()
+            except (AttributeError, discord.NotFound):
+                pass
+
         _log.info(f"Stopped: {self.user.name} ({self.user.id})")
         await super().close()
