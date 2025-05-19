@@ -174,7 +174,7 @@ class Moderation(core.Cog):
     async def massban(
         self,
         ctx: Context,
-        targets: commands.Greedy[TargetMember],
+        targets: commands.Greedy[discord.Member],
         *,
         reason: ModReason = DefaultReason,
     ):
@@ -183,28 +183,45 @@ class Moderation(core.Cog):
 
         You can not ban people with a role higher than you or higher permissions.
         """
-        if not targets:
-            return await ctx.send("One or more members can not be banned by you. Try again.", ephemeral=True)
-        new_targets = format_list(targets)
+        if len(targets) == 0:
+            raise commands.MissingRequiredArgument(ctx.command.params["targets"])
+
+        convert = TargetMember.convert
+        converted: list[discord.Member] = []
+        conversion_errors: dict[discord.Member, str] = {}
+        for target in targets:
+            try:
+                # when conversion fails, it will show the action as ban, not massban as that makes more sense for the user.
+                ctx.invoked_with = "ban"
+                conv_target = await convert(ctx, target.name)
+                converted.append(conv_target)
+            except commands.BadArgument as bad_arg:
+                conversion_errors[target] = str(bad_arg)
+
+        if conversion_errors:
+            cont = await ctx.confirm(
+                message=(
+                    "The following members can not be banned:\n```"
+                    f"{"\n".join(f"{mem}: {rsn}" for mem, rsn in conversion_errors.items())}```"
+                ), confirm_messsage="Would you like to continue?", delete_message_after=True,
+            )
+            if cont.result is False:
+                return
+
         conf = await ctx.confirm(
-            message=f"This will ban:\n{new_targets} ({len(targets)} members),\nWith reason {reason}.",
-            confirm_messsage=f'Press "Yes" to ban {(len(targets))} members or "No" to cancel.',
-            remove_view_after=True,
+            message=f"This will ban:\n{format_list(converted)} ({len(converted)} members),\nWith reason {reason}",
+            confirm_messsage=f'Press "Yes" to ban {(len(converted))} members or "No" to cancel.',
         )
+
         if conf.result:
-            fail = 0
-            await conf.message.edit(content=f"Banning {len(targets)} members...")
-            banned: list[discord.Member] = []
-            for member in targets:
-                try:
-                    await member.ban(reason=reason)
-                    banned.append(member)
-                except Exception:
-                    fail += 1
-            banned_fmt = format_list(banned)
-            await conf.message.edit(content=f"Sucessfully banned {banned_fmt} ({len(targets)-fail}/{len(targets)}) members.")
+            await conf.message.edit(content=f"Banning {(len(converted))} members...", view=None)
+            result = await ctx.guild.bulk_ban(converted, reason=reason)
+            banned_members = [mem for ban_objs in result.banned for mem in converted if ban_objs.id == mem.id]
+            await conf.message.edit(
+                content=f"Sucessfully banned {format_list(banned_members)} ({len(banned_members)}/{len(converted)}) members."
+            )
         else:
-            await conf.message.edit(content="Cancelled.")
+            await conf.message.edit(content="Cancelled.", view=None)
 
     @core.command(hybrid=True)
     @core.has_permissions(ban_members=True)
