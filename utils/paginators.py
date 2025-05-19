@@ -168,7 +168,8 @@ class SkipToPageModal(discord.ui.Modal, title="Go to page"):
                     f"Please enter a page number between 1 and {max_pages}.",
                 )
         except ValueError:
-            return await self.send_error(interaction, "Please enter a number.")
+            await self.send_error(interaction, "Please enter a number.")
+            return
 
 
 class Paginator(BasePaginator):

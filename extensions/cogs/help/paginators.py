@@ -215,7 +215,8 @@ class HelpSelect(discord.ui.Select["HelpPages"]):
         assert self.view is not None
         cog: core.Cog | None = self.ctx.bot.get_cog(self.values[0])  # type: ignore
         if self.current_module == cog:
-            return await interaction.response.defer()
+            await interaction.response.defer()
+            return
         if self.values[0] == "Home":
             await self.view.edit_source(MainHelp(self.ctx, self.hc), interaction)
         elif cog is None:

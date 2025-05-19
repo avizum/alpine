@@ -47,7 +47,8 @@ class View(AView):
     async def home(self, itn: Interaction, _: ui.Button) -> None:
         view: SettingsView | None = getattr(self, "view", None)
         if view and isinstance(view, SettingsView):
-            return await itn.response.edit_message(embed=view.embed, view=view)
+            await itn.response.edit_message(embed=view.embed, view=view)
+            return
         await itn.response.send_message("Can't go home for some reason.", ephemeral=True)
 
     @discord.ui.button(label="Close", style=discord.ButtonStyle.red, row=4)
@@ -96,10 +97,13 @@ class SettingsSelect(ui.Select["SettingsView"]):
             self.current_view.stop()
         view = self.original_view.get_view(selected)
         if view == self.current_view:
-            return await itn.response.defer()
+            await itn.response.defer()
+            return
+
         self.current_view = view
         if not view:
-            return await itn.response.send_message("Unknown error occurred. Try again.", ephemeral=True)
+            await itn.response.send_message("Unknown error occurred. Try again.", ephemeral=True)
+            return
         await itn.response.edit_message(view=view, embed=view.embed)
 
 
@@ -166,15 +170,18 @@ class PrefixAddModal(ui.Modal, title="Add a prefix"):
     async def on_submit(self, itn: Interaction) -> None:
         prefix = self.prefix.value
         if not prefix:
-            return await itn.response.send_message("Enter a prefix.", ephemeral=True)
+            await itn.response.send_message("Enter a prefix.", ephemeral=True)
+            return
         guild_prefixes = self.view.settings.prefixes
 
         if prefix in guild_prefixes:
-            return await itn.response.send_message(f"`{prefix}` is already a prefix of this server.", ephemeral=True)
+            await itn.response.send_message(f"`{prefix}` is already a prefix of this server.", ephemeral=True)
+            return
 
         guild_prefixes.append(prefix)
         await self.view.settings.update(prefixes=guild_prefixes)
-        return await itn.response.send_message(f"Added {prefix} to the list of prefixes.", ephemeral=True)
+        await itn.response.send_message(f"Added {prefix} to the list of prefixes.", ephemeral=True)
+        return
 
 
 class PrefixRemoveSelect(ui.Select["PrefixView"]):
@@ -234,9 +241,10 @@ class PrefixView(View):
         assert self.message is not None
 
         if len(self.settings.prefixes) >= 35:
-            return await itn.response.send_message(
+            await itn.response.send_message(
                 "This server has too many prefixes. Remove some first before adding more.", ephemeral=True
             )
+            return
         else:
             modal = PrefixAddModal(self)
 
@@ -253,7 +261,8 @@ class PrefixView(View):
         assert self.message is not None
 
         if not self.settings.prefixes:
-            return await itn.response.send_message("There are no prefixes to remove.", ephemeral=True)
+            await itn.response.send_message("There are no prefixes to remove.", ephemeral=True)
+            return
         self.prefix_remove_select = PrefixRemoveSelect(self.settings)
         self.add_item(self.prefix_remove_select)
         self._update()
@@ -308,7 +317,8 @@ class LoggingSelect(ui.Select["LoggingView"]):
 
         values = self.values
         if not self.values:
-            return await itn.response.send_message("Could not find values.", ephemeral=True)
+            await itn.response.send_message("Could not find values.", ephemeral=True)
+            return
         changed = LoggingDefaults.copy()
         changed.update({name: True for name in values})
         await self.logging.update(**changed)
@@ -341,12 +351,14 @@ class LoggingChannelSelect(ui.ChannelSelect["LoggingView"]):
 
         channel = self.values[0].resolve()
         if not channel or not isinstance(channel, discord.TextChannel):
-            return await itn.response.send_message("Could not find channel for some reason.", ephemeral=True)
+            await itn.response.send_message("Could not find channel for some reason.", ephemeral=True)
+            return
 
         webhook = self.logging.webhook
 
         if webhook and self.logging.channel_id == channel.id:
-            return await itn.response.send_message(f"Logging channel is already set to {channel.mention}.", ephemeral=True)
+            await itn.response.send_message(f"Logging channel is already set to {channel.mention}.", ephemeral=True)
+            return
 
         avatar = await self.ctx.bot.user.display_avatar.read()
         reason = f"{self.ctx.author}: set logging channel"
@@ -470,10 +482,12 @@ class JoinsAndLeavesChannelSelect(ui.ChannelSelect["JoinsAndLeavesView"]):
         join_leave = self.joins_and_leaves
 
         if channel.id == join_leave.channel_id:
-            return await itn.response.send_message(f"Channel already set to {channel.mention}.", ephemeral=True)
+            await itn.response.send_message(f"Channel already set to {channel.mention}.", ephemeral=True)
+            return
 
         await join_leave.update(channel_id=channel.id)
-        return await itn.response.send_message(f"Set channel to {channel.mention}.", ephemeral=True)
+        await itn.response.send_message(f"Set channel to {channel.mention}.", ephemeral=True)
+        return
 
 
 class JoinsAndLeavesMessageEditButton(ui.Button["JoinsAndLeavesView"]):
@@ -666,12 +680,12 @@ class MemberVerificationChannelSelect(ui.ChannelSelect["MemberVerificationView"]
 
         channel = self.values[0]
         if channel.id == self.verification.channel_id:
-            return await itn.response.send_message(
-                f"Verification channel is already set to {channel.mention}.", ephemeral=True
-            )
+            await itn.response.send_message(f"Verification channel is already set to {channel.mention}.", ephemeral=True)
+            return
 
         await self.verification.update(channel_id=channel.id)
-        return await itn.response.send_message(f"Verification channel set to {channel.mention}.", ephemeral=True)
+        await itn.response.send_message(f"Verification channel set to {channel.mention}.", ephemeral=True)
+        return
 
 
 class MemberVerificationRoleSelect(ui.RoleSelect["MemberVerificationView"]):
@@ -709,12 +723,14 @@ class MemberVerificationRoleSelect(ui.RoleSelect["MemberVerificationView"]):
         role = self.values[0]
         permissions = role.permissions
         if role.id == self.verification.role_id:
-            return await itn.response.send_message(f"Verification role is already set to {role.mention}.", ephemeral=True)
+            await itn.response.send_message(f"Verification role is already set to {role.mention}.", ephemeral=True)
+            return
         elif role >= self.ctx.me.top_role:
-            return await itn.response.send_message(
+            await itn.response.send_message(
                 f"I can not give {role.mention} to members as it's higher than my role. Please select another role.",
                 ephemeral=True,
             )
+            return
         elif (
             permissions.administrator
             or permissions.kick_members
@@ -732,7 +748,8 @@ class MemberVerificationRoleSelect(ui.RoleSelect["MemberVerificationView"]):
             )
             return
         await self.verification.update(role_id=role.id)
-        return await itn.response.send_message(f"Verification role set to {role.mention}.", ephemeral=True)
+        await itn.response.send_message(f"Verification role set to {role.mention}.", ephemeral=True)
+        return
 
 
 class MemberVerificationView(View):
