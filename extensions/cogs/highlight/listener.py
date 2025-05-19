@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -23,9 +24,9 @@ import re
 from typing import TYPE_CHECKING
 
 import discord
-from discord.utils import format_dt
 
 import core
+from utils import timestamp
 
 if TYPE_CHECKING:
     from core import Bot
@@ -48,33 +49,56 @@ class HighlightListener(core.Cog):
     async def notify_user(self, message: discord.Message, member: discord.Member, trigger: str):
         assert message.guild is not None
 
-        messages = []
-        async for msg in message.channel.history(limit=9, around=message):
-            timestamp = format_dt(msg.created_at, "t")
-            author = msg.author
-            content = msg.content[:90] or "*No message content*"
-            if msg.id == message.id:
-                content = content.replace(trigger, f"*__{trigger}__*")
-                messages.append(f"[**[{timestamp}] {author}: {content}**]({msg.jump_url})")
-            else:
-                messages.append(f"[{timestamp}] {author}: {content}")
-            messages.reverse()
+        if not self.can_see_channel(member, message.channel):
+            return
+
         embed = discord.Embed(
             title=f"Highlight trigger: {trigger}",
             description=(
                 f"In the server {message.guild.name}, you were highlighted"
-                f" by {message.author.mention} ({message.author.id})."
+                f" by {message.author.mention} ({message.author.id}).\n{message.jump_url}"
             ),
             color=0x30C5FF,
             timestamp=message.created_at,
         )
-        embed.add_field(
-            name="Messages",
-            value="\n".join(messages),
-        )
+
+        messages: list[str] = []
+        contents: list[str] = []
+        async for msg in message.channel.history(limit=9, around=message, oldest_first=True):
+            time = format(timestamp(msg.created_at), "t")
+            author = msg.author
+            content = msg.content
+
+            prefix = f"[{time}]"
+            if msg.id == message.id:
+                prefix = f"**[{time}]**"
+            fmt_content = f"{prefix} @{author}: {content}"
+            joined_len = len("\n".join(contents))
+
+            if (joined_len + len(fmt_content)) <= 1024:
+
+                contents.append(fmt_content)
+            elif len(fmt_content) >= 1024:
+
+                if (joined_len + len(fmt_content)) >= 1024:
+
+                    messages.append("\n".join(contents))
+                    contents.clear()
+
+                contents.append(f"{fmt_content[:1021]}...")
+            else:
+
+                messages.append("\n".join(contents))
+                contents.clear()
+                contents.append(fmt_content)
+
+        messages.append("\n".join(contents))
+
+        for message_content in messages:
+            embed.add_field(name="\u200b", value=message_content, inline=False)
+
+        embed.set_field_at(0, name="Messages", value=embed.fields[0].value)
         embed.set_footer(text="Triggered at")
-        if not self.can_see_channel(member, message.channel):
-            return
         with contextlib.suppress(discord.Forbidden):
             await member.send(embed=embed)
 
