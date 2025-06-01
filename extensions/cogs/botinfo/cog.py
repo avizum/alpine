@@ -64,13 +64,21 @@ class BotInfo(core.Cog, name="Bot Info"):
             f"<@{self.bot.user.id}>",
             f"<@!{self.bot.user.id}>",
         ]:
-            if not ctx.bot_permissions.send_messages:
+            guild_data = ctx.database.get_guild(ctx.guild.id)
+            if (
+                not ctx.bot_permissions.send_messages
+                or not guild_data
+                or (guild_data and ctx.channel.id in guild_data.disabled_channels)
+            ):
                 return
-            command = self.bot.get_command("prefix")
-            if command is None:
-                return
-            ctx.command = command
-            await command(ctx)
+
+            prefixes = guild_data.prefixes or []
+            prefixes.insert(0, f"@{ctx.me.display_name}")
+            if len(prefixes) == 1:
+                prefixes.append("a.")
+            content = f"The prefixes are:\n`{'` | `'.join(prefixes)}`"
+
+            await message.reply(content)
 
         if message.guild and not message.guild.chunked:
             await message.guild.chunk()
