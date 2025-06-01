@@ -82,7 +82,7 @@ class TrashView(AView):
 
 
 class ConfirmView(AView):
-    def __init__(self, *, member: discord.Member | discord.User, timeout: int | float) -> None:
+    def __init__(self, *, member: discord.Member | discord.User | discord.User, timeout: int | float) -> None:
         super().__init__(member=member, timeout=timeout)
         self.value: bool | None = None
         self.message: Message | None = None
@@ -281,10 +281,6 @@ class Context(commands.Context, Generic[BotT_co]):
         mention_author: bool = ...,
         view: ui.View = ...,
         suppress_embeds: bool = ...,
-        paginate: bool = ...,
-        post: bool = ...,
-        no_edit: bool = ...,
-        no_reply: bool = ...,
         ephemeral: bool = ...,
         silent: bool = ...,
         poll: discord.Poll = ...,
