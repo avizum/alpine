@@ -23,4 +23,4 @@ from .emojis import *
 from .helpers import *
 from .paginators import *
 from .parse import *
-from .view import *
+from .views import *
