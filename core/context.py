@@ -21,22 +21,23 @@ from __future__ import annotations
 import datetime
 import re
 import sys
-from typing import TYPE_CHECKING, Any, Generic, Sequence, TypeVar
+from typing import Any, Generic, overload, Sequence, TYPE_CHECKING, TypeVar
 
 import discord
 from asyncgist import File as AGFile
+from discord import ui
 from discord.ext import commands, menus
 from discord.utils import MISSING
 
 from utils.emojis import Emojis
 from utils.helpers import EMOJI_REGEX
 from utils.paginators import Paginator, WrappedPaginator
-from utils.view import View as AView
+from utils.views import View as AView
 
 if TYPE_CHECKING:
     from asyncpg import Pool
     from discord import AllowedMentions, Embed, File, GuildSticker, Message, MessageReference, PartialMessage, StickerItem
-    from discord.ui import View
+    from discord.ui.view import BaseView
 
     from extensions.cogs.music.cog import Player
     from utils import Database
@@ -44,11 +45,11 @@ if TYPE_CHECKING:
     from .alpine import Bot
 
 __all__ = (
-    "Context",
     "ConfirmResult",
+    "Context",
 )
 
-BotT = TypeVar("BotT", bound="commands.Bot | commands.AutoShardedBot", covariant=True)
+BotT_co = TypeVar("BotT_co", bound="commands.Bot | commands.AutoShardedBot", covariant=True)
 T = TypeVar("T")
 
 
@@ -81,7 +82,7 @@ class TrashView(AView):
 
 
 class ConfirmView(AView):
-    def __init__(self, *, member: discord.Member, timeout: int | float) -> None:
+    def __init__(self, *, member: discord.Member | discord.User, timeout: int | float) -> None:
         super().__init__(member=member, timeout=timeout)
         self.value: bool | None = None
         self.message: Message | None = None
@@ -122,7 +123,7 @@ class AutoPageSource(menus.ListPageSource):
         return page
 
 
-class Context(commands.Context, Generic[BotT]):
+class Context(commands.Context, Generic[BotT_co]):
     author: discord.Member
     guild: discord.Guild
     channel: discord.TextChannel | discord.VoiceChannel | discord.Thread
@@ -232,6 +233,134 @@ class Context(commands.Context, Generic[BotT]):
         self.bot.command_cache[self.message.id] = message
         return message
 
+    @overload
+    async def send(
+        self,
+        *,
+        file: discord.File = ...,
+        delete_after: float = ...,
+        nonce: str | int = ...,
+        allowed_mentions: discord.AllowedMentions = ...,
+        reference: discord.Message | discord.MessageReference | discord.PartialMessage = ...,
+        mention_author: bool = ...,
+        view: ui.LayoutView,
+        suppress_embeds: bool = ...,
+        ephemeral: bool = ...,
+        silent: bool = ...,
+    ) -> discord.Message: ...
+
+    @overload
+    async def send(
+        self,
+        *,
+        files: Sequence[discord.File] = ...,
+        delete_after: float = ...,
+        nonce: str | int = ...,
+        allowed_mentions: discord.AllowedMentions = ...,
+        reference: discord.Message | discord.MessageReference | discord.PartialMessage = ...,
+        mention_author: bool = ...,
+        view: ui.LayoutView,
+        suppress_embeds: bool = ...,
+        ephemeral: bool = ...,
+        silent: bool = ...,
+    ) -> discord.Message: ...
+
+    @overload
+    async def send(
+        self,
+        content: str | None = ...,
+        *,
+        tts: bool = ...,
+        embed: discord.Embed = ...,
+        file: discord.File = ...,
+        stickers: Sequence[discord.GuildSticker | discord.StickerItem] = ...,
+        delete_after: float = ...,
+        nonce: str | int = ...,
+        allowed_mentions: discord.AllowedMentions = ...,
+        reference: discord.Message | discord.MessageReference | discord.PartialMessage = ...,
+        mention_author: bool = ...,
+        view: ui.View = ...,
+        suppress_embeds: bool = ...,
+        ephemeral: bool = ...,
+        silent: bool = ...,
+        poll: discord.Poll = ...,
+    ) -> discord.Message: ...
+
+    @overload
+    async def send(
+        self,
+        content: str | None = ...,
+        *,
+        tts: bool = ...,
+        embed: discord.Embed = ...,
+        files: Sequence[discord.File] = ...,
+        stickers: Sequence[discord.GuildSticker | discord.StickerItem] = ...,
+        delete_after: float = ...,
+        nonce: str | int = ...,
+        allowed_mentions: discord.AllowedMentions = ...,
+        reference: discord.Message | discord.MessageReference | discord.PartialMessage = ...,
+        mention_author: bool = ...,
+        view: ui.View = ...,
+        suppress_embeds: bool = ...,
+        paginate: bool = ...,
+        post: bool = ...,
+        no_edit: bool = ...,
+        no_reply: bool = ...,
+        ephemeral: bool = ...,
+        silent: bool = ...,
+        poll: discord.Poll = ...,
+    ) -> discord.Message: ...
+
+    @overload
+    async def send(
+        self,
+        content: str | None = ...,
+        *,
+        tts: bool = ...,
+        embeds: Sequence[discord.Embed] = ...,
+        file: discord.File = ...,
+        stickers: Sequence[discord.GuildSticker | discord.StickerItem] = ...,
+        delete_after: float = ...,
+        nonce: str | int = ...,
+        allowed_mentions: discord.AllowedMentions = ...,
+        reference: discord.Message | discord.MessageReference | discord.PartialMessage = ...,
+        mention_author: bool = ...,
+        view: ui.View = ...,
+        suppress_embeds: bool = ...,
+        paginate: bool = ...,
+        post: bool = ...,
+        no_edit: bool = ...,
+        no_reply: bool = ...,
+        ephemeral: bool = ...,
+        silent: bool = ...,
+        poll: discord.Poll = ...,
+    ) -> discord.Message: ...
+
+    @overload
+    async def send(
+        self,
+        content: str | None = ...,
+        *,
+        tts: bool = ...,
+        embeds: Sequence[discord.Embed] = ...,
+        files: Sequence[discord.File] = ...,
+        stickers: Sequence[discord.GuildSticker | discord.StickerItem] = ...,
+        delete_after: float = ...,
+        nonce: str | int = ...,
+        allowed_mentions: discord.AllowedMentions = ...,
+        reference: discord.Message | discord.MessageReference | discord.PartialMessage = ...,
+        mention_author: bool = ...,
+        view: ui.View = ...,
+        suppress_embeds: bool = ...,
+        paginate: bool = ...,
+        post: bool = ...,
+        no_edit: bool = ...,
+        no_reply: bool = ...,
+        ephemeral: bool = ...,
+        silent: bool = ...,
+        poll: discord.Poll = ...,
+    ) -> discord.Message: ...
+
     async def send(
         self,
         content: str | None = None,
@@ -247,7 +376,7 @@ class Context(commands.Context, Generic[BotT]):
         allowed_mentions: AllowedMentions | None = None,
         reference: Message | MessageReference | PartialMessage | None = None,
         mention_author: bool | None = None,
-        view: View | None = None,
+        view: BaseView | None = None,
         suppress_embeds: bool = False,
         paginate: bool = False,
         post: bool = False,
@@ -255,6 +384,7 @@ class Context(commands.Context, Generic[BotT]):
         no_reply: bool = False,
         ephemeral: bool = False,
         silent: bool = False,
+        poll: discord.Poll = MISSING,
     ) -> Message:
         if content:
             content = str(content)
@@ -297,6 +427,7 @@ class Context(commands.Context, Generic[BotT]):
             "view": view,
             "suppress_embeds": suppress_embeds,
             "silent": silent,
+            "poll": poll,
         }
 
         if self.message.id in self.bot.command_cache and self.message.edited_at and not no_edit:
@@ -312,6 +443,7 @@ class Context(commands.Context, Generic[BotT]):
                     "reference",
                     "suppress_embeds",
                     "silent",
+                    "poll",
                 )
                 for pop in to_pop:
                     edit_kwargs.pop(pop, None)
@@ -341,6 +473,7 @@ class Context(commands.Context, Generic[BotT]):
             "suppress_embeds": suppress_embeds,
             "ephemeral": ephemeral,
             "silent": silent,
+            "poll": poll,
         }
 
         if self.interaction.response.is_done():
@@ -361,9 +494,9 @@ class Context(commands.Context, Generic[BotT]):
         self,
         *,
         message: str | None = None,
-        embed: Embed | None = None,
+        embed: Embed = MISSING,
         confirm_messsage: str = 'Press "yes" to accept, or press "no" to deny',
-        timeout: int = 60,
+        timeout: int = 60,  # noqa: ASYNC109
         delete_message_after: bool = False,
         remove_view_after: bool = False,
         no_reply: bool = False,
@@ -372,7 +505,7 @@ class Context(commands.Context, Generic[BotT]):
     ) -> ConfirmResult:
         if delete_message_after and remove_view_after:
             raise ValueError("Cannot have both delete_message_after and remove_view_after keyword arguments.")
-        if embed and message or embed:
+        if (embed and message) or embed:
             embed.description = f"{embed.description}\n\n{confirm_messsage}" if embed.description else confirm_messsage
         elif message:
             message = f"{message}\n\n{confirm_messsage}"
@@ -386,7 +519,7 @@ class Context(commands.Context, Generic[BotT]):
             await msg.edit(view=None)
         return ConfirmResult(msg, view.value)
 
-    async def can_delete(self, *args, timeout: int = 60, **kwargs) -> Message:
+    async def can_delete(self, *args, timeout: int = 60, **kwargs) -> Message:  # noqa: ASYNC109
         if self.interaction:
             return await self.send(*args, **kwargs)
         view = TrashView(member=self.author, timeout=timeout, ctx=self)
