@@ -143,6 +143,10 @@ class BotLogs(core.Cog):
 
         list_of_messages = []
         for _message in messages:
+            time = format(timestamp(_message.created_at), "t")
+            content = escape_markdown(_message.content[:90]) or "*No content*"
+            list_of_messages.append(f"[{time}] {_message.author}: {content}")
+        for _message in messages:
             if len(_message.content) > 100:
                 content = escape_markdown(f"{_message.content[:100]}...")
             else:
