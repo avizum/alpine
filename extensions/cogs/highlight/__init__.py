@@ -27,8 +27,6 @@ class Highlight(HighlightCommands, HighlightListener):
     Highlight commands.
     """
 
-    pass
-
 
 async def setup(bot: Bot):
     await bot.add_cog(Highlight(bot))

@@ -19,16 +19,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any, cast, TYPE_CHECKING
 
 import discord
 import wavelink
 from discord.ext import menus
-from wavelink import Playable as WPlayable
-from wavelink import Playlist as WPlaylist
-from wavelink import Queue as WQueue
+from wavelink import Playable as WPlayable, Playlist as WPlaylist, Queue as WQueue
 
-from utils import View, format_seconds
+from utils import format_seconds, View
 
 if TYPE_CHECKING:
     from core import Context
@@ -163,7 +161,7 @@ class Player(wavelink.Player):
             tracks = None
 
         if not tracks:
-            return
+            return None
 
         return tracks if isinstance(tracks, WPlaylist) else tracks[0]
 
@@ -189,10 +187,7 @@ class Player(wavelink.Player):
         if position:
             time = f"Position: {format_seconds(position/1000)}/{format_seconds(current.length/1000)}"
 
-        if self.queue.up_next:
-            next_track = self.queue.up_next
-        else:
-            next_track = None
+        next_track = self.queue.up_next if self.queue.up_next else None
 
         # fmt: off
         embed.description = (

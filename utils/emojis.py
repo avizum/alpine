@@ -18,9 +18,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 __all__ = ("Emojis",)
 
+from typing import ClassVar
+
 
 class Emojis:
-    BADGES: dict[str, str] = {
+    BADGES: ClassVar[dict[str, str]] = {
         "hypesquad_balance": "<:hypesquad_balance:1308917879151788135>",
         "hypesquad_brilliance": "<:hypesquad_brilliance:1308917912869802085>",
         "hypesquad_bravery": "<:hypesquad_bravery:1308917891847946320>",
@@ -38,7 +40,7 @@ class Emojis:
         "guild_owner": "<:server_owner:1309623251919437966>",
     }
 
-    STATUSES: dict[str, str] = {
+    STATUSES: ClassVar[dict[str, str]] = {
         "online": "<:status_online:810683593193029642>",
         "idle": "<:status_idle:810683571269664798>",
         "dnd": "<:status_dnd:810683560863989805>",
@@ -46,6 +48,6 @@ class Emojis:
         "streaming": "<:status_streaming:810683604812169276>",
     }
 
-    RED_TICK: str = "<:redtick:777096756865269760>"
-    GREEN_TICK: str = "<:greentick:777096731438874634>"
-    GRAY_TICK: str = "<:graytick:791040199798030336>"
+    RED_TICK: ClassVar[str] = "<:redtick:777096756865269760>"
+    GREEN_TICK: ClassVar[str] = "<:greentick:777096731438874634>"
+    GRAY_TICK: ClassVar[str] = "<:graytick:791040199798030336>"

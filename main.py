@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import argparse
 
-from core import Bot, alpine
+from core import alpine, Bot
 
 parser = argparse.ArgumentParser("Alpine Bot")
 parser.add_argument("-b", "--beta", action="store_true")

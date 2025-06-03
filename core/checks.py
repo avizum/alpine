@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import functools
 import inspect
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, Literal, TypeVar
+from typing import Any, Callable, Coroutine, Literal, TYPE_CHECKING, TypeVar
 
 import discord
 from discord.ext import commands
@@ -38,13 +38,13 @@ if TYPE_CHECKING:
 
 
 __all__ = (
-    "check",
-    "has_permissions",
     "bot_has_permissions",
+    "check",
     "cooldown",
-    "is_owner",
-    "is_guild_owner",
     "describe",
+    "has_permissions",
+    "is_guild_owner",
+    "is_owner",
 )
 
 

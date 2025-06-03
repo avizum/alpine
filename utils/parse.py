@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 from __future__ import annotations
 
 import json
@@ -76,7 +77,6 @@ async def preview_message(message: str, ctx: Context) -> str | discord.Embed:
     parsed = parser.parse(message, env=env)
     try:
         data = json.loads(parsed)
-        embed = discord.Embed.from_dict(data)
-        return embed
+        return discord.Embed.from_dict(data)
     except Exception:
         return parsed

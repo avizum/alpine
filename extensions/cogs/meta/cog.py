@@ -206,12 +206,12 @@ class Meta(core.Cog):
                 flags = []
                 for flag, value in member.public_flags:
                     new = flag.replace(flag, Emojis.BADGES.get(flag, flag))
-                    flag = flag.replace("bot_http_interactions", "interactions_only")
+                    flag_name = flag.replace("bot_http_interactions", "interactions_only")
                     if value is True:
-                        if new == flag:
-                            flags.append(flag.replace("_", " ").title())
+                        if new == flag_name:
+                            flags.append(flag_name.replace("_", " ").title())
                             continue
-                        flags.append(f"{new} | {flag.replace('_', ' ').title()}")
+                        flags.append(f"{new} | {flag_name.replace('_', ' ').title()}")
                 if ctx.guild.owner and ctx.guild.owner == member:
                     flags.append(f"{Emojis.BADGES["guild_owner"]} | Server Owner")
                 ie.add_field(name=f"Badges [{len(flags)}]", value=",\n".join(flags))
@@ -309,7 +309,7 @@ class Meta(core.Cog):
             )
         else:
             return await ctx.send("This person does not have a banner.")
-        await ctx.send(embed=embed)
+        return await ctx.send(embed=embed)
 
     @core.command(invoke_without_command=True)
     async def qr(self, ctx: Context, *, content):
@@ -359,7 +359,7 @@ class Meta(core.Cog):
         except KeyError as e:
             raise TimeZoneError(timezone) from e
         await user_settings.update(timezone=timezone)
-        await ctx.send(f"Set timezone to {timezones}")
+        return await ctx.send(f"Set timezone to {timezones}")
 
     @core.command()
     @core.cooldown(1, 15, commands.BucketType.guild)
@@ -398,7 +398,7 @@ class Meta(core.Cog):
         if not q:
             return await ctx.send("No results found.")
         menu = Paginator(RTFMPageSource(ctx, q[:79], "Discord.py"), ctx=ctx, remove_view_after=True)
-        await menu.start()
+        return await menu.start()
 
     @docs.command(aliases=["py"])
     @core.describe(query="What to search for.")
@@ -410,7 +410,7 @@ class Meta(core.Cog):
         if not q:
             return await ctx.send("No results found.")
         menu = Paginator(RTFMPageSource(ctx, q[:79], "Python"), ctx=ctx, remove_view_after=True)
-        await menu.start()
+        return await menu.start()
 
     @docs.command(aliases=["wl"])
     @core.describe(query="What to search for.")
@@ -422,7 +422,7 @@ class Meta(core.Cog):
         if not q:
             return await ctx.send("No results found.")
         menu = Paginator(RTFMPageSource(ctx, q[:79], "Wavelink"), ctx=ctx, remove_view_after=True)
-        await menu.start()
+        return await menu.start()
 
     @docs.command(aliases=["c"])
     @core.describe(url="The URL to search docs for.", query="What to search for.")
@@ -437,7 +437,7 @@ class Meta(core.Cog):
         if not q:
             return await ctx.send("No results found.")
         menu = Paginator(RTFMPageSource(ctx, q[:79], "Custom Docs"), ctx=ctx, remove_view_after=True)
-        await menu.start()
+        return await menu.start()
 
     @core.group(name="gist", invoke_without_command=True)
     @core.cooldown(1, 60, commands.BucketType.user)
@@ -467,7 +467,7 @@ class Meta(core.Cog):
             await self.bot.gist.delete_gist(gist_id)
         except asyncgist.NotFound:
             return await ctx.send("Gist was not found.")
-        await ctx.send("Deleted post.")
+        return await ctx.send("Deleted post.")
 
     @gist.command(name="read")
     async def gist_read(self, ctx, *, gist_id: str):
@@ -482,7 +482,7 @@ class Meta(core.Cog):
             pag.add_line(i.replace("`", "\u200b`"))
         source = AutoPageSource(pag)
         pages = Paginator(source, ctx=ctx, delete_message_after=True)
-        await pages.start()
+        return await pages.start()
 
     @core.command(aliases=["rawmsg", "rmessage", "rmsg"])
     @core.cooldown(1, 15, commands.BucketType.user)

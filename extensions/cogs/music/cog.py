@@ -21,16 +21,15 @@ from __future__ import annotations
 import asyncio
 import datetime as dt
 import math
-from typing import TYPE_CHECKING, cast
+from typing import cast, TYPE_CHECKING
 
 import discord
 import wavelink
 from discord.ext import commands
-from wavelink import Playable as WPlayable
-from wavelink import Playlist as WPlaylist
+from wavelink import Playable as WPlayable, Playlist as WPlaylist
 
 import core
-from utils import Paginator, format_seconds
+from utils import format_seconds, Paginator
 
 from .exceptions import BotNotInVoice, IncorrectChannelError, NotInVoice
 from .music import PaginatorSource, Playable, Player
@@ -57,6 +56,7 @@ class ConvertTime(commands.Converter, int):
                 return int(delta.total_seconds())
             except ValueError as e:
                 raise commands.BadArgument("Time must be in MM:SS format.") from e
+        return None
 
 
 class TrackException(wavelink.TrackExceptionEventPayload):
@@ -100,7 +100,7 @@ class Music(core.Cog):
                 raise NotInVoice("You are not in a voice channel.")
             if not player:
                 return True
-            elif player.channel and player.channel != ctx.author.voice.channel:
+            if player.channel and player.channel != ctx.author.voice.channel:
                 raise IncorrectChannelError(f"This command can only be used in {player.channel.mention}.")
             return True
 
@@ -153,7 +153,10 @@ class Music(core.Cog):
             return
 
         if player.announce:
-            await player.context.send(embed=await player.build_now_playing())
+            embed = await player.build_now_playing()
+            if not embed:
+                return
+            await player.context.send(embed=embed)
 
     @core.Cog.listener("on_wavelink_track_stuck")
     async def track_stuck(self, payload: TrackStuck):
@@ -172,15 +175,14 @@ class Music(core.Cog):
         after: discord.VoiceState,
     ):
         if member.guild.voice_client is None:
-            return
+            return None
         player: Player = cast(Player, member.guild.voice_client)
 
-        if member == self.bot.user:
-            if after.channel is None:
-                await player.disconnect()
+        if member == self.bot.user and after.channel is None:
+            await player.disconnect()
 
         if member.bot:
-            return
+            return None
 
         channel = player.channel
 
@@ -199,12 +201,13 @@ class Music(core.Cog):
             for m in channel.members:
                 if m.bot:
                     continue
-                else:
-                    player.dj = m
-                    return
+
+                player.dj = m
+                return None
 
         elif after.channel == channel and player.dj not in channel.members:
             player.dj = member
+        return None
 
     def set_info(self, requester: discord.Member | str, item: WPlayable):
         track = cast(Playable, item)
@@ -225,8 +228,9 @@ class Music(core.Cog):
         ctx.locally_handled = True
         if isinstance(error, (NotInVoice, BotNotInVoice, IncorrectChannelError)):
             return await ctx.send(str(error), ephemeral=True, delete_after=30)
-        else:
-            ctx.locally_handled = False
+
+        ctx.locally_handled = False
+        return None
 
     def required(self, ctx: Context):
         """Method which returns required votes based on amount of members in a channel."""
@@ -245,16 +249,16 @@ class Music(core.Cog):
         channel = ctx.author.voice.channel
         if channel is None:
             await ctx.send("You are not in a voice channel.")
-            return
+            return None
         if not channel.permissions_for(ctx.me).connect:
             await ctx.send("I do not have permission to connect to your channel.")
-            return
+            return None
         if player:
             if player.channel == channel:
                 await ctx.send("Already in a voice channel.")
-                return
+                return None
             await player.move_to(channel)  # type: ignore
-            return
+            return None
         player = await channel.connect(cls=Player(context=ctx))  # type: ignore
 
         if isinstance(player.channel, discord.StageChannel):
@@ -287,7 +291,7 @@ class Music(core.Cog):
             return await ctx.send("Already disconnected.", ephemeral=True)
 
         if not player:
-            return
+            return None
 
         if self.is_privileged(ctx):
             await ctx.send("Goodbye! :wave:")
@@ -299,8 +303,9 @@ class Music(core.Cog):
         if len(player.stop_votes) >= required:
             await ctx.send("Goodbye! (Vote passed) :wave:")
             await player.disconnect()
-        else:
-            await ctx.send(f"Voted to stop the player. ({len(player.stop_votes)}/{required}).")
+            return None
+        await ctx.send(f"Voted to stop the player. ({len(player.stop_votes)}/{required}).")
+        return None
 
     @core.command(hybrid=True, aliases=["enqueue", "p"])
     @in_voice()
@@ -314,9 +319,9 @@ class Music(core.Cog):
         if not player:
             player = await self.do_connect(ctx)
             if not isinstance(player, Player):
-                return
+                return None
         if not player.channel:
-            return
+            return None
 
         search = await player.fetch_tracks(query)
         if not search:
@@ -343,6 +348,7 @@ class Music(core.Cog):
 
         if not player.playing:
             await player.play(player.queue.get())
+        return None
 
     @core.group(hybrid=True, name="loop", fallback="track")
     @in_voice()
@@ -360,10 +366,10 @@ class Music(core.Cog):
             return await ctx.send("Only the DJ or admin can use this command.")
         if player.queue.mode == wavelink.QueueMode.normal:
             player.queue.mode = wavelink.QueueMode.loop
-            await ctx.send(f"Looping {player.current}.")
-        else:
-            player.queue.mode = wavelink.QueueMode.normal
-            await ctx.send("Disabled loop.")
+            return await ctx.send(f"Looping {player.current}.")
+
+        player.queue.mode = wavelink.QueueMode.normal
+        return await ctx.send("Disabled loop.")
 
     @track_loop.command(name="queue")
     @core.is_owner()
@@ -384,8 +390,9 @@ class Music(core.Cog):
         if player.queue.mode != wavelink.QueueMode.loop_all:
             player.queue.mode = wavelink.QueueMode.loop_all
             await ctx.send("Looping queue.")
-        else:
-            await ctx.send("Already looping the queue.")
+            return None
+        await ctx.send("Already looping the queue.")
+        return None
 
     # @core.command(hybrid=True)
     # @in_voice()
@@ -422,9 +429,9 @@ class Music(core.Cog):
         player: Player = ctx.voice_client
 
         if not player:
-            return
+            return None
         if not player.playing:
-            return
+            return None
 
         if self.is_privileged(ctx):
             await ctx.send(f":pause_button: {ctx.author.display_name} has paused the player.")
@@ -438,8 +445,9 @@ class Music(core.Cog):
             await ctx.send(":pause_button: Pausing because vote to pause passed.")
             player.pause_votes.clear()
             await player.pause(True)
-        else:
-            await ctx.send(f"Voted to pause the player. ({len(player.skip_votes)}/{required})")
+            return None
+        await ctx.send(f"Voted to pause the player. ({len(player.skip_votes)}/{required})")
+        return None
 
     @core.command(hybrid=True, aliases=["unpause"])
     @in_voice()
@@ -455,7 +463,7 @@ class Music(core.Cog):
         player: Player = ctx.voice_client
 
         if not player:
-            return
+            return None
         if not player.playing:
             return await ctx.send("Player is not playing anything.")
 
@@ -472,8 +480,9 @@ class Music(core.Cog):
             await ctx.send(":arrow_forward: Resuming because vote to resume passed.")
             player.resume_votes.clear()
             await player.pause(False)
-        else:
-            await ctx.send(f"Voted to resume the player. ({len(player.skip_votes)}/{required})")
+            return None
+        await ctx.send(f"Voted to resume the player. ({len(player.skip_votes)}/{required})")
+        return None
 
     @core.command(hybrid=True)
     @in_voice()
@@ -489,7 +498,7 @@ class Music(core.Cog):
         player: Player = ctx.voice_client
 
         if not player:
-            return
+            return None
 
         if not player.current:
             return await ctx.send("There is nothing to skip.")
@@ -512,9 +521,8 @@ class Music(core.Cog):
         if len(player.skip_votes) >= required:
             await ctx.send(":track_next: Skipping because vote to skip passed")
             player.skip_votes.clear()
-            await player.stop()
-        else:
-            await ctx.send(f"Voted to skip. ({len(player.skip_votes)}/{required})")
+            return await player.stop()
+        return await ctx.send(f"Voted to skip. ({len(player.skip_votes)}/{required})")
 
     @core.command(hybrid=True, aliases=["ff", "fastf", "fforward"])
     @in_voice()
@@ -536,7 +544,7 @@ class Music(core.Cog):
             await player.seek((int(player.position) + seconds) * 1000)
             pos = f"{format_seconds(player.position / 1000)}/{format_seconds(player.current.length / 1000)}"
             return await ctx.send(f":fast_forward: Fast forwarded {seconds} seconds. ({pos})")
-        await ctx.send("Only the DJ can fast forward.")
+        return await ctx.send("Only the DJ can fast forward.")
 
     @core.command(hybrid=True, aliases=["rw"])
     @in_voice()
@@ -558,7 +566,7 @@ class Music(core.Cog):
             await player.seek((int(player.position) - seconds) * 1000)
             pos = f"{format_seconds(player.position / 1000)}/{format_seconds(player.current.length / 1000)}"
             return await ctx.send(f":rewind: Rewinded {seconds} seconds. ({pos})")
-        await ctx.send("Only the DJ can rewind.")
+        return await ctx.send("Only the DJ can rewind.")
 
     @core.command(hybrid=True, aliases=["sk"])
     @in_voice()
@@ -581,7 +589,7 @@ class Music(core.Cog):
                 return await ctx.send("That is longer than the song!")
             await ctx.send(f"Seeked to {format_seconds(seconds)}/{format_seconds(player.current.length / 1000)}")
             return await player.seek(seconds * 1000)
-        await ctx.send("Only the DJ can seek.")
+        return await ctx.send("Only the DJ can seek.")
 
     @core.command(hybrid=True, aliases=["v", "vol"])
     @in_voice()
@@ -597,7 +605,7 @@ class Music(core.Cog):
         player: Player = ctx.voice_client
 
         if not player:
-            return
+            return None
 
         if not self.is_privileged(ctx):
             return await ctx.send("Only the DJ or admins may change the volume.")
@@ -606,7 +614,7 @@ class Music(core.Cog):
             return await ctx.send("Please enter a value between 1 and 100.")
 
         await player.set_volume(volume)
-        await ctx.send(f":sound: Set the volume to {volume}%")
+        return await ctx.send(f":sound: Set the volume to {volume}%")
 
     @core.command(hybrid=True, aliases=["mix"])
     @in_voice()
@@ -622,7 +630,7 @@ class Music(core.Cog):
         player: Player = ctx.voice_client
 
         if not player:
-            return
+            return None
 
         if self.is_privileged(ctx):
             await ctx.send(f":twisted_rightwards_arrows: {ctx.author.display_name} shuffled the queue.")
@@ -638,11 +646,11 @@ class Music(core.Cog):
         if len(player.shuffle_votes) >= required:
             await ctx.send(":twisted_rightwards_arrows: Shuffling queue because vote to shuffle passed.")
             player.shuffle_votes.clear()
-            player.queue.shuffle()
-        else:
-            await ctx.send(
-                f"Voted to shuffle the playlist. ({len(player.shuffle_votes)}/{required})",
-            )
+            return player.queue.shuffle()
+
+        return await ctx.send(
+            f"Voted to shuffle the playlist. ({len(player.shuffle_votes)}/{required})",
+        )
 
     @core.command()
     @in_voice()
@@ -726,7 +734,7 @@ class Music(core.Cog):
 
         player.filters.karaoke.set(level=level / 100, mono_level=level / 100, filter_band=220.0, filter_width=100.0)
         await player.set_filters(player.filters, seek=True)
-        await ctx.send(f"Set the karaoke filter to level {level}.")
+        return await ctx.send(f"Set the karaoke filter to level {level}.")
 
     @filter_base.command(name="speed")
     @in_voice()
@@ -744,7 +752,7 @@ class Music(core.Cog):
 
         player.filters.timescale.set(speed=speed)
         await player.set_filters(player.filters, seek=True)
-        await ctx.send(f"Set the speed to {speed}x.")
+        return await ctx.send(f"Set the speed to {speed}x.")
 
     @filter_base.command(name="pitch")
     @in_voice()
@@ -762,7 +770,7 @@ class Music(core.Cog):
 
         player.filters.timescale.set(pitch=pitch)
         await player.set_filters(player.filters, seek=True)
-        await ctx.send(f"Set the pitch to {pitch}.")
+        return await ctx.send(f"Set the pitch to {pitch}.")
 
     @filter_base.command(name="tremolo")
     @in_voice()
@@ -783,7 +791,7 @@ class Music(core.Cog):
         depth /= 100
         player.filters.tremolo.set(frequency=frequency, depth=depth)
         await player.set_filters(player.filters, seek=True)
-        await ctx.send(f"Set the tremolo filter to {frequency} frequency and {depth}% depth.")
+        return await ctx.send(f"Set the tremolo filter to {frequency} frequency and {depth}% depth.")
 
     @filter_base.command(name="vibrato")
     @in_voice()
@@ -804,7 +812,7 @@ class Music(core.Cog):
         depth /= 100
         player.filters.vibrato.set(frequency=frequency, depth=depth)
         await player.set_filters(player.filters, seek=True)
-        await ctx.send(f"Set the vibrato filter to {frequency:,} frequency and {depth*100}% depth.")
+        return await ctx.send(f"Set the vibrato filter to {frequency:,} frequency and {depth*100}% depth.")
 
     @filter_base.command(name="rotation")
     @in_voice()
@@ -822,7 +830,7 @@ class Music(core.Cog):
 
         player.filters.rotation.set(rotation_hz=speed)
         await player.set_filters(player.filters, seek=True)
-        await ctx.send(f"Set the rotation filter speed to {speed}.")
+        return await ctx.send(f"Set the rotation filter speed to {speed}.")
 
     @filter_base.group(name="mix", invoke_without_command=True)
     @in_voice()
@@ -849,7 +857,7 @@ class Music(core.Cog):
 
         player.filters.channel_mix.set(left_to_left=1.0, left_to_right=0.0, right_to_left=0.0, right_to_right=0.0)
         await player.set_filters(player.filters, seek=True)
-        await ctx.send("Set the mix filter to full left.")
+        return await ctx.send("Set the mix filter to full left.")
 
     @filter_mix.command(name="only-right")
     @in_voice()
@@ -866,7 +874,7 @@ class Music(core.Cog):
 
         player.filters.channel_mix.set(left_to_left=0.0, left_to_right=0.0, right_to_left=0.0, right_to_right=1.0)
         await player.set_filters(player.filters, seek=True)
-        await ctx.send("Set the mix filter to full right.")
+        return await ctx.send("Set the mix filter to full right.")
 
     @filter_mix.command(name="mono")
     @in_voice()
@@ -883,7 +891,7 @@ class Music(core.Cog):
 
         player.filters.channel_mix.set(left_to_left=0.5, left_to_right=0.5, right_to_left=0.5, right_to_right=0.5)
         await player.set_filters(player.filters, seek=True)
-        await ctx.send("Set the mix filter to mono.")
+        return await ctx.send("Set the mix filter to mono.")
 
     @filter_mix.command(name="switch")
     @in_voice()
@@ -900,7 +908,7 @@ class Music(core.Cog):
 
         player.filters.channel_mix.set(left_to_left=0.0, left_to_right=1.0, right_to_left=1.0, right_to_right=0.0)
         await player.set_filters(player.filters, seek=True)
-        await ctx.send("Set the mix filter switch.")
+        return await ctx.send("Set the mix filter switch.")
 
     @filter_base.command(name="lowpass")
     @in_voice()
@@ -918,7 +926,7 @@ class Music(core.Cog):
 
         player.filters.low_pass.set(smoothing=smoothing)
         await player.set_filters(player.filters, seek=True)
-        await ctx.send(f"Set lowpass smoothing to {smoothing}")
+        return await ctx.send(f"Set lowpass smoothing to {smoothing}")
 
     @core.command(hybrid=True, aliases=["q", "upnext"])
     @bot_in_voice()
@@ -928,7 +936,7 @@ class Music(core.Cog):
         player: Player = ctx.voice_client
 
         if not player:
-            return
+            return None
 
         if player.queue.size == 0:
             return await ctx.send(f"The queue is empty. Use {ctx.prefix}play to add some songs!")
@@ -940,7 +948,7 @@ class Music(core.Cog):
 
         pages = PaginatorSource(entries=entries, ctx=ctx)
         paginator = Paginator(source=pages, timeout=120, ctx=ctx, delete_message_after=True)
-        await paginator.start()
+        return await paginator.start()
 
     @core.command(aliases=["clq", "clqueue", "cqueue"])
     @in_voice()
@@ -953,7 +961,7 @@ class Music(core.Cog):
         player: Player = ctx.voice_client
 
         if not player:
-            return
+            return None
         if player.queue.size == 0:
             return await ctx.send("The queue is empty. You can't clear an empty queue.")
 
@@ -961,7 +969,7 @@ class Music(core.Cog):
             await ctx.send("Cleared the queue.")
             return player.queue.clear()
 
-        await ctx.send("Only the DJ can clear the queue.")
+        return await ctx.send("Only the DJ can clear the queue.")
 
     @core.command(aliases=["np", "now_playing", "current"])
     @bot_in_voice()
@@ -973,11 +981,13 @@ class Music(core.Cog):
         player: Player = ctx.voice_client
 
         if not player:
-            return
+            return None
         if not player.playing:
             return await ctx.send("Nothing is playing.")
         pos = player.position
-        await ctx.send(embed=await player.build_now_playing(pos))
+        embed = await player.build_now_playing(pos)
+        assert embed is not None
+        return await ctx.send(embed=embed)
 
     @core.command(aliases=["swap", "new_dj"])
     @in_voice()
@@ -988,7 +998,7 @@ class Music(core.Cog):
         player: Player = ctx.voice_client
 
         if not player:
-            return
+            return None
 
         if not self.is_privileged(ctx):
             return await ctx.send("Only admins and the DJ may use this command.")
@@ -1011,6 +1021,7 @@ class Music(core.Cog):
         for m in members:
             if m == player.dj or m.bot:
                 continue
-            else:
-                player.dj = m
-                return await ctx.send(f"{member.mention} is now the DJ.")
+
+            player.dj = m
+            return await ctx.send(f"{member.mention} is now the DJ.")
+        return None

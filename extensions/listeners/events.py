@@ -118,16 +118,17 @@ class BotLogs(core.Cog):
             embed.set_footer(text="Deleted at")
             if message.content:
                 embed.add_field(name="Deleted content", value=f">>> {message.content}")
-            return await destination.send(embed=embed)
+            await destination.send(embed=embed)
+            return
 
         assert isinstance(message, list)
         messages: list[discord.Message] = message
 
         list_of_messages = []
-        for message in messages:
-            time = format(timestamp(message.created_at), "t")
-            content = escape_markdown(message.content[:90]) or "*No content*"
-            list_of_messages.append(f"[{time}] {message.author}: {content}")
+        for _message in messages:
+            time = format(timestamp(_message.created_at), "t")
+            content = escape_markdown(_message.content[:90]) or "*No content*"
+            list_of_messages.append(f"[{time}] {_message.author}: {content}")
         if not list_of_messages:
             return
         embed = discord.Embed(
@@ -139,24 +140,34 @@ class BotLogs(core.Cog):
         message_log = "\n\n----------\n\n".join(list_of_messages)
         if len(message_log) > 4000:
             message_file = discord.File(filename="messages.txt", fp=BytesIO(message_log.encode("utf-8")))
-            return await destination.send(embed=embed, file=message_file)
+            await destination.send(embed=embed, file=message_file)
+            return
         embed.description = "\n".join(list_of_messages)
 
     @core.Cog.listener("on_message_edit")
     async def logging_edit(self, before: discord.Message, after: discord.Message):
         context = await self.bot.get_context(after)
-        guild_channel = discord.abc.GuildChannel
-        if before.author.bot or context.valid or before.guild is None or after.guild is None:
-            return
-        elif not isinstance(before.channel, guild_channel) or not isinstance(after.channel, guild_channel):
+
+        if (
+            before.author.bot
+            or context.valid
+            or before.guild is None
+            or after.guild is None
+            or not isinstance(before.channel, discord.abc.GuildChannel)
+            or not isinstance(after.channel, discord.abc.GuildChannel)
+        ):
             return
 
         settings = self.bot.database.get_guild(after.guild.id)
         logging = settings.logging if settings else None
 
-        if not logging or not logging.enabled or not logging.message_edit or not logging.webhook:
-            return
-        elif before.content == after.content:
+        if (
+            not logging
+            or not logging.enabled
+            or not logging.message_edit
+            or not logging.webhook
+            or before.content == after.content
+        ):
             return
 
         old_content = f"{before.content[:1017]}..." if len(before.content) > 1024 else before.content
@@ -172,7 +183,8 @@ class BotLogs(core.Cog):
         embed.set_footer(text="Edited at")
 
         with contextlib.suppress(discord.HTTPException):
-            return await logging.webhook.send(embed=embed)
+            await logging.webhook.send(embed=embed)
+            return
 
     @core.Cog.listener("on_audit_log_entry_create")
     async def logging_ban_kick(self, entry: discord.AuditLogEntry):
@@ -184,9 +196,7 @@ class BotLogs(core.Cog):
         message = ""
 
         if entry.action == discord.AuditLogAction.ban:
-            if not isinstance(entry.target, (discord.Object, discord.User)):
-                return
-            elif not logging.member_ban:
+            if not isinstance(entry.target, (discord.Object, discord.User)) or not logging.member_ban:
                 return
             user = self.bot.get_user(entry.target.id)
             if not user or not entry.user:
@@ -197,9 +207,7 @@ class BotLogs(core.Cog):
                 f"> **Reason:** {entry.reason}"
             )
         elif entry.action == discord.AuditLogAction.kick:
-            if not isinstance(entry.target, (discord.Object, discord.User)):
-                return
-            elif not logging.member_leave:
+            if not isinstance(entry.target, (discord.Object, discord.User)) or not logging.member_leave:
                 return
             user = self.bot.get_user(entry.target.id)
             if not user:
@@ -213,7 +221,8 @@ class BotLogs(core.Cog):
         if not message:
             return
         with contextlib.suppress(discord.HTTPException):
-            return await logging.webhook.send(message)
+            await logging.webhook.send(message)
+            return
 
     @core.Cog.listener("on_guild_channel_update")
     async def logging_channel_edit(self, before: discord.abc.GuildChannel, after: discord.abc.GuildChannel):
@@ -257,16 +266,17 @@ class BotLogs(core.Cog):
             return
         formatted = "\n".join(f"{num}. {action}" for num, action in enumerate(actions, 1))
         with contextlib.suppress(discord.HTTPException):
-            return await logging.webhook.send(
+            await logging.webhook.send(
                 f"[**{timestamp(dt.datetime.now(dt.timezone.utc))}**] {after.mention} was edited:\n{formatted}"
             )
+            return
 
     @core.Cog.listener("on_guild_channel_delete")
     async def logging_channel_delete(self, channel: discord.abc.GuildChannel):
         settings = self.bot.database.get_guild(channel.guild.id)
         logging = settings.logging if settings else None
         if not logging or not logging.enabled or not logging.channel_delete or not logging.webhook:
-            return
+            return None
 
         return await logging.webhook.send(f"[**{timestamp(dt.datetime.now(dt.timezone.utc))}**] #{channel.name} was deleted")
 
@@ -282,9 +292,9 @@ class BotLogs(core.Cog):
             raise commands.NoPrivateMessage
         guild_settings = ctx.database.get_guild(ctx.guild.id)
         if guild_settings:
-            if ctx.command.qualified_name in guild_settings.disabled_commands:
+            if (ctx.command.full_parent_name or ctx.command.qualified_name) in guild_settings.disabled_commands:
                 raise CommandDisabledGuild
-            elif ctx.channel.id in guild_settings.disabled_channels:
+            if ctx.channel.id in guild_settings.disabled_channels:
                 raise CommandDisabledChannel
         if ctx.bot.maintenance:
             raise Maintenance()

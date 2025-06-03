@@ -23,7 +23,7 @@ import datetime as dt
 import logging
 import re
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Callable, Mapping
+from typing import Any, Callable, ClassVar, Mapping, TYPE_CHECKING
 
 import async_timeout
 import discord
@@ -82,8 +82,8 @@ class Bot(commands.Bot):
     launch_time: datetime = datetime.now(dt.timezone.utc)
     maintenance: bool = False
     commands_ran: int = 0
-    command_usage: dict[str, int] = {}
-    command_cache: dict[int, discord.Message] = {}
+    command_usage: ClassVar[dict[str, int]] = {}
+    command_cache: ClassVar[dict[int, discord.Message]] = {}
     invite: str = discord.utils.oauth_url(BOT_ID, permissions=discord.Permissions(8))
     support: str = "https://discord.gg/muTVFgDvKf"
     source: str = "https://github.com/avizum/alpine"
@@ -187,7 +187,7 @@ class Bot(commands.Bot):
 
         if message.guild:
             guild_settings = self.database.get_guild(message.guild.id)
-            if not guild_settings or guild_settings and not guild_settings.prefixes:
+            if not guild_settings or (guild_settings and not guild_settings.prefixes):
                 base.extend(DEFAULT_PREFIXES)
             else:
                 base.extend(guild_settings.prefixes)
@@ -210,7 +210,7 @@ class Bot(commands.Bot):
 
     async def find_restart_message(self) -> None:
         await self.wait_until_ready()
-        with open("reboot.toml", "r+") as f:
+        with open("reboot.toml", "r+") as f:  # noqa: ASYNC230  # This operation only happens when the bot is starting.
             info = toml.loads(f.read())
             if info:
                 channel = self.get_channel(info["channel_id"])
@@ -249,7 +249,7 @@ class Bot(commands.Bot):
         event: str,
         *,
         check: Callable[..., bool] | None = None,
-        timeout: float | None = None,
+        timeout: float | None = None,  # noqa: ASYNC109
     ) -> Any:
         if event == "message":
 
@@ -261,7 +261,7 @@ class Bot(commands.Bot):
 
             return await super().wait_for(event, check=bl_message_check, timeout=timeout)
 
-        elif event in {"reaction_add", "reaction_remove"}:
+        if event in {"reaction_add", "reaction_remove"}:
 
             def bl_reaction_check(*args) -> bool:
                 can_run = self.database.get_blacklist(args[1].id) is None
@@ -270,8 +270,8 @@ class Bot(commands.Bot):
                 return not can_run
 
             return await super().wait_for(event, check=bl_reaction_check, timeout=timeout)
-        else:
-            bl_check = check
+
+        bl_check = check
         return await super().wait_for(event, check=bl_check, timeout=timeout)
 
     async def get_context(
@@ -293,8 +293,7 @@ class Bot(commands.Bot):
             self.command_cache.pop(message.id, None)
 
     async def is_owner(self, user: discord.User | discord.Member, /) -> bool:
-        if user is not None:
-            return user.id in self.owner_ids
+        return user.id in self.owner_ids
 
     def command(self, name=None, cls=None, **kwargs):
         if cls is None:

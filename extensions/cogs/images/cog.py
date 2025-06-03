@@ -450,7 +450,7 @@ class Images(core.Cog):
             return await ctx.send(f"Your flag must be one of these:\n{', '.join(flags)}")
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.pride(), url=item, flag=flag)
-        await self.send_dagpi(ctx, image)
+        return await self.send_dagpi(ctx, image)
 
     @core.command(name="trash")
     @core.cooldown(2, 10, commands.BucketType.member)

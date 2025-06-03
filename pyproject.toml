@@ -4,13 +4,30 @@ line-length = 125
 [tool.isort]
 profile = "black"
 line_length = 125
-
+force_alphabetical_sort_within_sections = true
+combine_as_imports = true
 
 [tool.pyright]
 typeCheckingMode = "basic"
 
 [tool.ruff]
-select = ["E", "F"]
-extend-ignore = ["F403"]
+exclude = [".env"]
 line-length = 125
-dummy-variable-rgx = "^_$"
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["ASYNC", "C4", "E", "F", "FA", "ISC", "N", "PERF", "PIE", "PL", "RET", "RUF", "SIM", "T20", "TID", "TRY"]
+ignore = [
+    "F403",
+    "F405",
+    "N804",  # pylance already does it
+    "PLC0414",
+    "PLR0911",
+    "PLR0912",
+    "PLR0913",
+    "PLR0915",
+    "PLR2004",
+    "SIM105",
+    "TRY003",
+]
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"

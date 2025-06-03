@@ -113,11 +113,10 @@ class ServerManagement(commands.Cog, name="Server Management"):
         if isinstance(channel, discord.CategoryChannel):
             new = await channel.clone()
             for channels in channel.channels:
-                thing = await channels.clone(reason="Clone")
-                await thing.edit(category=new)  # type: ignore  # still don't know why that happens
+                await channels.clone(reason=f"Category clone by {ctx.author}", category=new)
             return await ctx.send(f"Successfully cloned {channel.mention}.")
-        await channel.clone(reason="because")
-        await ctx.send(f"Successfully cloned {channel.mention}.")
+        await channel.clone(reason=f"Channel clone by {ctx.author}")
+        return await ctx.send(f"Successfully cloned {channel.mention}.")
 
     @channels.command()
     @core.has_permissions(manage_channels=True)

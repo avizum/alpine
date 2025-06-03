@@ -115,10 +115,11 @@ class AkinatorGameView(View):
 
     async def answer(self, interaction: discord.Interaction, answer: Answer | str) -> None:
         if self.message is None:
-            return
+            return None
         retry = self.cooldown.update_rate_limit(self.ctx.message)
         if retry:
-            return await interaction.response.send_message(content="You are clicking too fast.", ephemeral=True)
+            await interaction.response.send_message(content="You are clicking too fast.", ephemeral=True)
+            return None
         if self.client.progression <= 80:
             assert isinstance(answer, Answer)
             await interaction.response.defer()
@@ -128,24 +129,27 @@ class AkinatorGameView(View):
                 return await interaction.followup.send("You can't go back. Sorry.", ephemeral=True)
             self.embed.description = f"{self.client.step+1}. {nxt}"
             await self.message.edit(embed=self.embed)
-        else:
-            await interaction.response.defer()
-            await self.client.win()
-            client = self.client
-            self.embed.description = f"Are you thinking of {client.first_guess.name} ({client.first_guess.description})?\n"
-            self.embed.set_image(url=client.first_guess.absolute_picture_path)
-            new_view = AkinatorConfirmView(member=self.member, message=self.message, embed=self.embed)
-            await self.message.edit(view=new_view, embed=self.embed)
-            await new_view.wait()
+            return None
 
-            if new_view.continue_game:
-                nxt = await self.client.answer(Answer.NO)
-                self.embed.description = f"{self.client.step+1}. {nxt}"
-                self.embed.set_image(url=None)
-                await self.message.edit(view=self, embed=self.embed)
-            else:
-                await client.close()
-                await self.stop()
+        await interaction.response.defer()
+        await self.client.win()
+        client = self.client
+        self.embed.description = f"Are you thinking of {client.first_guess.name} ({client.first_guess.description})?\n"
+        self.embed.set_image(url=client.first_guess.absolute_picture_path)
+        new_view = AkinatorConfirmView(member=self.member, message=self.message, embed=self.embed)
+        await self.message.edit(view=new_view, embed=self.embed)
+        await new_view.wait()
+
+        if new_view.continue_game:
+            nxt = await self.client.answer(Answer.NO)
+            self.embed.description = f"{self.client.step+1}. {nxt}"
+            self.embed.set_image(url=None)
+            await self.message.edit(view=self, embed=self.embed)
+            return None
+
+        await client.close()
+        await self.stop()
+        return None
 
     async def game_stop(self, interaction: discord.Interaction):
         await self.client.win()
@@ -221,7 +225,7 @@ class RPSButton(discord.ui.Button["RPSView"]):
                     f"You already chose {self.view.player_two_str_response}", ephemeral=True
                 )
         if self.view.player_one_response is None or self.view.player_two_response is None:
-            return
+            return None
         return await self.view.determine_winner()
 
 

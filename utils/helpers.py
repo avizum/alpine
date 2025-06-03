@@ -24,12 +24,12 @@ from datetime import datetime
 from typing import Any
 
 __all__ = (
-    "format_string",
-    "format_list",
-    "Timer",
-    "format_seconds",
-    "URL_REGEX",
     "EMOJI_REGEX",
+    "URL_REGEX",
+    "Timer",
+    "format_list",
+    "format_seconds",
+    "format_string",
     "timestamp",
 )
 
@@ -59,7 +59,7 @@ def format_list(item_list: list[Any], *, seperator: str = ", ", last: str = "and
 
 
 class Timer:
-    __slots__ = ("start_time", "end_time")
+    __slots__ = ("end_time", "start_time")
 
     def __init__(self) -> None:
         self.start_time: float | None = None
@@ -130,7 +130,7 @@ def format_seconds(seconds: float, *, friendly: bool = False) -> str:
     return f"{day}{hour}{minsec}"
 
 
-class timestamp:
+class timestamp:  # noqa: N801
     def __init__(self, datetime: datetime) -> None:
         self.datetime: datetime = datetime
 

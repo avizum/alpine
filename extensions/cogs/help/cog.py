@@ -21,7 +21,7 @@ from __future__ import annotations
 import datetime
 import itertools
 from difflib import get_close_matches
-from typing import TYPE_CHECKING, Any, Mapping
+from typing import Any, Mapping, TYPE_CHECKING
 
 import discord
 import humanize
@@ -67,7 +67,7 @@ class AlpineHelp(commands.HelpCommand):
 
     def get_flags(self, command: Command) -> list[str] | None:
         flag_params: list[str] = []
-        for name, param in command.params.items():
+        for param in command.params.values():
             flag_converter: type[commands.FlagConverter] | None = getattr(param.annotation, "__commands_is_flag__", None)
             if flag_converter:
                 prefix: str = flag_converter.__commands_flag_prefix__
@@ -160,7 +160,7 @@ class AlpineHelp(commands.HelpCommand):
 
     async def send_error_message(self, error):
         if not error:
-            return
+            return None
         return await super().send_error_message(error)
 
     async def command_not_found(self, string: str):
@@ -185,7 +185,7 @@ class AlpineHelp(commands.HelpCommand):
                 command = self.context.bot.get_command(match[0])
                 if isinstance(command, core.Group):
                     return await self.send_group_help(command)
-                elif isinstance(command, Command):
+                if isinstance(command, Command):
                     return await self.send_command_help(command)
             return await conf.message.delete()
         return f'"{string}" was not found. Check your spelling or try a different command.'
@@ -214,12 +214,12 @@ class HelpCommand(core.Cog):
         help_command = AlpineHelp(
             verify_checks=False,
             show_hidden=False,
-            command_attrs=dict(
-                hidden=True,
-                usage="[command|module]",
-                aliases=["h"],
-                cooldown=commands.CooldownMapping(commands.Cooldown(1, 2), commands.BucketType.user),
-            ),
+            command_attrs={
+                "hidden": True,
+                "usage": "[command|module]",
+                "aliases": ["h"],
+                "cooldown": commands.CooldownMapping(commands.Cooldown(1, 2), commands.BucketType.user),
+            },
         )
         help_command.cog = self
         self.bot.help_command = help_command
