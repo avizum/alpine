@@ -417,7 +417,8 @@ class LoggingContainer(SettingsContainer):
         self.logging: LoggingData | None = data.logging
         super().__init__(data, accent_color=accent_color)
         self.channel.add_item(LoggingChannelSelect(self))
-        self.options.add_item(LoggingTypesSelect(self))
+        self.logging_select = LoggingTypesSelect(self)
+        self.options.add_item(self.logging_select)
 
     def update(self) -> None:
         assert self.view is not None
@@ -435,6 +436,7 @@ class LoggingContainer(SettingsContainer):
             logging_toggle.label = "Enable Feature"
 
         logging_toggle.disabled = False
+        self.logging_select.update()
 
 
 class JLMessageModal(ui.Modal):
