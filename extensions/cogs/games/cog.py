@@ -68,12 +68,14 @@ class Games(core.Cog):
         cookie_embed.description = "GET THE COOKIE NOW!"
         await cd_cookie.edit(embed=cookie_embed)
         await cd_cookie.add_reaction("\U0001f36a")
+        await cd_cookie.add_reaction("\U0001f36a")
 
         if member:
 
             def member_check(reaction: discord.Reaction, user: discord.Member | discord.User) -> bool:
                 return (
                     reaction.message.id == cd_cookie.id
+                    and str(reaction.emoji) == "\U0001f36a"
                     and str(reaction.emoji) == "\U0001f36a"
                     and user in [ctx.author, member]
                 )
@@ -82,6 +84,7 @@ class Games(core.Cog):
         else:
 
             def check(reaction: discord.Reaction, user: discord.Member | discord.User):
+                return reaction.message.id == cd_cookie.id and str(reaction.emoji) in "\U0001f36a" and user != self.bot.user
                 return reaction.message.id == cd_cookie.id and str(reaction.emoji) in "\U0001f36a" and user != self.bot.user
 
         try:
@@ -92,7 +95,9 @@ class Games(core.Cog):
             cookie_embed.description = "Nobody got the cookie :("
             await cd_cookie.edit(embed=cookie_embed)
             await cd_cookie.remove_reaction("\U0001f36a", ctx.me)
+            await cd_cookie.remove_reaction("\U0001f36a", ctx.me)
         else:
+            if str(reaction.emoji) == "\U0001f36a":
             if str(reaction.emoji) == "\U0001f36a":
                 thing = reaction_time.total_time * 1000
                 total_second = f"**{thing:.2f}ms**"
@@ -101,6 +106,7 @@ class Games(core.Cog):
                     total_second = f"**{gettime:.2f}s**"
                 cookie_embed.title = "Nice!"
                 cookie_embed.description = f"{user.mention} got the cookie in **{total_second}**"
+                await cd_cookie.remove_reaction("\U0001f36a", ctx.me)
                 await cd_cookie.remove_reaction("\U0001f36a", ctx.me)
                 return await cd_cookie.edit(embed=cookie_embed)
 
@@ -199,8 +205,10 @@ class Games(core.Cog):
         embed_10s = discord.Embed(title="10 seconds", description="Click the cookie in 10 seconds")
         react_message = await ctx.send(embed=embed_10s)
         await react_message.add_reaction("\U0001f36a")
+        await react_message.add_reaction("\U0001f36a")
 
         def check_10s(reaction, user):
+            return reaction.message.id == react_message.id and str(reaction.emoji) in "\U0001f36a" and user == ctx.author
             return reaction.message.id == react_message.id and str(reaction.emoji) in "\U0001f36a" and user == ctx.author
 
         try:
@@ -209,6 +217,7 @@ class Games(core.Cog):
         except asyncio.TimeoutError:
             pass
         else:
+            if str(reaction.emoji) == "\U0001f36a":
             if str(reaction.emoji) == "\U0001f36a":
                 final = timer.total_time
                 if final < 5.0:
