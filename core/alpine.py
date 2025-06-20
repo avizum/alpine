@@ -85,7 +85,7 @@ class Bot(commands.Bot):
     command_usage: ClassVar[dict[str, int]] = {}
     command_cache: ClassVar[dict[int, discord.Message]] = {}
     invite: str = discord.utils.oauth_url(BOT_ID, permissions=discord.Permissions(8))
-    support: str = "https://discord.gg/muTVFgDvKf"
+    support: str = "https://discord.gg/hWhGQ4QHE9"
     source: str = "https://github.com/avizum/alpine"
     context: type[commands.Context] | None = None
     cogs: Mapping[str, Cog]
