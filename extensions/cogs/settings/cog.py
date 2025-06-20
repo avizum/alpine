@@ -25,7 +25,7 @@ from discord.ext import commands
 
 import core
 
-from .views import SettingsView
+from .views import ConfirmNewSettingsMenu, SettingsView
 
 if TYPE_CHECKING:
     from core import Bot, Context
@@ -48,15 +48,8 @@ class Settings(core.GroupCog, group_name="settings"):
         if isinstance(error, commands.MaxConcurrencyReached):
             ctx.locally_handled = True
             settings_view = self._settings[ctx.guild.id]
-            assert settings_view.message is not None
-            view = discord.ui.LayoutView()
-            view.add_item(
-                discord.ui.Section(
-                    "There is already a settings menu open.",
-                    accessory=discord.ui.Button(label="Go to menu", url=settings_view.message.jump_url),
-                )
-            )
-            await ctx.send(view=view)
+            view = ConfirmNewSettingsMenu(menu=settings_view, ctx=ctx, cog=self)
+            await ctx.send("A settings menu is already open.", view=view, ephemeral=True)
             return
 
     @core.command(hybrid=True, app_command_name="show")

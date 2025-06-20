@@ -284,6 +284,37 @@ class PrefixContainer(SettingsContainer):
             add_prefix.disabled = True
 
 
+class ConfirmNewSettingsMenu(ui.View):
+    def __init__(self, /, *, menu: SettingsView, ctx: Context, cog: SettingsCog) -> None:
+        super().__init__(timeout=(12 * 60 * 60))  # 12 hours obviously
+        assert menu.message is not None
+        self.menu: SettingsView = menu
+        self.ctx: Context = ctx
+        self.cog: SettingsCog = cog
+        self.value: bool | None = None
+        self.add_item(ui.Button(label="Jump to menu", url=menu.message.jump_url))
+
+    @ui.button(label="Open new menu", style=discord.ButtonStyle.primary)
+    async def close_menu(self, itn: Interaction, button: ui.Button) -> None:
+        await itn.response.defer()
+        menu = self.cog._settings.get(self.ctx.guild.id)
+
+        if menu:
+            menu.stop()
+            if menu.message:
+                try:
+                    await menu.message.delete()
+                except discord.HTTPException:
+                    pass
+        view = SettingsView(self.menu.ctx, self.cog, self.menu.data)
+        await view.start()
+
+        try:
+            await itn.delete_original_response()
+        except discord.HTTPException:
+            pass
+
+
 LOGGING_OPTIONS: Final[list[tuple[str, ...]]] = [
     ("Message Delete", "message_delete", "Log when a message is deleted."),
     ("Message Edit", "message_edit", "Log when a message is edited."),
