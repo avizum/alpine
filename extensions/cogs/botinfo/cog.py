@@ -241,7 +241,7 @@ class BotInfo(core.Cog, name="Bot Info"):
             discord.ui.Button(
                 style=discord.ButtonStyle.link,
                 url=discord.utils.oauth_url(self.bot.user.id, permissions=perm),
-                label="Invite with slash-commands",
+                label="Bot Invite",
             )
         )
         view.add_item(
