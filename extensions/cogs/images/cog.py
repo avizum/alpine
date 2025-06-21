@@ -16,7 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
 import datetime as dt
+from io import BytesIO
 from typing import TYPE_CHECKING
 
 import discord
@@ -26,14 +29,18 @@ from discord.ext import commands
 
 import core
 from core import Bot, Context
+from utils import Timer
 from utils.helpers import EMOJI_REGEX, URL_REGEX
 
 if TYPE_CHECKING:
     from datetime import datetime
 
+    from somerandomapi.types.animal import ValidAnimal
 
-embed = discord.Embed()
-args = discord.Member | discord.PartialEmoji | discord.Emoji | str | None
+    from core import Bot, Context
+
+
+type args = discord.Member | discord.PartialEmoji | discord.Emoji | str | None
 
 
 class MemberEmojiUrl(str):
@@ -60,9 +67,7 @@ Author = commands.parameter(converter=MemberEmojiUrl, default=default, displayed
 
 
 class Images(core.Cog):
-    """
-    Commands for image manipuation and more.
-    """
+    """Image related commands and more."""
 
     def __init__(self, bot: Bot) -> None:
         self.bot: Bot = bot
@@ -83,16 +88,14 @@ class Images(core.Cog):
         await ctx.send(file=dag_image, embed=embed, no_edit=True)
 
     async def do_embed(self, ctx, file: discord.File):
-        url = f"attachment://{file.filename}"
-        embed.set_image(url=url)
+        embed = discord.Embed()
+        embed.set_image(url=f"attachment://{file.filename}")
         await ctx.send(file=file, embed=embed)
 
     @core.command(name="pixel")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_pixel(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Adds a pixel effect to an image.
-        """
+        """Adds a pixel effect to an image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.pixel(), item)
             await self.send_dagpi(ctx, image)
@@ -100,9 +103,7 @@ class Images(core.Cog):
     @core.command(name="mirror")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_mirror(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Flips your image along the y axis.
-        """
+        """Flips your image along the y axis."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.mirror(), item)
             await self.send_dagpi(ctx, image)
@@ -110,9 +111,7 @@ class Images(core.Cog):
     @core.command(name="flip")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_flip(self, ctx: Context, item: MemberEmojiUrl = Author):
-        """
-        Flips an image.
-        """
+        """Flips an image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.flip(), item)
             await self.send_dagpi(ctx, image)
@@ -120,9 +119,7 @@ class Images(core.Cog):
     @core.command(name="colors")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_colors(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Get the colors of an image.
-        """
+        """Get the colors of an image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.colors(), item)
             await self.send_dagpi(ctx, image)
@@ -130,9 +127,7 @@ class Images(core.Cog):
     @core.command(name="america")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_america(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Adds an American flag over the image
-        """
+        """Adds an American flag over the image"""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.america(), item)
             await self.send_dagpi(ctx, image)
@@ -140,9 +135,7 @@ class Images(core.Cog):
     @core.command(name="triggered")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_triggered(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Adds a triggered filter over your image.
-        """
+        """Adds a triggered filter over your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.triggered(), item)
             await self.send_dagpi(ctx, image)
@@ -150,9 +143,7 @@ class Images(core.Cog):
     @core.command(name="expand")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_expand(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Animation that stretches your image.
-        """
+        """Animation that stretches your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.expand(), item)
             await self.send_dagpi(ctx, image)
@@ -160,9 +151,7 @@ class Images(core.Cog):
     @core.command(name="wasted")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_wasted(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Adds a wasted filter over your image.
-        """
+        """Overlays a GTA styled wasted banner over your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.wasted(), item)
             await self.send_dagpi(ctx, image)
@@ -170,9 +159,7 @@ class Images(core.Cog):
     @core.command(name="sketch")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_sketch(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        "Sketches" an image.
-        """
+        """ "Sketches" an image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.sketch(), item)
             await self.send_dagpi(ctx, image)
@@ -180,9 +167,7 @@ class Images(core.Cog):
     @core.command(name="spin")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_spin(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Adds a spinning effect to your image.
-        """
+        """Adds a spinning effect to your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.spin(), item)
             await self.send_dagpi(ctx, image)
@@ -190,9 +175,7 @@ class Images(core.Cog):
     @core.command(name="petpet")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_petpet(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Yes. Petpet.
-        """
+        """Yes. Petpet."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.petpet(), item)
             await self.send_dagpi(ctx, image)
@@ -200,9 +183,7 @@ class Images(core.Cog):
     @core.command(name="bonk")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_bonk(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Get bonked.
-        """
+        """Get bonked."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.bonk(), item)
             await self.send_dagpi(ctx, image)
@@ -210,9 +191,7 @@ class Images(core.Cog):
     @core.command(name="bomb")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_bomb(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Boom. Explosion. On your image.
-        """
+        """Boom. Explosion. On your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.bomb(), item)
             await self.send_dagpi(ctx, image)
@@ -220,9 +199,7 @@ class Images(core.Cog):
     @core.command(name="dissolve")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_dissolve(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Dissolve effect from PowerPoint.
-        """
+        """Dissolve effect from PowerPoint."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.dissolve(), item)
             await self.send_dagpi(ctx, image)
@@ -230,9 +207,7 @@ class Images(core.Cog):
     @core.command(name="invert")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_invert(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Inverts an image.
-        """
+        """Inverts an image's colors."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.invert(), item)
             await self.send_dagpi(ctx, image)
@@ -240,9 +215,7 @@ class Images(core.Cog):
     @core.command(name="sobel")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_sobel(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Adds a sobel filter over an image.
-        """
+        """Adds a sobel filter over an image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.sobel(), item)
             await self.send_dagpi(ctx, image)
@@ -250,9 +223,7 @@ class Images(core.Cog):
     @core.command(name="hog")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_hog(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Histogram of Oriented Gradients (HOG) for an image.
-        """
+        """Histogram of Oriented Gradients (HOG) for an image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.hog(), item)
             await self.send_dagpi(ctx, image)
@@ -260,9 +231,7 @@ class Images(core.Cog):
     @core.command(name="triangle")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_triangle(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Cool effect on your image.
-        """
+        """Cool effect on your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.triangle(), item)
             await self.send_dagpi(ctx, image)
@@ -270,9 +239,7 @@ class Images(core.Cog):
     @core.command(name="blur")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_blur(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Adds a blury effect to your image.
-        """
+        """Adds a blury effect to your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.blur(), item)
             await self.send_dagpi(ctx, image)
@@ -280,9 +247,7 @@ class Images(core.Cog):
     @core.command(name="rgb")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_rgb(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Get a RGB graph of your image.
-        """
+        """Get a RGB graph of your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.rgb(), item)
             await self.send_dagpi(ctx, image)
@@ -290,9 +255,7 @@ class Images(core.Cog):
     @core.command(name="angel")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_angel(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Puts your image on an angel. How nice.
-        """
+        """Puts your image on an angel. How nice."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.angel(), item)
             await self.send_dagpi(ctx, image)
@@ -300,9 +263,7 @@ class Images(core.Cog):
     @core.command(name="satan")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_satan(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Puts your image on a demon. How bad.
-        """
+        """Puts your image on a demon. How bad."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.satan(), item)
             await self.send_dagpi(ctx, image)
@@ -310,9 +271,7 @@ class Images(core.Cog):
     @core.command(name="delete")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_delete(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Puts your image on a delete dialog.
-        """
+        """Puts your image on a Windows 10 delete dialog."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.delete(), item)
             await self.send_dagpi(ctx, image)
@@ -320,9 +279,7 @@ class Images(core.Cog):
     @core.command(name="fedora")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_fedora(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Perry the platypus!
-        """
+        """Perry the platypus!"""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.fedora(), item)
             await self.send_dagpi(ctx, image)
@@ -330,9 +287,7 @@ class Images(core.Cog):
     @core.command(name="lego", disabled=True)
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_lego(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Adds lego filter on your image.
-        """
+        """Adds lego filter on your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.lego(), item)
             await self.send_dagpi(ctx, image)
@@ -340,9 +295,7 @@ class Images(core.Cog):
     @core.command(name="wanted")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_wanted(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Overlay your image on a wanted poster.
-        """
+        """Overlay your image on a wanted poster."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.wanted(), item)
             await self.send_dagpi(ctx, image)
@@ -350,9 +303,7 @@ class Images(core.Cog):
     @core.command(name="stringify")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_stringify(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Turn your image to a ball of yarn.
-        """
+        """Turn your image to a ball of yarn."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.stringify(), item)
             await self.send_dagpi(ctx, image)
@@ -360,9 +311,7 @@ class Images(core.Cog):
     @core.command(name="burn")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_burn(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Burn an image.
-        """
+        """Burn an image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.burn(), item)
             await self.send_dagpi(ctx, image)
@@ -370,9 +319,7 @@ class Images(core.Cog):
     @core.command(name="freeze")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_freeze(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Ice on your image. Cold.
-        """
+        """Ice on your image. Cold."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.freeze(), item)
             await self.send_dagpi(ctx, image)
@@ -380,9 +327,7 @@ class Images(core.Cog):
     @core.command(name="earth")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_earth(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        The green and blue of the earth.
-        """
+        """The green and blue of the earth."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.earth(), item)
             await self.send_dagpi(ctx, image)
@@ -390,9 +335,7 @@ class Images(core.Cog):
     @core.command(name="mosaic")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_mosaic(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Adds a mosaic effect to your image
-        """
+        """Adds a mosaic effect to your image"""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.mosiac(), item)
             await self.send_dagpi(ctx, image)
@@ -400,9 +343,7 @@ class Images(core.Cog):
     @core.command(name="sithlord")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_sithlord(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Are you a sith lord?
-        """
+        """Are you a sith lord?"""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.sith(), item)
             await self.send_dagpi(ctx, image)
@@ -410,9 +351,7 @@ class Images(core.Cog):
     @core.command(name="shatter")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_shatter(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Adds a glass break overlay to your image.
-        """
+        """Overlays shattered glass on your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.shatter(), item)
             await self.send_dagpi(ctx, image)
@@ -420,9 +359,7 @@ class Images(core.Cog):
     @core.command(name="jail")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_jail(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Overlays prison bars on your image.
-        """
+        """Overlays prison bars on your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.jail(), item)
             await self.send_dagpi(ctx, image)
@@ -430,9 +367,7 @@ class Images(core.Cog):
     @core.command(name="pride")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_pride(self, ctx: Context, item: MemberEmojiUrl, flag: str):
-        """
-        Overlays a flag of choice on your image
-        """
+        """Overlays a flag of choice on your image."""
         flags = [
             "asexual",
             "bisexual",
@@ -455,9 +390,7 @@ class Images(core.Cog):
     @core.command(name="trash")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_trash(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Throwing your image away.
-        """
+        """Just taking out the trash."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.trash(), item)
             await self.send_dagpi(ctx, image)
@@ -466,8 +399,7 @@ class Images(core.Cog):
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_deepfry(self, ctx: Context, *, item: MemberEmojiUrl = Author):
         """
-        Deepfries your image.
-        """
+        Deepfries your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.deepfry(), item)
             await self.send_dagpi(ctx, image)
@@ -475,9 +407,7 @@ class Images(core.Cog):
     @core.command(name="ascii")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_ascii(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Adds an ascii effect to your image.
-        """
+        """Adds an ASCII effect to your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.ascii(), item)
             await self.send_dagpi(ctx, image)
@@ -485,9 +415,7 @@ class Images(core.Cog):
     @core.command(name="charcoal")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_charcoal(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Adds a charcoal effect you your image.
-        """
+        """Adds a charcoal effect you your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.charcoal(), item)
             await self.send_dagpi(ctx, image)
@@ -495,9 +423,7 @@ class Images(core.Cog):
     @core.command(name="posterize")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_posterize(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Posterize your image
-        """
+        """Posterize your image"""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.poster(), item)
             await self.send_dagpi(ctx, image)
@@ -505,9 +431,7 @@ class Images(core.Cog):
     @core.command(name="sepia")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_sepia(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Adds a sepia filter on to your photo.
-        """
+        """Adds a sepia filter on to your photo."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.sepia(), item)
             await self.send_dagpi(ctx, image)
@@ -515,9 +439,7 @@ class Images(core.Cog):
     @core.command(name="swirl")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_swirl(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Swirls your image.
-        """
+        """Swirls your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.swirl(), item)
             await self.send_dagpi(ctx, image)
@@ -525,9 +447,7 @@ class Images(core.Cog):
     @core.command(name="paint")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_paint(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Makes your image look like it was painted.
-        """
+        """Makes your image look like it was painted."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.paint(), item)
             await self.send_dagpi(ctx, image)
@@ -535,9 +455,7 @@ class Images(core.Cog):
     @core.command(name="night")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_night(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Makes your photo darker so that it looks like it was taken at night.
-        """
+        """Adds a nighttime effect to your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.night(), item)
             await self.send_dagpi(ctx, image)
@@ -545,9 +463,7 @@ class Images(core.Cog):
     @core.command(name="rainbow")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_rainbow(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Adds a rainbow filter to your image.
-        """
+        """Adds a rainbow filter to your image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.rainbow(), item)
             await self.send_dagpi(ctx, image)
@@ -555,9 +471,7 @@ class Images(core.Cog):
     @core.command(name="magic", aliases=["magick", "magik"])
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_magic(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Distorts your image in a funny way.
-        """
+        """Distorts your image in a funny way."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.magik(), item)
             await self.send_dagpi(ctx, image)
@@ -565,9 +479,7 @@ class Images(core.Cog):
     @core.command(name="5g1g")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_5g1g(self, ctx: Context, one: MemberEmojiUrl, two: MemberEmojiUrl):
-        """
-        Ya know, the five guys and one girl thing...
-        """
+        """Ya know, the five guys and one girl thing..."""
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.five_guys_one_girl(), url=one, url2=two)
             await self.send_dagpi(ctx, image)
@@ -575,9 +487,7 @@ class Images(core.Cog):
     @core.command(name="whyareyougay", aliases=["wayg"])
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_wayg(self, ctx: Context, one: MemberEmojiUrl, two: MemberEmojiUrl):
-        """
-        Well why are you??
-        """
+        """Well why are you??"""
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.why_are_you_gay(), url=one, url2=two)
             await self.send_dagpi(ctx, image)
@@ -585,9 +495,7 @@ class Images(core.Cog):
     @core.command(name="slap")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_slap(self, ctx: Context, one: MemberEmojiUrl, two: MemberEmojiUrl):
-        """
-        Slap someone.
-        """
+        """Slap someone."""
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.slap(), url=one, url2=two)
             await self.send_dagpi(ctx, image)
@@ -595,9 +503,7 @@ class Images(core.Cog):
     @core.command(name="obama")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_obama(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        You deseve an award. Here, award yourself.
-        """
+        """You deseve an award. Here, award yourself."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.obama(), item)
             await self.send_dagpi(ctx, image)
@@ -605,81 +511,63 @@ class Images(core.Cog):
     @core.command(name="bad")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_bad(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Bad image.
-        """
+        """Bad image."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.bad(), item)
             await self.send_dagpi(ctx, image)
 
     @core.command(name="glitch")
     async def dag_glitch(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Add a glitch effect
-        """
+        """Add a glitch effect"""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.glitch(), item)
             await self.send_dagpi(ctx, image)
 
     @core.command(name="polaroid")
     async def dag_polaroid(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Make your image look like a polaroid picture
-        """
+        """Make your image look like a polaroid picture"""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.polaroid(), item)
             await self.send_dagpi(ctx, image)
 
     @core.command(name="neon")
     async def dag_neon(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Neon effect
-        """
+        """Neon effect."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.neon(), item)
             await self.send_dagpi(ctx, image)
 
     @core.command(name="comic")
     async def dag_comic(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Black and white comics
-        """
+        """Black and white comics"""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.comic(), item)
             await self.send_dagpi(ctx, image)
 
     @core.command(name="cube")
     async def dag_cube(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Turns your image into a cube.
-        """
+        """Turns your image into a cube."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.cube(), item)
             await self.send_dagpi(ctx, image)
 
     @core.command(name="elmo")
     async def dag_elmo(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Burning elmo gif
-        """
+        """Burning elmo gif"""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.elmo(), item)
             await self.send_dagpi(ctx, image)
 
     @core.command(name="album")
     async def dag_album(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        Make your image look like an album cover.
-        """
+        """Make your image look like an album cover."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.album(), item)
             await self.send_dagpi(ctx, image)
 
     @core.command(name="rain")
     async def dag_rain(self, ctx: Context, *, item: MemberEmojiUrl = Author):
-        """
-        For rainy days.
-        """
+        """For rainy days."""
         async with ctx.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.rain(), item)
             await self.send_dagpi(ctx, image)
@@ -687,9 +575,7 @@ class Images(core.Cog):
     @core.command(name="tweet")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_tweet(self, ctx, member: discord.Member = commands.Author, *, text: str):
-        """
-        Makes it look like you or someone else tweeted something.
-        """
+        """Makes it look like you or someone else tweeted something."""
         url = member.display_avatar.replace(size=1024, format="png", static_format="png").url
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.tweet(), text=text, url=url, username=member.name)
@@ -698,9 +584,7 @@ class Images(core.Cog):
     @core.command(name="youtube")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_youtube(self, ctx, member: discord.Member = commands.Author, *, text: str):
-        """
-        Generate a youtube comment.
-        """
+        """Generate a YouTube comment."""
         url = member.display_avatar.replace(size=1024, format="png", static_format="png").url
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.youtube(), text=text, url=url, username=member.name)
@@ -709,9 +593,7 @@ class Images(core.Cog):
     @core.command(name="discord")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_discord(self, ctx, user: discord.User = commands.Author, *, text: str):
-        """
-        Makes it look like someone said something.
-        """
+        """Makes it look like someone said something."""
         url = str(user.display_avatar.replace(format="png", static_format="png", size=1024))
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.discord(), text=text, url=url, username=user.name)
@@ -720,9 +602,69 @@ class Images(core.Cog):
     @core.command(name="captcha")
     @core.cooldown(2, 10, commands.BucketType.member)
     async def dag_captcha(self, ctx: Context, text, *, item: MemberEmojiUrl = Author):
-        """
-        Overlays your image on a captcha grid.
-        """
+        """Overlays your image on a captcha grid."""
         async with ctx.channel.typing():
             image = await self.bot.dagpi.image_process(ImageFeatures.captcha(), url=item, text=text)
         await self.send_dagpi(ctx, image)
+
+    async def do_animal(self, ctx: Context, animal: ValidAnimal) -> None:
+        async with ctx.channel.typing():
+            with Timer() as timer:
+                ani_info = await self.bot.sr.animal.get_image_and_fact(animal)
+                get_image = await self.bot.session.get(ani_info.image)
+                ani_file = discord.File(BytesIO(await get_image.read()), filename=f"{animal}.png")
+        embed = discord.Embed(title=f"Here is {animal}", description=f"Fun Fact: {ani_info.fact}")
+        embed.set_image(url=f"attachment://{ani_file.filename}")
+        embed.set_footer(
+            text=f"Powered by Some Random API | Processed in {timer.total_time * 1000:,.2f}ms",
+        )
+        await ctx.send(file=ani_file, embed=embed, no_edit=True)
+
+    @core.command()
+    async def dog(self, ctx: Context):
+        """Gets a random image of a dog online."""
+        await self.do_animal(ctx, "dog")
+
+    @core.command()
+    async def cat(self, ctx: Context):
+        """Gets a random image of a cat online."""
+        await self.do_animal(ctx, "cat")
+
+    @core.command()
+    async def panda(self, ctx: Context):
+        """Gets a random image of a panda online."""
+        await self.do_animal(ctx, "panda")
+
+    @core.command()
+    async def fox(self, ctx: Context):
+        """Gets a random image of a fox online."""
+        await self.do_animal(ctx, "fox")
+
+    @core.command()
+    async def koala(self, ctx: Context):
+        """Gets a random image of a koala online."""
+        await self.do_animal(ctx, "koala")
+
+    @core.command(aliases=["birb"])
+    async def bird(self, ctx: Context):
+        """Gets a random image of a bird online."""
+        await self.do_animal(ctx, "bird")
+
+    @core.command()
+    async def racoon(self, ctx: Context):
+        """Gets a random image of a racoon online."""
+        await self.do_animal(ctx, "racoon")
+
+    @core.command()
+    async def kangaroo(self, ctx: Context):
+        """Gets a random image of a kangaroo online."""
+        await self.do_animal(ctx, "kangaroo")
+
+    @core.command()
+    async def duck(self, ctx: Context):
+        """Gets a random image of a duck online."""
+        async with self.bot.session.get("https://random-d.uk/api/v2/random") as resp:
+            image = await resp.json()
+        embed = discord.Embed(title="Here is a duck")
+        embed.set_image(url=image["url"])
+        await ctx.send(embed=embed)

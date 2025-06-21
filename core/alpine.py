@@ -92,7 +92,6 @@ class Bot(commands.Bot):
 
     to_load: tuple[str, ...] = (
         "core.context",
-        "extensions.cogs.animals",
         "extensions.cogs.botinfo",
         "extensions.cogs.fun",
         "extensions.cogs.games",
