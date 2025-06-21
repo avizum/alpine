@@ -36,7 +36,7 @@ from asyncdagpi.client import Client as DagpiClient
 from asyncgist.client import Client as GistClient
 from discord.ext import commands
 from discord.utils import _ColourFormatter
-from sr_api.client import Client as SRClient
+from somerandomapi import Client as SRClient
 from topgg.client import DBLClient
 from topgg.webhook import WebhookManager
 

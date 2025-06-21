@@ -30,6 +30,8 @@ from utils import Timer
 if TYPE_CHECKING:
     from datetime import datetime
 
+    from somerandomapi.types.animal import ValidAnimal
+
     from core import Bot, Context
 
 
@@ -43,17 +45,18 @@ class Animals(core.Cog):
         self.load_time: datetime = dt.datetime.now(dt.timezone.utc)
         self.emoji = "\U0001f98a"
 
-    async def do_animal(self, ctx: Context, animal: str) -> None:
+    async def do_animal(self, ctx: Context, animal: ValidAnimal) -> None:
         async with ctx.channel.typing():
             with Timer() as timer:
-                e = await self.bot.sr.get_image(animal)
-                file = discord.File(BytesIO(await e.read()), filename=f"{animal}.png")
-        embed = discord.Embed(
-            title=f"Here is {animal}",
-            description=f"Powered by Some Random API\nProcessed in `{timer.total_time:,.2f}ms`",
+                ani_info = await self.bot.sr.animal.get_image_and_fact(animal)
+                get_image = await self.bot.session.get(ani_info.image)
+                ani_file = discord.File(BytesIO(await get_image.read()), filename=f"{animal}.png")
+        embed = discord.Embed(title=f"Here is {animal}", description=f"Fun Fact: {ani_info.fact}")
+        embed.set_image(url=f"attachment://{ani_file.filename}")
+        embed.set_footer(
+            text=f"Powered by Some Random API | Processed in {timer.total_time * 1000:,.2f}ms",
         )
-        embed.set_image(url=f"attachment://{animal}.png")
-        await ctx.send(file=file, embed=embed, no_edit=True)
+        await ctx.send(file=ani_file, embed=embed, no_edit=True)
 
     @core.command()
     async def dog(self, ctx: Context):
@@ -95,7 +98,7 @@ class Animals(core.Cog):
         """
         Gets a random image of a bird online.
         """
-        await self.do_animal(ctx, "birb")
+        await self.do_animal(ctx, "bird")
 
     @core.command()
     async def racoon(self, ctx: Context):
