@@ -238,23 +238,25 @@ class BotLogs(core.Cog):
         name = f"{member.display_name}{f" ({member.name})" if member.display_name != member.name else ""}"
         sort = sorted(member.guild.members, key=lambda m: getattr(m, "joined_at"))
         pos = f"{ordinal(sort.index(member) + 1)} to join"
+
+        # fmt: off
         container = ui.Container(
             *(
                 ui.Section(
                     *(
-                        # fmt: off
                         "### Member Joined",
                         f"**Name:** {name}\n"
                         f"**ID:** {member.id}\n"
                         f"**Created:** {timestamp(member.created_at)}\n",
                         f"**Joined:** {timestamp(member.joined_at or discord.utils.utcnow())} ({pos})",
-                        # fmt: on
                     ),
                     accessory=ui.Thumbnail(member.display_avatar.url),
                 ),
             ),
             accent_color=discord.Color.brand_green(),
         )
+        # fmt: on
+
         view = ui.LayoutView()
         view.add_item(container)
 
@@ -268,22 +270,22 @@ class BotLogs(core.Cog):
             return
 
         name = f"{member.display_name}{f" ({member.name})" if member.display_name != member.name else ""}"
+        # fmt: off
         container = ui.Container(
             *(
                 ui.Section(
                     *(
-                        # fmt: off
                         "### Member Left",
                         f"**Name:** {name}\n"
                         f"**ID:** {member.id}\n"
                         f"**Created:** {timestamp(member.created_at)}\n",
-                        # fmt: on
                     ),
                     accessory=ui.Thumbnail(member.display_avatar.url),
                 ),
             ),
             accent_color=discord.Color.brand_red(),
         )
+        # fmt: on
         view = ui.LayoutView()
         view.add_item(container)
 
