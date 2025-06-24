@@ -15,6 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+
 import re
 
 import discord
@@ -126,7 +127,8 @@ class FindBan(commands.Converter, discord.Member):
                 await ctx.guild.fetch_ban(user)
             except discord.NotFound as e:
                 raise commands.BadArgument("That user isn't banned.") from e
-            return user
+            else:
+                return user
         except commands.UserNotFound:
             bans = [entry async for entry in ctx.guild.bans()]
             for ban in bans:
