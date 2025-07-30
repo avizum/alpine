@@ -1,6 +1,6 @@
 """
 [Alpine Bot]
-Copyright (C) 2021 - 2024 avizum
+Copyright (C) 2021 - 2025 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -31,14 +31,14 @@ import traceback
 from difflib import get_close_matches
 from importlib.metadata import distribution, packages_distributions
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Callable, Deque, Generator
+from typing import Any, Callable, Deque, Generator, TYPE_CHECKING
 
 import discord
 import psutil
 import toml
 from asyncpg import Record
 from discord.ext import commands, menus
-from jishaku import Feature, exception_handling
+from jishaku import exception_handling, Feature
 from jishaku.codeblocks import Codeblock, codeblock_converter
 from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.exception_handling import ReplResponseReactor
@@ -49,7 +49,7 @@ from jishaku.paginators import PaginatorInterface
 from jishaku.repl import AsyncCodeExecutor
 
 import core
-from utils import DefaultReason, Emojis, ModReason, Paginator, PaginatorEmbed, View, timestamp
+from utils import DefaultReason, Emojis, ModReason, Paginator, PaginatorEmbed, timestamp, View
 
 if TYPE_CHECKING:
     from jishaku.features.baseclass import CommandTask

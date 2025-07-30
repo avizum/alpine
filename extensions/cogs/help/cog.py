@@ -1,6 +1,6 @@
 """
 [Alpine Bot]
-Copyright (C) 2021 - 2024 avizum
+Copyright (C) 2021 - 2025 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ from __future__ import annotations
 import datetime
 import itertools
 from difflib import get_close_matches
-from typing import TYPE_CHECKING, Any, Mapping
+from typing import Any, Mapping, TYPE_CHECKING
 
 import discord
 import humanize

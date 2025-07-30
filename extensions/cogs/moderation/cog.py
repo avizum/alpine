@@ -1,6 +1,6 @@
 """
 [Alpine Bot]
-Copyright (C) 2021 - 2024 avizum
+Copyright (C) 2021 - 2025 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ from discord.ext import commands
 
 import core
 import utils
-from utils import EMOJI_REGEX, DefaultReason, ModReason, format_list, timestamp
+from utils import DefaultReason, EMOJI_REGEX, format_list, ModReason, timestamp
 
 from .converters import BanFlag, FindBan, ModActionFlag, PurgeAmount, TargetMember, TimeConverter
 
@@ -203,7 +203,9 @@ class Moderation(core.Cog):
                 message=(
                     "The following members can not be banned:\n```"
                     f"{"\n".join(f"{mem}: {rsn}" for mem, rsn in conversion_errors.items())}```"
-                ), confirm_messsage="Would you like to continue?", delete_message_after=True,
+                ),
+                confirm_messsage="Would you like to continue?",
+                delete_message_after=True,
             )
             if cont.result is False:
                 return

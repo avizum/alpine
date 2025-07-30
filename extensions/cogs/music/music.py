@@ -1,6 +1,6 @@
 """
 [Avimetry Bot]
-Copyright (C) 2021 - 2024 avizum
+Copyright (C) 2021 - 2025 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,16 +19,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any, cast, TYPE_CHECKING
 
 import discord
 import wavelink
 from discord.ext import menus
-from wavelink import Playable as WPlayable
-from wavelink import Playlist as WPlaylist
-from wavelink import Queue as WQueue
+from wavelink import Playable as WPlayable, Playlist as WPlaylist, Queue as WQueue
 
-from utils import View, format_seconds
+from utils import format_seconds, View
 
 if TYPE_CHECKING:
     from core import Context

@@ -1,6 +1,6 @@
 """
 [Alpine Bot]
-Copyright (C) 2021 - 2024 avizum
+Copyright (C) 2021 - 2025 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import datetime as dt
 import logging
 import re
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Callable, Mapping
+from typing import Any, Callable, Mapping, TYPE_CHECKING
 
 import async_timeout
 import discord

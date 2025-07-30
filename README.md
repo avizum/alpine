@@ -47,3 +47,6 @@ Put your tokens in a `config.toml` file. Check `config_example.toml` for an exam
 In `core/alpine.py`, change `OWNER_IDS` to your Discord IDs and change `PUBLIC_BOT_ID` to your bot's ID.
 Set your PostgreSQL database (Will add more instructions soon)
 Run main file.
+
+
+Copyright (C) 2021 - 2025 avizum

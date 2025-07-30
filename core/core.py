@@ -1,6 +1,6 @@
 """
 [Alpine Bot]
-Copyright (C) 2021 - 2024 avizum
+Copyright (C) 2021 - 2025 avizum
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import datetime
-from typing import TYPE_CHECKING, Any, Callable, Concatenate, Generic, ParamSpec, TypeVar, overload
+from typing import Any, Callable, Concatenate, Generic, overload, ParamSpec, TYPE_CHECKING, TypeVar
 
 import discord
 from discord import app_commands
