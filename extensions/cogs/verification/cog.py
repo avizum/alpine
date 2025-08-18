@@ -102,14 +102,14 @@ class MemberJoin(core.Cog):
 
         guild = ctx.database.get_guild(ctx.guild.id)
         if not guild:
-            return
+            return None
         verification = guild.verification
         if not verification:
-            return
+            return None
         role = ctx.guild.get_role(verification.role_id)
         channel = ctx.guild.get_channel(verification.channel_id)
         if not role or not channel or role in member.roles:
-            return
+            return None
 
         key = "".join(random.choice(string.ascii_letters) for _ in range(10))
 

@@ -156,11 +156,13 @@ class Fun(core.Cog):
 
         Funny am I right?
         """
-        if mention == ctx.author:
-            embed = discord.Embed(description=f"{ctx.author.mention} drop kicked themselves. Amazing.")
-        else:
-            embed = discord.Embed(description=f"{ctx.author.mention} dropkicked {mention.mention}.")
-        await ctx.send(embed=embed)
+        message = (
+            f"{ctx.author.mention} dropkicked themself. Amazing."
+            if mention == ctx.author
+            else f"{ctx.author.mention} dropkicked {mention.mention}"
+        )
+
+        await ctx.send(message)
 
     @core.command()
     async def ship(self, ctx: Context, person1: discord.Member, person2: discord.Member):
@@ -172,7 +174,7 @@ class Fun(core.Cog):
         if person1 == person2:
             return await ctx.send("That's not how that works")
         percent = random.randint(0, 100)
-        await ctx.send(f"{person1.mention} and {person2.mention} are {percent}% compatible with each other")
+        return await ctx.send(f"{person1.mention} and {person2.mention} are {percent}% compatible with each other")
 
     @core.command(aliases=["pp", "penis", "penissize"])
     async def ppsize(self, ctx: Context, member: discord.Member | None = None):
@@ -185,70 +187,6 @@ class Fun(core.Cog):
             description=f"8{'=' * random.randint(1, 12)}D",
         )
         await ctx.send(embed=pp_embed)
-
-    @core.command()
-    @core.cooldown(1, 15, commands.BucketType.member)
-    async def reddit(self, ctx: Context, subreddit: str):
-        """
-        Gets a random post from a subreddit you provide.
-
-        NSFW posts will automatically show in NSFW channels.
-        If the channel is not NSFW, it will not show.
-        """
-        if subreddit.startswith("r/"):
-            subreddit = subreddit.replace("r/", "")
-        async with self.bot.session.get(f"https://www.reddit.com/r/{subreddit}.json") as content:
-            if content.status == 404:
-                ctx.command.reset_cooldown(ctx)
-                return await ctx.send("Could not find that subreddit. Please check your spelling and try again.")
-            if content.status != 200:
-                ctx.command.reset_cooldown(ctx)
-                return await ctx.send("There has been a problem at Reddit. Please try again later.")
-            stuff = await content.json()
-        get_data = stuff["data"]["children"]
-        if not get_data:
-            ctx.command.reset_cooldown(ctx)
-            return await ctx.send("No posts found in this subreddit.")
-        try:
-            data = random.choice(get_data)["data"]
-        except Exception:
-            ctx.command.reset_cooldown(ctx)
-            return await ctx.send("No posts found.")
-        desc = data["selftext"] if data["selftext"] is not None else ""
-        if len(desc) > 2048:
-            desc = f'{data["selftext"][:2045]}...'
-        embed = discord.Embed(
-            title=data["title"],
-            url=f"https://reddit.com{data['permalink']}",
-            description=desc,
-        )
-        url = data["url"]
-        embed.set_image(url=url)
-        embed.add_field(
-            name="Post Info:",
-            value=(
-                f"<:upvote:818730949662867456> {data['ups']} "
-                f"<:downvote:818730935829659665> {data['downs']}\n"
-                f"Upvote ratio: {data['upvote_ratio']}\n"
-            ),
-        )
-        if data["over_18"]:
-            if ctx.channel.is_nsfw():
-                return await ctx.send(embed=embed)
-            ctx.command.reset_cooldown(ctx)
-            return await ctx.send("NSFW posts can't be sent in non-nsfw channels.")
-        return await ctx.send(embed=embed)
-
-    @core.command()
-    @core.cooldown(1, 15, commands.BucketType.member)
-    async def meme(self, ctx: Context):
-        """
-        Get a meme from Reddit.
-
-        This fetches a meme from the r/memes and r/meme subreddits.
-        """
-        subreddits = ["memes", "meme"]
-        await ctx.invoke(self.reddit, random.choice(subreddits))
 
     @core.command(name="roast")
     async def dag_roast(self, ctx: Context, member: discord.Member):

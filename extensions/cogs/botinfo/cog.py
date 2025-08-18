@@ -98,9 +98,8 @@ class BotInfo(core.Cog, name="Bot Info"):
         """
         embed = discord.Embed(title="Info about Alpine")
         embed.add_field(name="Latest News", value=self.bot.news, inline=False)
-        async with ctx.channel.typing():
-            async with self.bot.session.get("https://api.github.com/repos/avizum/alpine/commits") as resp:
-                items = await resp.json()
+        async with ctx.channel.typing(), self.bot.session.get("https://api.github.com/repos/avizum/alpine/commits") as resp:
+            items = await resp.json()
         try:
             commits = "\n".join(f"[`{cm['sha'][:7]}`]({cm['html_url']}) {cm['commit']['message']}" for cm in items[:3])
         except KeyError:
@@ -154,16 +153,15 @@ class BotInfo(core.Cog, name="Bot Info"):
         This shows the recent commits on the repo.
         You can contribute on the repo.
         """
-        async with ctx.channel.typing():
-            async with self.bot.session.get("https://api.github.com/repos/avizum/alpine/commits") as resp:
-                items = await resp.json()
+        async with ctx.channel.typing(), self.bot.session.get("https://api.github.com/repos/avizum/alpine/commits") as resp:
+            items = await resp.json()
         try:
             commit_list = [f"[`{cm['sha'][:7]}`]({cm['html_url']}) {cm['commit']['message']}" for cm in items[:10]]
         except KeyError:
             return await ctx.send("An error occured while trying to get the commits. Try again later.")
         embed = discord.Embed(title="Recent commits", description="\n".join(commit_list))
         embed.set_footer(text="Contribute to Alpine by doing magic.")
-        await ctx.send(embed=embed)
+        return await ctx.send(embed=embed)
 
     @core.command()
     async def uptime(self, ctx: Context):
@@ -243,7 +241,7 @@ class BotInfo(core.Cog, name="Bot Info"):
             discord.ui.Button(
                 style=discord.ButtonStyle.link,
                 url=discord.utils.oauth_url(self.bot.user.id, permissions=perm),
-                label="Invite with slash-commands",
+                label="Bot Invite",
             )
         )
         view.add_item(
@@ -306,28 +304,27 @@ class BotInfo(core.Cog, name="Bot Info"):
         Check how many lines of code the bot has.
         """
         path = pathlib.Path("./")
-        comments = coros = funcs = classes = lines = imports = files = char = 0
+        comments = coros = funcs = classes = total_lines = imports = files = char = 0
         for item in path.rglob("*.py"):
             venv = sys.prefix != sys.base_prefix
             if venv and str(item).startswith(sys.prefix.split("/")[-1]):
                 continue
-            else:
-                files += 1
-                with item.open() as of:
-                    for line in of.readlines():
-                        line = line.strip()
-                        if line.startswith("class"):
-                            classes += 1
-                        if line.startswith("def"):
-                            funcs += 1
-                        if line.startswith("async def"):
-                            coros += 1
-                        if "import" in line:
-                            imports += 1
-                        if "#" in line:
-                            comments += 1
-                        lines += 1
-                        char += len(line)
+            files += 1
+            with item.open() as of:
+                for lines in of.readlines():
+                    line = lines.strip()
+                    if line.startswith("class"):
+                        classes += 1
+                    if line.startswith("def"):
+                        funcs += 1
+                    if line.startswith("async def"):
+                        coros += 1
+                    if "import" in line:
+                        imports += 1
+                    if "#" in line:
+                        comments += 1
+                    total_lines += 1
+                    char += len(line)
         embed = discord.Embed(
             title="Line Count",
             description=(
@@ -335,7 +332,7 @@ class BotInfo(core.Cog, name="Bot Info"):
                 f"Files: {files:,}\n"
                 f"Imports: {imports:,}\n"
                 f"Characters: {char:,}\n"
-                f"Lines: {lines:,}\n"
+                f"Lines: {total_lines:,}\n"
                 f"Classes: {classes:,}\n"
                 f"Functions: {funcs:,}\n"
                 f"Coroutines: {coros:,}\n"
@@ -424,16 +421,13 @@ class BotInfo(core.Cog, name="Bot Info"):
                 )
             else:
                 source_embed.description = (
-                    "Click below for the source of Alpine.\n" "I am made by avizum\n" "Follow the license and please star :)"
+                    "Click below for the source of Alpine.\nI am made by avizum\nFollow the license and please star :)"
                 )
             view.add_item(button(style=discord.ButtonStyle.link, label="Source", url=self.bot.source))
             view.add_item(button(style=discord.ButtonStyle.link, label="License", url=license_link))
             return await ctx.send(embed=source_embed, view=view)
 
-        if command == "help":
-            cmd = self.bot.help_command
-        else:
-            cmd = self.bot.get_command(command)
+        cmd = self.bot.help_command if command == "help" else self.bot.get_command(command)
         if cmd is None:
             source_embed.description = "That command could not be found."
             return await ctx.send(embed=source_embed)
@@ -451,11 +445,11 @@ class BotInfo(core.Cog, name="Bot Info"):
         command = "help" if isinstance(command, commands.HelpCommand) else command
         link = f"{git_link}{path}#L{number_one}-L{number_two}"
         source_embed.description = (
-            f"Click below for the source of `{command}`.\n" "Remember to follow the license.\n" "Made by avizum."
+            f"Click below for the source of `{command}`.\nRemember to follow the license.\nMade by avizum."
         )
         view.add_item(button(style=discord.ButtonStyle.link, label=f"Source for {command}", url=link))
         view.add_item(button(style=discord.ButtonStyle.link, label="License", url=license_link))
-        await ctx.send(embed=source_embed, view=view)
+        return await ctx.send(embed=source_embed, view=view)
 
     @source.autocomplete("command")
     async def source_autocomplete(
@@ -531,7 +525,7 @@ class BotInfo(core.Cog, name="Bot Info"):
             name="Error status",
             value="Fixed" if error_info["fixed"] is True else "Not Fixed",
         )
-        await ctx.send(embed=embed)
+        return await ctx.send(embed=embed)
 
     @core.command(
         member_permissions="None, This is help for the paginator",

@@ -49,7 +49,7 @@ class Games(core.Cog):
         self.emoji: str = "\U0001f3ae"
         self.load_time: datetime = dt.datetime.now(dt.timezone.utc)
 
-    @core.group(aliases=["\U0001f36a", "vookir", "kookie"])
+    @core.group(aliases=["\U0001f36a", "vookir", "kookie"], invoke_without_command=True)
     @core.cooldown(5, 10, commands.BucketType.member)
     @commands.max_concurrency(2, commands.BucketType.channel)
     async def cookie(self, ctx: Context, member: discord.Member | None = None):
@@ -114,12 +114,14 @@ class Games(core.Cog):
         Just like the cookie command but it uses buttons instead of reactions.
         """
         view = CookieView(10, ctx)
+        view.cookie.disabled = True
         cookie_embed = discord.Embed(title="Get the cookie!", description="Get ready to grab the cookie!")
-        cookie_message = await ctx.send(embed=cookie_embed)
+        cookie_message = await ctx.send(embed=cookie_embed, view=view)
         view.message = cookie_message
         await asyncio.sleep(random.randint(1, 12))
         cookie_embed.title = "GO!"
         cookie_embed.description = "GET THE COOKIE NOW!"
+        view.cookie.disabled = False
         await cookie_message.edit(embed=cookie_embed, view=view)
         with Timer() as timer:
             await view.wait()
@@ -160,6 +162,7 @@ class Games(core.Cog):
 
         view = AkinatorGameView(member=ctx.author, ctx=ctx, client=akiclient, embed=embed)
         view.message = await ctx.send(embed=embed, view=view)
+        return None
 
     @core.command(hybrid=True, aliases=["rps"])
     @commands.max_concurrency(1, commands.BucketType.channel)
@@ -183,6 +186,7 @@ class Games(core.Cog):
         )
         view = RPSView(embed=embed, context=ctx, opponent=opp)
         view.message = await ctx.send(embed=embed, view=view)
+        return None
 
     @core.command(name="10s")
     @core.bot_has_permissions(add_reactions=True)

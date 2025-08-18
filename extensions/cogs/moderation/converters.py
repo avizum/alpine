@@ -127,7 +127,8 @@ class FindBan(commands.Converter, discord.Member):
                 await ctx.guild.fetch_ban(user)
             except discord.NotFound as e:
                 raise commands.BadArgument("That user isn't banned.") from e
-            return user
+            else:
+                return user
         except commands.UserNotFound:
             bans = [entry async for entry in ctx.guild.bans()]
             for ban in bans:

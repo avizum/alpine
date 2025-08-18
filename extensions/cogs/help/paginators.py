@@ -201,14 +201,14 @@ class HelpSelect(discord.ui.Select["HelpPages"]):
                 emoji="\U0001f3e0",
             )
         ]
-        for cog in cogs:
-            options.append(
-                discord.SelectOption(
-                    label=cog.qualified_name,
-                    description=cog.description,
-                    emoji=getattr(cog, "emoji", "<:alpine:1020851768143380522>"),
-                )
+        options.extend(
+            discord.SelectOption(
+                label=cog.qualified_name,
+                description=cog.description,
+                emoji=getattr(cog, "emoji", "<:alpine:1020851768143380522>"),
             )
+            for cog in cogs
+        )
         super().__init__(placeholder=f"Select a module ({len(cogs)} modules)", options=options)
 
     async def callback(self, interaction: discord.Interaction) -> None:
@@ -245,7 +245,7 @@ class HelpPages(Paginator):
     async def edit_source(self, source: menus.PageSource, interaction: discord.Interaction) -> None:
         self.source = source
         self.current_page = 0
-        select = [i for i in self.children if isinstance(i, discord.ui.Select)][0]
+        select = next(i for i in self.children if isinstance(i, discord.ui.Select))
         self.clear_items()
         self.add_item(select)
         self.add_items()

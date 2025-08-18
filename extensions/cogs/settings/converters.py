@@ -36,11 +36,11 @@ class Prefix(commands.Converter, str):
 
         if MENTION_REGEX.match(argument):
             raise commands.BadArgument("You can not add a mention as a prefix.")
-        elif len(argument) > PREFIX_CHAR_LIMIT:
+        if len(argument) > PREFIX_CHAR_LIMIT:
             raise commands.BadArgument(f"That prefix is too long ({len(argument)}/{PREFIX_CHAR_LIMIT})")
-        elif len(prefixes) > MAX_PREFIX_AMOUNT:
+        if len(prefixes) > MAX_PREFIX_AMOUNT:
             raise commands.BadArgument(f"You already the max amount of prefixes {MAX_PREFIX_AMOUNT} prefixes")
-        elif argument in prefixes:
+        if argument in prefixes:
             raise commands.BadArgument("That is already a prefix for this server.")
 
         return argument.lower()
@@ -52,4 +52,6 @@ class GetCommand(commands.Converter, Command):
         command = ctx.bot.get_command(argument)
         if not command:
             raise commands.BadArgument(f"{argument} is not a command.")
+        if command.cog_name and command.cog_name in ("Bot Info", "HelpCommand", "Settings"):
+            raise commands.BadArgument("You can not disable this command.")
         return command

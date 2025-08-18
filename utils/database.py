@@ -30,14 +30,14 @@ if TYPE_CHECKING:
 
 __all__ = (
     "BaseData",
-    "GuildData",
-    "VerificationData",
-    "LoggingData",
-    "JoinLeaveData",
-    "UserData",
-    "HighlightsData",
     "BlacklistData",
     "Database",
+    "GuildData",
+    "HighlightsData",
+    "JoinLeaveData",
+    "LoggingData",
+    "UserData",
+    "VerificationData",
 )
 
 _log = logging.getLogger("alpine")
@@ -257,7 +257,7 @@ class LoggingData(BaseData):
 
         if not url:
             return None
-        elif self._webhook and self._webhook.url == url:
+        if self._webhook and self._webhook.url == url:
             return self._webhook
 
         webhook = discord.Webhook.from_url(url, client=self.database.bot, bot_token=self.database.bot.http.token)

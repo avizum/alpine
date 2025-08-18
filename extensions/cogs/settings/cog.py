@@ -25,8 +25,7 @@ from discord.ext import commands
 
 import core
 
-from .converters import Prefix
-from .views import JoinsAndLeavesView, LoggingView, MemberVerificationView, PrefixView, SettingsView
+from .views import ConfirmNewSettingsMenu, SettingsView
 
 if TYPE_CHECKING:
     from core import Bot, Context
@@ -45,6 +44,14 @@ class Settings(core.GroupCog, group_name="settings"):
             raise commands.MaxConcurrencyReached(1, commands.BucketType.guild)
         return True
 
+    async def cog_command_error(self, ctx: Context, error: Exception):
+        if isinstance(error, commands.MaxConcurrencyReached):
+            ctx.locally_handled = True
+            settings_view = self._settings[ctx.guild.id]
+            view = ConfirmNewSettingsMenu(menu=settings_view, ctx=ctx, cog=self)
+            await ctx.send("A settings menu is already open.", view=view, ephemeral=True)
+            return
+
     @core.command(hybrid=True, app_command_name="show")
     @core.has_permissions(manage_guild=True)
     async def settings(self, ctx: Context):
@@ -52,99 +59,55 @@ class Settings(core.GroupCog, group_name="settings"):
         Configure Alpine settings for this server.
         """
         guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
-        view = SettingsView(self, ctx, guild_settings)
-        return await view.start()
+        view = SettingsView(ctx, self, guild_settings)
+        await view.start()
 
-    @core.group(fallback="show", hybrid=True)
+    @core.command(hybrid=True)
+    @core.has_permissions(manage_guild=True)
     async def prefix(self, ctx: Context):
-        """
-        Show custom prefix configuration.
-        """
+        """Show custom prefix configuration."""
         guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
-        view = SettingsView(self, ctx, guild_settings)
-        return await view.start(view=PrefixView(ctx, view))
-
-    @prefix.command(name="add", aliases=["append"])
-    @core.has_permissions(manage_guild=True)
-    async def prefix_add(self, ctx: Context, prefix: Prefix):
-        """
-        Adds a prefix to the server.
-
-        Setting one prefix will remove the default prefix. Add it back if you want.
-        If you want the prefix to have a space make sure to wrap it in quotations.
-        You can have up to 15 prefixes, each up to 20 characters.
-        The prefix can not be a channel, role or member mention.
-        """
-        settings = ctx.database.get_guild(ctx.guild.id)
-        if not settings:
-            return  # already checked in prefix converter
-        prefixes = settings.prefixes
-        prefixes.append(prefix)
-        await settings.update(prefixes=prefixes)
-        await ctx.send(f"Added `{prefix}` to the list of prefixes.\nHere are the prefixes:`{'` | `'.join(prefixes)}`")
-
-    @prefix.command(name="remove")
-    @core.has_permissions(manage_guild=True)
-    async def prefix_remove(self, ctx: Context, prefix: str):
-        """
-        Removes a prefix from the server.
-
-        If the prefix you are trying to remove has spaces,
-        make sure to wrap it in quotations, else the prefix will not be found.
-        """
-        prefix = prefix.lower()
-        settings = ctx.database.get_guild(ctx.guild.id)
-        if not settings:
-            return await ctx.send("This server does not have any custom prefixes.")
-
-        prefixes = settings.prefixes
-
-        if prefix not in prefixes:
-            return await ctx.send(f"`{prefix}` is not a prefix of this server.")
-
-        prefixes.remove(prefix)
-        await settings.update(prefixes=prefixes)
-        message = f"Removed `{prefix}` from the list of prefixes."
-        if prefixes:
-            message += f"\nHere are the prefixes: `{'` | `'.join(prefixes)}`"
-        return await ctx.send(message)
+        view = SettingsView(ctx, self, guild_settings)
+        return await view.start(container=1)
 
     @core.command(hybrid=True)
     @core.has_permissions(manage_guild=True)
     async def logging(self, ctx: Context):
-        """
-        Configure logging.
-        """
+        """Configure logging."""
         guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
-        view = SettingsView(self, ctx, guild_settings)
-        return await view.start(view=LoggingView(ctx, view))
+        view = SettingsView(ctx, self, guild_settings)
+        return await view.start(container=2)
 
     @core.command(name="joins-and-leaves", aliases=["joinsandleaves", "jal", "joins", "leaves"], hybrid=True)
     @core.has_permissions(manage_guild=True)
     async def joins_and_leaves(self, ctx: Context):
-        """
-        Configure join and leave messages.
-        """
+        """Configure join and leave messages."""
         guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
-        view = SettingsView(self, ctx, guild_settings)
-        return await view.start(view=JoinsAndLeavesView(ctx, view))
+        view = SettingsView(ctx, self, guild_settings)
+        return await view.start(container=3)
 
     @core.command(hybrid=True)
     @core.has_permissions(manage_guild=True)
     @core.bot_has_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
     async def verification(self, ctx: Context):
-        """
-        Configure member verification.
-        """
+        """Configure member verification."""
         guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
-        view = SettingsView(self, ctx, guild_settings)
-        return await view.start(view=MemberVerificationView(ctx, view))
+        view = SettingsView(ctx, self, guild_settings)
+        return await view.start(container=4)
+
+    @core.command(hybrid=True, name="commands")
+    @core.has_permissions(manage_guild=True)
+    @core.bot_has_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
+    async def _commands(self, ctx: Context):
+        """Configure commands for the server."""
+        guild_settings = await ctx.database.get_or_fetch_guild(ctx.guild.id)
+        view = SettingsView(ctx, self, guild_settings)
+        return await view.start(container=5)
 
     @core.group(invoke_without_command=True, case_insensitive=True, hybrid=True)
     @core.cooldown(1, 60, commands.BucketType.user)
     async def theme(self, ctx: Context, *, color: discord.Color):
-        """
-        Set your theme.
+        """Set your theme.
 
         This color will be used for embeds sent by the bot.
         """
@@ -159,8 +122,7 @@ class Settings(core.GroupCog, group_name="settings"):
 
     @theme.command(aliases=["none", "no", "not", "gone"])
     async def remove(self, ctx: Context):
-        """
-        Remove your theme.
+        """Remove your theme.
 
         This will remove the color used for embeds and will use your top role color instead.
         """
@@ -169,14 +131,13 @@ class Settings(core.GroupCog, group_name="settings"):
             return await ctx.send("You do not have a theme set.")
         conf = await ctx.confirm(message="Are you sure you want to remove your theme?")
         if conf.result:
-            await user_data.update(color=None)
+            await user_data.update(color=0)
             return await conf.message.edit(content="Your theme was removed.")
         return await conf.message.edit(content="Okay, nevermind.")
 
     @theme.command()
     async def random(self, ctx: Context):
-        """
-        Set a random theme.
+        """Set a random theme.
 
         This will pick a random color for embeds.
         """
@@ -188,9 +149,7 @@ class Settings(core.GroupCog, group_name="settings"):
 
     @theme.command()
     async def view(self, ctx: Context):
-        """
-        Show your current theme preview.
-        """
+        """Show your current theme preview."""
         embed = discord.Embed(title="Preview", description="This is how your embeds will look like.")
         await ctx.send(embed=embed)
 

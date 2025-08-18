@@ -86,7 +86,7 @@ class HighlightCommands(core.Cog):
         highlights = self.bot.database.get_highlights(itn.user.id)
         if not highlights:
             return []
-        elif not item:
+        if not item:
             return [app_commands.Choice(name=hl, value=hl) for hl in highlights.triggers[:25]]
         return [app_commands.Choice(name=hl, value=hl) for hl in highlights.triggers if item in hl and len(item) > 2]
 
@@ -120,7 +120,7 @@ class HighlightCommands(core.Cog):
         if not highlights:
             return await ctx.send("You don't have any highlights.", ephemeral=True, delete_after=10)
         await highlights.delete()
-        await ctx.send("Your highlights have been cleared.", ephemeral=True, delete_after=10)
+        return await ctx.send("Your highlights have been cleared.", ephemeral=True, delete_after=10)
 
     @highlight.command(name="block", aliases=["bl"])
     @core.describe(user="The user to block from triggering highlights.")
@@ -139,7 +139,7 @@ class HighlightCommands(core.Cog):
 
         blocked.append(user.id)
         await highlights.update(blocked=blocked)
-        await ctx.send("Block list updated.", ephemeral=True, delete_after=10)
+        return await ctx.send("Block list updated.", ephemeral=True, delete_after=10)
 
     @highlight.command(name="unblock", aliases=["unbl"])
     @core.describe(user="The user to unblock from triggering highlights.")
@@ -159,4 +159,4 @@ class HighlightCommands(core.Cog):
 
         blocked.remove(user.id)
         await highlights.update(blocked=blocked)
-        await ctx.send("Block list updated.", ephemeral=True, delete_after=10)
+        return await ctx.send("Block list updated.", ephemeral=True, delete_after=10)

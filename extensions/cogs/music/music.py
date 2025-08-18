@@ -161,7 +161,7 @@ class Player(wavelink.Player):
             tracks = None
 
         if not tracks:
-            return
+            return None
 
         return tracks if isinstance(tracks, WPlaylist) else tracks[0]
 
@@ -187,10 +187,7 @@ class Player(wavelink.Player):
         if position:
             time = f"Position: {format_seconds(position/1000)}/{format_seconds(current.length/1000)}"
 
-        if self.queue.up_next:
-            next_track = self.queue.up_next
-        else:
-            next_track = None
+        next_track = self.queue.up_next if self.queue.up_next else None
 
         # fmt: off
         embed.description = (

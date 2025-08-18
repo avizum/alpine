@@ -56,8 +56,7 @@ if TYPE_CHECKING:
     from jishaku.repl import Scope
 
     from core import Bot, Context
-
-    from ..moderation import Moderation
+    from extensions.cogs.moderation import Moderation
 
 
 def natural_size(size_in_bytes: int) -> str:
@@ -94,10 +93,10 @@ async def _send_traceback(
 
     paginator = commands.Paginator(prefix="```py")
     for line in traceback_content.split("\n"):
-        line = line.replace(str(destination._state.http.token), "[token omitted]")
+        tb_line = line.replace(str(destination._state.http.token), "[token omitted]")
         for i in sys.path:
-            line = line.replace(i, ".")
-        paginator.add_line(line)
+            tb_line = line.replace(i, ".")
+        paginator.add_line(tb_line)
 
     message = None
 
@@ -220,7 +219,7 @@ class ReloadView(View):
             self.embed.add_field(name="Reloaded Modules", value="\n".join(reload_list))
         self.embed.set_footer()
         await interaction.response.edit_message(embed=self.embed, view=None)
-        self.stop()
+        return self.stop()
 
     @discord.ui.button(label="Cancel", style=discord.ButtonStyle.gray)
     async def cancel_reload(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -337,7 +336,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                     f" and can see {cache_summary}."
                 )
             else:
-                shard_ids = ", ".join(str(i) for i in self.bot.shards.keys())
+                shard_ids = ", ".join(str(i) for i in self.bot.shards)
                 summary.append(
                     f"This bot is automatically sharded (Shards {shard_ids} of {self.bot.shard_count})"
                     f" and can see {cache_summary}."
@@ -399,7 +398,10 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                             result: Any
 
                             if result is None and out and out.getvalue():
-                                result = f"Redirected stdout\n{ctx.codeblock(out.getvalue())}"
+                                redirected = f"Redirected stdout\n{ctx.codeblock(out.getvalue())}"
+                                self.last_result = redirected
+                                send(await self.jsk_python_result_handling(ctx, redirected))
+                                continue
 
                             if result is None:
                                 continue
@@ -419,7 +421,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         sm = discord.Embed(description="Are you sure you want to reboot?")
         conf = await ctx.confirm(embed=sm)
         if conf.result:
-            with open("reboot.toml", "w") as f:
+            with open("reboot.toml", "w") as f:  # noqa: ASYNC230  # This function stops the bot, async doesn't matter
                 toml.dump(
                     {
                         "message_id": conf.message.id,
@@ -495,7 +497,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         Change the bot's current news.
         """
-        with open("config.toml", "r+") as news_file:
+        with open("config.toml", "r+") as news_file:  # noqa: ASYNC230  # The time it blocks is negligible
             load = toml.loads(news_file.read())
             load["news"]["news"] = news
             news_file.seek(0)
@@ -532,7 +534,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             except (commands.ExtensionError, ModuleNotFoundError) as e:
                 load_list.append(f"{Emojis.RED_TICK} | {cog}```{e}```")
         embed = discord.Embed(title="Loaded cogs", description="\n".join(load_list))
-        await ctx.send(embed=embed)
+        return await ctx.send(embed=embed)
 
     @Feature.Command(parent="jsk", name="unload", aliases=["u"])
     async def jsk_unload(self, ctx: Context, module: CogConverter):
@@ -616,7 +618,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         if conf.result:
             await guild.leave()
             return await ctx.message.add_reaction(Emojis.GREEN_TICK)
-        await conf.message.edit(content="Okay, Aborted.")
+        return await conf.message.edit(content="Okay, Aborted.")
 
     @Feature.Command(parent="jsk", aliases=["bl"], invoke_without_command=True)
     async def blacklist(self, ctx: Context):
@@ -658,7 +660,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             return await ctx.send(f"{user} is not blacklisted.")
 
         await to_unblacklist.delete()
-        await ctx.send(f"Removed {user} from the blacklist.")
+        return await ctx.send(f"Removed {user} from the blacklist.")
 
     @Feature.Command(parent="jsk")
     async def cleanup(self, ctx: Context, amount: int = 15):
@@ -676,7 +678,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         cog: Moderation | None = self.bot.get_cog("moderation")  # type: ignore
         if cog is None:
             return await ctx.send(f"{len(purged)} messages deleted.")
-        await ctx.can_delete(embed=await cog._affected(purged))
+        return await ctx.can_delete(embed=await cog._affected(purged))
 
     @Feature.Command(parent="jsk")
     async def maintenance(self, ctx: Context, toggle: bool):
@@ -687,6 +689,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         match = {True: "enabled", False: "disabled"}
         self.bot.maintenance = toggle
+        self.bot.extra_events = {}
         await ctx.send(f"Maintenance mode has been {match[toggle]}")
 
     @Feature.Command(parent="jsk", aliases=["cog", "extensions", "extension", "ext"])
@@ -701,7 +704,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             return await ctx.send(f"{ext.qualified_name} | Loaded {timestamp(ext.load_time):R}")
         thing_list = [f"{val.qualified_name} | Loaded {timestamp(val.load_time):R}" for _, val in self.bot.cogs.items()]
         embed = discord.Embed(title="Loaded Cogs", description="\n".join(thing_list))
-        await ctx.send(embed=embed)
+        return await ctx.send(embed=embed)
 
     @Feature.Command(parent="jsk")
     async def guilds(self, ctx: Context):

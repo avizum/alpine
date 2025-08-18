@@ -109,9 +109,10 @@ class Moderation(core.Cog):
                 except Exception:
                     fail += 1
             kicked_fmt = format_list(kicked)
-            await conf.message.edit(content=f"Sucessfully kicked {kicked_fmt} ({len(targets)-fail}/{len(targets)}) members.")
-        else:
-            await conf.message.edit(content="Cancelled.")
+            return await conf.message.edit(
+                content=f"Sucessfully kicked {kicked_fmt} ({len(targets)-fail}/{len(targets)}) members."
+            )
+        return await conf.message.edit(content="Cancelled.")
 
     @core.command(hybrid=True)
     @core.has_permissions(ban_members=True)
@@ -274,7 +275,7 @@ class Moderation(core.Cog):
                 return await conf.message.edit(content="Okay, cancelled.", delete_after=10)
         dur = dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=duration)
         await target.edit(timed_out_until=dur, reason=reason)
-        await ctx.send(f"Muted {target} until {timestamp(dur)}.\nReason: {reason}", ephemeral=True)
+        return await ctx.send(f"Muted {target} until {timestamp(dur)}.\nReason: {reason}", ephemeral=True)
 
     @core.command(hybrid=True, aliases=["untimeout", "untempmute"])
     @core.has_permissions(moderate_members=True)
@@ -307,8 +308,7 @@ class Moderation(core.Cog):
 
     async def _purge(self, /, ctx: Context, *args, **kwargs) -> list[discord.Message]:
         async with ctx.typing(ephemeral=True):
-            messages = await ctx.channel.purge(*args, **kwargs)
-        return messages
+            return await ctx.channel.purge(*args, **kwargs)
 
     @core.group(hybrid=True, fallback="messages", invoke_without_command=True)
     @core.has_permissions(manage_messages=True)
@@ -518,7 +518,7 @@ class Moderation(core.Cog):
             title="Changed Slowmode",
             description=f"Slowmode delay has been set to {humanize.precisedelta(duration)}",
         )
-        await ctx.send(embed=embed)
+        return await ctx.send(embed=embed)
 
     @core.group(hybrid=True, invoke_without_command=True)
     @core.has_permissions(manage_roles=True)
@@ -541,7 +541,7 @@ class Moderation(core.Cog):
         """
         if role >= ctx.me.top_role:
             raise commands.BadArgument("I can't add that role to them.")
-        elif role >= ctx.author.top_role:
+        if role >= ctx.author.top_role:
             raise commands.BadArgument("You can't add that role to them.")
         await member.add_roles(role)
         ra = discord.Embed(
@@ -562,7 +562,7 @@ class Moderation(core.Cog):
         """
         if role >= ctx.me.top_role:
             raise commands.BadArgument("I can't remove that role to them.")
-        elif role >= ctx.author.top_role:
+        if role >= ctx.author.top_role:
             raise commands.BadArgument("You can't remove that role to them.")
         await member.remove_roles(role)
         rr = discord.Embed()

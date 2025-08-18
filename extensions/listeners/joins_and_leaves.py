@@ -90,8 +90,7 @@ class JoinsAndLeaves(core.Cog):
     def convert(self, message: str) -> discord.Embed | str:
         try:
             message = json.loads(message)
-            message = discord.Embed.from_dict(message)  # type: ignore
-            return message
+            return discord.Embed.from_dict(message)  # type: ignore
         except Exception:
             return message
 
@@ -100,10 +99,10 @@ class JoinsAndLeaves(core.Cog):
     async def member_join(self, member: discord.Member):
         guild = self.bot.database.get_guild(member.guild.id)
         if not guild:
-            return
+            return None
         settings = guild.join_leave
         if not settings or not settings.enabled or not settings.channel_id or not settings.join_message:
-            return
+            return None
         channel = self.bot.get_channel(settings.channel_id)
         message = settings.join_message
 
@@ -122,11 +121,11 @@ class JoinsAndLeaves(core.Cog):
     async def member_remove(self, member: discord.Member):
         guild = self.bot.database.get_guild(member.guild.id)
         if not guild:
-            return
+            return None
 
         settings = guild.join_leave
         if not settings or not settings.enabled or not settings.channel_id or not settings.leave_message:
-            return
+            return None
         channel = self.bot.get_channel(settings.channel_id)
         message = settings.leave_message
 

@@ -6,7 +6,7 @@ AlpineII = "Beta Bot Token"
 DagpiAPI = "Dagpi API token for Image Cog"
 TopGG = "TopGG API token"
 TopGGWH = "TopGG webhook secret"
-DBL = "Discord Bot List token
+DBL = "Discord Bot List token"
 GitHub = "GitHub Access Token"
 
 [postgresql]
@@ -16,10 +16,10 @@ user = "admin"
 database = "alpine"
 
 [webhooks]
-join_log = "Webhook URL for join_log here
-error_log = "Webhook URL for error_log here
-request_log = "Webhook URL for request_log here
-vote_log = "Webhook URL for vote_log here
+join_log = "Webhook URL for join_log here"
+error_log = "Webhook URL for error_log here"
+request_log = "Webhook URL for request_log here"
+vote_log = "Webhook URL for vote_log here"
 
 [news]
 news = "Why Hello There"

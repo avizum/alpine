@@ -26,9 +26,9 @@ if TYPE_CHECKING:
     from core import Context
 
 __all__ = (
+    "DefaultReason",
     "ModReason",
     "default_reason",
-    "DefaultReason",
 )
 
 

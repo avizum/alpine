@@ -24,6 +24,7 @@ from io import BytesIO
 
 import discord
 from asyncgist import File
+from discord import ui
 from discord.ext import commands, tasks
 from discord.utils import escape_markdown
 
@@ -35,7 +36,7 @@ from utils import format_seconds, timestamp
 TOKEN_REGEX = r"([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}|mfa\.[a-zA-Z0-9_\-]{84})"
 
 
-edit_mapping = {
+EDIT_MAPPING = {
     "name": "Changed name",
     "category": "Moved channel category",
     "slowmode": "Set slowmode delay to",
@@ -43,7 +44,14 @@ edit_mapping = {
     "NSFW": "Set NSFW to",
 }
 
-toggle_mapping = {True: "On", False: "Off"}
+TOGGLE_MAPPING = {True: "On", False: "Off"}
+
+NO_MENTIONS = discord.AllowedMentions.none()
+
+
+def ordinal(num: int):
+    suffix = "th" if 11 <= num % 100 <= 13 else ["th", "st", "nd", "rd", "th"][min(num % 10, 4)]
+    return f"{num:,}{suffix}"
 
 
 class BotLogs(core.Cog):
@@ -51,6 +59,8 @@ class BotLogs(core.Cog):
         self.bot = bot
         self.load_time = dt.datetime.now(dt.timezone.utc)
         self.clear_cache.start()
+
+    async def send(self) -> None: ...
 
     @core.Cog.listener("on_message")
     async def on_message(self, message: discord.Message):
@@ -109,70 +119,181 @@ class BotLogs(core.Cog):
             context = await self.bot.get_context(message)
             if context.valid or message.author.bot or not isinstance(message.channel, discord.abc.GuildChannel):
                 return
-            embed = discord.Embed(
-                title="Message Delete",
-                timestamp=dt.datetime.now(dt.timezone.utc),
-                description=f"Message from {message.author.mention} deleted in {message.channel.mention}",
-                color=discord.Color.red(),
+            container = ui.Container(
+                *(
+                    ui.TextDisplay(
+                        "### Message Delete\n"
+                        f"Message from {message.author.mention} was deleted in {message.channel.mention}"
+                    ),
+                    ui.TextDisplay(f"**Deleted content**\n>>> {message.content or "*No message content*"}"),
+                    ui.TextDisplay(f"-# Deleted on {timestamp(dt.datetime.now(dt.timezone.utc))}"),
+                ),
+                accent_color=discord.Color.red(),
             )
-            embed.set_footer(text="Deleted at")
-            if message.content:
-                embed.add_field(name="Deleted content", value=f">>> {message.content}")
-            return await destination.send(embed=embed)
+            view = ui.LayoutView()
+            view.add_item(container)
+            try:
+                await destination.send(view=view, allowed_mentions=NO_MENTIONS)
+            except discord.HTTPException:
+                return
+            return
 
         assert isinstance(message, list)
         messages: list[discord.Message] = message
 
         list_of_messages = []
-        for message in messages:
-            time = format(timestamp(message.created_at), "t")
-            content = escape_markdown(message.content[:90]) or "*No content*"
-            list_of_messages.append(f"[{time}] {message.author}: {content}")
+        for _message in messages:
+            time = format(timestamp(_message.created_at), "t")
+            content = escape_markdown(_message.content[:90]) or "*No content*"
+            list_of_messages.append(f"[{time}] {_message.author}: {content}")
+        for _message in messages:
+            if len(_message.content) > 100:
+                content = escape_markdown(f"{_message.content[:100]}...")
+            else:
+                content = escape_markdown(_message.content) or "*No content*"
+            list_of_messages.append(f"[{timestamp(_message.created_at):t}] {_message.author}: {content}")
         if not list_of_messages:
             return
-        embed = discord.Embed(
-            title="Bulk Message Delete",
-            timestamp=dt.datetime.now(dt.timezone.utc),
-            color=discord.Color.red(),
-        )
-        embed.set_footer(text=f"{len(messages)} deleted")
+        container = ui.Container(*(ui.TextDisplay("### Bulk Message Delete"),), accent_color=discord.Color.red())
         message_log = "\n\n----------\n\n".join(list_of_messages)
+
+        view = ui.LayoutView()
         if len(message_log) > 4000:
+            container.add_item(ui.File("attachment://messages.txt"))
             message_file = discord.File(filename="messages.txt", fp=BytesIO(message_log.encode("utf-8")))
-            return await destination.send(embed=embed, file=message_file)
-        embed.description = "\n".join(list_of_messages)
+            view.add_item(container)
+            try:
+                await destination.send(view=view, file=message_file, allowed_mentions=NO_MENTIONS)
+            except discord.HTTPException:
+                return
+            return
+        container.add_item(ui.TextDisplay("\n".join(list_of_messages)))
+        container.add_item(
+            ui.TextDisplay(
+                f"-# {len(messages)} messages deleted\n"
+                f"-# Messages deleted on {timestamp(dt.datetime.now(dt.timezone.utc))}"
+            )
+        )
+        view.add_item(container)
+        try:
+            await destination.send(view=view, allowed_mentions=NO_MENTIONS)
+        except discord.HTTPException:
+            return
+        return
 
     @core.Cog.listener("on_message_edit")
     async def logging_edit(self, before: discord.Message, after: discord.Message):
         context = await self.bot.get_context(after)
-        guild_channel = discord.abc.GuildChannel
-        if before.author.bot or context.valid or before.guild is None or after.guild is None:
-            return
-        elif not isinstance(before.channel, guild_channel) or not isinstance(after.channel, guild_channel):
+
+        if (
+            before.author.bot
+            or context.valid
+            or before.guild is None
+            or after.guild is None
+            or not isinstance(before.channel, discord.abc.GuildChannel)
+            or not isinstance(after.channel, discord.abc.GuildChannel)
+        ):
             return
 
         settings = self.bot.database.get_guild(after.guild.id)
         logging = settings.logging if settings else None
 
-        if not logging or not logging.enabled or not logging.message_edit or not logging.webhook:
-            return
-        elif before.content == after.content:
+        if (
+            not logging
+            or not logging.enabled
+            or not logging.message_edit
+            or not logging.webhook
+            or before.content == after.content
+        ):
             return
 
-        old_content = f"{before.content[:1017]}..." if len(before.content) > 1024 else before.content
-        new_content = f"{after.content[:1017]}..." if len(after.content) > 1024 else after.content
+        old_content = f"{before.content[:1021]}..." if len(before.content) > 1024 else before.content
+        new_content = f"{after.content[:1021]}..." if len(after.content) > 1024 else after.content
 
-        embed = discord.Embed(
-            title="Message Edit",
-            timestamp=dt.datetime.now(dt.timezone.utc),
-            description=f"Message was edited by {before.author.mention} in {before.channel.mention}",
+        container = ui.Container(
+            *(
+                ui.TextDisplay(
+                    f"### Message Edited\nA [message]({before.jump_url}) sent "
+                    f"by {before.author.mention} in {before.channel.mention} was edited."
+                ),
+                ui.TextDisplay(f"**Before**\n>>> {old_content}"),
+                ui.TextDisplay(f"**After**\n>>> {new_content}"),
+                ui.TextDisplay(f"-# Edited on {timestamp(dt.datetime.now(dt.timezone.utc))}"),
+            ),
+            accent_color=discord.Color.gold(),
         )
-        embed.add_field(name="Before", value=f">>> {old_content}", inline=False)
-        embed.add_field(name="After", value=f">>> {new_content}", inline=False)
-        embed.set_footer(text="Edited at")
 
-        with contextlib.suppress(discord.HTTPException):
-            return await logging.webhook.send(embed=embed)
+        view = ui.LayoutView()
+        view.add_item(container)
+
+        try:
+            await logging.webhook.send(view=view, allowed_mentions=NO_MENTIONS)
+        except discord.HTTPException:
+            return
+        return
+
+    @core.Cog.listener("on_member_join")
+    async def logging_member_join(self, member: discord.Member) -> None:
+        settings = self.bot.database.get_guild(member.guild.id)
+        logging = settings.logging if settings else None
+        if not logging or not logging.enabled or not logging.webhook or not logging.member_join:
+            return
+
+        name = f"{member.display_name}{f" ({member.name})" if member.display_name != member.name else ""}"
+        sort = sorted(member.guild.members, key=lambda m: getattr(m, "joined_at"))
+        pos = f"{ordinal(sort.index(member) + 1)} to join"
+
+        # fmt: off
+        container = ui.Container(
+            *(
+                ui.Section(
+                    *(
+                        "### Member Joined",
+                        f"**Name:** {name}\n"
+                        f"**ID:** {member.id}\n"
+                        f"**Created:** {timestamp(member.created_at)}\n",
+                        f"**Joined:** {timestamp(member.joined_at or discord.utils.utcnow())} ({pos})",
+                    ),
+                    accessory=ui.Thumbnail(member.display_avatar.url),
+                ),
+            ),
+            accent_color=discord.Color.brand_green(),
+        )
+        # fmt: on
+
+        view = ui.LayoutView()
+        view.add_item(container)
+
+        await logging.webhook.send(view=view)
+
+    @core.Cog.listener("on_member_remove")
+    async def logging_member_leave(self, member: discord.Member) -> None:
+        settings = self.bot.database.get_guild(member.guild.id)
+        logging = settings.logging if settings else None
+        if not logging or not logging.enabled or not logging.webhook or not logging.member_join:
+            return
+
+        name = f"{member.display_name}{f" ({member.name})" if member.display_name != member.name else ""}"
+        # fmt: off
+        container = ui.Container(
+            *(
+                ui.Section(
+                    *(
+                        "### Member Left",
+                        f"**Name:** {name}\n"
+                        f"**ID:** {member.id}\n"
+                        f"**Created:** {timestamp(member.created_at)}\n",
+                    ),
+                    accessory=ui.Thumbnail(member.display_avatar.url),
+                ),
+            ),
+            accent_color=discord.Color.brand_red(),
+        )
+        # fmt: on
+        view = ui.LayoutView()
+        view.add_item(container)
+
+        await logging.webhook.send(view=view)
 
     @core.Cog.listener("on_audit_log_entry_create")
     async def logging_ban_kick(self, entry: discord.AuditLogEntry):
@@ -184,9 +305,7 @@ class BotLogs(core.Cog):
         message = ""
 
         if entry.action == discord.AuditLogAction.ban:
-            if not isinstance(entry.target, (discord.Object, discord.User)):
-                return
-            elif not logging.member_ban:
+            if not isinstance(entry.target, (discord.Object, discord.User)) or not logging.member_ban:
                 return
             user = self.bot.get_user(entry.target.id)
             if not user or not entry.user:
@@ -197,9 +316,7 @@ class BotLogs(core.Cog):
                 f"> **Reason:** {entry.reason}"
             )
         elif entry.action == discord.AuditLogAction.kick:
-            if not isinstance(entry.target, (discord.Object, discord.User)):
-                return
-            elif not logging.member_leave:
+            if not isinstance(entry.target, (discord.Object, discord.User)) or not logging.member_leave:
                 return
             user = self.bot.get_user(entry.target.id)
             if not user:
@@ -213,7 +330,8 @@ class BotLogs(core.Cog):
         if not message:
             return
         with contextlib.suppress(discord.HTTPException):
-            return await logging.webhook.send(message)
+            await logging.webhook.send(message)
+            return
 
     @core.Cog.listener("on_guild_channel_update")
     async def logging_channel_edit(self, before: discord.abc.GuildChannel, after: discord.abc.GuildChannel):
@@ -244,29 +362,40 @@ class BotLogs(core.Cog):
         actions = []
         for action, pre, post in changed:
             if isinstance(post, bool):
-                actions.append(f"{edit_mapping[action]} {toggle_mapping[post]}")
+                actions.append(f"{EDIT_MAPPING[action]} {TOGGLE_MAPPING[post]}")
                 continue
             if isinstance(post, str) and isinstance(pre, str):
-                actions.append(f"{edit_mapping[action]} from **{pre[:500]}** to **{post[:500]}**")
+                actions.append(f"{EDIT_MAPPING[action]} from **{pre[:500]}** to **{post[:500]}**")
                 continue
             if isinstance(post, discord.CategoryChannel):
-                actions.append(f"{edit_mapping[action]} from **{pre}** to **{post}**")
+                actions.append(f"{EDIT_MAPPING[action]} from **{pre}** to **{post}**")
             if isinstance(post, int):
-                actions.append(f"{edit_mapping[action]} {format_seconds(post, friendly=True)}")
+                actions.append(f"{EDIT_MAPPING[action]} {format_seconds(post, friendly=True)}")
         if not actions:
             return
-        formatted = "\n".join(f"{num}. {action}" for num, action in enumerate(actions, 1))
-        with contextlib.suppress(discord.HTTPException):
-            return await logging.webhook.send(
-                f"[**{timestamp(dt.datetime.now(dt.timezone.utc))}**] {after.mention} was edited:\n{formatted}"
-            )
+
+        display_content = "\n".join(f"{count}. {action}" for count, action in enumerate(actions, 1))
+        container = ui.Container(
+            *(
+                ui.TextDisplay(f"[**{timestamp(dt.datetime.now(dt.timezone.utc))}**] {after.mention} was edited:"),
+                ui.TextDisplay(display_content),
+            ),
+            accent_color=discord.Color.gold(),
+        )
+        view = ui.LayoutView()
+        view.add_item(container)
+
+        try:
+            await logging.webhook.send(view=view)
+        except discord.HTTPException:
+            pass
 
     @core.Cog.listener("on_guild_channel_delete")
     async def logging_channel_delete(self, channel: discord.abc.GuildChannel):
         settings = self.bot.database.get_guild(channel.guild.id)
         logging = settings.logging if settings else None
         if not logging or not logging.enabled or not logging.channel_delete or not logging.webhook:
-            return
+            return None
 
         return await logging.webhook.send(f"[**{timestamp(dt.datetime.now(dt.timezone.utc))}**] #{channel.name} was deleted")
 
@@ -282,9 +411,9 @@ class BotLogs(core.Cog):
             raise commands.NoPrivateMessage
         guild_settings = ctx.database.get_guild(ctx.guild.id)
         if guild_settings:
-            if ctx.command.qualified_name in guild_settings.disabled_commands:
+            if (ctx.command.full_parent_name or ctx.command.qualified_name) in guild_settings.disabled_commands:
                 raise CommandDisabledGuild
-            elif ctx.channel.id in guild_settings.disabled_channels:
+            if ctx.channel.id in guild_settings.disabled_channels:
                 raise CommandDisabledChannel
         if ctx.bot.maintenance:
             raise Maintenance()

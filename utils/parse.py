@@ -77,7 +77,6 @@ async def preview_message(message: str, ctx: Context) -> str | discord.Embed:
     parsed = parser.parse(message, env=env)
     try:
         data = json.loads(parsed)
-        embed = discord.Embed.from_dict(data)
-        return embed
+        return discord.Embed.from_dict(data)
     except Exception:
         return parsed

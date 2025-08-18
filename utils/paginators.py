@@ -26,7 +26,7 @@ from discord.ext.menus import PageSource
 from jishaku.paginators import WrappedPaginator
 
 from utils.emojis import Emojis
-from utils.view import View
+from utils.views import View
 
 if TYPE_CHECKING:
     from core.context import Context
@@ -103,9 +103,7 @@ class BasePaginator(View):
     async def show_checked_page(self, interaction: discord.Interaction, page_num: int):
         max_pages = self.source.get_max_pages()
         try:
-            if max_pages is None:
-                await self.show_page(interaction, page_num)
-            elif max_pages > page_num >= 0:
+            if max_pages is None or max_pages > page_num >= 0:
                 await self.show_page(interaction, page_num)
         except IndexError:
             pass
@@ -114,12 +112,11 @@ class BasePaginator(View):
         value = await discord.utils.maybe_coroutine(self.source.format_page, self, page)
         if isinstance(value, dict):
             return value
-        elif isinstance(value, str):
+        if isinstance(value, str):
             return {"content": value, "embed": None}
-        elif isinstance(value, discord.Embed):
+        if isinstance(value, discord.Embed):
             return {"embed": value, "content": None}
-        else:
-            return {}
+        return {}
 
     async def on_timeout(self):
         if not self.message:
@@ -156,13 +153,16 @@ class SkipToPageModal(discord.ui.Modal, title="Go to page"):
         return await interaction.response.send_message(error, ephemeral=True)
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
+        def empty():
+            raise ValueError("Page number cannot be empty.")
+
         try:
             if not self.to_page.value:
-                raise ValueError("Page number cannot be empty.")
+                empty()
             page_num = int(self.to_page.value)
             max_pages = self.view.source.get_max_pages()
             await self.view.show_checked_page(interaction, int(self.to_page.value) - 1)
-            if max_pages and page_num > max_pages or page_num <= 0:
+            if (max_pages and page_num > max_pages) or page_num <= 0:
                 await self.send_error(
                     interaction,
                     f"Please enter a page number between 1 and {max_pages}.",
@@ -336,6 +336,3 @@ class Paginator(BasePaginator):
         if self.ctx.interaction is None:
             await self.ctx.message.add_reaction(Emojis.GREEN_TICK)
         self.stop()
-
-
-WrappedPaginator = WrappedPaginator

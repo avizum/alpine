@@ -39,9 +39,7 @@ class HighlightListener(core.Cog):
         self.raw_highlights: dict[int, HighlightsData] = self.bot.database._highlights
 
     def is_valid(self, message: discord.Message) -> bool:
-        if message.guild is None or message.author.bot or message.webhook_id or message.content is None:
-            return False
-        return True
+        return not (message.guild is None or message.author.bot or message.webhook_id or message.content is None)
 
     def can_see_channel(self, member: discord.Member, channel: discord.abc.MessageableChannel):
         return channel.permissions_for(member).read_messages
@@ -114,11 +112,10 @@ class HighlightListener(core.Cog):
             if user_id == message.author.id:
                 continue
 
-            if highlight.blocked and message.author.id in highlight.blocked or message.channel.id in highlight.blocked:
+            if (highlight.blocked and message.author.id in highlight.blocked) or message.channel.id in highlight.blocked:
                 continue
 
-            for word in highlight.triggers:
-                highlight_list.append(word)
+            highlight_list = highlight.triggers.copy()
 
             reg = "|".join(rf"\b({re.escape(h)})\b" for h in highlight_list)
 

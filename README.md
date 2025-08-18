@@ -1,6 +1,6 @@
 # Alpine
 
-[![Discord Server](https://discord.com/api/guilds/751490725555994716/embed.png)](https://discord.gg/muTVFgDvKf)
+[![Discord Server](https://discord.com/api/guilds/751490725555994716/embed.png)](https://discord.gg/hWhGQ4QHE9)
 
 [![Discord Bots](https://top.gg/api/widget/756257170521063444.svg)](https://top.gg/bot/756257170521063444)
 

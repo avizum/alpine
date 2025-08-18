@@ -25,15 +25,11 @@ class QueueException(WavelinkException):
     Base exception for the queue.
     """
 
-    pass
-
 
 class QueueDuplicateTrack(QueueException):
     """
     Raised when `Queue.allow_duplicates` is `False` and a duplicate track is added to the queue.
     """
-
-    pass
 
 
 class NoChannelProvided(commands.CheckFailure):
@@ -41,15 +37,11 @@ class NoChannelProvided(commands.CheckFailure):
     Error raised when no suitable voice channel was supplied.
     """
 
-    pass
-
 
 class IncorrectChannelError(commands.CheckFailure):
     """
     Error raised when commands are used outside of the players session channel.
     """
-
-    pass
 
 
 class NotInVoice(commands.CheckFailure):
@@ -57,12 +49,8 @@ class NotInVoice(commands.CheckFailure):
     Error raised when someone tries do to something when they are not in the voice channel.
     """
 
-    pass
-
 
 class BotNotInVoice(commands.CheckFailure):
     """
     Error raised when the bot is not in the voice channel.
     """
-
-    pass

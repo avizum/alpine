@@ -34,12 +34,12 @@ if TYPE_CHECKING:
     from .alpine import Bot
 
 __all__ = (
+    "Cog",
     "Command",
     "Group",
+    "GroupCog",
     "HybridCommand",
     "HybridGroup",
-    "Cog",
-    "GroupCog",
     "command",
     "group",
 )
