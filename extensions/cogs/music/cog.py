@@ -832,7 +832,7 @@ class Music(core.Cog):
         await player.set_filters(player.filters, seek=True)
         return await ctx.send(f"Set the rotation filter speed to {speed}.")
 
-    @filter_base.group(name="mix", invoke_without_command=True)
+    @filter_base.group(name="mix")
     @in_voice()
     @bot_in_voice()
     @in_bound_channel()

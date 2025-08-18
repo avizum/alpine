@@ -127,7 +127,7 @@ class SettingsView(LView):
         if self.container:
             self.remove_item(self.container)
 
-        cont_home = container.get_item(4663)
+        cont_home = container.find_item(4663)
 
         if cont_home is None:
             container.add_item(self.home_close)
@@ -1041,7 +1041,7 @@ class CommandsContainer(SettingsContainer):
         )  # Need at least one channel for the bot to work in.
 
         fmt_disabled = f"> {", ".join(disabled_commands)}" if disabled_commands else "There are no commands disabled."
-        title = self.commands.get_item(263)
+        title = self.commands.find_item(263)
         assert title is not None
         self.commands.clear_items()
         self.commands.add_item(title)

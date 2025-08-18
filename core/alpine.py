@@ -334,7 +334,7 @@ class Bot(commands.Bot):
                     await message.edit(view=None)
                 if disable_after:
                     getattr(view, "disable_all")()
-                    await message.edit(view=view)
+                    await message.edit(view=view)  # type: ignore
                 view.stop()
             except (AttributeError, discord.NotFound):
                 pass
