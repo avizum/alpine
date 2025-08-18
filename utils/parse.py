@@ -72,7 +72,7 @@ def guild_icon(env) -> str:
     return str(env.guild.icon.replace(format="png", static_format="png", size=512))
 
 
-async def preview_message(message: str, ctx: Context) -> str | discord.Embed:
+def preview_message(message: str, ctx: Context) -> str | discord.Embed:
     env = {"member": ctx.author, "guild": ctx.guild}
     parsed = parser.parse(message, env=env)
     try:
