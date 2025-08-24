@@ -59,7 +59,7 @@ class ServerManagement(commands.Cog, name="Server Management"):
         """
         await ctx.send_help(ctx.command)
 
-    @channels.group(invoke_without_command=True)
+    @channels.group()
     @core.has_permissions(manage_channels=True)
     @core.bot_has_permissions(manage_channels=True)
     async def create(self, ctx: Context):
