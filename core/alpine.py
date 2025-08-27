@@ -42,9 +42,8 @@ from topgg.webhook import WebhookManager
 
 from utils import Database
 
-from .core import Command, Group
-
 if TYPE_CHECKING:
+
     from core import Cog, Context
     from extensions.listeners.errorhandler import ErrorHandler
 
@@ -77,8 +76,9 @@ logging.getLogger("wavelink").addHandler(handler)
 
 class Bot(commands.Bot):
     user: discord.ClientUser
-    owner_ids: set[int]
+    cogs: Mapping[str, Cog]
     token: str
+
     launch_time: datetime = datetime.now(dt.timezone.utc)
     maintenance: bool = False
     commands_ran: int = 0
@@ -88,7 +88,6 @@ class Bot(commands.Bot):
     support: str = "https://discord.gg/hWhGQ4QHE9"
     source: str = "https://github.com/avizum/alpine"
     context: type[commands.Context] | None = None
-    cogs: Mapping[str, Cog]
 
     to_load: tuple[str, ...] = (
         "core.context",
@@ -118,30 +117,25 @@ class Bot(commands.Bot):
     api: dict[str, str] = settings["api_tokens"]
     news: str = settings["news"]["news"]
 
-    allowed_mentions: discord.AllowedMentions = discord.AllowedMentions.none()
-    activity: discord.CustomActivity = discord.CustomActivity(name="Loading...")
-
-    intents: discord.Intents = discord.Intents(
-        bans=True,
-        emojis=True,
-        guilds=True,
-        messages=True,
-        members=True,
-        presences=True,
-        reactions=True,
-        webhooks=True,
-        voice_states=True,
-        message_content=True,
-    )
-
     def __init__(self) -> None:
         super().__init__(
             command_prefix=self.__class__.get_prefix,
             case_insensitive=True,
             strip_after_prefix=True,
-            allowed_mentions=self.allowed_mentions,
-            activity=self.activity,
-            intents=self.intents,
+            allowed_mentions=discord.AllowedMentions.none(),
+            activity=discord.CustomActivity(name="Loading..."),
+            intents=discord.Intents(
+                bans=True,
+                emojis=True,
+                guilds=True,
+                messages=True,
+                members=True,
+                presences=True,
+                reactions=True,
+                webhooks=True,
+                voice_states=True,
+                message_content=True,
+            ),
             status=discord.Status.idle,
             chunk_guilds_at_startup=True,
             max_messages=5000,
@@ -151,17 +145,10 @@ class Bot(commands.Bot):
         self._BotBase__cogs: dict[str, Cog] = commands.core._CaseInsensitiveDict()
 
     def __repr__(self) -> str:
-        return (
-            f"<Bot id={self.user.id} name={self.user.name!r} "
-            f"discriminator={self.user.discriminator!r} bot={self.user.bot}>"
-        )
+        return f"<Bot id={self.user.id} name={self.user.name!r} discriminator={self.user.discriminator!r}>"
 
     def __str__(self) -> str:
         return str(self.user)
-
-    def __int__(self) -> int:
-        self._connection
-        return self.user.id
 
     async def setup_hook(self) -> None:
         self.session: ClientSession = ClientSession()
@@ -290,25 +277,6 @@ class Bot(commands.Bot):
         if message.id in self.command_cache:
             await self.command_cache[message.id].delete(delay=0)
             self.command_cache.pop(message.id, None)
-
-    async def is_owner(self, user: discord.User | discord.Member, /) -> bool:
-        return user.id in self.owner_ids
-
-    def command(self, name=None, cls=None, **kwargs):
-        if cls is None:
-            cls = Command
-
-        def decorator(func):
-            if isinstance(func, Command):
-                raise TypeError("Callback is already a command")
-            res = cls(func, name=name, **kwargs)
-            self.add_command(res)
-            return res
-
-        return decorator
-
-    def group(self, name=None, **kwargs):
-        return self.command(name=name, cls=Group, **kwargs)
 
     def run(self, *args: Any, **kwargs: Any) -> None:
         if not self.token:

@@ -635,6 +635,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         """
         Add a user to the global blacklist.
         """
+        assert self.bot.owner_ids is not None
         if user.id in self.bot.owner_ids:
             return await ctx.send("Can not blacklist that user.")
 

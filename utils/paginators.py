@@ -75,6 +75,8 @@ class BasePaginator(View):
         super().__init__(timeout=timeout, member=ctx.author)
 
     async def interaction_check(self, interaction: discord.Interaction):
+        assert self.ctx.bot.owner_ids is not None
+
         if interaction.user and interaction.user.id in (
             *self.ctx.bot.owner_ids,
             self.ctx.author.id,
