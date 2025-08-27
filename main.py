@@ -29,11 +29,11 @@ def main():
     bot = Bot()
     tokens = bot.settings["bot_tokens"]
 
+    bot.token = tokens["Alpine"]
     if parsed.beta:
         bot.token = tokens["AlpineII"]
         alpine.BOT_ID = alpine.BETA_BOT_ID
 
-    bot.token = tokens["Alpine"] if not parsed.beta else tokens["AlpineII"]
     bot.run()
 
 
