@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import datetime
-from typing import Any, Callable, Concatenate, Generic, overload, ParamSpec, TYPE_CHECKING, TypeVar
+from typing import Any, Callable, Concatenate, Generic, Literal, overload, ParamSpec, TYPE_CHECKING, TypeVar, Unpack
 
 import discord
 from discord import app_commands
@@ -30,6 +30,8 @@ from discord.utils import MISSING
 if TYPE_CHECKING:
     from discord.ext.commands import Context
     from discord.ext.commands._types import Coro
+    from discord.ext.commands.core import _CommandDecoratorKwargs, _GroupDecoratorKwargs
+    from discord.ext.commands.hybrid import _HybridCommandDecoratorKwargs, _HybridGroupDecoratorKwargs
 
     from .alpine import Bot
 
@@ -185,15 +187,36 @@ class GroupCog(commands.GroupCog):
 
 
 @overload
-def command(name: str = MISSING, hybrid: bool = True, **kwargs: Any) -> Callable[..., HybridCommand]: ...
+def command(
+    name: str = ..., *, hybrid: Literal[True], **kwargs: Unpack[_HybridCommandDecoratorKwargs]  # type: ignore
+) -> Callable[..., HybridCommand]: ...
 
 
 @overload
-def command(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callable[..., Command]: ...
+def command(
+    name: str = ..., *, hybrid: Literal[False], **kwargs: Unpack[_CommandDecoratorKwargs]
+) -> Callable[..., Command]: ...
 
 
-def command(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callable[..., Command | HybridCommand]:
-    cls = HybridCommand if hybrid else Command
+@overload
+def command(
+    name: str = ...,
+    *,
+    cls: type[Command] = ...,
+    hybrid: bool = ...,
+    **kwargs: Any,
+) -> Callable[..., Command]: ...
+
+
+def command(
+    name: str = MISSING,
+    *,
+    cls: type[Command[Any, ..., Any]] = MISSING,
+    hybrid: bool = False,
+    **kwargs: Any,
+) -> Callable[..., Command | HybridCommand]:
+    if cls is MISSING:
+        cls = HybridCommand if hybrid else Command
 
     def decorator(func):
         if isinstance(func, Command):
@@ -204,17 +227,38 @@ def command(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callabl
 
 
 @overload
-def group(name: str = MISSING, hybrid: bool = True, **kwargs: Any) -> Callable[..., HybridGroup]: ...
+def group(
+    name: str = ..., *, hybrid: Literal[True], **kwargs: Unpack[_HybridGroupDecoratorKwargs]  # type: ignore
+) -> Callable[..., HybridGroup]: ...
 
 
 @overload
-def group(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callable[..., Group]: ...
+def group(
+    name: str = ..., *, hybrid: Literal[False], **kwargs: Unpack[_GroupDecoratorKwargs]
+) -> Callable[..., Group[Any, ..., Any]]: ...
 
 
-def group(name: str = MISSING, hybrid: bool = False, **kwargs: Any) -> Callable[..., Group | HybridGroup]:
-    cls = HybridGroup if hybrid else Group
+@overload
+def group(
+    name: str = ...,
+    *,
+    cls: type[Group[Any, ..., Any]] = ...,
+    hybrid: bool = ...,
+    **kwargs: Any,
+) -> Callable[..., Group[Any, ..., Any]]: ...
 
-    def decorator(func: Any) -> Group | HybridGroup:
+
+def group(
+    name: str = MISSING,
+    *,
+    cls: type[Group[Any, ..., Any]] = MISSING,
+    hybrid: bool = False,
+    **kwargs: Any,
+) -> Callable[..., Group[Any, ..., Any] | HybridGroup]:
+    if cls is MISSING:
+        cls = HybridGroup if hybrid else Group
+
+    def decorator(func):
         if isinstance(func, Group):
             raise TypeError("Callback is already a group.")
         return cls(func, name=name, **kwargs)

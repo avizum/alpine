@@ -35,7 +35,7 @@ class HighlightCommands(core.Cog):
         self.emoji = "\U0001f58b"
         self.bot = bot
 
-    @core.group(hybrid=True, invoke_without_command=True)
+    @core.group(hybrid=True)
     async def highlight(self, ctx: Context):
         """
         Base command for highlight.
