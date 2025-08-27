@@ -343,11 +343,13 @@ class LoggingChannelSelect(ui.ChannelSelect[SettingsView]):
     def __init__(self, container: LoggingContainer) -> None:
         self.container: LoggingContainer = container
         if container.data.logging and container.data.logging.channel_id:
-            default = discord.Object(container.data.logging.channel_id)
+            defaults = [discord.Object(container.data.logging.channel_id)]
+        else:
+            defaults = []
         super().__init__(
             channel_types=[discord.ChannelType.text],
             placeholder="Select a channel to send logs to...",
-            default_values=[default],
+            default_values=defaults,
         )
 
     async def callback(self, itn: Interaction) -> None:
@@ -552,10 +554,8 @@ class JLEditButton(ui.Button[SettingsView]):
     def __init__(self, *, join: bool = False, leave: bool = False):
         self.join: bool = join
         self.leave: bool = leave
-        if join:
-            _id = 28601
-        if leave:
-            _id = 28602
+        _id = 28601 if join else 28602
+
         super().__init__(style=discord.ButtonStyle.blurple, label="Edit", id=_id)
 
     def convert_message(self, message: str) -> str:
