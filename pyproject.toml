@@ -8,7 +8,10 @@ force_alphabetical_sort_within_sections = true
 combine_as_imports = true
 
 [tool.pyright]
-typeCheckingMode = "basic"
+typeCheckingMode = "standard"
+reportIncompatibleMethodOverride = false
+reportIncompatibleVariableOverride = false
+reportFunctionMemberAccess = false
 
 [tool.ruff]
 exclude = [".env"]
