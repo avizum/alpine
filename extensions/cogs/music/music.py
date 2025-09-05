@@ -52,20 +52,20 @@ class Queue(WQueue):
         """
         Returns the next track in the queue.
         """
-        return cast(Playable, self._queue[0] if self else None)
+        return cast(Playable | None, self.peek() if self else None)
 
     @property
     def size(self) -> int:
         """
         Returns the amount of tracks in the queue.
         """
-        return len(self._queue)
+        return len(self)
 
     def get(self) -> Playable:
         return cast(Playable, super().get())
 
     def _put_left(self, item: Playable) -> None:
-        self._check_compatability(item)
+        self._check_compatibility(item)
         self._queue.appendleft(Playable)  # type: ignore
 
     def put_left(self, item: Playable | Playlist, /, *, atomic: bool = True) -> int:

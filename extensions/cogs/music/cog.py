@@ -942,7 +942,7 @@ class Music(core.Cog):
             return await ctx.send(f"The queue is empty. Use {ctx.prefix}play to add some songs!")
 
         entries = []
-        for index, track in enumerate(player.queue._queue):
+        for index, track in enumerate(player.queue):
             track = cast(Playable, track)
             entries.append(f"`{index + 1})` {track.hyperlink} [{track.requester}]")
 

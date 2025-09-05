@@ -22,10 +22,10 @@ import asyncio
 import datetime as dt
 import logging
 import re
+from asyncio import timeout
 from datetime import datetime
 from typing import Any, Callable, ClassVar, Mapping, TYPE_CHECKING
 
-import async_timeout
 import discord
 import jishaku
 import mystbin
@@ -213,7 +213,7 @@ class Bot(commands.Bot):
 
         nodes = [wavelink.Node(**self.settings["lavalink"])]
         try:
-            async with async_timeout.timeout(15):
+            async with timeout(15):
                 await wavelink.Pool.connect(nodes=nodes, client=self)
                 _log.info("Connected to Lavalink node. ")
 
