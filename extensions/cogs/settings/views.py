@@ -177,7 +177,7 @@ class HomeContainer(SettingsContainer):
     title = ui.TextDisplay("### Server Settings")
     description = ui.TextDisplay("Select a setting to edit from the dropdown.")
     separator = ui.Separator()
-    settings_select = ui.ActionRow(*(SettingsSelect(),))
+    settings_select = ui.ActionRow(SettingsSelect())
 
 
 class PrefixAddButton(ui.Button[SettingsView]):
@@ -473,7 +473,7 @@ class LoggingContainer(SettingsContainer):
 
 
 class JLMessageModal(ui.Modal):
-    def __init__(self, container: JoinLeaveContainer, leave: bool = False):
+    def __init__(self, container: JoinLeaveContainer, join: bool = True):
         assert container.data.join_leave is not None
 
         self.container: JoinLeaveContainer = container
@@ -481,30 +481,34 @@ class JLMessageModal(ui.Modal):
         self.output: str
 
         title = "Set Join Message"
-        label = "Join message [Leave blank to disable]"
+        label = "Join Message"
         placeholder = "{member.mention} joined {server}! Now at {server.count} members!"
         default = join_leave.join_message
 
-        if leave:
+        if not join:
             title = "Set Leave Message"
-            label = "Leave message [Leave blank to disable]"
+            label = "Leave Message"
             placeholder = "Aww, {member.mention} left {server}... Now at {server.count} members."
             default = join_leave.leave_message
 
         super().__init__(title=title)
 
-        self.input = ui.TextInput(
-            style=discord.TextStyle.long,
-            label=label,
-            placeholder=placeholder,
-            default=default,
-            required=False,
+        self.label = ui.Label(
+            text=label,
+            description="Enter a message. You can leave this blank to disable this.",
+            component=ui.TextInput(
+                style=discord.TextStyle.long,
+                placeholder=placeholder,
+                default=default,
+                required=False,
+            ),
         )
 
-        self.add_item(self.input)
+        self.add_item(self.label)
 
     async def on_submit(self, itn: Interaction) -> None:
-        self.output = self.input.value
+        assert isinstance(self.label.component, ui.TextInput)
+        self.output = self.label.component.value
         await itn.response.defer()
 
 
@@ -551,9 +555,8 @@ class JLChannelSelect(ui.ChannelSelect[SettingsView]):
 
 
 class JLEditButton(ui.Button[SettingsView]):
-    def __init__(self, *, join: bool = False, leave: bool = False):
+    def __init__(self, *, join: bool = False):
         self.join: bool = join
-        self.leave: bool = leave
         _id = 28601 if join else 28602
 
         super().__init__(style=discord.ButtonStyle.blurple, label="Edit", id=_id)
@@ -579,7 +582,7 @@ class JLEditButton(ui.Button[SettingsView]):
         assert self.view.message is not None
         assert isinstance(self.view.container, JoinLeaveContainer)
 
-        modal = JLMessageModal(self.view.container, leave=self.leave)
+        modal = JLMessageModal(self.view.container, join=self.join)
         await itn.response.send_modal(modal)
         await modal.wait()
 
@@ -601,7 +604,7 @@ class JLEditButton(ui.Button[SettingsView]):
 
             await join_leave.update(join_message=join_message)
 
-        if self.leave:
+        else:
             leave_message: str | None = join_leave.leave_message
 
             if modal.output and modal.output != leave_message:
@@ -659,15 +662,13 @@ class JLTestButton(ui.Button[SettingsView]):
 class JoinLeaveContainer(SettingsContainer):
 
     title = ui.Section(
-        *(
-            "### Join and Leave Message Settings",
-            "This feature allows you to say hello or goodbye to members in your server.",
-        ),
+        "### Join and Leave Message Settings",
+        "This feature allows you to say hello or goodbye to members in your server.",
         accessory=JLToggleButton(),
     )
     separator = ui.Separator()
     join_message = ui.Section(accessory=JLEditButton(join=True))
-    leave_message = ui.Section(accessory=JLEditButton(leave=True))
+    leave_message = ui.Section(accessory=JLEditButton(join=False))
     channel = ui.TextDisplay("**Message Destination Channel**")
     channel_select = ui.ActionRow()
     large_sepatator = ui.Separator(spacing=discord.SeparatorSpacing.large)
@@ -742,45 +743,43 @@ class JoinLeaveContainer(SettingsContainer):
     @test_action.button(label="Help")
     async def help_button(self, itn: discord.Interaction, _: ui.Button):
         container = ui.Container(
-            *(
-                ui.TextDisplay(
-                    "### Join and Leave Message Help\n"
-                    "You can customize the join or leave messages however you like. "
-                    "Use the variables below to personalize your message. "
-                    "These variables also work when creating an embed using an "
-                    "[embed builder](https://message.style/app/editor). Just input the JSON code.\n"
-                    "- -# Note: When using embeds, you can only send one embed. If you input multiple embeds, "
-                    "the first embed will be saved, and the rest will be discarded."
-                ),
-                ui.TextDisplay(
-                    "**Member Variables**\n"
-                    "- `mention`: Shows a member's mention. Using this will ping a member.\n"
-                    "  - -# **Example**: {member.mention}, please introduce yourself.\n"
-                    "- `name`: Shows the member's username.\n"
-                    "  - -# **Example**: {member.name} is here.\n"
-                    "- `display_name`: Shows the member's display name.\n"
-                    "  - -# **Example**: {member.display_name} joined the server.\n"
-                    "- `nick_name` or `nick`: Shows the member's nick name or display name.\n"
-                    "  - -# **Example**: {member.name} AKA {member.nick_name} left.\n"
-                    "- `avatar` or `image` or `pfp` or `icon`: Returns a URL of the member's avatar.\n"
-                    "  - -# **Example**: Here is {member}'s  profile picture: {member.avatar}\n"
-                    "- `display_avatar` or `display_image` or `display_pfp` or `display_icon`: "
-                    "Returns a URL of the member's server avatar.\n"
-                    "  - -# **Example**: Here is {member}'s  server profile picture: {member.display_avatar}\n"
-                    "- `id`: Shows the member's user id.\n"
-                    "  - -# **Example**: A new member with ID {member.id} joined."
-                ),
-                ui.TextDisplay(
-                    "**Server Variables**\n"
-                    "Guild is an alias for server.\n"
-                    "- `name`: Shows the server's name.\n"
-                    "  - -# **Example**: {server.name} just gained a new member.\n"
-                    "- `member_count` or `count`: Shows the server's member count.\n"
-                    "  - -# **Example**: Someone left, there are now {server.member_count} people here.\n"
-                    "- `icon` or `image` or `picture`: Shows the server's icon if there is one.\n"
-                    "  - -# **Example**: {server.icon} This is an icon."
-                ),
-            )
+            ui.TextDisplay(
+                "### Join and Leave Message Help\n"
+                "You can customize the join or leave messages however you like. "
+                "Use the variables below to personalize your message. "
+                "These variables also work when creating an embed using an "
+                "[embed builder](https://message.style/app/editor). Just input the JSON code.\n"
+                "- -# Note: When using embeds, you can only send one embed. If you input multiple embeds, "
+                "the first embed will be saved, and the rest will be discarded."
+            ),
+            ui.TextDisplay(
+                "**Member Variables**\n"
+                "- `mention`: Shows a member's mention. Using this will ping a member.\n"
+                "  - -# **Example**: {member.mention}, please introduce yourself.\n"
+                "- `name`: Shows the member's username.\n"
+                "  - -# **Example**: {member.name} is here.\n"
+                "- `display_name`: Shows the member's display name.\n"
+                "  - -# **Example**: {member.display_name} joined the server.\n"
+                "- `nick_name` or `nick`: Shows the member's nick name or display name.\n"
+                "  - -# **Example**: {member.name} AKA {member.nick_name} left.\n"
+                "- `avatar` or `image` or `pfp` or `icon`: Returns a URL of the member's avatar.\n"
+                "  - -# **Example**: Here is {member}'s  profile picture: {member.avatar}\n"
+                "- `display_avatar` or `display_image` or `display_pfp` or `display_icon`: "
+                "Returns a URL of the member's server avatar.\n"
+                "  - -# **Example**: Here is {member}'s  server profile picture: {member.display_avatar}\n"
+                "- `id`: Shows the member's user id.\n"
+                "  - -# **Example**: A new member with ID {member.id} joined."
+            ),
+            ui.TextDisplay(
+                "**Server Variables**\n"
+                "Guild is an alias for server.\n"
+                "- `name`: Shows the server's name.\n"
+                "  - -# **Example**: {server.name} just gained a new member.\n"
+                "- `member_count` or `count`: Shows the server's member count.\n"
+                "  - -# **Example**: Someone left, there are now {server.member_count} people here.\n"
+                "- `icon` or `image` or `picture`: Shows the server's icon if there is one.\n"
+                "  - -# **Example**: {server.icon} This is an icon."
+            ),
         )
         view = ui.LayoutView()
         view.add_item(container)
@@ -804,10 +803,10 @@ class VerificationToggle(ui.Button[SettingsView]):
 
 class VerificationContainer(SettingsContainer):
     section = ui.Section(
-        *(
-            "### Member Verification Settings",
+        "### Member Verification Settings",
+        (
             "This feature puts new members through a verification process to prevent raids early. "
-            "This is recommended for servers that experience raids on a regular basis.",
+            "This is recommended for servers that experience raids on a regular basis."
         ),
         accessory=VerificationToggle(),
     )
@@ -1011,7 +1010,7 @@ class CommandsContainer(SettingsContainer):
     description = ui.TextDisplay("Enable or disable commands or whole channels here.")
     desc_separator = ui.Separator()
     commands = ui.Section(
-        *(ui.TextDisplay("**Disabled Commands**", id=263),),
+        ui.TextDisplay("**Disabled Commands**", id=263),
         accessory=AddDisabledCommandButton(label="Add Command", style=discord.ButtonStyle.green),
     )
     commands_select_action = ui.ActionRow()

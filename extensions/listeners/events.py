@@ -120,14 +120,11 @@ class BotLogs(core.Cog):
             if context.valid or message.author.bot or not isinstance(message.channel, discord.abc.GuildChannel):
                 return
             container = ui.Container(
-                *(
-                    ui.TextDisplay(
-                        "### Message Delete\n"
-                        f"Message from {message.author.mention} was deleted in {message.channel.mention}"
-                    ),
-                    ui.TextDisplay(f"**Deleted content**\n>>> {message.content or "*No message content*"}"),
-                    ui.TextDisplay(f"-# Deleted on {timestamp(dt.datetime.now(dt.timezone.utc))}"),
+                ui.TextDisplay(
+                    "### Message Delete\nMessage from {message.author.mention} was deleted in {message.channel.mention}"
                 ),
+                ui.TextDisplay(f"**Deleted content**\n>>> {message.content or "*No message content*"}"),
+                ui.TextDisplay(f"-# Deleted on {timestamp(dt.datetime.now(dt.timezone.utc))}"),
                 accent_color=discord.Color.red(),
             )
             view = ui.LayoutView()
@@ -154,7 +151,7 @@ class BotLogs(core.Cog):
             list_of_messages.append(f"[{timestamp(_message.created_at):t}] {_message.author}: {content}")
         if not list_of_messages:
             return
-        container = ui.Container(*(ui.TextDisplay("### Bulk Message Delete"),), accent_color=discord.Color.red())
+        container = ui.Container(ui.TextDisplay("### Bulk Message Delete"), accent_color=discord.Color.red())
         message_log = "\n\n----------\n\n".join(list_of_messages)
 
         view = ui.LayoutView()
@@ -211,15 +208,13 @@ class BotLogs(core.Cog):
         new_content = f"{after.content[:1021]}..." if len(after.content) > 1024 else after.content
 
         container = ui.Container(
-            *(
-                ui.TextDisplay(
-                    f"### Message Edited\nA [message]({before.jump_url}) sent "
-                    f"by {before.author.mention} in {before.channel.mention} was edited."
-                ),
-                ui.TextDisplay(f"**Before**\n>>> {old_content}"),
-                ui.TextDisplay(f"**After**\n>>> {new_content}"),
-                ui.TextDisplay(f"-# Edited on {timestamp(dt.datetime.now(dt.timezone.utc))}"),
+            ui.TextDisplay(
+                f"### Message Edited\nA [message]({before.jump_url}) sent "
+                f"by {before.author.mention} in {before.channel.mention} was edited."
             ),
+            ui.TextDisplay(f"**Before**\n>>> {old_content}"),
+            ui.TextDisplay(f"**After**\n>>> {new_content}"),
+            ui.TextDisplay(f"-# Edited on {timestamp(dt.datetime.now(dt.timezone.utc))}"),
             accent_color=discord.Color.gold(),
         )
 
@@ -245,17 +240,13 @@ class BotLogs(core.Cog):
 
         # fmt: off
         container = ui.Container(
-            *(
-                ui.Section(
-                    *(
-                        "### Member Joined",
-                        f"**Name:** {name}\n"
-                        f"**ID:** {member.id}\n"
-                        f"**Created:** {timestamp(member.created_at)}\n",
-                        f"**Joined:** {timestamp(member.joined_at or discord.utils.utcnow())} ({pos})",
-                    ),
-                    accessory=ui.Thumbnail(member.display_avatar.url),
-                ),
+            ui.Section(
+                "### Member Joined",
+                f"**Name:** {name}\n"
+                f"**ID:** {member.id}\n"
+                f"**Created:** {timestamp(member.created_at)}\n",
+                f"**Joined:** {timestamp(member.joined_at or discord.utils.utcnow())} ({pos})",
+                accessory=ui.Thumbnail(member.display_avatar.url),
             ),
             accent_color=discord.Color.brand_green(),
         )
@@ -276,16 +267,12 @@ class BotLogs(core.Cog):
         name = f"{member.display_name}{f" ({member.name})" if member.display_name != member.name else ""}"
         # fmt: off
         container = ui.Container(
-            *(
-                ui.Section(
-                    *(
-                        "### Member Left",
-                        f"**Name:** {name}\n"
-                        f"**ID:** {member.id}\n"
-                        f"**Created:** {timestamp(member.created_at)}\n",
-                    ),
-                    accessory=ui.Thumbnail(member.display_avatar.url),
-                ),
+            ui.Section(
+                "### Member Left",
+                f"**Name:** {name}\n"
+                f"**ID:** {member.id}\n"
+                f"**Created:** {timestamp(member.created_at)}\n",
+                accessory=ui.Thumbnail(member.display_avatar.url),
             ),
             accent_color=discord.Color.brand_red(),
         )
@@ -376,10 +363,8 @@ class BotLogs(core.Cog):
 
         display_content = "\n".join(f"{count}. {action}" for count, action in enumerate(actions, 1))
         container = ui.Container(
-            *(
-                ui.TextDisplay(f"[**{timestamp(dt.datetime.now(dt.timezone.utc))}**] {after.mention} was edited:"),
-                ui.TextDisplay(display_content),
-            ),
+            ui.TextDisplay(f"[**{timestamp(dt.datetime.now(dt.timezone.utc))}**] {after.mention} was edited:"),
+            ui.TextDisplay(display_content),
             accent_color=discord.Color.gold(),
         )
         view = ui.LayoutView()
