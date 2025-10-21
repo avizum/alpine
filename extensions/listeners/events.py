@@ -121,7 +121,7 @@ class BotLogs(core.Cog):
                 return
             container = ui.Container(
                 ui.TextDisplay(
-                    "### Message Delete\nMessage from {message.author.mention} was deleted in {message.channel.mention}"
+                    f"### Message Delete\nMessage from {message.author.mention} was deleted in {message.channel.mention}"
                 ),
                 ui.TextDisplay(f"**Deleted content**\n>>> {message.content or "*No message content*"}"),
                 ui.TextDisplay(f"-# Deleted on {timestamp(dt.datetime.now(dt.timezone.utc))}"),
