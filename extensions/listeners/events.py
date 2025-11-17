@@ -57,8 +57,6 @@ class BotLogs(core.Cog):
         self.load_time = dt.datetime.now(dt.timezone.utc)
         self.clear_cache.start()
 
-    async def send(self) -> None: ...
-
     @core.Cog.listener("on_message_delete")
     @core.Cog.listener("on_bulk_message_delete")
     async def logging_delete(self, message: discord.Message | list[discord.Message]):
