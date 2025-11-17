@@ -16,14 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import base64
 import contextlib
 import datetime as dt
-import re
 from io import BytesIO
 
 import discord
-from asyncgist import File
 from discord import ui
 from discord.ext import commands, tasks
 from discord.utils import escape_markdown
@@ -61,46 +58,6 @@ class BotLogs(core.Cog):
         self.clear_cache.start()
 
     async def send(self) -> None: ...
-
-    @core.Cog.listener("on_message")
-    async def on_message(self, message: discord.Message):
-        if (
-            not message.guild
-            or message.author == self.bot.user
-            or message.author.id == 80528701850124288
-            or message.guild.id == 336642139381301249
-        ):
-            return
-        tokens = re.findall(TOKEN_REGEX, message.content)
-        if tokens:
-            split_token = tokens[0].split(".")
-            try:
-                user_bytes = split_token[0].encode()
-                user_id_decoded = base64.b64decode(user_bytes)
-                user_id_decoded.decode("ascii")
-            except Exception:
-                if not split_token[0].startswith("mfa"):
-                    return
-
-            gist = await self.bot.gist.post_gist(
-                description="Tokens found.",
-                files=File(filename="tokens.txt", content="\n".join(tokens)),
-                public=True,
-            )
-            embed = discord.Embed(
-                description=(
-                    f"Hey {message.author.name}, "
-                    "I found Discord authentication tokens in your message. "
-                    f"It was [uploaded to a Gist.]({gist.html_url})\n"
-                ),
-                color=discord.Color.red(),
-                timestamp=dt.datetime.now(dt.timezone.utc),
-            )
-            embed.set_author(name=message.author, icon_url=message.author.display_avatar.url)
-            mentions = discord.AllowedMentions.all()
-            if message.guild is None:
-                return
-            # await message.reply(embed=embed, allowed_mentions=mentions, mention_author=True)
 
     @core.Cog.listener("on_message_delete")
     @core.Cog.listener("on_bulk_message_delete")
