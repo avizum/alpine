@@ -111,6 +111,9 @@ class SettingsView(LView):
         super().__init__(member=ctx.author, timeout=None)
         self.add_item(self.container)
 
+    async def interaction_check(self, itn: discord.Interaction) -> bool:
+        return itn.user.id == self.ctx.author.id
+
     async def start(self, /, *, container: SettingsContainer | int | None = None):
         self.cog._settings[self.ctx.guild.id] = self
         self._prepare_container(container or self._containers[0])
