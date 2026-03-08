@@ -21,11 +21,11 @@ from __future__ import annotations
 import datetime as dt
 import json
 import random
+import zoneinfo
 from typing import TYPE_CHECKING
 
 import asyncgist
 import discord
-import pytz
 from discord.ext import commands, menus
 from doc_search import AsyncScraper
 from jishaku.codeblocks import codeblock_converter
@@ -213,7 +213,7 @@ class Meta(core.Cog):
                             continue
                         flags.append(f"{new} | {flag_name.replace('_', ' ').title()}")
                 if ctx.guild.owner and ctx.guild.owner == member:
-                    flags.append(f"{Emojis.BADGES["guild_owner"]} | Server Owner")
+                    flags.append(f"{Emojis.BADGES['guild_owner']} | Server Owner")
                 ie.add_field(name=f"Badges [{len(flags)}]", value=",\n".join(flags))
             if member.status:
                 replace = ("dnd", "do not disturb")
@@ -331,7 +331,7 @@ class Meta(core.Cog):
         member = member or ctx.author
         user = ctx.database.get_user(ctx.author.id)
         if user and user.timezone:
-            timezone = pytz.timezone(user.timezone)
+            timezone = zoneinfo.ZoneInfo(user.timezone)
             time = dt.datetime.now(timezone)
             format_time = time.strftime("%A, %B %d at %I:%M %p")
             time_embed = discord.Embed(description=format_time)
@@ -355,8 +355,8 @@ class Meta(core.Cog):
             await user_settings.update(timezone=None)
             return await ctx.send("Deleted your timezone.")
         try:
-            timezones = pytz.timezone(timezone)
-        except KeyError as e:
+            timezones = zoneinfo.ZoneInfo(timezone)
+        except zoneinfo.ZoneInfoNotFoundError as e:
             raise TimeZoneError(timezone) from e
         await user_settings.update(timezone=timezone)
         return await ctx.send(f"Set timezone to {timezones}")
@@ -475,7 +475,7 @@ class Meta(core.Cog):
             gist = await self.bot.gist.fetch_gist(gist_id)
         except asyncgist.NotFound:
             return await ctx.send("Gist was not found.")
-        from core.context import AutoPageSource
+        from core.context import AutoPageSource  # noqa: PLC0415
 
         pag = commands.Paginator()
         for i in gist.files[0].content.split("\n"):  # type: ignore

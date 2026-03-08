@@ -21,7 +21,7 @@ from __future__ import annotations
 import datetime
 import re
 import sys
-from typing import Any, Generic, overload, Sequence, TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, Sequence, TypeVar, overload
 
 import discord
 from asyncgist import File as AGFile
@@ -64,6 +64,7 @@ class TrashView(AView):
         for button in self.children:
             if isinstance(button, discord.ui.Button):
                 button.disabled = True
+
         try:
             await self.message.edit(view=None)
         except discord.NotFound:
