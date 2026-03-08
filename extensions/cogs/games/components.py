@@ -127,7 +127,7 @@ class AkinatorGameView(View):
                 nxt = await self.client.answer(answer)
             except CanNotGoBack:
                 return await interaction.followup.send("You can't go back. Sorry.", ephemeral=True)
-            self.embed.description = f"{self.client.step+1}. {nxt}"
+            self.embed.description = f"{self.client.step + 1}. {nxt}"
             await self.message.edit(embed=self.embed)
             return None
 
@@ -142,7 +142,7 @@ class AkinatorGameView(View):
 
         if new_view.continue_game:
             nxt = await self.client.answer(Answer.NO)
-            self.embed.description = f"{self.client.step+1}. {nxt}"
+            self.embed.description = f"{self.client.step + 1}. {nxt}"
             self.embed.set_image(url=None)
             await self.message.edit(view=self, embed=self.embed)
             return None

@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import datetime
-from typing import Any, Callable, Concatenate, Generic, Literal, overload, ParamSpec, TYPE_CHECKING, TypeVar, Unpack
+from typing import TYPE_CHECKING, Any, Callable, Concatenate, Generic, Literal, ParamSpec, TypeVar, Unpack, overload
 
 import discord
 from discord import app_commands
@@ -188,7 +188,10 @@ class GroupCog(commands.GroupCog):
 
 @overload
 def command(
-    name: str = ..., *, hybrid: Literal[True], **kwargs: Unpack[_HybridCommandDecoratorKwargs]  # type: ignore
+    name: str = ...,
+    *,
+    hybrid: Literal[True],
+    **kwargs: Unpack[_HybridCommandDecoratorKwargs],  # type: ignore
 ) -> Callable[..., HybridCommand]: ...
 
 
@@ -228,7 +231,10 @@ def command(
 
 @overload
 def group(
-    name: str = ..., *, hybrid: Literal[True], **kwargs: Unpack[_HybridGroupDecoratorKwargs]  # type: ignore
+    name: str = ...,
+    *,
+    hybrid: Literal[True],
+    **kwargs: Unpack[_HybridGroupDecoratorKwargs],  # type: ignore
 ) -> Callable[..., HybridGroup]: ...
 
 

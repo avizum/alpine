@@ -27,7 +27,7 @@ from discord.ext import commands
 
 import core
 import utils
-from utils import DefaultReason, EMOJI_REGEX, format_list, ModReason, timestamp
+from utils import EMOJI_REGEX, DefaultReason, ModReason, format_list, timestamp
 
 from .converters import BanFlag, FindBan, ModActionFlag, PurgeAmount, TargetMember, TimeConverter
 
@@ -110,7 +110,7 @@ class Moderation(core.Cog):
                     fail += 1
             kicked_fmt = format_list(kicked)
             return await conf.message.edit(
-                content=f"Sucessfully kicked {kicked_fmt} ({len(targets)-fail}/{len(targets)}) members."
+                content=f"Sucessfully kicked {kicked_fmt} ({len(targets) - fail}/{len(targets)}) members."
             )
         return await conf.message.edit(content="Cancelled.")
 
@@ -203,7 +203,7 @@ class Moderation(core.Cog):
             cont = await ctx.confirm(
                 message=(
                     "The following members can not be banned:\n```"
-                    f"{"\n".join(f"{mem}: {rsn}" for mem, rsn in conversion_errors.items())}```"
+                    f"{'\n'.join(f'{mem}: {rsn}' for mem, rsn in conversion_errors.items())}```"
                 ),
                 confirm_messsage="Would you like to continue?",
                 delete_message_after=True,

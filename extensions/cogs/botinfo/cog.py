@@ -108,7 +108,7 @@ class BotInfo(core.Cog, name="Bot Info"):
         delta_uptime = dt.datetime.now(dt.timezone.utc) - self.bot.launch_time
         embed.add_field(
             name="Info",
-            value=f"Up for {humanize.precisedelta(delta_uptime)},\n`{round(self.bot.latency*1000)}ms` latency",
+            value=f"Up for {humanize.precisedelta(delta_uptime)},\n`{round(self.bot.latency * 1000)}ms` latency",
         )
         embed.add_field(
             name="Stats",
@@ -414,10 +414,7 @@ class BotInfo(core.Cog, name="Bot Info"):
         if not command:
             if self.bot.user.id != 756257170521063444:
                 source_embed.description = (
-                    "This bot is an instance of Alpine.\n"
-                    "Click below for the source."
-                    "Made by avizum\n"
-                    "Follow the license"
+                    "This bot is an instance of Alpine.\nClick below for the source.Made by avizum\nFollow the license."
                 )
             else:
                 source_embed.description = (

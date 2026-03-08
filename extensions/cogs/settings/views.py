@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import json
-from typing import ClassVar, Final, TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar, Final
 
 import discord
 from discord import ChannelType, SelectOption, ui
@@ -647,7 +647,7 @@ class JLToggleButton(ui.Button[SettingsView]):
 class JLTestButton(ui.Button[SettingsView]):
     def __init__(self, /, *, join: bool) -> None:
         self.join: bool = join
-        super().__init__(label=f"Test {"Join" if join else "Leave"} Message")
+        super().__init__(label=f"Test {'Join' if join else 'Leave'} Message")
 
     async def callback(self, itn: Interaction) -> None:
         assert self.view is not None
@@ -663,7 +663,6 @@ class JLTestButton(ui.Button[SettingsView]):
 
 
 class JoinLeaveContainer(SettingsContainer):
-
     title = ui.Section(
         "### Join and Leave Message Settings",
         "This feature allows you to say hello or goodbye to members in your server.",
@@ -1042,7 +1041,7 @@ class CommandsContainer(SettingsContainer):
             len(self.view.ctx.guild.channels) - 1
         )  # Need at least one channel for the bot to work in.
 
-        fmt_disabled = f"> {", ".join(disabled_commands)}" if disabled_commands else "There are no commands disabled."
+        fmt_disabled = f"> {', '.join(disabled_commands)}" if disabled_commands else "There are no commands disabled."
         title = self.commands.find_item(263)
         assert title is not None
         self.commands.clear_items()

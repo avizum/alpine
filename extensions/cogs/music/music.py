@@ -19,14 +19,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import asyncio
-from typing import Any, cast, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import discord
 import wavelink
 from discord.ext import menus
 from wavelink import Playable as WPlayable, Playlist as WPlaylist, Queue as WQueue
 
-from utils import format_seconds, View
+from utils import View, format_seconds
 
 if TYPE_CHECKING:
     from core import Context
@@ -141,9 +141,7 @@ class Player(wavelink.Player):
         self.allow_duplicates: bool = allow_duplicates
         self.announce: bool = announce
         self.queue: Queue = Queue()
-        self.waiting: bool = False
         self.pause_votes: set[discord.Member] = set()
-        self.resume_votes: set[discord.Member] = set()
         self.skip_votes: set[discord.Member] = set()
         self.shuffle_votes: set[discord.Member] = set()
         self.stop_votes: set[discord.Member] = set()
@@ -167,7 +165,6 @@ class Player(wavelink.Player):
 
     async def clear_votes(self) -> None:
         self.pause_votes.clear()
-        self.resume_votes.clear()
         self.skip_votes.clear()
         self.shuffle_votes.clear()
         self.stop_votes.clear()
@@ -183,9 +180,9 @@ class Player(wavelink.Player):
         embed = discord.Embed(title="Now Playing")
         embed.color = await self.context.fetch_color()
 
-        time = f"Length: {format_seconds(current.length/1000)}"
+        time = f"Length: {format_seconds(current.length / 1000)}"
         if position:
-            time = f"Position: {format_seconds(position/1000)}/{format_seconds(current.length/1000)}"
+            time = f"Position: {format_seconds(position / 1000)}/{format_seconds(current.length / 1000)}"
 
         next_track = self.queue.up_next if self.queue.up_next else None
 
@@ -199,7 +196,7 @@ class Player(wavelink.Player):
         if next_track:
             next_track_text = (
                 f"{next_track.hyperlink}\n"
-                f"> Length: {format_seconds(next_track.length/1000)}\n"
+                f"> Length: {format_seconds(next_track.length / 1000)}\n"
                 f"> Added by: {next_track.requester}\n"
             )
         else:
@@ -254,7 +251,7 @@ class SearchView(View):
 
 class SearchSelect(discord.ui.Select[SearchView]):
     def __init__(self, *, options: list[Playable]):
-        select_options = [discord.SelectOption(label=f"{number+1}) {track.title}") for number, track in enumerate(options)]
+        select_options = [discord.SelectOption(label=f"{number + 1}) {track.title}") for number, track in enumerate(options)]
         super().__init__(
             placeholder="Select the songs you want to play",
             options=select_options,
@@ -266,5 +263,7 @@ class SearchSelect(discord.ui.Select[SearchView]):
     async def callback(self, interaction: discord.Interaction):
         assert self.view is not None
         await interaction.response.defer()
+        self.view.option = self.values
+        self.view.stop()
         self.view.option = self.values
         self.view.stop()

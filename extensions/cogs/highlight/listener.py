@@ -74,18 +74,14 @@ class HighlightListener(core.Cog):
             joined_len = len("\n".join(contents))
 
             if (joined_len + len(fmt_content)) <= 1024:
-
                 contents.append(fmt_content)
             elif len(fmt_content) >= 1024:
-
                 if (joined_len + len(fmt_content)) >= 1024:
-
                     messages.append("\n".join(contents))
                     contents.clear()
 
                 contents.append(f"{fmt_content[:1021]}...")
             else:
-
                 messages.append("\n".join(contents))
                 contents.clear()
                 contents.append(fmt_content)

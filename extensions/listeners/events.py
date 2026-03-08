@@ -78,7 +78,7 @@ class BotLogs(core.Cog):
                 ui.TextDisplay(
                     f"### Message Delete\nMessage from {message.author.mention} was deleted in {message.channel.mention}"
                 ),
-                ui.TextDisplay(f"**Deleted content**\n>>> {message.content or "*No message content*"}"),
+                ui.TextDisplay(f"**Deleted content**\n>>> {message.content or '*No message content*'}"),
                 ui.TextDisplay(f"-# Deleted on {timestamp(dt.datetime.now(dt.timezone.utc))}"),
                 accent_color=discord.Color.red(),
             )
@@ -122,8 +122,7 @@ class BotLogs(core.Cog):
         container.add_item(ui.TextDisplay("\n".join(list_of_messages)))
         container.add_item(
             ui.TextDisplay(
-                f"-# {len(messages)} messages deleted\n"
-                f"-# Messages deleted on {timestamp(dt.datetime.now(dt.timezone.utc))}"
+                f"-# {len(messages)} messages deleted\n-# Messages deleted on {timestamp(dt.datetime.now(dt.timezone.utc))}"
             )
         )
         view.add_item(container)
@@ -189,7 +188,7 @@ class BotLogs(core.Cog):
         if not logging or not logging.enabled or not logging.webhook or not logging.member_join:
             return
 
-        name = f"{member.display_name}{f" ({member.name})" if member.display_name != member.name else ""}"
+        name = f"{member.display_name}{f' ({member.name})' if member.display_name != member.name else ''}"
         sort = sorted(member.guild.members, key=lambda m: getattr(m, "joined_at"))
         pos = f"{ordinal(sort.index(member) + 1)} to join"
 
@@ -219,7 +218,7 @@ class BotLogs(core.Cog):
         if not logging or not logging.enabled or not logging.webhook or not logging.member_join:
             return
 
-        name = f"{member.display_name}{f" ({member.name})" if member.display_name != member.name else ""}"
+        name = f"{member.display_name}{f' ({member.name})' if member.display_name != member.name else ''}"
         # fmt: off
         container = ui.Container(
             ui.Section(

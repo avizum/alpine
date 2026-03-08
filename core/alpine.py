@@ -24,7 +24,7 @@ import logging
 import re
 from asyncio import timeout
 from datetime import datetime
-from typing import Any, Callable, ClassVar, Mapping, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Mapping
 
 import discord
 import jishaku
@@ -43,7 +43,6 @@ from topgg.webhook import WebhookManager
 from utils import Database
 
 if TYPE_CHECKING:
-
     from core import Cog, Context
     from extensions.listeners.errorhandler import ErrorHandler
 

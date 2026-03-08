@@ -21,7 +21,7 @@ from __future__ import annotations
 import datetime
 import itertools
 from difflib import get_close_matches
-from typing import Any, Mapping, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Mapping
 
 import discord
 import humanize
@@ -80,7 +80,7 @@ class AlpineHelp(commands.HelpCommand):
                     fmt_description = "No description provided." if flag.description is utils.MISSING else flag.description
                     fmt_default = f" (Default: {flag.default})" if flag.default else ""
                     chained = itertools.chain([fmt_name], fmt_aliases)
-                    flag_params.append(f"`{" | ".join(chained)}` {fmt_description}{fmt_default}")
+                    flag_params.append(f"`{' | '.join(chained)}` {fmt_description}{fmt_default}")
 
         return flag_params or None
 

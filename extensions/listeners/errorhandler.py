@@ -235,7 +235,7 @@ class ErrorHandler(core.Cog):
         if isinstance(error, BotMissingPermissions):
             missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_permissions]
 
-            fmt = f'{", ".join(missing[:-1])}, and {missing[-1]}' if len(missing) > 2 else " and ".join(missing)
+            fmt = f"{', '.join(missing[:-1])}, and {missing[-1]}" if len(missing) > 2 else " and ".join(missing)
 
             bnp = Embed(
                 title="Missing Permissions",
@@ -249,7 +249,7 @@ class ErrorHandler(core.Cog):
         elif isinstance(error, MissingPermissions):
             missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_permissions]
 
-            fmt = f'{", ".join(missing[:-1])}, and `{missing[-1]}`' if len(missing) > 2 else " and ".join(missing)
+            fmt = f"{', '.join(missing[:-1])}, and `{missing[-1]}`" if len(missing) > 2 else " and ".join(missing)
 
             np = Embed(
                 title="Missing Permissions",

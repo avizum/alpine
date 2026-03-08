@@ -21,7 +21,7 @@ from __future__ import annotations
 import asyncio
 import datetime as dt
 import math
-from typing import cast, TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import discord
 import wavelink
@@ -29,7 +29,7 @@ from discord.ext import commands
 from wavelink import Playable as WPlayable, Playlist as WPlaylist
 
 import core
-from utils import format_seconds, Paginator
+from utils import Paginator, format_seconds
 
 from .exceptions import BotNotInVoice, IncorrectChannelError, NotInVoice
 from .music import PaginatorSource, Playable, Player
@@ -469,16 +469,16 @@ class Music(core.Cog):
 
         if self.is_privileged(ctx):
             await ctx.send(f":arrow_forward: {ctx.author.display_name} has resumed the player.")
-            player.resume_votes.clear()
+            player.pause_votes.clear()
 
             return await player.pause(False)
 
         required = self.required(ctx)
-        player.resume_votes.add(ctx.author)
+        player.pause_votes.add(ctx.author)
 
-        if len(player.resume_votes) >= required:
+        if len(player.pause_votes) >= required:
             await ctx.send(":arrow_forward: Resuming because vote to resume passed.")
-            player.resume_votes.clear()
+            player.pause_votes.clear()
             await player.pause(False)
             return None
         await ctx.send(f"Voted to resume the player. ({len(player.skip_votes)}/{required})")
@@ -812,7 +812,7 @@ class Music(core.Cog):
         depth /= 100
         player.filters.vibrato.set(frequency=frequency, depth=depth)
         await player.set_filters(player.filters, seek=True)
-        return await ctx.send(f"Set the vibrato filter to {frequency:,} frequency and {depth*100}% depth.")
+        return await ctx.send(f"Set the vibrato filter to {frequency:,} frequency and {depth * 100}% depth.")
 
     @filter_base.command(name="rotation")
     @in_voice()

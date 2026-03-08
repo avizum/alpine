@@ -31,14 +31,14 @@ import traceback
 from difflib import get_close_matches
 from importlib.metadata import distribution, packages_distributions
 from types import TracebackType
-from typing import Any, Callable, Deque, Generator, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Deque, Generator
 
 import discord
 import psutil
 import toml
 from asyncpg import Record
 from discord.ext import commands, menus
-from jishaku import exception_handling, Feature
+from jishaku import Feature, exception_handling
 from jishaku.codeblocks import Codeblock, codeblock_converter
 from jishaku.cog import OPTIONAL_FEATURES, STANDARD_FEATURES
 from jishaku.exception_handling import ReplResponseReactor
@@ -49,7 +49,7 @@ from jishaku.paginators import PaginatorInterface
 from jishaku.repl import AsyncCodeExecutor
 
 import core
-from utils import DefaultReason, Emojis, ModReason, Paginator, PaginatorEmbed, timestamp, View
+from utils import DefaultReason, Emojis, ModReason, Paginator, PaginatorEmbed, View, timestamp
 
 if TYPE_CHECKING:
     from jishaku.features.baseclass import CommandTask
@@ -70,7 +70,7 @@ def natural_size(size_in_bytes: int) -> str:
 
     power = int(math.log(size_in_bytes, 1024))
 
-    return f"{size_in_bytes / (1024 ** power):.2f} {units[power]}"
+    return f"{size_in_bytes / (1024**power):.2f} {units[power]}"
 
 
 async def _send_traceback(
@@ -284,8 +284,9 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
             dist_version = f"unknown `{discord.__version__}`"
 
         summary = [
-            f"Jishaku v{package_version('jishaku')}, {dist_version}, "
-            f"`Python {sys.version}` on `{sys.platform}`".replace("\n", ""),
+            f"Jishaku v{package_version('jishaku')}, {dist_version}, `Python {sys.version}` on `{sys.platform}`".replace(
+                "\n", ""
+            ),
             f"Module was loaded <t:{self.load_time.timestamp():.0f}:R>, "
             f"cog was loaded <t:{self.start_time.timestamp():.0f}:R>.",
             "",
@@ -317,8 +318,7 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
                 summary.append("")  # blank line
         except psutil.AccessDenied:
             summary.append(
-                "psutil is installed, but this process does not have high enough access rights "
-                "to query process information."
+                "psutil is installed, but this process does not have high enough access rights to query process information."
             )
             summary.append("")  # blank line
 
@@ -573,7 +573,8 @@ class Owner(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         Shortcut for `jsk git sh`.
         """
         return await ctx.invoke(
-            self.jsk_shell, argument=Codeblock(argument.language, "git " + argument.content)  # type: ignore
+            self.jsk_shell,
+            argument=Codeblock(argument.language, "git " + argument.content),  # type: ignore
         )
 
     @Feature.Command(parent="jsk_git", name="sync")

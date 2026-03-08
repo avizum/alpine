@@ -155,7 +155,7 @@ class Games(core.Cog):
         akiclient = Akinator(language=flags.language, theme=flags.theme, child_mode=flags.child)
         async with ctx.typing():
             game = await akiclient.start()
-            embed = discord.Embed(title="Akinator", description=f"{akiclient.step+1}. {game}")
+            embed = discord.Embed(title="Akinator", description=f"{akiclient.step + 1}. {game}")
 
         if message is not None:
             await message.delete()
@@ -215,7 +215,7 @@ class Games(core.Cog):
                     embed_10s.description = "Wait 10 seconds to get the cookie."
                     return await react_message.edit(embed=embed_10s)
                 embed_10s.description = (
-                    f"You got the cookie in {final:.2f} seconds with {(final-10)*1000:.2f}ms reaction time\n"
+                    f"You got the cookie in {final:.2f} seconds with {(final - 10) * 1000:.2f}ms reaction time\n"
                 )
                 if final < 9.99:
                     embed_10s.description = f"You got the cookie in {final:.2f} seconds"
