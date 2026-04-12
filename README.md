@@ -49,4 +49,4 @@ Set your PostgreSQL database (Will add more instructions soon)
 Run main file.
 
 
-Copyright (C) 2021 - 2025 avizum
+Copyright (C) 2021-present  avizum
