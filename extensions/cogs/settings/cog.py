@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
+import datetime
 from typing import TYPE_CHECKING
 
 import discord
@@ -40,8 +41,20 @@ class Settings(core.GroupCog, group_name="settings"):
         super().__init__(bot)
 
     async def cog_check(self, ctx: Context) -> bool:
-        if self._settings.get(ctx.guild.id):
+        delta = datetime.timedelta(hours=1)
+        settings_view = self._settings.get(ctx.guild.id)
+
+        if settings_view and (
+            datetime.datetime.now(tz=datetime.timezone.utc) < (settings_view.ctx.message.created_at + delta)
+        ):
             raise commands.MaxConcurrencyReached(1, commands.BucketType.guild)
+        if settings_view:
+            settings_view.stop()
+            if settings_view.message:
+                try:
+                    await settings_view.message.delete()
+                except discord.HTTPException:
+                    pass
         return True
 
     async def cog_command_error(self, ctx: Context, error: Exception):
