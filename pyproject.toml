@@ -3,7 +3,7 @@ name = "alpine"
 version = "1.0"
 description = "Another Discord bot."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
     "aiogtts>=1.1.1",
     "aiohttp>=3.13.3",
