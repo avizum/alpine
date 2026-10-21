@@ -11,6 +11,7 @@ dependencies = [
     "asyncdagpi>=4.1.5",
     "asyncgist",
     "asyncpg>=0.30.0",
+    "certifi>=2026.10.19",
     "discord-ext-menus",
     "discord-py>=2.7.1",
     "doc-search>=1.0.7",
