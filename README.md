@@ -4,49 +4,49 @@
 
 [![Discord Bots](https://top.gg/api/widget/756257170521063444.svg)](https://top.gg/bot/756257170521063444)
 
+[Project Page](https://avizum.dev/projects/alpine)
 
-A bot written in Python by [avizum](https://discord.com/users/750135653638865017)
+A bot written in Python by [avizum (Discord)](https://discord.com/users/750135653638865017)
 
 ### Bot Invite
-Invite Alpine [here](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)
+You can add Alpine to your server with [this link](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647). Thanks!
 
-
-#### Commands to get you started
-|           Command          |            Description            |
-|:--------------------------:|:---------------------------------:|
-| `a.help [command\|module]` |      Shows the bot help menu      |
-|   `a.settings`             |    Manages Alpine's settings      |
-|          `a.about`         |    Shows the bot's information    |
-
-
-#### Help Command
-In the help command, you can see all the commands. If you need help reading the command signature, here they are.
-
-|    Signature   |       Meaning      |
-|:--------------:|:------------------:|
-|  \<argument\>  |  required argument |
-|   [argument]   | optional arguments |
-| [arguments...] | multiple arguments |
 
 ## Running the bot
-It is not recommended to run your own instance. Use the one [here.](https://discord.com/oauth2/authorize?client_id=756257170521063444&scope=bot&permissions=2147483647)
+I request that you do not run your own instance of Alpine. Please use the one that I run.
+You can add Alpine to your server with the link above.
 
-If you don't care, Here are instructions on how to run your own version of Alpine.
+If for some reason, you still want to run your own instance, here are some instructions:
 
-1. Have Python 3.10 installed
+### Prerequisites
+- This project uses [uv](https://docs.astral.sh/uv/#installation) for dependency management. Install uv first.
+- Alpine is deployed on Ubuntu, for best results, use a Linux-based distro
+- [Lavalink](https://lavalink.dev/) is used for the music system. If you want music to work, install it first.
+- Install [PostgreSQL](https://www.postgresql.org/).
 
-Python has to be installed. This is a Python bot.
+1. Clone the Repository
+`git` clone the repository:
+```sh
+git clone https://github.com/avizum/alpine
+```
 
-2. Install requirements
+2. Install Project Dependencies
+After cloning, install the dependencies with `uv`
+```sh
+uv sync
+```
 
-Run `pip install -U -r requirements.txt`
+3. Configure the Bot
+- Create a `config.toml` and place all your tokens in there. For an example, check `config_example.toml`.
+- In `core/alpine.py`:
+    - Set the `OWNER_IDS` variable to your Discord user ID(s)
+    - Set the `PUBLIC_BOT_ID` to your Bot's (App) user ID.
+- Configure the PostgreSQL databse
 
-3. Bot Configuration
+4. Run the Bot
+To run the bot, run
+```sh
+uv run main.py
+```
 
-Put your tokens in a `config.toml` file. Check `config_example.toml` for an example.
-In `core/alpine.py`, change `OWNER_IDS` to your Discord IDs and change `PUBLIC_BOT_ID` to your bot's ID.
-Set your PostgreSQL database (Will add more instructions soon)
-Run main file.
-
-
-Copyright (C) 2021-present  avizum
+<sup>Copyright (C) 2021-present  avizum</sup>
