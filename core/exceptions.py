@@ -23,6 +23,7 @@ __all__ = (
     "CommandDisabledChannel",
     "CommandDisabledGuild",
     "Maintenance",
+    "NotAcceptedTOS",
     "NotGuildOwner",
 )
 
@@ -36,6 +37,10 @@ class NotGuildOwner(commands.CheckFailure):
 class Blacklisted(commands.CheckFailure):
     def __init__(self, reason: str) -> None:
         self.reason: str = reason
+
+
+class NotAcceptedTOS(commands.CheckFailure):
+    pass
 
 
 class Maintenance(commands.CheckFailure):

@@ -41,46 +41,6 @@ class Setup(core.Cog):
         self.request_wh = discord.Webhook.from_url(self.webhooks["request_log"], session=self.bot.session)
 
     @core.Cog.listener()
-    async def on_message(self, message: discord.Message):
-        ctx = await self.bot.get_context(message)
-        if await self.bot.is_owner(ctx.author) and ctx.valid:
-            return
-        if message.author.bot:
-            return
-        if isinstance(message.channel, discord.DMChannel):
-            user_data = await ctx.database.get_or_fetch_user(ctx.author.id)
-            if not user_data.dmed:
-                await message.channel.send(
-                    "Hello. Please note that messages sent through DM are logged, "
-                    "and can be used as a way to send a message to the developers."
-                )
-                await user_data.update(dmed=True)
-            embed = discord.Embed(title=f"DM from {message.author}", description=message.content)
-            embed.set_footer(text=message.author.id)
-            ts = message.created_at.timestamp()
-            content_bucket = self.content_cd.update_rate_limit(message, ts)
-            user_bucket = self.user_cd.update_rate_limit(message, ts)
-            if content_bucket or user_bucket:
-                return
-            await self.request_wh.send(embed=embed)
-        try:
-            if message.channel.id == 945187311509962782:
-                resolved = None
-                if ctx.reference is not None:
-                    resolved = ctx.reference.embeds[0]
-                if resolved and resolved.footer.text and resolved.footer.text.isdigit():
-                    user = self.bot.get_user(int(resolved.footer.text))
-                    if user:
-                        send_embed = discord.Embed(timestamp=datetime.datetime.now(datetime.timezone.utc))
-                        send_embed.add_field(name=f"From {message.author}:", value=message.content, inline=False)
-                        send_embed.add_field(name="You said:", value=resolved.description, inline=False)
-                        send_embed.set_author(name=str(message.author), icon_url=message.author.display_avatar.url)
-                        send_embed.set_footer(text="Alpine Development", icon_url=self.bot.user.display_avatar.url)
-                        await user.send(embed=send_embed)
-        except AttributeError:
-            return
-
-    @core.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
         if self.bot.user.id != 756257170521063444:
             return
@@ -111,6 +71,12 @@ class Setup(core.Cog):
             name="a.settings",
             value="Manage Alpine's settings for this server.",
             inline=False,
+        )
+        embed.add_field(
+            name="Terms of Service and Privacy Policy",
+            value=(
+                "Please read our [Terms of Service](https://bots.avizum.dev/alpine/terms) and our [Privacy Policy](https://bots.avizum.dev/alpine/privacy)."
+            ),
         )
         embed.set_footer(text="This message can be deleted.")
         channel = discord.utils.get(guild.text_channels, name="general")

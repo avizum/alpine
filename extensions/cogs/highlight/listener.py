@@ -105,6 +105,9 @@ class HighlightListener(core.Cog):
 
         highlight_list = []
         for user_id, highlight in self.bot.database._highlights.items():
+            if message.author.id == user_id and highlight.opted_out:
+                return
+
             if user_id == message.author.id:
                 continue
 

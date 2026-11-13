@@ -23,7 +23,7 @@ import traceback as tb
 
 import discord
 import humanize
-from discord import app_commands
+from discord import app_commands, ui
 from discord.ext import commands
 from discord.ext.commands import (
     ArgumentParsingError,
@@ -49,7 +49,14 @@ from mystbin import File as MystFile
 
 import core
 from core import Bot, Context
-from core.exceptions import Blacklisted, CommandDisabledChannel, CommandDisabledGuild, Maintenance, NotGuildOwner
+from core.exceptions import (
+    Blacklisted,
+    CommandDisabledChannel,
+    CommandDisabledGuild,
+    Maintenance,
+    NotAcceptedTOS,
+    NotGuildOwner,
+)
 from utils import format_list
 
 _log = logging.getLogger("alpine")
@@ -67,19 +74,17 @@ class CooldownByContent(commands.CooldownMapping):
         return (message.channel.id, message.content)
 
 
-class ErrorTrackerButton(discord.ui.DynamicItem[discord.ui.Button[discord.ui.View]], template=r"error:id:(?P<id>[0-9]+)"):
+class ErrorTrackerButton(ui.DynamicItem[ui.Button[ui.View]], template=r"error:id:(?P<id>[0-9]+)"):
     error_get = "SELECT fixed, trackers FROM command_errors WHERE id = $1"
     tracker_sub = "UPDATE command_errors SET trackers = ARRAY_APPEND(trackers, $2) WHERE id = $1"
     tracker_unsub = "UPDATE command_errors SET trackers = ARRAY_REMOVE(trackers, $2) WHERE id = $1"
 
     def __init__(self, error_id: int):
-        super().__init__(
-            discord.ui.Button(style=discord.ButtonStyle.blurple, label="Track Error", custom_id=f"error:id:{error_id}")
-        )
+        super().__init__(ui.Button(style=discord.ButtonStyle.blurple, label="Track Error", custom_id=f"error:id:{error_id}"))
         self.error_id: int = error_id
 
     @classmethod
-    async def from_custom_id(cls, _: discord.Interaction[Bot], __: discord.ui.Button, match: re.Match[str], /):
+    async def from_custom_id(cls, _: discord.Interaction[Bot], __: ui.Button, match: re.Match[str], /):
         return cls(int(match["id"]))
 
     async def callback(self, itn: discord.Interaction[Bot]):
@@ -102,6 +107,51 @@ class ErrorTrackerButton(discord.ui.DynamicItem[discord.ui.Button[discord.ui.Vie
         await itn.client.database.pool.execute(self.tracker_sub, self.error_id, itn.user.id)
         await itn.followup.send(f"You are now tracking error `#{self.error_id}`", ephemeral=True)
         return None
+
+
+class TOSView(ui.View):
+    def __init__(self, user: discord.User | discord.Member) -> None:
+        self.user = user
+        super().__init__()
+
+    async def interaction_check(self, itn: discord.Interaction[Bot]) -> bool:
+        if itn.user != self.user:
+            await itn.response.send_message("This is not for you.", ephemeral=True)
+            return False
+        return True
+
+    @ui.button(label="View Terms")
+    async def terms(self, itn: discord.Interaction[Bot], _: ui.Button):
+        modal = TOSModal(itn.client)
+        await itn.response.send_modal(modal)
+
+
+class TOSModal(ui.Modal, title="Alpine Terms of Service and Privacy Policy"):
+    body: ui.TextDisplay = ui.TextDisplay(
+        "In order to use Alpine, you must accept our terms of service.\n"
+        "https://bots.avizum.dev/alpine/terms\n\n"
+        "Here is the Privacy Policy\n"
+        "https://bots.avizum.dev/alpine/privacy\n"
+    )
+    accept: ui.Label = ui.Label(text="I accept these terms of service", component=ui.Checkbox())
+
+    def __init__(self, bot: Bot) -> None:
+        self.bot: Bot = bot
+        super().__init__()
+
+    async def on_submit(self, itn: discord.Interaction[Bot]) -> None:
+        assert isinstance(self.accept.component, ui.Checkbox)
+        accepted = self.accept.component.value
+
+        if not accepted:
+            await itn.response.send_message(
+                "You didn't accept the Terms of Service; you can not use Alpine.", ephemeral=True
+            )
+            return
+
+        db_user = await self.bot.database.get_or_fetch_user(itn.user.id)
+        await db_user.update(accepted_tos=accepted)
+        await itn.response.send_message("Thank you; you can now use Alpine.", ephemeral=True)
 
 
 class ErrorHandler(core.Cog):
@@ -190,14 +240,23 @@ class ErrorHandler(core.Cog):
             retry_after = self.blacklist_cooldown.update_rate_limit(ctx.message)
             if not retry_after or ctx.interaction is not None:
                 moderator, reason = error.reason.split("|\u200b|")
-                view = discord.ui.View()
-                view.add_item(discord.ui.Button(label="Appeal Here", url=self.bot.support))
+                view = ui.View()
+                view.add_item(ui.Button(label="Appeal Here", url=self.bot.support))
                 return await ctx.send(
                     f"**You are blacklisted from Alpine:**\n> **Reason:** {reason}\n> **Moderator:** {moderator}\n",
                     delete_after=30,
                     view=view,
                     ephemeral=True,
                 )
+            return None
+
+        if isinstance(error, NotAcceptedTOS):
+            if ctx.interaction:
+                modal = TOSModal(ctx.bot)
+                await ctx.interaction.response.send_modal(modal)
+            else:
+                view = TOSView(ctx.author)
+                await ctx.send("To use Alpine, you must to accept our terms of service.", view=view, delete_after=180)
             return None
 
         if isinstance(error, CommandOnCooldown):
@@ -373,11 +432,9 @@ class ErrorHandler(core.Cog):
                     f"Error ID: {in_db['id']}"
                 )
                 await self.error_webhook.send(traceback, embed=webhook_error_embed, username="Command Error")
-                view = discord.ui.View(timeout=None)
+                view = ui.View(timeout=None)
                 view.add_item(ErrorTrackerButton(in_db["id"]))
-                view.add_item(
-                    discord.ui.Button(style=discord.ButtonStyle.link, label="Support Server", url=self.bot.support)
-                )
+                view.add_item(ui.Button(style=discord.ButtonStyle.link, label="Support Server", url=self.bot.support))
                 await ctx.send(embed=embed, view=view, ephemeral=True)
             _log.error(f"Ignoring exception in command {ctx.command}:", exc_info=error)
             return None

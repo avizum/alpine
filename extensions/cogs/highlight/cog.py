@@ -42,6 +42,34 @@ class HighlightCommands(core.Cog):
         """
         await ctx.send_help(ctx.command)
 
+    @highlight.command(name="opt-out")
+    async def highlight_opt_out(self, ctx: Context):
+        """
+        Opt-out of the highlight system.
+
+        When opting out, your messages will not trigger anybody's highlights.
+        """
+        highlights = ctx.database.get_highlights(ctx.author.id) or await ctx.database.fetch_highlights(ctx.author.id)
+        if highlights.opted_out:
+            conf = await ctx.confirm(
+                message="You've already opted out of triggering others' highlights. Would you like to opt back in?",
+                ephemeral=True,
+            )
+            if conf.result:
+                await highlights.update(opted_out=False)
+                await conf.message.edit(content="Okay, you have opted back into highlight.")
+                return
+            await conf.message.edit(content="Okay, you won't be opted back in.")
+            return
+        conf = await ctx.confirm(
+            message="Would you like to opt-out of your messages triggering others' highlights?", ephemeral=True
+        )
+        if conf.result:
+            await highlights.update(opted_out=True)
+            await conf.message.edit(content="You have opted out of highlight.")
+            return
+        await conf.message.edit(content="Okay,you have not opted out.")
+
     @highlight.command(name="add", aliases=["a", "+"])
     @core.describe(trigger="The word or phrase to add.")
     async def highlight_add(self, ctx: Context, *, trigger: str):

@@ -27,7 +27,7 @@ from discord.utils import escape_markdown
 
 import core
 from core import Bot, Context
-from core.exceptions import Blacklisted, CommandDisabledChannel, CommandDisabledGuild, Maintenance
+from core.exceptions import Blacklisted, CommandDisabledChannel, CommandDisabledGuild, Maintenance, NotAcceptedTOS
 from utils import format_seconds, timestamp
 
 TOKEN_REGEX = r"([a-zA-Z0-9]{24}\.[a-zA-Z0-9]{6}\.[a-zA-Z0-9_\-]{27}|mfa\.[a-zA-Z0-9_\-]{84})"
@@ -346,8 +346,13 @@ class BotLogs(core.Cog):
         blacklisted = ctx.database.get_blacklist(ctx.author.id)
         if blacklisted:
             raise Blacklisted(reason=blacklisted.reason)
+
         if not ctx.guild:
             raise commands.NoPrivateMessage
+
+        db_user = await ctx.database.get_or_fetch_user(ctx.author.id)
+        if not db_user.accepted_tos:
+            raise NotAcceptedTOS()
         guild_settings = ctx.database.get_guild(ctx.guild.id)
         if guild_settings:
             if (ctx.command.full_parent_name or ctx.command.qualified_name) in guild_settings.disabled_commands:

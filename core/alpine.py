@@ -129,15 +129,14 @@ class Bot(commands.Bot):
                 guilds=True,
                 messages=True,
                 members=True,
-                presences=True,
                 reactions=True,
                 webhooks=True,
                 voice_states=True,
                 message_content=True,
             ),
             status=discord.Status.idle,
-            chunk_guilds_at_startup=True,
-            max_messages=5000,
+            chunk_guilds_at_startup=False,
+            max_messages=1500,
             owner_ids=OWNER_IDS,
         )
         self.token: str

@@ -404,8 +404,8 @@ class UserData(BaseData):
         return self._data.get("color", 0)
 
     @property
-    def dmed(self) -> bool:
-        return self._data.get("dmed", False)
+    def accepted_tos(self) -> bool:
+        return self._data.get("accepted_tos", False)
 
 
 class HighlightsData(BaseData):
@@ -454,6 +454,10 @@ class HighlightsData(BaseData):
     @property
     def blocked(self) -> list[int]:
         return self._data.get("blocked", [])
+
+    @property
+    def opted_out(self) -> bool:
+        return self._data.get("opted_out", False)
 
 
 class BlacklistData(BaseData):
